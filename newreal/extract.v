@@ -34,7 +34,7 @@ Extract Inlined Constant Realmult => "mult".
 Extract Inlined Constant Realopp => "opp".
 Extract Inlined Constant Realinv => "inv".
 Extract Inlined Constant Realltb => "lt".
-Extract Inlined Constant slimit => "lim".
+Extract Inlined Constant limit => "lim".
 
 
 
