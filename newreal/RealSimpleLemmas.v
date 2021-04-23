@@ -1495,6 +1495,48 @@ Proof.
 Qed.
 
 
+Lemma Reallt_add_r : forall z x y, x + z < y + z -> x < y.
+Proof.
+  intros.
+  pose proof (Reallt_plus_lt (-z) _ _ H).
+  ring_simplify in H0.
+  exact H0.
+Qed.
+
+Lemma Realgt_add_r : forall z x y, x + z > y + z -> x > y.
+Proof.
+  intros.
+  pose proof (Reallt_plus_lt (-z) _ _ H).
+  ring_simplify in H0.
+  exact H0.
+Qed.
+
+
+Lemma Realle_add_r : forall z x y, x + z <= y + z -> x <= y.
+Proof.
+  intros.
+  destruct H.
+  left.
+  exact (Reallt_add_r z x y H).
+  right.
+  pose proof (lp _ _ (fun k => k - z) _ _ H).
+  simpl in H0.
+  ring_simplify in H0.
+  exact H0.
+Qed.
+
+Lemma Realge_add_r : forall z x y, x + z >= y + z -> x >= y.
+Proof.
+  intros.
+  destruct H.
+  left.
+  exact (Realgt_add_r z x y H).
+  right.
+  pose proof (lp _ _ (fun k => k - z) _ _ H).
+  simpl in H0.
+  ring_simplify in H0.
+  exact H0.
+Qed. 
 
 Lemma abs_tri : forall x y, (abs x) + abs y >= abs (x + y).
 Proof.
@@ -1528,16 +1570,103 @@ Proof.
   destruct (abs_prop x).
   destruct (abs_prop y).
   destruct (abs_prop (x + y)).
-  destruct (Realtotal_order (x + y) Real0).
   destruct a as [_ [_ a]].
   destruct a0 as [a0 [_ _]].
-  destruct a1 as [_ [_ a1]].
+  rewrite (a H),  (a0 H0).
 
   
+  destruct (Realtotal_order (x + y) Real0).
+  destruct a1 as [_ [_ a1]]; rewrite (a1 H1).
+  apply (Realge_add_r (x + y)   (-x + y) (- (x + y))).
+  ring_simplify.
+  left.
+  apply (Reallt_mult_r_pos_lt _ _ _ (Real2_pos)) in H0.
+  ring_simplify in H0.
+  exact H0.
 
-  Admitted.
+  destruct H1.
+  destruct a1 as [_ [a1 _]]; rewrite (a1 H1).
+  apply (Realge_add_r x).
+  ring_simplify.
+  left.
+  apply (Reallt_lt_lt _ _ _ H H0).
+
+  destruct a1 as [a1 [_ _]]; rewrite (a1 H1).
+  apply (Realge_add_r (x-y)).
+  ring_simplify.
+  apply (Reallt_mult_r_pos_lt _ _ _ (Real2_pos)) in H.
+  ring_simplify in H.
+  left.
+  replace ((Real1 + Real1) *x) with (x * (Real1 + Real1)) by ring.
+  exact H.
+
+  destruct H.
+  rewrite H.
+  destruct (abs_zero Real0).
+  rewrite (H1 (eq_refl _)).
+  ring_simplify.
+  replace (Real0 + y) with y by ring.
+  right; auto.
 
 
+  destruct (Realtotal_order y Real0).
+  unfold abs.
+  destruct (abs_prop x).
+  destruct (abs_prop y).
+  destruct (abs_prop (x + y)).
+  destruct a as [a [_ _]].
+  destruct a0 as [_ [_ a0]].
+  rewrite (a H),  (a0 H0).
+
+  
+  destruct (Realtotal_order (x + y) Real0).
+  destruct a1 as [_ [_ a1]]; rewrite (a1 H1).
+  apply (Realge_add_r (x + y)).
+  ring_simplify.
+  left.
+  apply (Reallt_mult_r_pos_lt _ _ _ (Real2_pos)) in H.
+  ring_simplify in H.
+  exact H.
+
+  destruct H1.
+  destruct a1 as [_ [a1 _]]; rewrite (a1 H1).
+  rewrite<- H1.
+  apply (Realge_add_r ( y - x)).
+  ring_simplify.
+  apply (Reallt_mult_r_pos_lt _ _ _ (Real2_pos)) in H0.
+  ring_simplify in H0.
+  left.
+  replace ((Real1 + Real1 ) * y) with (y *( Real1 + Real1)) by ring.
+  exact H0.
+
+  destruct a1 as [a1 [_ _]]; rewrite (a1 H1).
+  apply (Realge_add_r ( y - x)).
+  ring_simplify.
+  apply (Reallt_mult_r_pos_lt _ _ _ (Real2_pos)) in H0.
+  ring_simplify in H0.
+ replace ((Real1 + Real1 ) * y) with (y *( Real1 + Real1)) by ring.
+  left; exact H0.
+
+  destruct H0.
+  rewrite H0.
+  destruct (abs_zero Real0).
+  rewrite (H2 (eq_refl _)).
+  ring_simplify.
+  replace (x + Real0) with x by ring.
+  right; auto.
+
+  unfold abs.
+  destruct (abs_prop x) , (abs_prop y), (abs_prop (x + y)).
+  destruct a as [a [_ _]].
+  destruct a0 as [a0 [_ _]].
+  rewrite (a H),  (a0 H0).
+
+  pose proof (Reallt_lt_plus_lt _ _ _ _ H H0).
+  ring_simplify in H1.
+  destruct a1 as [a1 _].
+  rewrite (a1 H1).
+  right; auto.
+Qed.
 
   
   
