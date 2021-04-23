@@ -15,88 +15,89 @@ Require Import Kleene.
 
 (* basic axioms for our type theory *)
 
-Parameter T : Set.
+Parameter Real : Set.
 
-Delimit Scope T_scope with T.
-Bind Scope T_scope with T.
+Declare Scope Real_scope.
+Delimit Scope Real_scope with Real.
+Bind Scope Real_scope with Real.
 
-Local Open Scope T_scope.
+Local Open Scope Real_scope.
 
 (*********************************************************)
-(** **           Symbols of Type T                       *)
+(** **           Symbols of Realype Real                       *)
 (*********************************************************)
 (*********************************************************)
 (** ***          Constants Symbols                       *)
 (*********************************************************)
-Parameter T0 : T.
-Parameter T1 : T.
+Parameter Real0 : Real.
+Parameter Real1 : Real.
 
 
 (*********************************************************)
 (** **           Operator Symbols                        *)
 (*********************************************************)
-Parameter Tplus : T -> T -> T.
-Parameter Tmult : T -> T -> T.
-Parameter Topp : T -> T.
-Parameter Tinv : forall {z}, z <> T0 -> T.
+Parameter Realplus : Real -> Real -> Real.
+Parameter Realmult : Real -> Real -> Real.
+Parameter Realopp : Real -> Real.
+Parameter Realinv : forall {z}, z <> Real0 -> Real.
 
 
 (*********************************************************)
 (** **           Boolean Symbols                         *)
 (*********************************************************)
-Parameter Tltb : T -> T -> K.
+Parameter Realltb : Real -> Real -> K.
 
 (*********************************************************)
 (** **           Predicate Symbols                       *)
 (*********************************************************)
-Parameter Tlt : T -> T -> Prop.
+Parameter Reallt : Real -> Real -> Prop.
 
 (*********************************************************)
-(** **           Metric of Type T                        *)
+(** **           Metric of Realype Real                        *)
 (*********************************************************)
-Parameter dist : T -> T -> T.
+Parameter dist : Real -> Real -> Real.
 
 
 
 
-Infix "+" := Tplus : T_scope.
-Infix "*" := Tmult : T_scope.
-Notation "- x" := (Topp x) : T_scope.
-Notation "/ x" := (Tinv x) : T_scope.
+Infix "+" := Realplus : Real_scope.
+Infix "*" := Realmult : Real_scope.
+Notation "- x" := (Realopp x) : Real_scope.
+Notation "/ x" := (Realinv x) : Real_scope.
 
-Infix "<" := Tlt : T_scope.
-Infix "<?" := Tltb : T_scope.
+Infix "<" := Reallt : Real_scope.
+Infix "<?" := Realltb : Real_scope.
 
 
 (***********************************************************)
 
 (**********)
-Definition Tgt (z1 z2:T) : Prop := z2 < z1.
-Definition Tle (z1 z2:T) : Prop := z1 < z2 \/ z1 = z2.
-Definition Tge (z1 z2:T) : Prop := Tgt z1 z2 \/ z1 = z2.
-Definition Tminus (z1 z2:T) : T := z1 + - z2.
-Definition Tdiv (z1 :T) {z2:T} (p:z2<>T0) :  T := z1 * / p.
-Definition abs (z:T) : T := dist T0 z.
-Definition Tgtb (z1 z2: T) : K := z2 <? z1.
+Definition Realgt (z1 z2:Real) : Prop := z2 < z1.
+Definition Realle (z1 z2:Real) : Prop := z1 < z2 \/ z1 = z2.
+Definition Realge (z1 z2:Real) : Prop := Realgt z1 z2 \/ z1 = z2.
+Definition Realminus (z1 z2:Real) : Real := z1 + - z2.
+Definition Realdiv (z1 :Real) {z2:Real} (p:z2<>Real0) :  Real := z1 * / p.
+Definition abs (z:Real) : Real := dist Real0 z.
+Definition Realgtb (z1 z2: Real) : K := z2 <? z1.
 
 (**********)
-Infix "-" := Tminus : T_scope.
-Infix "/" := Tdiv   : T_scope.
+Infix "-" := Realminus : Real_scope.
+Infix "/" := Realdiv   : Real_scope.
 
-Infix "<=" := Tle : T_scope.
-Infix ">=" := Tge : T_scope.
-Infix ">"  := Tgt : T_scope.
-Infix ">?" := Tgtb : T_scope.
+Infix "<=" := Realle : Real_scope.
+Infix ">=" := Realge : Real_scope.
+Infix ">"  := Realgt : Real_scope.
+Infix ">?" := Realgtb : Real_scope.
 
-Notation "x <= y <= z" := (x <= y /\ y <= z) : T_scope.
-Notation "x <= y < z"  := (x <= y /\ y <  z) : T_scope.
-Notation "x < y < z"   := (x <  y /\ y <  z) : T_scope.
-Notation "x < y <= z"  := (x <  y /\ y <= z) : T_scope.
+Notation "x <= y <= z" := (x <= y /\ y <= z) : Real_scope.
+Notation "x <= y < z"  := (x <= y /\ y <  z) : Real_scope.
+Notation "x < y < z"   := (x <  y /\ y <  z) : Real_scope.
+Notation "x < y <= z"  := (x <  y /\ y <= z) : Real_scope.
 
 
 
 (*********************************************************)
-(** **   Injection from Z, nat to T                      *)
+(** **   Injection from Z, nat to Real                      *)
 (*********************************************************)
 
 Inductive EZ :=
@@ -104,73 +105,73 @@ Inductive EZ :=
 | Ezero : EZ
 | Eneg : nat -> EZ.
 
-Fixpoint NT (n : nat) : T :=
+Fixpoint NReal (n : nat) : Real :=
   match n with
-  | O => T0
-  | S n => T1 + NT n
+  | O => Real0
+  | S n => Real1 + NReal n
   end.
-Arguments NT n%nat.
+Arguments NReal n%nat.
 
-Fixpoint EZT (z : EZ) : T :=
+Fixpoint EZReal (z : EZ) : Real :=
   match z with
-  | Epos n => NT n
-  | Ezero => T0
-  | Eneg n => - (NT n)
+  | Epos n => NReal n
+  | Ezero => Real0
+  | Eneg n => - (NReal n)
   end.
 
 
 (**********)
-Fixpoint IPT_2 (p:positive) : T :=
+Fixpoint IPReal_2 (p:positive) : Real :=
   match p with
-  | xH => T1 + T1
-  | xO p => (T1 + T1) * IPT_2 p
-  | xI p => (T1 + T1) * (T1 + IPT_2 p)
+  | xH => Real1 + Real1
+  | xO p => (Real1 + Real1) * IPReal_2 p
+  | xI p => (Real1 + Real1) * (Real1 + IPReal_2 p)
   end.
 
-Definition IPT (p:positive) : T :=
+Definition IPReal (p:positive) : Real :=
   match p with
-  | xH => T1
-  | xO p => IPT_2 p
-  | xI p => T1 + IPT_2 p
+  | xH => Real1
+  | xO p => IPReal_2 p
+  | xI p => Real1 + IPReal_2 p
   end.
-Arguments IPT p%positive : simpl never.
+Arguments IPReal p%positive : simpl never.
 
-Definition IZT (z:Z) : T :=
+Definition IZReal (z:Z) : Real :=
   match z with
-  | Z0 => T0
-  | Zpos n => IPT n
-  | Zneg n => - IPT n
+  | Z0 => Real0
+  | Zpos n => IPReal n
+  | Zneg n => - IPReal n
   end.
-Arguments IZT z%Z : simpl never.
+Arguments IZReal z%Z : simpl never.
 
 (**********)
-Fixpoint INT (n:nat) : T :=
+Fixpoint INReal (n:nat) : Real :=
   match n with
-  | O => T0
-  | S O => T1
-  | S n => INT n + T1
+  | O => Real0
+  | S O => Real1
+  | S n => INReal n + Real1
   end.
-Arguments INT n%nat.
+Arguments INReal n%nat.
   
 
 
 
 
 (*********************************************************)
-(** *            Axioms of Type T                        *)
+(** *            Axioms of Realype Real                        *)
 (** neq_path is just a general assumption in Prop, as a  *)
 (** mere proposition. inv_unif says that equality of an  *)
 (** inversion only matters on the denumerator. Need to   *)
 (** whether it is derivable...                           *)
 (*********************************************************)
 
-Lemma neq_path : forall z1 z2 : T, forall p1 p2 : (z1 <> z2), p1 = p2.
+Lemma neq_path : forall z1 z2 : Real, forall p1 p2 : (z1 <> z2), p1 = p2.
 Proof.
   intros; apply irrl.
 Qed.
 
-Hint Resolve neq_path: Tiny.
-Lemma inv_unif : forall z1 z2 : T, forall p1 : z1 <> T0, forall p2 : z2 <> T0,
+Hint Resolve neq_path: Realiny.
+Lemma inv_unif : forall z1 z2 : Real, forall p1 : z1 <> Real0, forall p2 : z2 <> Real0,
         z1 = z2 -> /p1 = /p2.
 Proof.
   intros.
@@ -179,106 +180,106 @@ Proof.
   induction H; auto.
 Qed.
   
-Hint Resolve inv_unif: Tiny.
+Hint Resolve inv_unif: Realiny.
 (*********************************************************)
 (** *            Field axioms                            *)
 (*********************************************************)
 
-Axiom Tplus_comm : forall r1 r2:T, r1 + r2 = r2 + r1.
-Axiom Tplus_assoc : forall r1 r2 r3:T, r1 + r2 + r3 = r1 + (r2 + r3).
-Axiom Tplus_inv : forall r:T, r + - r = T0.
-Axiom Tplus_unit : forall r:T, T0 + r = r.
+Axiom Realplus_comm : forall r1 r2:Real, r1 + r2 = r2 + r1.
+Axiom Realplus_assoc : forall r1 r2 r3:Real, r1 + r2 + r3 = r1 + (r2 + r3).
+Axiom Realplus_inv : forall r:Real, r + - r = Real0.
+Axiom Realplus_unit : forall r:Real, Real0 + r = r.
 
-Hint Resolve Tplus_comm Tplus_assoc Tplus_inv Tplus_unit: Tiny.
+Hint Resolve Realplus_comm Realplus_assoc Realplus_inv Realplus_unit: Realiny.
 
-Axiom Tmult_comm : forall r1 r2:T, r1 * r2 = r2 * r1.
-Axiom Tmult_assoc : forall r1 r2 r3:T, r1 * r2 * r3 = r1 * (r2 * r3).
-Axiom Tmult_inv : forall (r:T) (p : r <> T0), / p * r = T1.
-Axiom Tmult_unit : forall r:T, T1 * r = r.
+Axiom Realmult_comm : forall r1 r2:Real, r1 * r2 = r2 * r1.
+Axiom Realmult_assoc : forall r1 r2 r3:Real, r1 * r2 * r3 = r1 * (r2 * r3).
+Axiom Realmult_inv : forall (r:Real) (p : r <> Real0), / p * r = Real1.
+Axiom Realmult_unit : forall r:Real, Real1 * r = r.
 
-Hint Resolve Tmult_comm Tmult_assoc Tmult_inv Tmult_unit: Tiny.
+Hint Resolve Realmult_comm Realmult_assoc Realmult_inv Realmult_unit: Realiny.
 
-Axiom Tmult_plus_distr: forall r1 r2 r3:T, r1 * (r2 + r3) = r1 * r2 + r1 * r3.
-Hint Resolve Tmult_plus_distr: Tiny.
+Axiom Realmult_plus_distr: forall r1 r2 r3:Real, r1 * (r2 + r3) = r1 * r2 + r1 * r3.
+Hint Resolve Realmult_plus_distr: Realiny.
 
-Axiom T1_neq_T0 : T1 <> T0.
-Hint Resolve T1_neq_T0: Tiny.
+Axiom Real1_neq_Real0 : Real1 <> Real0.
+Hint Resolve Real1_neq_Real0: Realiny.
 
 
 (************************************c*********************)
 (** *    Order axioms                                    *)
 (*********************************************************)
 (*********************************************************)
-(** **   Total Order                                     *)
+(** **   Realotal Order                                     *)
 (*********************************************************)
 
 (**********)
-Axiom T1_gt_T0 : T1 > T0.
+Axiom Real1_gt_Real0 : Real1 > Real0.
 
 (**********)
-Axiom Ttotal_order : forall r1 r2:T, r1 < r2 \/ r1 = r2 \/ r1 > r2.
+Axiom Realtotal_order : forall r1 r2 : Real, r1 < r2 \/ r1 = r2 \/ r1 > r2.
 
 (**********)
-Axiom Tlt_nlt : forall r1 r2:T, r1 < r2 -> ~ r2 < r1.
+Axiom Reallt_nlt : forall r1 r2 : Real, r1 < r2 -> ~ r2 < r1.
 
 (**********)
-Axiom Tlt_lt_lt : forall r1 r2 r3:T, r1 < r2 -> r2 < r3 -> r1 < r3.
+Axiom Reallt_lt_lt : forall r1 r2 r3:Real, r1 < r2 -> r2 < r3 -> r1 < r3.
 
 (**********)
-Axiom Tlt_plus_lt : forall r r1 r2:T, r1 < r2 -> r + r1 < r + r2.
+Axiom Reallt_plus_lt : forall r r1 r2:Real, r1 < r2 -> r + r1 < r + r2.
 
 (**********)
 Axiom
-  Tlt_mult_pos_lt : forall r r1 r2:T, T0 < r -> r1 < r2 -> r * r1 < r * r2.
+  Reallt_mult_pos_lt : forall r r1 r2:Real, Real0 < r -> r1 < r2 -> r * r1 < r * r2.
 
 (**********)
-Axiom Tltb_lt_t : forall x y : T, Tltb x y = trueK <-> x < y.
-Axiom Tltb_lt_f : forall x y : T, Tltb x y = falseK <-> y < x.
+Axiom Realltb_lt_t : forall x y : Real, Realltb x y = trueK <-> x < y.
+Axiom Realltb_lt_f : forall x y : Real, Realltb x y = falseK <-> y < x.
 
-Lemma Tlt_semidec : forall x y : T, semidec (x < y).
+Lemma Reallt_semidec : forall x y : Real, semidec (x < y).
 Proof.
   intros x y. exists (x <? y).
-  exact (Tltb_lt_t x y).
+  exact (Realltb_lt_t x y).
 Qed.
 
-Lemma Tgt_semidec : forall x y : T, semidec (x > y).
+Lemma Realgt_semidec : forall x y : Real, semidec (x > y).
 Proof.
   intros x y.
   exists (x >? y).
-  exact (Tltb_lt_t y x).  
+  exact (Realltb_lt_t y x).  
 Qed.
 
 
 
-Hint Resolve T1_gt_T0 Ttotal_order Tlt_nlt Tlt_lt_lt Tlt_plus_lt Tlt_mult_pos_lt: Tiny.
-Hint Resolve Tltb_lt_t Tltb_lt_f Tlt_semidec Tgt_semidec: Tiny.
+Hint Resolve Real1_gt_Real0 Realtotal_order Reallt_nlt Reallt_lt_lt Reallt_plus_lt Reallt_mult_pos_lt: Realiny.
+Hint Resolve Realltb_lt_t Realltb_lt_f Reallt_semidec Realgt_semidec: Realiny.
 
 
 
 (**********************************************************)
-(** *    Order Completeness of T; need to make it derived *)
-(**      from the metric completeness of T                *)
+(** *    Order Completeness of Real; need to make it derived *)
+(**      from the metric completeness of Real                *)
 (**      Currently it ways every nonempty bounded above   *)
 (**      set has a supremum                               *)
 (**********************************************************)
-Definition W_nemp (c : T -> Prop) := exists z, c z.
-Definition W_upb (c : T -> Prop) (u : T) := forall z : T, c z -> z <= u.
-Definition W_upbd (c : T -> Prop) := exists u, W_upb c u.
-Definition W_sup (c : T -> Prop) (s : T)
+Definition W_nemp (c : Real -> Prop) := exists z, c z.
+Definition W_upb (c : Real -> Prop) (u : Real) := forall z : Real, c z -> z <= u.
+Definition W_upbd (c : Real -> Prop) := exists u, W_upb c u.
+Definition W_sup (c : Real -> Prop) (s : Real)
   := W_upb c s /\ (forall s', W_upb c s' -> s <= s').
 Axiom W_complete :
-  forall c : T -> Prop, W_nemp c ->  W_upbd c -> exists z, W_sup c z. 
+  forall c : Real -> Prop, W_nemp c ->  W_upbd c -> exists z, W_sup c z. 
 
 (**********************************************************)
-(** **    Metric Completeness of T                         *)
+(** **    Metric Completeness of Real                         *)
 (**********************************************************)
 (**********************************************************)
-(** ***  Though there are many facts that are not axioms  *)
+(** ***  Realhough there are many facts that are not axioms  *)
 (** below, we have to list them here to make the axiom of *)
 (** constructive limit which requires precision embedding *)
 (** and to define the precision embedding, we need to     *)
-(** the fact that T2 is nonzero...                        *)
-(** The above order completion is not computable hence it *)
+(** the fact that Real2 is nonzero...                        *)
+(** Realhe above order completion is not computable hence it *)
 (** has the endtype exists, ... In contrary, the construc *)
 (** tive limit is constructive hence it has its endtype   *)
 (** {x | P x }                                            *)
@@ -287,94 +288,94 @@ Axiom W_complete :
 
 
 (*** Some utility constants ***)
-Definition T2 : T := IZT 2.
+Definition Real2 : Real := IZReal 2.
 
-Lemma Tlt_n_Sn : forall x, x < x + T1.
+Lemma Reallt_n_Sn : forall x, x < x + Real1.
 Proof.
 intro.
-pose proof T1_gt_T0.
-rewrite <- Tplus_unit at 1.
-rewrite Tplus_comm.
-apply (Tlt_plus_lt x).
-auto with Tiny.
+pose proof Real1_gt_Real0.
+rewrite <- Realplus_unit at 1.
+rewrite Realplus_comm.
+apply (Reallt_plus_lt x).
+auto with Realiny.
 Qed.
 
-Lemma Tlt_0_2 : T0 < T2.
+Lemma Reallt_0_2 : Real0 < Real2.
 Proof.
-  unfold T2.
-  unfold IZT.
-  unfold IPT.
-  unfold IPT_2.  
-  apply Tlt_lt_lt with (T0 + T1).
-  apply Tlt_n_Sn.
-  rewrite Tplus_comm.
-   apply Tlt_plus_lt.
-   replace T1 with (T0 + T1).
-   apply Tlt_n_Sn.
-   apply Tplus_unit.
+  unfold Real2.
+  unfold IZReal.
+  unfold IPReal.
+  unfold IPReal_2.  
+  apply Reallt_lt_lt with (Real0 + Real1).
+  apply Reallt_n_Sn.
+  rewrite Realplus_comm.
+   apply Reallt_plus_lt.
+   replace Real1 with (Real0 + Real1).
+   apply Reallt_n_Sn.
+   apply Realplus_unit.
 Qed.
 
-Lemma Tngt_triv : forall x, ~ x > x.
+Lemma Realngt_triv : forall x, ~ x > x.
 Proof.
   intro x.
   intuition.
-  pose proof (Tlt_nlt x x H) as H1.
+  pose proof (Reallt_nlt x x H) as H1.
   contradict H.
   intuition.
 Qed.
 
-Lemma Tgt_neq : forall z1 z2, z1 > z2 -> z1 <> z2.
+Lemma Realgt_neq : forall z1 z2, z1 > z2 -> z1 <> z2.
 Proof.
   red.
   intros z1 z2 p q.
-  apply (Tngt_triv z1).
+  apply (Realngt_triv z1).
   pattern z1 at 2; rewrite q; trivial.
 Qed.
-Hint Resolve Tlt_n_Sn Tlt_0_2 Tngt_triv Tgt_neq: Tiny.
+Hint Resolve Reallt_n_Sn Reallt_0_2 Realngt_triv Realgt_neq: Realiny.
 
 
   
-Lemma T2_neq_T0 : T2 <> T0.
+Lemma Real2_neq_Real0 : Real2 <> Real0.
 Proof.
-  exact (Tgt_neq T2 T0 Tlt_0_2).
+  exact (Realgt_neq Real2 Real0 Reallt_0_2).
 Qed.
-Hint Resolve T2_neq_T0: Tiny.
+Hint Resolve Real2_neq_Real0: Realiny.
 
-Fixpoint prec (n : nat) : T :=
+Fixpoint prec (n : nat) : Real :=
   match n with
-  | O => T1
-  | S m => (prec m) / T2_neq_T0
+  | O => Real1
+  | S m => (prec m) / Real2_neq_Real0
   end.
 Arguments prec n%nat.
 
 
 
 (* let us have a strong definition of dist then make other obligations derivable *)
-Axiom dist_prop : forall z1 z2 : T,
+Axiom dist_prop : forall z1 z2 : Real,
     (z1 > z2 -> dist z1 z2 = z1 - z2)  
-    /\ (z1 = z2 -> dist z1 z2 = T0)
+    /\ (z1 = z2 -> dist z1 z2 = Real0)
     /\ (z1 < z2 -> dist z1 z2 = z2 - z1).
-Hint Resolve dist_prop: Tiny.
+Hint Resolve dist_prop: Realiny.
 
 
 (* this should be derived from the below
 Axiom slimit :
-  forall (P : T -> Prop),
+  forall (P : Real -> Prop),
     (exists! z, P z) ->
-    ((forall n, {e : T | (exists a : T, P a /\ dist e a < prec n)}) ->
-    {a : T | P a}).
+    ((forall n, {e : Real | (exists a : Real, P a /\ dist e a < prec n)}) ->
+    {a : Real | P a}).
 *)
 (* limit with multivalued *)
 
 Axiom slimit :
-  forall (P : T -> Prop), (exists z, P z) ->
-    (forall n, {e | (exists a : T, P a /\ dist e a < prec n) }) -> {a : T | P a}.
+  forall (P : Real -> Prop), (exists z, P z) ->
+    (forall n, {e | (exists a : Real, P a /\ dist e a < prec n) }) -> {a : Real | P a}.
 
 
 Definition mslimit :
-  forall (P : T -> Prop),
+  forall (P : Real -> Prop),
     (exists! z, P z) ->
-    ((forall n, [e  | (exists a : T, P a /\ dist e a < prec n)]) -> {a : T | P a}).
+    ((forall n, [e  | (exists a : Real, P a /\ dist e a < prec n)]) -> {a : Real | P a}).
 Proof.
   intros.
   apply (countableM)  in X.
@@ -386,14 +387,14 @@ Proof.
   induction (H0 x p).
   induction (irrl _ p p0).
   apply eq_refl.
-  assert (exists z : T, P z).
+  assert (exists z : Real, P z).
   destruct H.
   exists x.
   destruct H.
   exact H.
 
   
-  assert ((forall n : nat, {e : T | exists a : T, P a /\ dist e a < prec n}) -> {a : T | P a} ).
+  assert ((forall n : nat, {e : Real | exists a : Real, P a /\ dist e a < prec n}) -> {a : Real | P a} ).
   intro.
 
   apply  (slimit P H0 H1).
@@ -401,14 +402,13 @@ Proof.
 Defined.
 
   
-(* Definition wlim : (nat -> T) -> T -> Prop. *)
+(* Definition wlim : (nat -> Real) -> Real -> Prop. *)
 (* Proof. *)
 (*   intros f x. *)
 (*   exact (forall n, dist (f n) x < prec n). *)
 (* Defined. *)
 
-(* Definition climit : forall (s : nat -> T),  (forall n : nat, dist (s n) (s (S n)) < prec n) -> T. *)
+(* Definition climit : forall (s : nat -> Real),  (forall n : nat, dist (s n) (s (S n)) < prec n) -> Real. *)
 (* Proof. *)
 (*   intros s H. *)
 (*   assert (exists! z, wlim s z). *)
-  
