@@ -3,6 +3,8 @@ Base.v
 Kleene.v
 RealAxioms.v
 RealRing.v
-RealSimpleLemmas.v
+RealOrder.v
+RealMetric.v
+Real.v
 Minmax.v
 IVT.v

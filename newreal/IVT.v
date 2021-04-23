@@ -1,8 +1,4 @@
-Require Import Base.
-Require Import Kleene.
-Require Import RealAxioms.
-Require Import RealRing.
-Require Import RealSimpleLemmas.
+Require Import Real.
 Require Import Minmax.
 
 Local Open Scope Real_scope.
