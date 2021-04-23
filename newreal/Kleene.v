@@ -33,3 +33,8 @@ Proof.
   destruct H1; auto.
 Defined.
 
+
+Axiom singletonM : forall A, (forall x y : A, x = y) -> M A -> A.
+
+Axiom countableM : forall P : nat -> Type,
+    (forall n, M (P n)) -> M (forall n, P n). 

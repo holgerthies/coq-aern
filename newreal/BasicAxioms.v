@@ -1,6 +1,3 @@
-(* Require Import Lift. *)
-(* Require Export AbBool.           *)
-(* Require Export Multival. *)
 Require Export ZArith_base.
 Require Import Kleene.
 
@@ -14,6 +11,9 @@ Require Import Kleene.
 (* starts its name with W and a contructive but multival *)
 (* object starts its name with M                         *)
 (*********************************************************)
+
+(* basic axioms for our type theory *)
+Axiom irrl : forall P : Prop, forall x y : P, x = y.
 
 Parameter T : Set.
 
@@ -164,10 +164,21 @@ Arguments INT n%nat.
 (** whether it is derivable...                           *)
 (*********************************************************)
 
-Axiom neq_path : forall z1 z2 : T, forall p1 p2 : (z1 <> z2), p1 = p2.
+Lemma neq_path : forall z1 z2 : T, forall p1 p2 : (z1 <> z2), p1 = p2.
+Proof.
+  intros; apply irrl.
+Qed.
+
 Hint Resolve neq_path: Tiny.
-Axiom inv_unif : forall z1 z2 : T, forall p1 : z1 <> T0, forall p2 : z2 <> T0,
+Lemma inv_unif : forall z1 z2 : T, forall p1 : z1 <> T0, forall p2 : z2 <> T0,
         z1 = z2 -> /p1 = /p2.
+Proof.
+  intros.
+  induction H.
+  assert (p1 = p2) by apply irrl.
+  induction H; auto.
+Qed.
+  
 Hint Resolve inv_unif: Tiny.
 (*********************************************************)
 (** *            Field axioms                            *)
@@ -354,13 +365,50 @@ Axiom slimit :
     {a : T | P a}).
 *)
 (* limit with multivalued *)
-Axiom mslimit :
-  forall (P : T -> Prop),
-    (exists! z, P z) ->
-    ((forall n, [e  | (exists a : T, P a /\ dist e a < prec n)]) -> {a : T | P a}).
 
 Axiom slimit :
   forall (P : T -> Prop), (exists z, P z) ->
     (forall n, {e | (exists a : T, P a /\ dist e a < prec n) }) -> {a : T | P a}.
 
-Axiom climit : forall (s : nat -> T),  (forall n : nat, dist (s n) (s (S n)) < prec n) -> T.
+
+Definition mslimit :
+  forall (P : T -> Prop),
+    (exists! z, P z) ->
+    ((forall n, [e  | (exists a : T, P a /\ dist e a < prec n)]) -> {a : T | P a}).
+Proof.
+  intros.
+  apply (countableM)  in X.
+  apply singletonM.
+  intros x y.
+  destruct H, x, y.
+  destruct H.
+  induction (H0 x1 p0).
+  induction (H0 x p).
+  induction (irrl _ p p0).
+  apply eq_refl.
+  assert (exists z : T, P z).
+  destruct H.
+  exists x.
+  destruct H.
+  exact H.
+
+  
+  assert ((forall n : nat, {e : T | exists a : T, P a /\ dist e a < prec n}) -> {a : T | P a} ).
+  intro.
+
+  apply  (slimit P H0 H1).
+  apply (liftM _ _ H1 X).
+Defined.
+
+  
+(* Definition wlim : (nat -> T) -> T -> Prop. *)
+(* Proof. *)
+(*   intros f x. *)
+(*   exact (forall n, dist (f n) x < prec n). *)
+(* Defined. *)
+
+(* Definition climit : forall (s : nat -> T),  (forall n : nat, dist (s n) (s (S n)) < prec n) -> T. *)
+(* Proof. *)
+(*   intros s H. *)
+(*   assert (exists! z, wlim s z). *)
+  
