@@ -1,5 +1,8 @@
-Require Import BasicAxioms.
-Require Export BasicRing.
+Require Import Base.
+Require Import Kleene.
+Require Import RealAxioms.
+Require Import RealRing.
+
 Open Scope T_scope.
 
 Lemma Tmetric_inv : forall z1 z2 z3, dist z1 z2 = dist (z1 + z3) (z2 + z3).
@@ -936,3 +939,243 @@ Proof.
   intros.
   auto with Tiny.
 Qed.
+
+
+Lemma W_split : forall x y ε, ε > T0 -> x>y-ε \/ y>x-ε.
+Proof.
+  intros x y ε p.
+  destruct (Ttotal_order x y) as [H|[H|H]].
+  + apply (Tlt_plus_lt (-ε + x) T0 ε) in p.
+    ring_simplify in p.
+    apply (Tlt_lt_lt (-ε + x) x y p) in H.
+    replace (-ε+x) with (x-ε) in H by ring; right; exact H.
+  + rewrite H.
+    left.
+    apply (Tlt_plus_lt (y-ε) T0 ε) in p.
+    ring_simplify in p.
+    exact p.
+  + apply (Tlt_plus_lt (-ε + y) T0 ε) in p.
+    ring_simplify in p.
+    apply (Tlt_lt_lt (-ε + y) y x p) in H.
+    replace (-ε+y) with (y-ε) in H by ring; left; exact H.
+Defined.
+Hint Resolve W_split : Tiny.
+(** string but multivalued split **)
+Lemma M_split : forall x y ε, ε > T0 -> M ({x>y-ε} + {y>x-ε}).
+Proof.
+  intros x y ε p.  
+  apply (choose (x > y-ε) (y > x-ε)); auto with Tiny.
+Defined.
+
+Hint Resolve M_split : Tiny.
+
+  
+Lemma not_bounded : forall x, [ y | y > x ].
+Proof.
+  intro x.
+  apply (mjoin (x>T0-T1) (T0>x-T1)).
+  + intros [c1|c2].
+    ++ exists (x+T1).
+       pose proof (T1_gt_T0).
+       apply (Tlt_plus_lt x T0 T1) in H.
+       ring_simplify in H.
+       exact H.
+    ++ exists (x+T2).
+       pose proof (T2_pos).
+       apply (Tlt_plus_lt x T0 T2) in H.
+       ring_simplify in H.
+       exact H.
+  + apply M_split .
+    exact T1_gt_T0.
+Defined.
+
+
+Lemma Tmetric_sand : forall z1 z2 z3, z1-z3<=z2<=z1+z3 -> dist z1 z2 <= z3.
+Proof.
+  intros z1 z2 z3 p.
+  destruct p as [p1 p2].
+  destruct (dist_prop z1 z2) as [q1 [q2 q3]];
+    destruct (Ttotal_order z1 z2) as [r1 | [r2 | r3]].
+  rewrite (q3 r1).
+  destruct p2.
+  apply (Tlt_plus_lt (-z1) z2 (z1+z3)) in H.
+  ring_simplify in H.
+  replace (-z1+z2) with (z2-z1) in H by ring; left; exact H.
+  rewrite H.
+  ring_simplify; right; exact eq_refl.
+
+  rewrite (q2 r2); rewrite r2 in p2.
+  destruct p2.
+  apply (Tlt_plus_lt (-z2) z2 (z2+z3)) in H.
+  ring_simplify in H; left; exact H.
+  apply (Teq_plus_eq z2 (z2+z3) (-z2)) in H.
+  ring_simplify in H; right; exact H.
+
+  rewrite (q1 r3).
+  apply (Tle_plus_le (z1-z3) z2 (z3-z2)) in p1.
+  ring_simplify in p1.
+  exact p1.
+Qed.
+Hint Resolve Tmetric_sand: Tiny.
+
+
+Lemma Tmetric_plus_inv : forall z1 z2 z3, dist z1 z2 = dist (z3 + z1) (z3 + z2).
+Proof.
+  intros z1 z2 z3;
+    replace (z3+z1) with (z1+z3) by ring;
+    replace (z3+z2) with (z2+z3) by ring; exact (Tmetric_inv z1 z2 z3).
+Qed.
+Hint Resolve Tmetric_plus_inv: Tiny.
+
+
+Lemma Tmetric_or : forall z1 z2, dist z1 z2 = z1 - z2 \/ dist z1 z2 = z2 - z1.
+Proof.
+  intros z1 z2.
+  destruct (Ttotal_order z1 z2) as [r1 | [r2 | r3]];
+    destruct (dist_prop z1 z2) as [l1 [l2 l3]].
+  right; rewrite (l3 r1); exact eq_refl.
+  rewrite r2 at 2.
+  left; ring_simplify.
+  exact (l2 r2).
+  left; rewrite (l1 r3); exact eq_refl.
+Qed.
+Hint Resolve Tmetric_or: Tiny.
+
+Lemma Tmetric_Or : forall z1 z2, (dist z1 z2 = z1-z2 /\ z1 >= z2) \/
+                                (dist z1 z2 = z2-z1 /\ z2 >= z1).
+Proof.
+  intros z1 z2.
+  destruct (Ttotal_order z1 z2) as [r1 | [r2 | r3]];
+    destruct (dist_prop z1 z2) as [l1 [l2 l3]].
+  right; rewrite (l3 r1); exact (conj eq_refl (Tgt_ge  z2 z1 r1)).
+  rewrite r2 at 2.
+  left; split; ring_simplify.
+  exact (l2 r2).
+  right; exact r2.
+  left; rewrite (l1 r3); exact (conj eq_refl (Tgt_ge z1 z2 r3)).
+Qed.
+Hint Resolve Tmetric_Or: Tiny.
+
+Lemma Tmetric_gtgt_sand : forall z1 z2 z3, z3> T0 -> z1-z3<z2<z1+z3 -> dist z1 z2 < z3.
+Proof.
+  intros z1 z2 z3 q p.
+  destruct p as [p1 p2].
+  destruct (Tmetric_Or z1 z2) as [[a b] | [a b]]; rewrite a.
+  apply (Tlt_plus_lt (z3-z2) (z1-z3) z2) in p1.
+  ring_simplify in p1.
+  replace (-z2+z1) with (z1-z2) in p1 by ring.
+  exact p1.
+  apply (Tlt_plus_lt (-z1) z2 (z1+z3)) in p2.
+  ring_simplify in p2.
+  replace (-z1+z2) with (z2-z1) in p2 by ring.
+  exact p2.
+Qed.
+Hint Resolve Tmetric_gtgt_sand: Tiny.
+
+
+Lemma Tmetric_minus_inv : forall z1 z2 z3, dist z1 z2 = dist (z1 - z3) (z2 - z3).
+Proof.
+  intros z1 z2 z3;
+  pose proof (Tmetric_inv z1 (z2) (-z3)) as H;
+  replace (z1-z3) with (z1+-z3) by ring;
+  replace (z2-z3) with (z2+-z3) by ring; exact H.    
+Qed.
+Hint Resolve Tmetric_minus_inv: Tiny.
+
+
+Lemma lt_metric : forall x y, x < y -> dist x y = y - x.
+Proof.
+  intros x y p.
+  destruct (Tmetric_Or x y) as [[P Q] | [P Q]].
+  contradict Q; auto with Tiny.
+  exact P.
+Qed.
+Hint Resolve lt_metric: Tiny.
+
+Lemma le_metric : forall x y, x <= y -> dist x y = y - x.
+Proof.
+  intros x y p.
+  destruct p.
+  apply lt_metric; exact H.
+  rewrite H.
+  ring_simplify.
+  rewrite (dist_zero y y); exact eq_refl.
+Qed.
+Hint Resolve le_metric: Tiny.
+
+Lemma dist_0_1 : dist T0 T1 = T1.
+Proof.
+  rewrite (lt_metric T0 T1 T1_gt_T0).
+  ring.
+Qed.
+Hint Resolve dist_0_1: Tiny.
+
+Lemma dist_1_0 : dist T1 T0 = T1.
+Proof.
+  rewrite (dist_symm T1 T0).
+  exact dist_0_1.
+Qed.
+Hint Resolve dist_1_0: Tiny.
+
+
+
+
+Definition convex (x y w1 w2 : T) : x < y -> w1 > T0 -> w2 > T0 -> T.
+Proof.
+  intros p p1 p2.
+  pose proof (Tlt_lt_plus_lt T0 w1 T0 w2 p1 p2).
+  rewrite Tplus_unit in H.
+  exact ((x*w1+y*w2)/(Tgt_neq (w1+w2) T0 H)).
+Defined.
+
+
+Lemma convexity : forall x y w1 w2,
+    forall (p:x < y) (q:w1 > T0) (r:w2 > T0),
+      x < convex x y w1 w2 p q r < y.
+Proof.
+  intros.
+  split.
+  + unfold convex.
+    apply (Tlt_mult_r_pos_lt x y w2 r) in p.
+    apply (Tlt_plus_lt  (w1*x) (x*w2) (y*w2)) in p.
+    assert (w1+w2 <> T0) as Path by auto with Tiny.
+    rewrite <- (neq_path (w1+w2) T0 Path (Tgt_neq (w1 + w2) T0
+    (eq_ind (T0 + T0) (fun t : T => t < w1 + w2) (Tlt_lt_plus_lt T0 w1 T0 w2 q r) T0
+            (Tplus_unit T0)))).
+    
+    apply (Tlt_plus_lt  w2 T0 w1) in q.
+    replace (w2+T0) with w2 in q by ring.
+    replace (w2+w1) with (w1+w2) in q by ring.
+    pose proof (Tlt_lt_lt T0 w2 (w1+w2) r q).
+    replace (w1 * x + x * w2) with (x*(w1  + w2)) in p by ring.
+    assert (/Path > T0) by auto with Tiny.
+    apply (Tlt_mult_r_pos_lt (x*(w1+w2)) (w1*x+y*w2) (/Path) H0) in p.
+    rewrite Tmult_assoc, (Tmult_comm (w1+w2) (/Path)) in p.
+    rewrite (Tmult_inv (w1 + w2) Path), Tmult_comm, Tmult_unit in p.
+    replace (w1*x) with (x*w1) in p by ring.
+    exact p.
+
+  + unfold convex.
+    apply (Tlt_mult_r_pos_lt x y w1 q) in p.
+    apply (Tlt_plus_lt  (w2*y) (x*w1) (y*w1)) in p.
+    assert (w1+w2 <> T0) as Path by auto with Tiny.
+    rewrite <- (neq_path (w1+w2) T0 Path (Tgt_neq (w1 + w2) T0
+    (eq_ind (T0 + T0) (fun t : T => t < w1 + w2) (Tlt_lt_plus_lt T0 w1 T0 w2 q r) T0
+            (Tplus_unit T0)))).
+
+
+    apply (Tlt_plus_lt  w1 T0 w2) in r.
+    replace (w1+T0) with w1 in r by ring.
+    pose proof (Tlt_lt_lt T0 w1 (w1+w2) q r).
+    replace (w2 * y + y * w1) with (y * (w1  + w2)) in p by ring.
+    assert (/Path > T0) by auto with Tiny.
+    apply (Tlt_mult_r_pos_lt  (w2*y+x*w1) (y*(w1+w2)) (/Path) H0) in p.
+    rewrite Tmult_assoc in p at 1.
+    replace ((w1 + w2) * / Path) with (/Path*(w1+w2)) in p by auto with Tiny.
+    rewrite (Tmult_inv (w1 + w2) Path) in p.
+    replace (y*T1) with y in p by ring.
+    replace  (w2 * y + x * w1) with (x * w1 + y * w2) in p by ring.
+    exact p.
+Qed.
+    
+

@@ -1,9 +1,9 @@
-Require Import BasicArith.
-Require Import BasicAxioms.
-Require Import BasicMetric.
+Require Import Base.
 Require Import Kleene.
-Require Import Convex.
-Require Import BasicSplit.
+Require Import RealAxioms.
+Require Import RealRing.
+Require Import RealSimpleLemmas.
+Require Import Minmax.
 
 Local Open Scope T_scope.
 

@@ -1,4 +1,5 @@
 Require Export ZArith_base.
+Require Import Base.
 Require Import Kleene.
 
 (*********************************************************)
@@ -13,7 +14,6 @@ Require Import Kleene.
 (*********************************************************)
 
 (* basic axioms for our type theory *)
-Axiom irrl : forall P : Prop, forall x y : P, x = y.
 
 Parameter T : Set.
 

@@ -1,7 +1,7 @@
 Require Import Nnat.
 Require Import ArithRing.
 Require Export Ring Field.
-Require Import BasicAxioms.
+Require Import RealAxioms.
 
 Local Open Scope T_scope.
 
