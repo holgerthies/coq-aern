@@ -1,10 +1,10 @@
-Require Import AbBool.
+Require Import Kleene.
 Require Import BasicAxioms.
 Require Import BasicArith.
 Open Scope T_scope.
 
 
-  
+Check Ttotal_order.
 (** weak split: does not have any computational content **)
 Lemma W_split : forall x y ε, ε > T0 -> x>y-ε \/ y>x-ε.
 Proof.
@@ -24,20 +24,23 @@ Proof.
     apply (Tlt_lt_lt (-ε + y) y x p) in H.
     replace (-ε+y) with (y-ε) in H by ring; left; exact H.
 Defined.
-
+Hint Resolve W_split : Tiny.
 (** string but multivalued split **)
-Lemma M_split : forall x y ε, ε > T0 -> mdown ({x>y-ε} + {y>x-ε}).
+Lemma M_split : forall x y ε, ε > T0 -> M ({x>y-ε} + {y>x-ε}).
 Proof.
-  intros x y ε p.
-  apply (choose (x >? y-ε) (y >? x-ε)).
-  + exact (Tltb_lt_t (y-ε) x).
-  + exact (Tltb_lt_t (x-ε) y).
-  + apply W_split.
-    exact p.
+  intros x y ε p.  
+  apply (choose (x > y-ε) (y > x-ε)); auto with Tiny.
 Defined.
 
+Hint Resolve M_split : Tiny.
 
+Definition mjoin (p q : Prop) (T : Type) : ({p}+{q} -> T) ->  M ({p}+{q}) -> M T.
+Proof.
+  intros f x.
+  exact (liftM _ _ f x).
+Defined.
 
+  
 Lemma not_bounded : forall x, [ y | y > x ].
 Proof.
   intro x.

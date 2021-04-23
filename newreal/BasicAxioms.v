@@ -224,9 +224,25 @@ Axiom
 Axiom Tltb_lt_t : forall x y : T, Tltb x y = trueK <-> x < y.
 Axiom Tltb_lt_f : forall x y : T, Tltb x y = falseK <-> y < x.
 
+Lemma Tlt_semidec : forall x y : T, semidec (x < y).
+Proof.
+  intros x y. exists (x <? y).
+  exact (Tltb_lt_t x y).
+Qed.
+
+Lemma Tgt_semidec : forall x y : T, semidec (x > y).
+Proof.
+  intros x y.
+  exists (x >? y).
+  exact (Tltb_lt_t y x).  
+Qed.
+
+
 
 Hint Resolve T1_gt_T0 Ttotal_order Tlt_nlt Tlt_lt_lt Tlt_plus_lt Tlt_mult_pos_lt: Tiny.
-Hint Resolve Tltb_lt_t Tltb_lt_f: Tiny.
+Hint Resolve Tltb_lt_t Tltb_lt_f Tlt_semidec Tgt_semidec: Tiny.
+
+
 
 (**********************************************************)
 (** *    Order Completeness of T; need to make it derived *)
