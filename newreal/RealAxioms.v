@@ -55,7 +55,6 @@ Parameter Reallt : Real -> Real -> Prop.
 (*********************************************************)
 (** **           Metric of Realype Real                        *)
 (*********************************************************)
-Parameter dist : Real -> Real -> Real.
 
 
 
@@ -77,7 +76,6 @@ Definition Realle (z1 z2:Real) : Prop := z1 < z2 \/ z1 = z2.
 Definition Realge (z1 z2:Real) : Prop := Realgt z1 z2 \/ z1 = z2.
 Definition Realminus (z1 z2:Real) : Real := z1 + - z2.
 Definition Realdiv (z1 :Real) {z2:Real} (p:z2<>Real0) :  Real := z1 * / p.
-Definition abs (z:Real) : Real := dist Real0 z.
 Definition Realgtb (z1 z2: Real) : K := z2 <? z1.
 
 (**********)
@@ -350,13 +348,6 @@ Arguments prec n%nat.
 
 
 
-(* let us have a strong definition of dist then make other obligations derivable *)
-Axiom dist_prop : forall z1 z2 : Real,
-    (z1 > z2 -> dist z1 z2 = z1 - z2)  
-    /\ (z1 = z2 -> dist z1 z2 = Real0)
-    /\ (z1 < z2 -> dist z1 z2 = z2 - z1).
-Hint Resolve dist_prop: Realiny.
-
 
 (* this should be derived from the below
 Axiom slimit :
@@ -367,39 +358,13 @@ Axiom slimit :
 *)
 (* limit with multivalued *)
 
-Axiom slimit :
+Axiom limit :
   forall (P : Real -> Prop), (exists z, P z) ->
-    (forall n, {e | (exists a : Real, P a /\ dist e a < prec n) }) -> {a : Real | P a}.
+    (forall n, {e | (exists a : Real, P a /\ - prec n < e - a < prec n) }) -> {a : Real | P a}.
 
 
-Definition mslimit :
-  forall (P : Real -> Prop),
-    (exists! z, P z) ->
-    ((forall n, [e  | (exists a : Real, P a /\ dist e a < prec n)]) -> {a : Real | P a}).
-Proof.
-  intros.
-  apply (countableM)  in X.
-  apply singletonM.
-  intros x y.
-  destruct H, x, y.
-  destruct H.
-  induction (H0 x1 p0).
-  induction (H0 x p).
-  induction (irrl _ p p0).
-  apply eq_refl.
-  assert (exists z : Real, P z).
-  destruct H.
-  exists x.
-  destruct H.
-  exact H.
 
-  
-  assert ((forall n : nat, {e : Real | exists a : Real, P a /\ dist e a < prec n}) -> {a : Real | P a} ).
-  intro.
 
-  apply  (slimit P H0 H1).
-  apply (liftM _ _ H1 X).
-Defined.
 
   
 (* Definition wlim : (nat -> Real) -> Real -> Prop. *)

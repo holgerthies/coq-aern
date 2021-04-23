@@ -5,27 +5,6 @@ Require Import RealRing.
 
 Open Scope Real_scope.
 
-Lemma Realmetric_inv : forall z1 z2 z3, dist z1 z2 = dist (z1 + z3) (z2 + z3).
-Proof.
-Admitted.
-
-Lemma dist_pos : forall z1 z2 : Real, dist z1 z2 >= Real0.
-Proof.
-Admitted.
-
-Lemma dist_symm : forall z1 z2 : Real, dist z1 z2 = dist z2 z1.
-Proof.
-Admitted.
-  
-Lemma dist_tri : forall z1 z2 r3, dist z1 r3 >= (dist z1 z2) + (dist z2 r3).
-Proof.
-Admitted.
-
-Lemma dist_zero : forall z1 z2 : Real, dist z1 z2 = Real0 <-> z1 = z2.
-Proof.
-Admitted.
-
-Hint Resolve  dist_pos dist_symm dist_tri dist_zero: Realiny.
 
 Lemma Realge_triv : forall z, z >= z.
 Proof.
@@ -386,6 +365,18 @@ Proof.
   ring_simplify in p; exact p.
 Qed.
 Hint Resolve Reallt_anti: Realiny.
+
+Lemma Reallt_anti_anti : forall z1 z2, - z1 < - z2 -> z2< z1.
+Proof.
+  intros z1 z2 p.
+  replace z2 with (- - z2) by ring.
+  replace z1 with (- - z1) by ring.
+  apply Reallt_anti.
+  exact p.
+Qed.
+Hint Resolve Reallt_anti_anti: Realiny.
+
+
 
 Definition dReal1 := Real1_neq_Real0.
 Lemma Realinv_unit : forall z, z / dReal1 = z.
@@ -988,6 +979,617 @@ Proof.
   + apply M_split .
     exact Real1_gt_Real0.
 Defined.
+
+
+(* Real Metric and Metric Completeness  *)
+
+
+Definition mslimitp :
+  forall (P : Real -> Prop),
+    (exists! z, P z) ->
+    ((forall n, [e  | (exists a : Real, P a /\ -prec n < e - a < prec n)]) -> {a : Real | P a}).
+Proof.
+  intros.
+  apply (countableM)  in X.
+  apply singletonM.
+  intros x y.
+  destruct H, x, y.
+  destruct H.
+  induction (H0 x1 p0).
+  induction (H0 x p).
+  induction (irrl _ p p0).
+  apply eq_refl.
+  assert (exists z : Real, P z).
+  destruct H.
+  exists x.
+  destruct H.
+  exact H.
+  assert ((forall n : nat, {e : Real | exists a : Real, P a /\ - prec n < e - a < prec n}) -> {a : Real | P a} ).
+  intro.
+
+  apply  (limit P H0 H1).
+  apply (liftM _ _ H1 X).
+Defined.
+
+
+Definition abs_prop : forall x : Real, {y : Real | (x > Real0 -> y = x) /\ (x = Real0 -> y = Real0) /\ (x < Real0 -> y = - x)}.
+Proof.
+  intros x.
+
+  apply mslimitp.
+  destruct (Realtotal_order x Real0).
+  exists (- x).
+  split.
+  repeat split.
+  intro p; contradict p; auto with Realiny.
+  intro p; induction p; contradict H; auto with Realiny.
+  intros.
+  destruct H0 as [_ [_ H0]].
+  induction (H0 H); apply eq_refl.
+  destruct H.
+  exists Real0.
+  repeat split; auto with Realiny.
+  intro p; induction H; contradict p; auto with Realiny.
+  intros.
+  destruct H0 as [_ [H0 _]].
+  induction (H0 H); apply eq_refl.
+  exists x.
+  repeat split; auto with Realiny.
+  intro p; contradict p; auto with Realiny.
+  intros.
+  destruct H0 as [H0 [_ _]].
+  induction (H0 H); apply eq_refl.
+
+  intro.
+  pose proof (M_split x Real0 (prec (n + 2))).
+  assert (prec n > Real0);
+    auto with Realiny.
+
+  assert (({x > Real0 - prec (n + 2)} + {Real0 > x - prec (n + 2)}) -> {e : Real | exists a : Real, ((x > Real0 -> a = x) /\ (x = Real0 -> a = Real0) /\ (x < Real0 -> a = - x)) /\ - prec n < e - a < prec n}).
+  intro order.
+  destruct order. 
+  exists x.
+  destruct (Realtotal_order x Real0).
+  exists (- x).
+  repeat split; auto with Realiny.
+  intro j; contradict j; auto with Realiny.
+  intro j; induction j; contradict H0; auto with Realiny.
+  assert (x - - x =  x + x).
+  ring.
+  rewrite H1.
+  replace (Real0 - prec (n + 2)) with ( - prec (n + 2)) in r by ring.
+  assert (x + x > -prec (n + 2) + x).
+  auto with Realiny.
+  
+  pose proof (Reallt_plus_r_lt x _ _ r).
+  exact H2.
+  assert (- prec (n + 2) + x > - prec (n + 2) + - prec (n +2 )).
+  apply (Reallt_plus_lt).
+  exact r.
+  assert (x + x > - prec (n + 2) + - prec (n + 2)).
+  Search ( _ < _ -> _ < _ -> _ < _).
+  apply (Reallt_lt_lt _ _ _ H3 H2).
+  assert (- prec n < - prec (n + 2) + - prec (n + 2)).
+  apply Reallt_anti_anti.
+  ring_simplify.
+
+
+  assert( prec (n+ 2) < prec (n +1)).
+  replace (n+2)%nat with (S (n+1))%nat by auto.
+  apply prec_S.
+  Search ( _ * _ < _ * _).
+  
+  pose proof (Reallt_mult_pos_lt (Real1 + Real1) _ _ Real2_pos  H5).
+  assert ((Real1 + Real1) * prec (n +1) = prec n).
+  replace (n+ 1)%nat with (S n).
+  simpl.
+  ring_simplify.
+  replace ((Real1 + Real1) * (prec n / Real2_neq_Real0))
+          with ((Real1 + Real1)*(prec n * /Real2_neq_Real0)) by auto.
+  replace
+    ( (Real1 + Real1) * (prec n * / Real2_neq_Real0))
+    with
+      ((Real1 + Real1) * (/ Real2_neq_Real0 * prec n )).
+  replace
+    ((Real1 + Real1) * (/ Real2_neq_Real0 * prec n))
+    with
+      (((Real1 + Real1) * (/ Real2_neq_Real0) * prec n)) by ring.
+  replace
+    ( (Real1 + Real1) * / Real2_neq_Real0) with Real1.
+  ring.
+  replace (Real1 + Real1) with Real2 by auto.
+  Search ( _ * / _ ).
+  replace (Real2 * / Real2_neq_Real0) with
+      (/ Real2_neq_Real0 * Real2) by ring.
+  symmetry.
+  apply Realmult_inv.
+  ring.
+  pose proof (plus_n_Sm n O).
+  rewrite<- H7.
+  auto.
+  rewrite<- H7.
+  exact H6.
+  apply (Reallt_lt_lt _ _ _ H5 H4).
+
+  ring_simplify.
+
+  pose proof (Reallt_mult_pos_lt (Real2) _ _ Real2_pos H0).
+  ring_simplify in H1.
+  pose proof (prec_pos n).
+  apply (Reallt_lt_lt _ _ _ H1 H2).
+
+  destruct H0.
+  exists Real0.
+  rewrite H0.
+  
+  repeat split; auto; try intro; try ring.
+  apply Reallt_anti_anti.
+  ring_simplify.
+  apply prec_pos.
+  ring_simplify.
+  apply prec_pos.
+
+  exists x.
+  repeat split; auto; try intro; try ring.
+  contradict H1; auto with Realiny.
+  apply Reallt_anti_anti.
+  ring_simplify.
+  apply prec_pos.
+  ring_simplify.
+  apply prec_pos.
+
+
+  exists (-x).
+  destruct (Realtotal_order x Real0).
+  exists (- x).
+  repeat split; try intro; try auto with Realiny; try ring.
+  contradict H1; auto with Realiny.
+  rewrite H1; ring.
+  ring_simplify.
+  apply Reallt_anti_anti.
+  ring_simplify.
+  apply prec_pos.
+  ring_simplify; apply prec_pos.
+
+  destruct H0.
+  exists Real0.
+  rewrite H0.
+  repeat split; try intro; try auto with Realiny; try ring; ring_simplify.
+ 
+  apply Reallt_anti_anti.
+  ring_simplify. 
+  apply prec_pos.
+  apply prec_pos.
+
+  exists x.
+  repeat split; try intro; try auto with Realiny; try ring; ring_simplify.
+  contradict H1; auto with Realiny.
+  apply Reallt_anti_anti.
+  ring_simplify.
+  assert ( x < prec (n +2)).
+  assert ( x - prec (n + 2) < Real0).
+  auto.
+  
+
+      
+  pose proof (Reallt_plus_r_lt (prec (n + 2)) _ _ H1).
+  ring_simplify in H2.
+  exact H2.
+  pose proof (Reallt_mult_r_pos_lt _ _ Real2 (Real2_pos) H1).
+  replace (x * Real2) with (Real2 * x) in H2 by ring.
+  assert (prec (n + 2) * Real2 < prec n).
+  assert (prec (n + 2) * Real2 = prec (n + 1)).
+  assert ((n + 2) = S( n+1))%nat.
+  auto.
+  rewrite H3.
+  simpl.
+  replace
+    (prec (n + 1) / Real2_neq_Real0 * Real2)
+    with
+      (prec (n + 1) */ Real2_neq_Real0 * Real2) by auto.
+  replace
+    ( prec (n + 1) * / Real2_neq_Real0 * Real2)
+    with
+      ( prec (n + 1) * (/ Real2_neq_Real0 * Real2)) by ring.
+  replace
+    ( prec (n + 1) * (/ Real2_neq_Real0 * Real2)) with
+      ( prec (n + 1) * (Real1)) by auto with Realiny.
+  ring.
+  rewrite H3.
+  pose proof (plus_n_Sm n O).
+  rewrite <- H4.
+  replace (n+0)%nat with n by auto.
+  apply prec_S.
+  apply (Reallt_lt_lt _ _ _ H2 H3).
+  assert( Real0 <  x) by auto.
+
+  pose proof (Reallt_mult_r_pos_lt _ _ Real2 (Real2_pos) H1).
+  ring_simplify in H2.
+  apply Reallt_anti_anti.
+  ring_simplify.
+  pose proof (prec_pos n).
+  apply Reallt_anti in H3.
+  ring_simplify in H3.
+  apply (Reallt_lt_lt _ _ _ H3 H2 ).
+  
+
+
+
+
+
+  
+
+  (* lifting *)
+
+  apply (liftM _ _  H0).
+  apply M_split.
+  apply prec_pos.
+
+Defined.
+
+
+  
+  
+Definition abs : Real -> Real.
+Proof.
+  intros x.
+  destruct (abs_prop x).
+  exact x0.
+Defined.
+
+
+Lemma abs_pos : forall x, Real0 <= abs x.
+Proof.
+  intros.
+  unfold abs.
+  destruct (abs_prop x).
+  destruct a as [a [b c]].
+  destruct (Realtotal_order x Real0).
+  pose proof (c H).
+  rewrite H0.
+  left.
+  apply Reallt_anti_anti.
+  ring_simplify.
+  exact H.
+  destruct H.
+  right.
+  rewrite (b H); auto.
+
+  left. rewrite( a H); auto.
+Qed.
+
+
+
+Definition dist : Real -> Real -> Real := fun x y => abs (x - y).
+
+Lemma dist_pos_t : forall x y, Real0 <= dist x y.
+Proof.
+  intros.
+  unfold dist.
+  apply abs_pos.
+Qed.
+
+
+Hint Resolve abs_pos dist_pos_t: Realiny.
+
+
+(* let us have a strong definition of dist then make other obligations derivable *)
+Lemma dist_prop : forall z1 z2 : Real,
+    (z1 > z2 -> dist z1 z2 = z1 - z2)
+    /\ (z1 = z2 -> dist z1 z2 = Real0)
+    /\ (z1 < z2 -> dist z1 z2 = z2 - z1).
+Proof.
+  intros.
+  unfold dist.
+  unfold abs.
+  destruct ( abs_prop (z1 - z2)).
+  repeat split.
+  intro.
+  destruct a as [a _].
+  apply a.
+  auto with Realiny.
+  intro.
+  destruct a as [_ [a _]].
+  apply a.
+  induction H.
+  ring.
+  destruct a as [_ [_ a]].
+  intro.
+  replace (z2 -z1) with (- (z1 - z2)) by ring.
+  apply a.
+  Search (_ + _ < _ + _).
+  pose proof (Reallt_plus_r_lt (-z2) _ _ H).
+  replace (z1 - z2) with (z1 + - z2) by ring.
+  replace Real0 with (z2 + - z2) by ring.
+  exact H0.
+Qed.
+
+   
+Hint Resolve dist_prop: Realiny.
+
+(* Parameter dist : Real -> Real -> Real. *)
+(* Definition abs (z:Real) : Real := dist Real0 z. *)
+
+  
+
+Definition slimit :
+  forall (P : Real -> Prop), (exists z, P z) ->
+    (forall n, {e | (exists a : Real, P a /\ dist e a < prec n) }) -> {a : Real | P a}.
+Proof.
+  intros.
+  apply (limit P H).
+  intro.
+  destruct (H0 n).
+  exists x.
+  destruct e.
+  exists x0.
+  destruct H1.
+  
+  split; auto.
+  destruct (dist_prop x x0).
+  destruct H4.
+  destruct (Realtotal_order x x0).
+  split.
+  Search ((- _ < - _) -> ( _ < _ )).
+  apply Reallt_anti_anti.
+  ring_simplify.
+  pose proof (H5 H6).
+  replace (-x + x0) with (x0 - x) by ring.
+  rewrite <- H7.
+  exact H2.
+
+  assert (x - x0 < Real0).
+  Search (_ + _ < _ + _).
+  apply (Reallt_plus_r_lt (-x0) ) in H6.
+  ring_simplify in H6.
+  exact H6.
+  assert (prec n > Real0) by auto with Realiny.
+  exact (Reallt_lt_lt  _ _ _  H7 H8).
+
+  destruct H6.
+  rewrite H6.
+  replace (x0 - x0) with Real0 by ring.
+  split; auto with Realiny.
+  apply Reallt_anti_anti.
+  ring_simplify.
+  apply prec_pos.
+  apply prec_pos.
+
+  pose proof (H3 H6).
+  rewrite <- H7.
+  split; auto.
+  
+  
+  auto with Realiny.
+  
+  ring_simplify.
+  
+  Search (_ < _ ).
+  
+  auto with Realiny.
+  
+  auto with Realiny.
+  
+  
+  ring_simplify in H7.
+  pose proof (dist_pos_t x x0).
+  assert (- prec n < Real0).
+  apply Reallt_anti_anti.
+  ring_simplify.
+  apply prec_pos.
+  destruct H8.
+  apply (Reallt_lt_lt _ _ _ H9 H8).
+  rewrite<- H8.
+  exact H9.
+Defined.
+
+Definition mslimit :
+  forall (P : Real -> Prop),
+    (exists! z, P z) ->
+    ((forall n, [e  | (exists a : Real, P a /\ dist e a < prec n)]) -> {a : Real | P a}).
+Proof.
+  intros.
+  apply (countableM)  in X.
+  apply singletonM.
+  intros x y.
+  destruct H, x, y.
+  destruct H.
+  induction (H0 x1 p0).
+  induction (H0 x p).
+  induction (irrl _ p p0).
+  apply eq_refl.
+  assert (exists z : Real, P z).
+  destruct H.
+  exists x.
+  destruct H.
+  exact H.
+
+  
+  assert ((forall n : nat, {e : Real | exists a : Real, P a /\ dist e a < prec n}) -> {a : Real | P a} ).
+  intro.
+
+  apply  (slimit P H0 H1).
+  apply (liftM _ _ H1 X).
+Defined.
+
+
+Lemma Realmetric_inv : forall z1 z2 z3, dist z1 z2 = dist (z1 + z3) (z2 + z3).
+Proof.
+  intros z1 z2 z3.
+  unfold dist.
+  replace (z1 + z3 - (z2 + z3)) with (z1 - z2) by ring.
+  apply eq_refl.
+Qed.
+
+  
+Lemma dist_pos : forall z1 z2 : Real, dist z1 z2 >= Real0.
+Proof.
+  intros.
+  destruct (dist_pos_t z1 z2).
+  left; auto.
+  right; auto.
+Qed.
+
+Lemma abs_symm : forall x, abs x = abs (-x).
+Proof.
+  unfold abs.
+  intro.
+  destruct (abs_prop x).
+  destruct (abs_prop (-x)).
+  destruct (Realtotal_order x Real0).
+  destruct a as [_ [_ a]].
+  destruct a0 as [a0 _ ].
+  rewrite (a H).
+  apply (Reallt_anti) in H.
+  ring_simplify in H.
+  apply a0 in H.
+  rewrite H.
+  apply eq_refl.
+
+  destruct H.
+  destruct a as [_ [a _]].
+  destruct a0 as [_ [a0 _]].
+  rewrite H in a, a0.
+  rewrite (a (eq_refl _)).
+  assert ( -Real0 = Real0) by ring.
+  rewrite (a0 H0).
+  apply eq_refl.
+  
+  destruct a as [a [_ _]].
+  destruct a0 as [_ [_ a0]].
+  rewrite (a H).
+  apply (Reallt_anti) in H.
+  ring_simplify in H.
+  rewrite (a0 H).
+  ring.
+Qed.
+
+
+Definition lp : forall S T (f : S -> T) (a b : S), a = b -> f a = f b.
+Proof.
+  intros.
+  rewrite H.
+  exact (eq_refl _).
+Defined.
+
+Lemma abs_zero : forall x, abs x = Real0 <-> x = Real0.
+Proof.
+  intros.
+  
+  split.
+  intro.
+  unfold abs in H.
+  destruct (abs_prop x).
+  destruct (Realtotal_order x Real0).
+
+  destruct a as [_ [_ a]].
+  pose proof (a H0).
+  rewrite H1 in H.
+  apply (lp _ _ (fun x => - x)) in H.
+  ring_simplify in H.
+  rewrite H in H0.
+  contradict H0; auto with Realiny.
+  destruct H0.
+  exact H0.
+  destruct a as [a [_ _]].
+  rewrite (a H0) in H.
+  exact H.
+  intro.
+  unfold abs.
+  destruct (abs_prop x).
+  destruct a as [_ [a _ ]].
+  auto.
+Qed.
+
+
+
+Lemma abs_tri : forall x y, (abs x) + abs y >= abs (x + y).
+Proof.
+  intros.
+  
+  destruct (Realtotal_order x Real0).
+  destruct (Realtotal_order y Real0).
+  unfold abs.
+  destruct (abs_prop x).
+  destruct (abs_prop y).
+  destruct (abs_prop (x + y)).
+  Check Reallt_lt_plus_lt.
+  pose proof (Reallt_lt_plus_lt _ _ _  _  H H0).
+  ring_simplify in H1.
+  destruct a as [_ [_ a]].
+  destruct a0 as [_ [_ a0]].
+  destruct a1 as [_ [_ a1]].
+  rewrite (a H).
+  rewrite (a0 H0).
+  rewrite (a1 H1).
+  right.
+  ring.
+  destruct H0.
+  rewrite H0.
+  destruct (abs_zero Real0).
+  rewrite (H2 (eq_refl _)).
+  ring_simplify.
+  replace (x + Real0) with x by ring.
+  right; auto.
+
+  unfold abs.
+  destruct (abs_prop x).
+  destruct (abs_prop y).
+  destruct (abs_prop (x + y)).
+  destruct (Realtotal_order (x + y) Real0).
+  destruct a as [_ [_ a]].
+  destruct a0 as [a0 [_ _]].
+  destruct a1 as [_ [_ a1]].
+
+  
+
+  Admitted.
+
+
+
+  
+  
+
+Lemma dist_symm : forall z1 z2 : Real, dist z1 z2 = dist z2 z1.
+Proof.
+  intros; unfold dist.
+  rewrite (abs_symm (z1 - z2)).
+  replace (-(z1 - z2)) with (z2 - z1) by ring.
+  apply eq_refl.
+Qed.
+
+    
+Lemma dist_tri : forall z1 z2 z3, (dist z1 z2) + (dist z2 z3) >= dist z1 z3.
+Proof.
+  intros.
+  unfold dist.
+  pose proof (abs_tri (z1 - z2) (z2 - z3)).
+  replace (z1 - z3) with (z1 - z2 + (z2 - z3)) by ring.
+  exact H.
+Qed.
+
+
+Lemma dist_zero : forall z1 z2 : Real, dist z1 z2 = Real0 <-> z1 = z2.
+Proof.
+  intros.
+  unfold dist.
+  pose proof (abs_zero (z1 - z2)).
+  split.
+  destruct H.
+  intro.
+  pose proof (H H1).
+  apply (lp _ _ (fun x => x + z2)) in H2.
+  ring_simplify in H2.
+  exact H2.
+  intro.
+  destruct H.
+  apply (lp _ _ (fun x => x - z2)) in H0.
+  ring_simplify in H0.
+  exact (H1 H0).
+Qed.
+
+Hint Resolve  dist_pos dist_symm dist_tri dist_zero: Realiny.
+
 
 
 Lemma Realmetric_sand : forall z1 z2 z3, z1-z3<=z2<=z1+z3 -> dist z1 z2 <= z3.
