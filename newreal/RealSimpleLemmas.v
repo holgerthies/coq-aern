@@ -1067,7 +1067,6 @@ Proof.
   apply (Reallt_plus_lt).
   exact r.
   assert (x + x > - prec (n + 2) + - prec (n + 2)).
-  Search ( _ < _ -> _ < _ -> _ < _).
   apply (Reallt_lt_lt _ _ _ H3 H2).
   assert (- prec n < - prec (n + 2) + - prec (n + 2)).
   apply Reallt_anti_anti.
@@ -1077,7 +1076,6 @@ Proof.
   assert( prec (n+ 2) < prec (n +1)).
   replace (n+2)%nat with (S (n+1))%nat by auto.
   apply prec_S.
-  Search ( _ * _ < _ * _).
   
   pose proof (Reallt_mult_pos_lt (Real1 + Real1) _ _ Real2_pos  H5).
   assert ((Real1 + Real1) * prec (n +1) = prec n).
@@ -1098,7 +1096,6 @@ Proof.
     ( (Real1 + Real1) * / Real2_neq_Real0) with Real1.
   ring.
   replace (Real1 + Real1) with Real2 by auto.
-  Search ( _ * / _ ).
   replace (Real2 * / Real2_neq_Real0) with
       (/ Real2_neq_Real0 * Real2) by ring.
   symmetry.
@@ -1297,7 +1294,6 @@ Proof.
   intro.
   replace (z2 -z1) with (- (z1 - z2)) by ring.
   apply a.
-  Search (_ + _ < _ + _).
   pose proof (Reallt_plus_r_lt (-z2) _ _ H).
   replace (z1 - z2) with (z1 + - z2) by ring.
   replace Real0 with (z2 + - z2) by ring.
@@ -1330,7 +1326,6 @@ Proof.
   destruct H4.
   destruct (Realtotal_order x x0).
   split.
-  Search ((- _ < - _) -> ( _ < _ )).
   apply Reallt_anti_anti.
   ring_simplify.
   pose proof (H5 H6).
@@ -1339,7 +1334,6 @@ Proof.
   exact H2.
 
   assert (x - x0 < Real0).
-  Search (_ + _ < _ + _).
   apply (Reallt_plus_r_lt (-x0) ) in H6.
   ring_simplify in H6.
   exact H6.
@@ -1364,7 +1358,6 @@ Proof.
   
   ring_simplify.
   
-  Search (_ < _ ).
   
   auto with Realiny.
   
@@ -1513,7 +1506,6 @@ Proof.
   destruct (abs_prop x).
   destruct (abs_prop y).
   destruct (abs_prop (x + y)).
-  Check Reallt_lt_plus_lt.
   pose proof (Reallt_lt_plus_lt _ _ _  _  H H0).
   ring_simplify in H1.
   destruct a as [_ [_ a]].

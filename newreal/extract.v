@@ -66,4 +66,4 @@ Recursive Extraction  CIVT.
 
 
 (* maximum *)
-Recursive Extraction CMax.
+Recursive Extraction Realmax.
