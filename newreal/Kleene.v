@@ -53,7 +53,7 @@ Notation "[ x | P ]" := (M {x | P}) : type_scope.
 Notation "[ x : T | P ]" := (M {x : T | P}) : type_scope.
 Notation "[ ( a , b ) | P ]" := (M (sigT (fun a => {b | P}))) : type_scope.
 
-Definition semidec := fun P : Prop => {x : K & upK x <-> P}.
+Definition semidec := fun P : Prop => {x : K | upK x <-> P}.
 
 Definition choose : forall p q, semidec p -> semidec q -> p \/ q -> M ({p}+{q}).
 Proof.
