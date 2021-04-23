@@ -378,6 +378,51 @@ Hint Resolve Reallt_anti_anti: Realiny.
 
 
 
+
+
+Lemma Reallt_add_r : forall z x y, x + z < y + z -> x < y.
+Proof.
+  intros.
+  pose proof (Reallt_plus_lt (-z) _ _ H).
+  ring_simplify in H0.
+  exact H0.
+Qed.
+
+Lemma Realgt_add_r : forall z x y, x + z > y + z -> x > y.
+Proof.
+  intros.
+  pose proof (Reallt_plus_lt (-z) _ _ H).
+  ring_simplify in H0.
+  exact H0.
+Qed.
+
+
+Lemma Realle_add_r : forall z x y, x + z <= y + z -> x <= y.
+Proof.
+  intros.
+  destruct H.
+  left.
+  exact (Reallt_add_r z x y H).
+  right.
+  pose proof (lp _ _ (fun k => k - z) _ _ H).
+  simpl in H0.
+  ring_simplify in H0.
+  exact H0.
+Qed.
+
+Lemma Realge_add_r : forall z x y, x + z >= y + z -> x >= y.
+Proof.
+  intros.
+  destruct H.
+  left.
+  exact (Realgt_add_r z x y H).
+  right.
+  pose proof (lp _ _ (fun k => k - z) _ _ H).
+  simpl in H0.
+  ring_simplify in H0.
+  exact H0.
+Qed. 
+
 Definition dReal1 := Real1_neq_Real0.
 Lemma Realinv_unit : forall z, z / dReal1 = z.
 Proof.

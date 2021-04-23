@@ -410,49 +410,6 @@ Proof.
 Qed.
 
 
-Lemma Reallt_add_r : forall z x y, x + z < y + z -> x < y.
-Proof.
-  intros.
-  pose proof (Reallt_plus_lt (-z) _ _ H).
-  ring_simplify in H0.
-  exact H0.
-Qed.
-
-Lemma Realgt_add_r : forall z x y, x + z > y + z -> x > y.
-Proof.
-  intros.
-  pose proof (Reallt_plus_lt (-z) _ _ H).
-  ring_simplify in H0.
-  exact H0.
-Qed.
-
-
-Lemma Realle_add_r : forall z x y, x + z <= y + z -> x <= y.
-Proof.
-  intros.
-  destruct H.
-  left.
-  exact (Reallt_add_r z x y H).
-  right.
-  pose proof (lp _ _ (fun k => k - z) _ _ H).
-  simpl in H0.
-  ring_simplify in H0.
-  exact H0.
-Qed.
-
-Lemma Realge_add_r : forall z x y, x + z >= y + z -> x >= y.
-Proof.
-  intros.
-  destruct H.
-  left.
-  exact (Realgt_add_r z x y H).
-  right.
-  pose proof (lp _ _ (fun k => k - z) _ _ H).
-  simpl in H0.
-  ring_simplify in H0.
-  exact H0.
-Qed. 
-
 Lemma abs_tri : forall x y, (abs x) + abs y >= abs (x + y).
 Proof.
   intros.

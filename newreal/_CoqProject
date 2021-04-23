@@ -4,6 +4,7 @@ Kleene.v
 RealAxioms.v
 RealRing.v
 RealOrder.v
+RealOrderTactic.v
 RealMetric.v
 Real.v
 Minmax.v
