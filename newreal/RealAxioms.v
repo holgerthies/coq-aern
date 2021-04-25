@@ -260,14 +260,6 @@ Hint Resolve Realltb_lt_t Realltb_lt_f Reallt_semidec Realgt_semidec: Realiny.
 (**      Currently it ways every nonempty bounded above   *)
 (**      set has a supremum                               *)
 (**********************************************************)
-Definition W_nemp (c : Real -> Prop) := exists z, c z.
-Definition W_upb (c : Real -> Prop) (u : Real) := forall z : Real, c z -> z <= u.
-Definition W_upbd (c : Real -> Prop) := exists u, W_upb c u.
-Definition W_sup (c : Real -> Prop) (s : Real)
-  := W_upb c s /\ (forall s', W_upb c s' -> s <= s').
-Axiom W_complete :
-  forall c : Real -> Prop, W_nemp c ->  W_upbd c -> exists z, W_sup c z. 
-
 (**********************************************************)
 (** **    Metric Completeness of Real                         *)
 (**********************************************************)
@@ -348,22 +340,35 @@ Arguments prec n%nat.
 
 
 
+Definition W_nemp (c : Real -> Prop) := exists z, c z.
+Definition W_upb (c : Real -> Prop) (u : Real) := forall z : Real, c z -> z <= u.
+Definition W_upbd (c : Real -> Prop) := exists u, W_upb c u.
+Definition W_sup (c : Real -> Prop) (s : Real)
+  := W_upb c s /\ (forall s', W_upb c s' -> s <= s').
+Axiom W_complete :
+  forall c : Real -> Prop, W_nemp c ->  W_upbd c -> exists z, W_sup c z. 
 
-(* this should be derived from the below
-Axiom slimit :
+
+
+(* this should be derived from the below *)
+Axiom limit :
   forall (P : Real -> Prop),
     (exists! z, P z) ->
-    ((forall n, {e : Real | (exists a : Real, P a /\ dist e a < prec n)}) ->
+    ((forall n, {e : Real | (exists a : Real, P a /\ - prec n < e - a < prec n)}) ->
     {a : Real | P a}).
-*)
+(* (* *) *)
 (* limit with multivalued *)
 
-Axiom limit :
-  forall (P : Real -> Prop), (exists z, P z) ->
-    (forall n, {e | (exists a : Real, P a /\ - prec n < e - a < prec n) }) -> {a : Real | P a}.
+Definition fast_converge (s : nat -> Real) (x : Real) := forall n : nat, - prec n < x - s n < prec n.
 
+(* Axiom limit : forall s : nat -> Real, (exists x, fast_converge s x) -> {x : Real | fast_converge s x}.  *)
 
-
+Definition pr1 : forall A (P : A -> Prop) (a : {x | P x}), A.
+Proof.
+  intros.
+  destruct a.
+  exact x.
+Defined.
 
 
   
