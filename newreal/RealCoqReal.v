@@ -76,7 +76,10 @@ Axiom relator_diviison : forall x (p : x <> Real0) a b, relator x a -> relator (
 (* relator is an anafunction *)
 Axiom ana : forall x : Real, exists! y : R, relator x y.
 
-Axiom transport_eq : forall x y : R, (x = y -> forall a b, relator a x -> relator b y -> a = b). 
+(* Axiom transport_eq : forall x y : R, (x = y -> forall a b, relator a x -> relator b y -> a = b).  *)
+
+Axiom transport_eq : forall a b : Real, (forall x y, relator a x -> relator b y -> x = y) -> a = b.
+
 Definition transport_fiber : (Real -> Prop) -> (R -> Prop).
 Proof.
   intros.
@@ -88,22 +91,78 @@ Axiom transport_forall : forall P : Real -> Prop, (forall x : R, (transport_fibe
 Axiom transport_exists : forall P : Real -> Prop, (exists x : R, (transport_fiber P) x) -> (exists x : Real, P x).
 Axiom transport : forall P : R -> Prop, (forall x, P x) -> (forall x y, relator x y -> P y).
 
-Goal Real1 + Real0 = Real1.
-Proof.
-  assert (R1 + R0 = R1)%R.
-  ring.
-  apply (transport_eq _ _ H).
-  apply relator_addition.
-  exact relator_constant1.
-  exact relator_constant0.
-  exact relator_constant1.
-Qed.
+Ltac classical :=
+  match goal with
+  | |- @eq Real ?x ?y => apply transport_eq; repeat intro (* (fail "not implemented yet") *)
+  | |- exists x : Real, ?A => apply transport_exists; repeat intro
+  | |- forall x : Real, ?A => apply transport_forall; repeat intro
+  (* | |- ?A => match A with *)
+  (*          | ?a = ?b => fail "haha" *)
+  (*          | _ => fail "FAIL" A *)
+  (*          end  *)
+
+
+  end.
+
+(* Ltac relate s := *)
+(*   match (type of s) with *)
+(*   | relator x y => *)
+  
+(*   end *)
+    
+
+
+
+(* Goal Real1 + Real0 = Real1. *)
+(* Proof. *)
+(*   classical. *)
+(*   assert (R1 + R0 = R1)%R. *)
+(*   ring. *)
+(*   exact relator_constant1. *)
+(*   exact relator_constant0. *)
+(*   exact relator_constant1. *)
+(* Qed. *)
 
 Require Import Psatz.
 
+Definition test : forall P: Real -> Prop, forall Q : R -> Prop, (forall x y, relator x y -> Q y -> P x) -> (exists x : R, Q x) -> (exists x : R, forall y : Real, relator y x -> P y).
+Proof.
+  intros.
+  destruct H0.
+  exists x.
+  intro.
+  intro.
+  exact (H y x H1 H0).
+Defined.
 
+  
+Fixpoint sqrt_approx x0 n x := match n with
+                               | 0%nat => x0
+                               | (S n') => let P := (sqrt_approx x0 n' x) in
+                                          (/ Real2_neq_Real0) * (P + (x / P))
+                               end.
+
+
+  
 Goal forall x : Real, exists y : Real, x = - y.
 Proof.
+  classical.
+  classical.
+  unfold transport_fiber.
+
+  apply (test _ (fun x1 : R => x = (- x1)%R)).
+  intros.
+  classical.
+  admit.
+  
+  exists (-x)%R.
+  lra.
+  
+  
+  unfold transport_fiber.
+  
+  INTRO.
+  
   apply transport_forall.
   intro.
   intro.
