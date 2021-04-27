@@ -156,6 +156,21 @@ Proof.
   right; apply (transport_eq2 _ _ _ _ hh jj H0).
 Qed.
 
+Definition transport_neq : forall a b : Real, (forall x y, relator a x -> relator b y -> (x <> y)%R) -> a <> b.
+Proof.
+  intros.
+  destruct (ana1 a) as [aa [hh _]].
+  destruct (ana1 b) as [bb [jj _]].
+  pose proof (H _ _ hh jj).
+  intro.
+  
+  destruct H0.
+  induction H1.
+  apply (relator_unique_R _ _ _ _ hh jj).
+  apply eq_refl.
+Qed.
+
+
 Definition transport_forall : forall P : Real -> Prop, (forall x : R, (transport_fiber P) x) -> (forall x : Real, P x).
   intros.
   unfold transport_fiber in H.
@@ -274,7 +289,7 @@ Ltac classical :=
   | |- ?x > ?y => apply transport_lt; intro; intro; intro; intro; classical
   | |- ?x >= ?y => apply transport_geq; intro; intro; intro; intro; classical
   | |- ?x <= ?y => apply transport_leq; intro; intro; intro; intro; classical
-                                                                  
+  | |- ?x <> ?y => apply transport_neq; intro; intro; intro; intro; classical     
   | |- exists x : Real, ?A => apply transport_exists;  intro; intro; intro; classical
   | |- forall x : Real, ?A => apply (transport_forall (fun x => A));   intro; intro; intro; classical
   | |- ?A => apply skip
@@ -285,7 +300,6 @@ Ltac classical :=
 
 
   end.
-
 
 
   
@@ -410,6 +424,13 @@ Ltac relate :=
 
 
  Require Import Psatz.
+Goal forall x y : Real, x <> y.
+  classical.
+  relate.
+
+  classical.
+  
+  apply transport_neq.
 
   
   
