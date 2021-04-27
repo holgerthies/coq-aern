@@ -75,7 +75,7 @@ Axiom relator_divison : forall x (p : x <> Real0) a b, relator x a -> relator (/
 
 (* relator is an anafunction *)
 Axiom ana1 : forall x : Real, exists! y : R, relator x y.
-Axiom ana2 : forall x : R, exists! y : Real, relator y x.
+(* Axiom ana2 : forall x : R, exists! y : Real, relator y x. *)
 
 
 
@@ -90,17 +90,17 @@ Proof.
   exact (eq_refl _).
 Qed.
 
-Lemma relator_unique_Real : forall x y a b, relator x a -> relator y b -> a = b -> x = y.
-Proof.
-  intros.
-  rewrite H1 in H.
-  destruct (ana2 b).
-  destruct H2.
-  rewrite <- (H3 _ H).
-  rewrite <- (H3 _ H0).
-  exact (eq_refl _).
-Qed.
-
+Axiom relator_unique_Real : forall x y a b, relator x a -> relator y b -> a = b -> x = y.
+(* Proof. *)
+(*   intros. *)
+(*   rewrite H1 in H. *)
+(*   destruct (ana2 b). *)
+(*   destruct H2. *)
+(*   rewrite <- (H3 _ H). *)
+(*   rewrite <- (H3 _ H0). *)
+(*   exact (eq_refl _). *)
+(* Qed. *)
+-
 (* Axiom transport_eq : forall x y : R, (x = y -> forall a b, relator a x -> relator b y -> a = b).  *)
 
 Axiom transport_eq : forall a b : Real, (forall x y, relator a x -> relator b y -> x = y) -> a = b.
@@ -183,16 +183,16 @@ Definition transport_forall : forall P : Real -> Prop, (forall x : R, (transport
 Defined.
   
 
-Definition transport_exists : forall P : Real -> Prop, (exists x : R, (transport_fiber P) x) -> (exists x : Real, P x).
-Proof.
-  intros.
-  destruct H.
-  unfold transport_fiber in H.
-  destruct (ana2 x).
-  destruct H0.
-  exists x0.
-  exact (H _ H0).
-Defined.
+(* Definition transport_exists : forall P : Real -> Prop, (exists x : R, (transport_fiber P) x) -> (exists x : Real, P x). *)
+(* Proof. *)
+(*   intros. *)
+(*   destruct H. *)
+(*   unfold transport_fiber in H. *)
+(*   destruct (ana2 x). *)
+(*   destruct H0. *)
+(*   exists x0. *)
+(*   exact (H _ H0). *)
+(* Defined. *)
 
 
 Definition transport_leq_inv : forall a b x y, relator a x -> relator b y -> (a <= b) -> (x <= y)%R.
@@ -395,7 +395,7 @@ Ltac classical :=
   | |- ?x >= ?y => apply transport_geq; intro; intro; intro; intro; classical
   | |- ?x <= ?y => apply transport_leq; intro; intro; intro; intro; classical
   | |- ?x <> ?y => apply transport_neq; intro; intro; intro; intro; classical     
-  | |- exists x : Real, ?A => apply transport_exists;  intro; intro; intro; classical
+  (* | |- exists x : Real, ?A => apply transport_exists;  intro; intro; intro; classical *)
   | |- forall x : Real, ?A => apply (transport_forall (fun x => A));   intro; intro; intro; classical
   (* | |- forall x : Real, ?A => apply (transport_forall (fun x => A));   intro; intro; intro; classical *)
 
