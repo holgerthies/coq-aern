@@ -105,6 +105,8 @@ Qed.
 
 Axiom transport_eq : forall a b : Real, (forall x y, relator a x -> relator b y -> x = y) -> a = b.
 Axiom transport_lt : forall a b : Real, (forall x y, relator a x -> relator b y -> (x < y)%R) -> a < b.
+Axiom transport_eq_inv : forall a b x y, relator a x -> relator b y -> a = b -> x = y.
+Axiom transport_lt_inv : forall a b x y, relator a x -> relator b y -> (a < b) -> (x < y)%R.
 
 Lemma transport_eq2 : forall a b x y, relator a x -> relator b y -> x = y -> a = b.
 Proof.
@@ -143,6 +145,7 @@ Proof.
   apply (transport_lt2 _ _ _ _ hh jj H0).
   right; apply (transport_eq2 _ _ _ _ hh jj H0).
 Qed.
+
 
 Definition transport_geq : forall a b : Real, (forall x y, relator a x -> relator b y -> (x >= y)%R) -> a >= b.
 Proof.
@@ -190,6 +193,109 @@ Proof.
   exists x0.
   exact (H _ H0).
 Defined.
+
+
+Definition transport_leq_inv : forall a b x y, relator a x -> relator b y -> (a <= b) -> (x <= y)%R.
+Proof.
+  intros.
+  destruct H1.
+  left.
+  apply (transport_lt_inv a b x y H H0).
+  exact H1.
+  right.
+  induction H1.
+  apply (relator_unique_R _ _ _ _ H H0 (eq_refl _)).
+Qed.
+
+Definition transport_geq_inv : forall a b x y, relator a x -> relator b y -> (a >= b) -> (x >= y)%R.
+Proof.
+  intros.
+  destruct H1.
+  left.
+  apply (transport_lt_inv b a y x  H0 H).
+  exact H1.
+  right.
+  induction H1.
+  apply (relator_unique_R _ _ _ _ H H0 (eq_refl _)).
+Qed.
+
+
+Definition transport_neq_inv : forall a b x y, relator a x -> relator b y -> (a <> b) -> (x <> y)%R.
+Proof.
+  intros.
+  intro.
+  induction H2.
+  exact (H1 (relator_unique_Real _ _ _ _ H H0 (eq_refl _))).
+Defined.
+
+
+Ltac Holger s :=
+  match type of s with
+  | ?x = ?y =>
+    let xx := fresh "x" in
+    let yy := fresh "y" in
+    let Hx := fresh "Hx" in
+    let Hy := fresh "Hy" in
+    let H := fresh "H" in
+    
+    destruct (ana1 x) as [xx [Hx _ ]];
+    destruct (ana1 y) as [yy [Hy _ ]];
+    pose proof (transport_eq_inv _ _ _ _ Hx Hy s) as H;
+    clear s
+
+  | ?x < ?y =>
+    let xx := fresh "x" in
+    let yy := fresh "y" in
+    let Hx := fresh "Hx" in
+    let Hy := fresh "Hy" in
+    let H := fresh "H" in
+    
+    destruct (ana1 x) as [xx [Hx _ ]];
+    destruct (ana1 y) as [yy [Hy _ ]];
+    pose proof (transport_lt_inv _ _ _ _ Hx Hy s) as H;
+    clear s
+
+
+  | ?x <= ?y =>
+    let xx := fresh "x" in
+    let yy := fresh "y" in
+    let Hx := fresh "Hx" in
+    let Hy := fresh "Hy" in
+    let H := fresh "H" in
+    
+    destruct (ana1 x) as [xx [Hx _ ]];
+    destruct (ana1 y) as [yy [Hy _ ]];
+    pose proof (transport_leq_inv _ _ _ _ Hx Hy s) as H;
+    clear s
+
+
+  | ?x >= ?y =>
+    let xx := fresh "x" in
+    let yy := fresh "y" in
+    let Hx := fresh "Hx" in
+    let Hy := fresh "Hy" in
+    let H := fresh "H" in
+    
+    destruct (ana1 x) as [xx [Hx _ ]];
+    destruct (ana1 y) as [yy [Hy _ ]];
+    pose proof (transport_geq_inv _ _ _ _ Hx Hy s) as H;
+    clear s
+
+
+  | ?x <> ?y =>
+    let xx := fresh "x" in
+    let yy := fresh "y" in
+    let Hx := fresh "Hx" in
+    let Hy := fresh "Hy" in
+    let H := fresh "H" in
+    
+    destruct (ana1 x) as [xx [Hx _ ]];
+    destruct (ana1 y) as [yy [Hy _ ]];
+    pose proof (transport_neq_inv _ _ _ _ Hx Hy s) as H;
+    clear s
+                    
+          
+  end.
 
 Definition skip : forall A,A -> A.
 Proof.
@@ -452,61 +558,9 @@ Goal forall (y : Real) (p : y <> Real0) (z : R), relator (y/p) z -> z = z.
   intros.
   relate.
 
-  
-         let a := fresh "x" in
-       let b := fresh "y" in
-       let Ha := fresh "Ha" in
-       let Hb := fresh "Hb" in
-       let Hc := fresh H in
-       (destruct (ana1 x0) as [a [Ha _]];
-        destruct (ana1 x0) as [b [Hb _]];
-        pose proof (eq_symm (Holber7 _ _ _ _ _ p Ha Hb H0)) as Hc;
-        induction ( Hc);
-        clear Hc;
-        clear H
-        
-      ).
-
-  let a := fresh "x" in
-  let Ha := fresh "Ha" in
-  let Hc := fresh H in
-  (destruct (ana1 x0) as [a [Ha _]];
-   pose proof (eq_symm (Holber6 _ _ _  p Ha  H0)) as Hc;
-                                                       induction ( Hc)
-
-  ).
-   clear Hc;
-   clear H;
-   relate
-
-
-  relate.
-  
-    Real0 < y -> y <> Real0.
-
-
- Require Import Psatz.
- Goal forall y : Real, Real0 < y -> y <> Real0.
-   classical.
-   relate.
-   
-   classical.
-   relate.
-   
-   Prof.
-
- Goal forall x y : Real, x <> y.
-  classical.
-  relate.
-
-  classical.
-  
-  apply transport_neq.
-
-  
-  
-Lemma sewon :forall x, forall y, (x - y) * y = (x + y) * y.
-  classical.
-  
+  Holger p.
   relate.
 Admitted.
+
+  
+  
