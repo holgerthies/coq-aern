@@ -282,7 +282,6 @@ Proof.
 Defined.
 
 Ltac classical :=
-  
   match goal with
   | |- @eq Real ?x ?y => apply transport_eq;   intro; intro; intro; intro; classical (* (fail "not implemented yet") *)
   | |- ?x < ?y => apply transport_lt; intro; intro; intro; intro; classical
@@ -292,6 +291,8 @@ Ltac classical :=
   | |- ?x <> ?y => apply transport_neq; intro; intro; intro; intro; classical     
   | |- exists x : Real, ?A => apply transport_exists;  intro; intro; intro; classical
   | |- forall x : Real, ?A => apply (transport_forall (fun x => A));   intro; intro; intro; classical
+  (* | |- forall x : Real, ?A => apply (transport_forall (fun x => A));   intro; intro; intro; classical *)
+
   | |- ?A => apply skip
   (* | |- ?A => match A with *)
   (*          | ?a = ?b => fail "haha" *)
@@ -309,7 +310,7 @@ Ltac relate :=
   | H : (relator Real0 ?x) |- _ => (apply Holber0 in H; try induction (eq_symm H); clear H; relate)
   | H : (relator Real1 ?x) |- _ => (apply Holber1 in H; try induction (eq_symm H); clear H; relate)
   | H : (relator (?x + ?y) (?z)) |- _ =>
-    (idtac "apply " x; 
+    (idtac ""x; 
      let a := fresh "x" in
      let b := fresh "y" in
      let Ha := fresh "Ha" in
@@ -325,7 +326,7 @@ Ltac relate :=
     ))
 
   | H : (relator (?x - ?y) (?z)) |- _ =>
-    (idtac "apply " x; 
+    (idtac " "; 
      let a := fresh "x" in
      let b := fresh "y" in
      let Ha := fresh "Ha" in
@@ -340,25 +341,29 @@ Ltac relate :=
       relate
     ))
 
-  | H : (relator (?x / ?y) (?z)) |- _ =>
-    (idtac "apply " x; 
-     let a := fresh "x" in
-     let b := fresh "y" in
-     let Ha := fresh "Ha" in
-     let Hb := fresh "Hb" in
-     let Hc := fresh H in
-     (destruct (ana1 x) as [a [Ha _]];
-      destruct (ana1 y) as [b [Hb _]];
-      pose proof (eq_symm (Holber7 _ _ _ _ _ Ha Hb H)) as Hc;
-      induction ( Hc);
-      clear Hc;
-      clear H;
-      relate
-    ))
-
+  | H : (relator (?x / ?p) (?z)) |- _ =>
+    match type of  p with
+    | ?y <> Real0 =>
+      (idtac "";
+       let a := fresh "x" in
+       let b := fresh "y" in
+       let Ha := fresh "Ha" in
+       let Hb := fresh "Hb" in
+       let Hc := fresh H in
+       (destruct (ana1 x) as [a [Ha _]];
+        destruct (ana1 y) as [b [Hb _]];
+        pose proof (eq_symm (Holber7 _ _ _ _ _ p Ha Hb H)) as Hc;
+        induction ( Hc);
+        clear Hc;
+        clear H;
+        relate
+      ))
+        
+    | _ => idtac "" 
+    end
       
   | H : (relator (?x * ?y) (?z)) |- _ =>
-    (idtac "apply " x; 
+    (idtac " "; 
      let a := fresh "x" in
      let b := fresh "y" in
      let Ha := fresh "Ha" in
@@ -374,7 +379,8 @@ Ltac relate :=
     ))
 
   | H : (relator (- ?x) (?y)) |- _ =>
-    (idtac "apply " x; 
+    (idtac " "
+     ;
      let a := fresh "x" in
      let Ha := fresh "Ha" in
      let Hc := fresh H in
@@ -384,33 +390,51 @@ Ltac relate :=
       clear Hc;
       clear H;
       relate
-    ))
+    )
+)
 
 
 
-  | H : (relator (/ ?x) (?y)) |- _ =>
-    (idtac "apply " x; 
-     let a := fresh "x" in
-     let Ha := fresh "Ha" in
-     let Hc := fresh H in
-     (destruct (ana1 x) as [a [Ha _]];
-      pose proof (eq_symm (Holber6 _ _ _  Ha  H)) as Hc;
-      induction ( Hc);
-      clear Hc;
-      clear H;
-      relate
-    ))
-      
+  | H : (relator (@Realdiv ?x ?p) (?y)) |- _ =>
+    (idtac ""
+     (* ;  *)
+     (* let a := fresh "x" in *)
+     (* let Ha := fresh "Ha" in *)
+     (* let Hc := fresh H in *)
+     (* (destruct (ana1 x) as [a [Ha _]]; *)
+     (*  pose proof (eq_symm (Holber6 _ _ _ p  Ha  H)) as Hc; *)
+     (*  induction ( Hc); *)
+     (*  clear Hc; *)
+     (*  clear H; *)
+     (*  relate *)
+     (* ) *)
+    )
+  | H : (relator (/ ?p) (?y)) |- _ =>
+    match type of p with
+    | ?x <> Real0 =>
+      let a := fresh "x" in
+      let Ha := fresh "Ha" in
+      let Hc := fresh H in
+      (destruct (ana1 x) as [a [Ha _]];
+       pose proof (eq_symm (Holber6 _ _ _ p  Ha  H)) as Hc;
+       induction ( Hc);
+       clear Hc;
+       clear H;
+       relate
+      )
+
+    | _ => apply skip
+    end 
       
   | H1 : (relator (?x) (?y)), H2 : (relator (?x) (?z))  |- _ =>
-    (idtac "apply " x;
+    (idtac " ";
      induction (relator_unique_R _ _ _ _ H1 H2 (eq_refl _));
      clear H1;
      relate
     )
       
   | H1 : (relator (?x) (?z)), H2 : (relator (?y) (?z))  |- _ =>
-    (idtac "apply " x;
+    (idtac " ";
      induction (relator_unique_Real _ _ _ _ H1 H2 (eq_refl _));
      clear H1;
      relate
@@ -421,10 +445,57 @@ Ltac relate :=
 
 
 
+Goal forall (y : Real) (p : y <> Real0) (z : R), relator (y/p) z -> z = z.
+  classical.
+  relate.
+  
+  intros.
+  relate.
+
+  
+         let a := fresh "x" in
+       let b := fresh "y" in
+       let Ha := fresh "Ha" in
+       let Hb := fresh "Hb" in
+       let Hc := fresh H in
+       (destruct (ana1 x0) as [a [Ha _]];
+        destruct (ana1 x0) as [b [Hb _]];
+        pose proof (eq_symm (Holber7 _ _ _ _ _ p Ha Hb H0)) as Hc;
+        induction ( Hc);
+        clear Hc;
+        clear H
+        
+      ).
+
+  let a := fresh "x" in
+  let Ha := fresh "Ha" in
+  let Hc := fresh H in
+  (destruct (ana1 x0) as [a [Ha _]];
+   pose proof (eq_symm (Holber6 _ _ _  p Ha  H0)) as Hc;
+                                                       induction ( Hc)
+
+  ).
+   clear Hc;
+   clear H;
+   relate
+
+
+  relate.
+  
+    Real0 < y -> y <> Real0.
 
 
  Require Import Psatz.
-Goal forall x y : Real, x <> y.
+ Goal forall y : Real, Real0 < y -> y <> Real0.
+   classical.
+   relate.
+   
+   classical.
+   relate.
+   
+   Prof.
+
+ Goal forall x y : Real, x <> y.
   classical.
   relate.
 
