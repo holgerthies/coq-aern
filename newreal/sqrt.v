@@ -5,20 +5,6 @@ Require Import Psatz.
 
 Require Import Interval.Tactic.
 Open Scope Real_scope.
-Lemma relator_lt x y a b : relator a x -> relator b y -> a < b -> (x < y)%R.
-Proof.
-  move => R1 R2 H.
-  suff :  (y <= x)%R -> False by lra.
-  move => H'.
-  case (transport_leq b a).
-  move => y' x' r1 r2.
-  relate => //.
-  - by apply Reallt_nlt.
-  move => H''.
-  move : H.
-  rewrite H''.
-  by apply Realnlt_triv.
-Qed.
 
 Lemma IZReal_relator z : relator (IZReal z) (IZR z).
 Proof.
