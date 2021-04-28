@@ -64,7 +64,33 @@ Require Import Reals.
 
 
 Parameter relator : Real -> R -> Prop.
+Parameter is_total : R -> Prop.
 
+
+
+Axiom is_total_constant0 : is_total R0.
+Axiom is_total_constant1 : is_total R1.
+Axiom is_total_addition : forall x y, is_total x -> is_total y -> is_total (x + y)%R.
+Axiom is_total_multiplication : forall x y, is_total x -> is_total y -> is_total (x * y)%R.
+Axiom is_total_subtraction : forall x, is_total x -> is_total (- x)%R.
+Lemma is_total_minus : forall x y, is_total x -> is_total y ->  is_total (x - y)%R.
+Proof.
+  intros.
+  apply is_total_addition; auto.
+  apply is_total_subtraction; auto.
+Qed.
+Axiom is_total_division : forall x, is_total x -> (x <> R0) -> is_total (/x)%R.
+Lemma is_total_division2 : forall x y, is_total x -> is_total y -> (y <> R0) -> is_total (x/y)%R.
+Proof.
+  intros.
+  apply is_total_multiplication.
+  exact H.
+  apply is_total_division.
+  exact H0.
+  exact H1.
+Qed.
+
+  
 (* relator homomorphism *)
 Axiom relator_constant0 : relator Real0 R0.
 Axiom relator_constant1 : relator Real1 R1.
@@ -73,10 +99,13 @@ Axiom relator_multiplication : forall x y a b, relator x a -> relator y b -> rel
 Axiom relator_subtraction : forall x a, relator x a ->  relator (-x) (-a)%R.
 Axiom relator_divison : forall x (p : x <> Real0) a b, relator x a -> relator (/ p) (/b)%R. 
 
-(* relator is an anafunction *)
-Axiom ana1 : forall x : Real, exists! y : R, relator x y.
-(* Axiom ana2 : forall x : R, exists! y : Real, relator y x. *)
 
+(* relator is an anafunction *)
+Axiom relator_total : forall x y, relator x y -> is_total y.
+
+Axiom ana1 : forall x : Real, exists! y : R, relator x y.
+Axiom ana2 : forall x : R, is_total x -> exists! y : Real, relator y x.
+(* Axiom ana2 : forall x : R, exists! y : Real, relator y x. *)
 
 
 Lemma relator_unique_R : forall x y a b, relator x a -> relator y b -> x = y -> a = b.
@@ -90,18 +119,34 @@ Proof.
   exact (eq_refl _).
 Qed.
 
-Axiom relator_unique_Real : forall x y a b, relator x a -> relator y b -> a = b -> x = y.
-(* Proof. *)
-(*   intros. *)
-(*   rewrite H1 in H. *)
-(*   destruct (ana2 b). *)
-(*   destruct H2. *)
-(*   rewrite <- (H3 _ H). *)
-(*   rewrite <- (H3 _ H0). *)
-(*   exact (eq_refl _). *)
-(* Qed. *)
--
-(* Axiom transport_eq : forall x y : R, (x = y -> forall a b, relator a x -> relator b y -> a = b).  *)
+Lemma relator_unique_Real : forall x y a b, relator x a -> relator y b -> a = b -> x = y.
+Proof.
+  intros.
+  rewrite H1 in H.
+  pose proof (ana2 _ (relator_total _ _ H)).
+  pose proof (ana2 _ (relator_total _ _ H0)).
+  destruct H2 as [i1 [j1 k1]].
+  destruct H3 as [i2 [j2 k2]].
+  rewrite<- (k1 _ H).
+  rewrite<- (k1 _ H0).
+  exact (eq_refl _).
+Qed.
+
+Ltac total :=
+  auto;
+  match goal with
+  | H : (relator ?x ?y) |- is_total ?y => exact (relator_total _ _ H)
+  | |- is_total R0 => exact is_total_constant0
+  | |- is_total R1 => exact is_total_constant1
+  | |- is_total (?x + ?y) => apply is_total_addition; [total | total] 
+  | |- is_total (?x * ?y) => apply is_total_multiplication; [total | total] 
+  | |- is_total (-?x) => apply is_total_subtraction; total 
+  | |- is_total (?x - ?y) => apply is_total_minus; [total | total] 
+  | |- is_total (/?x) => apply is_total_division; [total | auto] 
+  | |- is_total (?x / ?y) => apply is_total_division2; [total | total |auto] 
+  end.
+
+  
 
 Axiom transport_eq : forall a b : Real, (forall x y, relator a x -> relator b y -> x = y) -> a = b.
 Axiom transport_lt : forall a b : Real, (forall x y, relator a x -> relator b y -> (x < y)%R) -> a < b.
