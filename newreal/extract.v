@@ -1,13 +1,15 @@
 Require Import Extraction.
+Require ExtrHaskellBasic.
+Require ExtrHaskellNatInteger.
 Require Import Real.
 Require Import IVT.
 Require Import Minmax.
 
 
 (* Real is Real, K is LazyBoolean, and M T is T *)
-Extract Inlined Constant Real => "Real".
-Extract Inlined Constant K => "LazyBoolean".
-Extract Constant M "'a" => " 'a ".
+Extract Inlined Constant Real => "CReal".
+Extract Inlined Constant K => "CKleenean".
+Extract Constant M "a" => " a ".
 
 (* Axioms for Kleenean *)
 Extract Inlined Constant trueK => "true".
@@ -25,35 +27,35 @@ Extract Inlined Constant singletonM => "id".
 
 
 (* Exact Real Number Operations *)
-Extract Inlined Constant Real0 => "0".
-Extract Inlined Constant Real1 => "1".
+Extract Inlined Constant Real0 => "(creal 0)".
+Extract Inlined Constant Real1 => "(creal 1)".
 
-Extract Inlined Constant Realplus => "plus".
-Extract Inlined Constant Realmult => "mult".
-Extract Inlined Constant Realopp => "opp".
-Extract Inlined Constant Realinv => "inv".
-Extract Inlined Constant Realltb => "lt".
-Extract Inlined Constant limit => "lim".
+Extract Inlined Constant Realplus => "add".
+Extract Inlined Constant Realmult => "mul".
+Extract Inlined Constant Realopp => "negate".
+Extract Inlined Constant Realinv => "recip".
+Extract Inlined Constant Realltb => "(<)".
+Extract Inlined Constant limit => "limit".
 
 
 
-Extract Inductive bool => "bool" [ "true" "false" ].
-Extract Inductive sumbool => "bool" [ "true" "false" ].
+Extract Inductive bool => "Bool" [ "True" "False" ].
+Extract Inductive sumbool => "Bool" [ "True" "False" ].
 
 (* some shortcuts for efficiency. Not necessary *)
-Extract Inlined Constant  Real2 => "2".
-Extract Inlined Constant  Real3 => "3".
-Extract Inlined Constant Realminus => "minus".
-Extract Inlined Constant Realdiv => "div".
-Extract Inlined Constant prec => "prec".
+Extract Inlined Constant  Real2 => "(creal 2)".
+Extract Inlined Constant  Real3 => "(creal 3)".
+Extract Inlined Constant Realminus => "sub".
+Extract Inlined Constant Realdiv => "divide".
+Extract Inlined Constant prec => "((creal 0.5)^)".
 
 
 (* ExtractConstant M => " ".        (*  *) *)
 
-Extract Inductive sigT => "prod" ["pair"].
+Extract Inductive sigT => "(,)" ["(,)"].
 Extraction Language Haskell.
 
-Extract Inductive prod => "(*)"  [ "(,)" ].
+Extract Inductive prod => "(,)"  [ "(,)" ].
 
 
 
