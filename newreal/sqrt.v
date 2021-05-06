@@ -4,7 +4,6 @@ From Coquelicot Require Import Coquelicot.
 Require Import Psatz.
 
 Require Import Interval.Tactic.
-Require Import Coq.Logic.ClassicalChoice.
 Open Scope Real_scope.
 
 Lemma IZReal_relator z : relator (IZReal z) (IZR z).
@@ -159,14 +158,14 @@ Proof.
   by apply Nat.log2_spec;lia.
 Defined. 
 
-Lemma sqrt_approx_coq_real x : is_total x -> (/ 4 <= x <= 2)%R ->  exists xn, forall n, is_total (xn n) /\ (Rabs (xn n - sqrt x) < (/ 2 ^ n))%R.
+Lemma sqrt_approx_coq_real x : is_total x -> (/ 4 <= x <= 2)%R ->  forall n, exists y, is_total y /\ (Rabs (y - sqrt x) < (/ 2 ^ n))%R.
 Proof.
   move => H1 H2.
-  suff H n :  exists y, (is_total y) /\ (Rabs (y - sqrt x) < (/ 2 ^ n))%R by apply (choice _ H).
   have [x' [P1 P2]] := (ana2 _ H1) .
   have [H2' H2''] : (/ IZReal4neq0) <= x' /\ x' <= Real2.
   - split; classical; relate; first by rewrite (relator_IZReal _ _ Ha);lra.
     by rewrite (relator_IZReal _ _ H0);lra.
+  move => n.
   case (sqrt_approx_fast x' n H2' H2'') => y P. 
   case (ana1 y) => y' [Ry1 Ry2].
   exists y'; split; first by apply (relator_total _ _ Ry1).
@@ -197,8 +196,8 @@ Proof.
   move => B1 B2.
   have T xr : is_total xr ->  (/ 4 <= xr <= 2)%R -> is_total (sqrt xr).
   - move => H1 H2.
-    have [xn P] := (sqrt_approx_coq_real _ H1 H2).
-    by apply (is_total_limit _ xn);apply P.
+    apply is_total_limit.
+    by apply sqrt_approx_coq_real.
   apply limit.
   - case (ana1 x) => xr [R1 R2].
     Holger B1.

@@ -73,7 +73,7 @@ Axiom is_total_constant1 : is_total R1.
 Axiom is_total_addition : forall x y, is_total x -> is_total y -> is_total (x + y)%R.
 Axiom is_total_multiplication : forall x y, is_total x -> is_total y -> is_total (x * y)%R.
 Axiom is_total_subtraction : forall x, is_total x -> is_total (- x)%R.
-Axiom is_total_limit : forall (x :R), forall (xn : nat -> R), (forall n, is_total (xn n)) -> (forall n, (Rabs (xn n - x)) < (/ 2 ^ n))%R -> is_total x.
+Axiom is_total_limit : forall (x :R), (forall n, exists y,  is_total y /\ (Rabs (y - x) < (/ 2 ^ n))%R) -> is_total x.
 Lemma is_total_minus : forall x y, is_total x -> is_total y ->  is_total (x - y)%R.
 Proof.
   intros.
