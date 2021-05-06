@@ -145,4 +145,92 @@ Proof.
   have -> : ((/ 4) = (/ 2) ^ 2)%R by lra.
   rewrite sqrt_pow2;lra.
 Defined.
+Definition sqrt_approx_fast x n : (/ IZReal4neq0) <= x -> (x <= Real2) -> {y | forall rx ry, relator x rx -> relator y ry -> (Rabs (ry - sqrt rx) < (/ 2 ^ n))%R}.
+Proof.
+  move => B1 B2.
+  have [y P] := sqrt_approx x (Nat.log2 n.+1).+1 B1 B2.
+  exists y => rx ry RX RY.
+  have P' := (P _ _ RX RY).
+  suff : ((/ 2 ^ (2 ^ (Nat.log2 n.+1).+1)) < (/ 2 ^ n))%R by lra.
+  apply Rinv_lt_contravar; first by apply Rmult_lt_0_compat; apply pow_lt;lra.
+  apply Rlt_pow; first by lra.
+  suff : (n.+1 < (2 ^ (Nat.log2 n.+1).+1))%coq_nat by lia.
+  by apply Nat.log2_spec;lia.
+Defined. 
 
+Lemma sqrt_approx_coq_real x : is_total x -> (/ 4 <= x <= 2)%R ->  forall n, exists y, is_total y /\ (Rabs (y - sqrt x) < (/ 2 ^ n))%R.
+Proof.
+  move => H1 H2.
+  have [x' [P1 P2]] := (ana2 _ H1) .
+  have [H2' H2''] : (/ IZReal4neq0) <= x' /\ x' <= Real2.
+  - split; classical; relate; first by rewrite (relator_IZReal _ _ Ha);lra.
+    by rewrite (relator_IZReal _ _ H0);lra.
+  move => n.
+  case (sqrt_approx_fast x' n H2' H2'') => y P. 
+  case (ana1 y) => y' [Ry1 Ry2].
+  exists y'; split; first by apply (relator_total _ _ Ry1).
+  by apply P.
+Qed.
+
+
+Lemma relator_prec n : relator (prec n) (/ 2 ^ n)%R.
+Proof.
+  elim n =>  [ /=  | n' IH ]; first by rewrite Rinv_1; apply relator_constant1.
+  have -> : (prec n'.+1) = (prec n') * (prec 1).
+  - have -> : n'.+1 = (n'+1)%coq_nat by lia.
+    by apply prec_hom.
+  have -> : (prec 1) = (Real1 / Real2_neq_Real0) by [].
+  rewrite  /= Rinv_mult_distr; [| by lra| by apply pow_nonzero].
+  rewrite Rmult_comm.
+  apply relator_multiplication => //.
+  rewrite /Realdiv.
+  have -> : (/ 2 = 1 *  /2)%R by lra.
+  apply relator_multiplication; first by apply relator_constant1.
+  apply (relator_divison Real2 Real2_neq_Real0 2).
+  by apply IZReal_relator.
+Qed.
+
+
+Definition restr_sqrt x : (/ IZReal4neq0) <= x -> (x <= Real2) -> {y | Real0 <= y /\ y * y = x}.
+Proof.
+  move => B1 B2.
+  have T xr : is_total xr ->  (/ 4 <= xr <= 2)%R -> is_total (sqrt xr).
+  - move => H1 H2.
+    apply is_total_limit.
+    by apply sqrt_approx_coq_real.
+  apply limit.
+  - case (ana1 x) => xr [R1 R2].
+    Holger B1.
+    Holger B2.
+    relate.
+    have L : (/ 4 <= xr <= 2)%R by rewrite <- (relator_IZReal _ _ Ha), <- (relator_IZReal _ _ Hy0); lra.
+    have [y [S1 S2]] := (ana2 _ (T _ (relator_total _ _ Hx0) L)).
+    exists y.
+    split => [ | x' [P1 P2]]; first by split;classical;relate;[apply sqrt_pos | apply sqrt_sqrt; lra].
+    Holger P1.
+    Holger P2.
+    classical.
+    relate.
+    by apply sqrt_lem_1;lra.
+  move => n.
+  have [y P] := (sqrt_approx_fast x n B1 B2).
+  exists y.
+  Holger B1.
+  Holger B2.
+  relate.
+  have L : (/ 4 <= y0 <= 2)%R by rewrite <- (relator_IZReal _ _ Ha), <- (relator_IZReal _ _ Hy0); lra.
+  have [sx [S1 S2]] := (ana2 _ (T _ (relator_total _ _ Hx0) L)).
+  have Rp := (relator_prec n).
+  exists sx.
+  split.
+  - split; classical; relate; first by apply sqrt_pos.
+    by apply sqrt_def;lra.
+  split; classical; relate.
+  - have -> : (x0 = - (/ 2 ^ n))%R by apply (Holber4 (/ 2 ^ n) (prec n)) => //.
+    suff: (sqrt y0 - x1 < (/ 2 ^ n))%R by lra.
+    apply Rabs_lt_between.
+    rewrite Rabs_minus_sym.
+    by apply (P _ _ Hx0 Ha0).
+  apply Rabs_lt_between.
+  by apply (P _ _ Hx0 Ha0).
+Qed.
