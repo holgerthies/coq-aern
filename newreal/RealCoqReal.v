@@ -13,7 +13,7 @@ Require Import Reals.
 
 
 
-(* totality *)
+(** totality *)
 Inductive is_total : R -> Prop :=
   is_total_constant0 : is_total R0
 | is_total_constant1 : is_total R1
@@ -86,6 +86,7 @@ Defined.
 
 
 
+(** relator *)
 
 Parameter relator : Real -> Nabla.nabla totalR.
 Axiom relator_mono : forall x y, relator x = relator y -> x = y.
@@ -97,29 +98,6 @@ Proof.
   apply relator_mono in H0.
   exact (H H0).
 Defined.
-
-Definition lift2 : forall A B (x : Nabla.nabla A) (f : A -> B), Nabla.nabla B.
-Proof.
-  intros.
-  apply (Nabla.lift_unary A _).
-  apply f.
-  apply x.
-Defined.
-
-
-
-(*   Nabla.nabla totalR, x <> Nabla.nabla_unit _ totalR0 -> Nabla.nabla totalR. *)
-(* Proof. *)
-(*   intros. *)
-(*   apply (lift2 _ _ x). *)
-
-
-(*   apply (Nabla.lift_unary totalR _). *)
-(*   intro. *)
-(*   apply totalRdiv. *)
-
-
-
 
 
 
@@ -166,6 +144,7 @@ Axiom relator_lt : forall x y, x < y = Nabla.lift_domain_binary _ _ _ totalRlt N
 
 
 
+(** totality *)
 
 (* 
    instead of using relator : Real -> nabla totalR, 
@@ -531,9 +510,8 @@ Proof.
       a0).
   apply sewon_sewonp in p0.
   apply (lp _ _ (fun k => k a0)) in p0.
-  
-  
-  admit.
+  apply eq_sym; rewrite p0.
+  apply eq_refl.
   apply (sewonsewonp _ _ _ _ _ _ H6).
   apply irrl.
   pose proof (H5 (exist _ a H2) (eq_refl _)).
@@ -546,8 +524,8 @@ Proof.
   apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
   apply irrl.
 
-  
-Admitted.
+Defined.
+
 
 
 (* relator is an anafunction *)
@@ -1168,7 +1146,7 @@ Definition Holber6 : forall a  x  z (p : x <> Real0), relate x a -> relate (/p) 
                                   z = (/a)%R.
 Proof.
   intros.
-  pose proof (relate_divison x p a a H).
+  pose proof (relate_divison x p a H).
   exact (relate_unique_R _ _ _ _ H0 H1 (eq_refl _)).
 Defined.
 
@@ -1177,7 +1155,7 @@ Proof.
   intros.
   replace (a / b)%R with (a * / b)%R by auto.
   replace (x / p) with (x */ p) in H1 by auto.
-  pose proof (relate_divison y p b b H0).
+  pose proof (relate_divison y p b H0).
   apply (Holber3 _ _ _ _ _ H H2).
   exact H1.
 Defined.

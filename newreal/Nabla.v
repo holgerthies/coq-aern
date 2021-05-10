@@ -695,11 +695,15 @@ Module Nabla.
   Qed.
   
 
-  (* Definition fancy_lift : forall A B (x : nabla A), (forall y : A, x = nabla_unit _ y -> nabla B) -> nabla B. *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   apply X. *)
     
+  
+  Definition lift2 : forall A B (x : Nabla.nabla A) (f : A -> B), Nabla.nabla B.
+  Proof.
+    intros.
+    apply (Nabla.lift_unary A _).
+    apply f.
+    apply x.
+  Defined.
+  
 
-    
 End Nabla.
