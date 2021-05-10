@@ -6,26 +6,26 @@ Require Import Psatz.
 Require Import Interval.Tactic.
 Open Scope Real_scope.
 
-Lemma IZReal_relator z : relator (IZReal z) (IZR z).
+Lemma IZReal_relator z : relate (IZReal z) (IZR z).
 Proof.
-  suff H : forall z', (0 <= z')%Z -> relator (IZReal z') (IZR z').
+  suff H : forall z', (0 <= z')%Z -> relate (IZReal z') (IZR z').
   - case z => [| p |p]; try by apply H;lia.
     rewrite IZReal_neg IZR_NEG.
-    apply relator_subtraction.
+    apply relate_subtraction.
     by apply H.
   apply Z_of_nat_prop.
-  elim => [| n' IH]; first by rewrite Nat2Z.inj_0;apply relator_constant0.
+  elim => [| n' IH]; first by rewrite Nat2Z.inj_0;apply relate_constant0.
   rewrite Nat2Z.inj_succ.
   have -> : (Z.succ (Z.of_nat n')) = ((Z.of_nat n') +1)%Z by lia.
   rewrite IZReal_hom plus_IZR.
-  apply relator_addition =>//.
-  suff -> : (IZReal 1) = Real1 by apply relator_constant1.
+  apply relate_addition =>//.
+  suff -> : (IZReal 1) = Real1 by apply relate_constant1.
   by exact Logic.eq_refl.
 Qed.
 
-Lemma relator_IZReal z x : relator (IZReal z) x -> x = (IZR z).
+Lemma relate_IZReal z x : relate (IZReal z) x -> x = (IZR z).
 Proof.
-  suff H: relator (IZReal z) (IZR z).
+  suff H: relate (IZReal z) (IZR z).
   - move => R.
    by relate.
   by apply IZReal_relator.
@@ -35,21 +35,21 @@ Lemma IZReal4neq0 : IZReal 4 <> Real0.
 Proof.
   classical.
   relate.
-  rewrite (relator_IZReal _ _ H).
+  rewrite (relate_IZReal _ _ H).
   by lra.
 Qed.
 
-Lemma sqrt_bound_helper x :  (/ IZReal4neq0) <= x -> (x <= Real2) -> forall rx, relator x rx -> ((/ 4) <= rx <= 2)%R.
+Lemma sqrt_bound_helper x :  (/ IZReal4neq0) <= x -> (x <= Real2) -> forall rx, relate x rx -> ((/ 4) <= rx <= 2)%R.
 Proof.
   move => Bl Bu rx RX.
   split.
   - apply /transport_leq_inv/Bl => //.
-    by apply  (relator_divison _ IZReal4neq0 4%R 4 (IZReal_relator 4)).
+    by apply  (relate_divison _ IZReal4neq0 4%R 4 (IZReal_relator 4)).
   apply /transport_leq_inv/Bu => //.
   by apply IZReal_relator.
 Qed.
 
-Lemma sqrt_bounds x :  (/ IZReal4neq0) <= x -> (x <= Real2) -> forall rx, relator x rx -> ((/ 2) <= (sqrt rx) <= (sqrt 2))%R.
+Lemma sqrt_bounds x :  (/ IZReal4neq0) <= x -> (x <= Real2) -> forall rx, relate x rx -> ((/ 2) <= (sqrt rx) <= (sqrt 2))%R.
 Proof.
   move => Bl Bu rx RX.
   have [B1 B2] := sqrt_bound_helper x Bl Bu rx RX.
@@ -68,10 +68,10 @@ Proof.
   by apply sqrt_lt_R0.
 Qed.
 
-Definition sqrt_approx x n : (/ IZReal4neq0) <= x -> (x <= Real2) -> {y | forall rx ry, relator x rx -> relator y ry -> (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R}.
+Definition sqrt_approx x n : (/ IZReal4neq0) <= x -> (x <= Real2) -> {y | forall rx ry, relate x rx -> relate y ry -> (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R}.
 Proof.
   move => B1 B2.
-  suff [y P] : {y | (Real0 < y) /\ forall rx ry, relator x rx -> relator y ry -> (ry = 1 \/ sqrt rx <= ry)%R /\ (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R} by exists y; apply P.
+  suff [y P] : {y | (Real0 < y) /\ forall rx ry, relate x rx -> relate y ry -> (ry = 1 \/ sqrt rx <= ry)%R /\ (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R} by exists y; apply P.
   elim n =>[| n' [y [ygt0 IH]]].
   - exists Real1; split => [| rx ry RX RY]; first by apply Real1_gt_Real0.
     split; first by relate; auto.
@@ -90,17 +90,17 @@ Proof.
   - classical. 
     relate.
     have [B1' B2'] := (sqrt_bound_helper _ B1 B2 _ Ha1).
-    have ygt0' : (0 < x1)%R by apply /transport_lt_inv/ygt0/Hb/relator_constant0.
-    rewrite (relator_IZReal _ _ Ha2).
+    have ygt0' : (0 < x1)%R by apply /transport_lt_inv/ygt0/Hb/relate_constant0.
+    rewrite (relate_IZReal _ _ Ha2).
     apply Rmult_lt_0_compat; first by lra.
     apply Rplus_lt_0_compat; first by lra.
     by apply Rdiv_lt_0_compat; lra.
   move => rx ry RX RY.
   relate.
-  rewrite (relator_IZReal _ _ Ha2).
+  rewrite (relate_IZReal _ _ Ha2).
   have [ygt IH'] := IH _ _ Ha1 Hb. 
   have [B1' B2'] := (sqrt_bound_helper _ B1 B2 _ Ha1).
-  have ygt0' : (0 < x1)%R by apply /transport_lt_inv/ygt0/Hb/relator_constant0.
+  have ygt0' : (0 < x1)%R by apply /transport_lt_inv/ygt0/Hb/relate_constant0.
   have p : (0 < rx / x1)%R by apply Rdiv_lt_0_compat; lra.
   split.
   - apply or_intror. 
@@ -145,7 +145,7 @@ Proof.
   have -> : ((/ 4) = (/ 2) ^ 2)%R by lra.
   rewrite sqrt_pow2;lra.
 Defined.
-Definition sqrt_approx_fast x n : (/ IZReal4neq0) <= x -> (x <= Real2) -> {y | forall rx ry, relator x rx -> relator y ry -> (Rabs (ry - sqrt rx) < (/ 2 ^ n))%R}.
+Definition sqrt_approx_fast x n : (/ IZReal4neq0) <= x -> (x <= Real2) -> {y | forall rx ry, relate x rx -> relate y ry -> (Rabs (ry - sqrt rx) < (/ 2 ^ n))%R}.
 Proof.
   move => B1 B2.
   have [y P] := sqrt_approx x (Nat.log2 n.+1).+1 B1 B2.
@@ -163,30 +163,30 @@ Proof.
   move => H1 H2.
   have [x' [P1 P2]] := (ana2 _ H1) .
   have [H2' H2''] : (/ IZReal4neq0) <= x' /\ x' <= Real2.
-  - split; classical; relate; first by rewrite (relator_IZReal _ _ Ha);lra.
-    by rewrite (relator_IZReal _ _ H0);lra.
+  - split; classical; relate; first by rewrite (relate_IZReal _ _ Ha);lra.
+    by rewrite (relate_IZReal _ _ H0);lra.
   move => n.
   case (sqrt_approx_fast x' n H2' H2'') => y P. 
   case (ana1 y) => y' [Ry1 Ry2].
-  exists y'; split; first by apply (relator_total _ _ Ry1).
+  exists y'; split; first by apply (relate_total _ _ Ry1).
   by apply P.
 Qed.
 
 
-Lemma relator_prec n : relator (prec n) (/ 2 ^ n)%R.
+Lemma relate_prec n : relate (prec n) (/ 2 ^ n)%R.
 Proof.
-  elim n =>  [ /=  | n' IH ]; first by rewrite Rinv_1; apply relator_constant1.
+  elim n =>  [ /=  | n' IH ]; first by rewrite Rinv_1; apply relate_constant1.
   have -> : (prec n'.+1) = (prec n') * (prec 1).
   - have -> : n'.+1 = (n'+1)%coq_nat by lia.
     by apply prec_hom.
   have -> : (prec 1) = (Real1 / Real2_neq_Real0) by [].
   rewrite  /= Rinv_mult_distr; [| by lra| by apply pow_nonzero].
   rewrite Rmult_comm.
-  apply relator_multiplication => //.
+  apply relate_multiplication => //.
   rewrite /Realdiv.
   have -> : (/ 2 = 1 *  /2)%R by lra.
-  apply relator_multiplication; first by apply relator_constant1.
-  apply (relator_divison Real2 Real2_neq_Real0 2).
+  apply relate_multiplication; first by apply relate_constant1.
+  apply (relate_divison Real2 Real2_neq_Real0 2).
   by apply IZReal_relator.
 Qed.
 
@@ -203,8 +203,8 @@ Proof.
     Holger B1.
     Holger B2.
     relate.
-    have L : (/ 4 <= xr <= 2)%R by rewrite <- (relator_IZReal _ _ Ha), <- (relator_IZReal _ _ Hy0); lra.
-    have [y [S1 S2]] := (ana2 _ (T _ (relator_total _ _ Hx0) L)).
+    have L : (/ 4 <= xr <= 2)%R by rewrite <- (relate_IZReal _ _ Ha), <- (relate_IZReal _ _ Hy0); lra.
+    have [y [S1 S2]] := (ana2 _ (T _ (relate_total _ _ Hx0) L)).
     exists y.
     split => [ | x' [P1 P2]]; first by split;classical;relate;[apply sqrt_pos | apply sqrt_sqrt; lra].
     Holger P1.
@@ -218,9 +218,9 @@ Proof.
   Holger B1.
   Holger B2.
   relate.
-  have L : (/ 4 <= y0 <= 2)%R by rewrite <- (relator_IZReal _ _ Ha), <- (relator_IZReal _ _ Hy0); lra.
-  have [sx [S1 S2]] := (ana2 _ (T _ (relator_total _ _ Hx0) L)).
-  have Rp := (relator_prec n).
+  have L : (/ 4 <= y0 <= 2)%R by rewrite <- (relate_IZReal _ _ Ha), <- (relate_IZReal _ _ Hy0); lra.
+  have [sx [S1 S2]] := (ana2 _ (T _ (relate_total _ _ Hx0) L)).
+  have Rp := (relate_prec n).
   exists sx.
   split.
   - split; classical; relate; first by apply sqrt_pos.
