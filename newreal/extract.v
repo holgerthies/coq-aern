@@ -4,12 +4,15 @@ Require ExtrHaskellNatInteger.
 Require Import Real.
 Require Import IVT.
 Require Import Minmax.
+Require Import sqrt.
 
 
 (* Real is Real, K is LazyBoolean, and M T is T *)
 Extract Inlined Constant Real => "CReal".
 Extract Inlined Constant K => "CKleenean".
 Extract Constant M "a" => " a ".
+
+Extract Inlined Constant Nat.log2 => "(integer . integerLog2)".
 
 (* Axioms for Kleenean *)
 Extract Inlined Constant trueK => "true".
@@ -68,3 +71,6 @@ Recursive Extraction  CIVT.
 
 (* maximum *)
 Recursive Extraction Realmax.
+
+(* sqrt *)
+Recursive Extraction restr_sqrt.
