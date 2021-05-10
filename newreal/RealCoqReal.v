@@ -1,284 +1,312 @@
 Require Import Real.
 Require Import Reals.
 
-(* Parameter classical : Real -> R. *)
 
-(* (* structure homomorphism *) *)
-(* Axiom classical_const0 : classical Real0 = R0. *)
-(* Axiom classical_const1 : classical Real1 = R1. *)
-(* Axiom classical_addition : forall x y, classical (x + y) = (classical x + classical y)%R. *)
-(* Axiom classical_multiplication : forall x y, classical (x * y) = (classical x * classical y)%R. *)
-(* Axiom classical_subtraction : forall x, classical (- x) = (- classical x)%R. *)
-(* Axiom classical_division : forall x (p : x <> Real0), classical (/ p) = (/classical x)%R. *)
-
-(* Axiom classical_lt : forall x y, (x < y) <-> (classical x < classical y)%R. *)
-
-(* (* order completion... *) *)
-(* Definition Prop_convert :  (Real -> Prop) -> (R -> Prop). *)
-(* Proof. *)
-(*   intros. *)
-(*   exact (forall x : Real, classical x = H -> X x ). *)
-(* Defined. *)
-
-
-(* Axiom transport_eq : forall x y :R, x = y -> forall a b, classical a = x -> classical b = y -> a = b. *)
-(* Axiom transport_forall : forall P : Real -> Prop, (forall x : R, (Prop_convert P) x) -> (forall x : Real, P x). *)
-(* Axiom transport_exists : forall P : Real -> Prop, (exists x : R, (Prop_convert P) x) -> (exists x : Real, P x). *)
-(* Goal Real1 + Real0 = Real1. *)
-(* Proof. *)
-(*   assert (R1 + R0 = R1)%R. *)
-(*   ring. *)
-(*   apply (transport_eq _ _ H). *)
-(*   apply classical_addition. *)
-(*   exact classical_constant1. *)
-(*   exact relator_constant0. *)
-(*   exact relator_constant1. *)
-(* Qed. *)
-
-
-(* Goal forall x : Real, exists y : Real, x = - y. *)
-(* Proof. *)
-(*   intros. *)
-(*   apply transport_exists. *)
-(*   unfold mymy. *)
-(*   apply (transport_forall). *)
-(*   intro. *)
-(*   unfold mymy. *)
-(*   intro. *)
-(*   intro. *)
-(*   destruct (ana x). *)
-(*   exists (- x0)%R. *)
-(*   intro. *)
-(*   intro. *)
-  
-  
-(*   admit. *)
-(*   exact x. *)
-
-
-(* Axiom classical_multiplication : classical Real0 = R0. *)
-(* Axiom classical_const0 : classical Real0 = R0. *)
-(* Axiom classical_const0 : classical Real0 = R0. *)
-(* Axiom classical_const0 : classical Real0 = R0. *)
-(* Axiom classical_const0 : classical Real0 = R0. *)
-
-
-Definition nabla (A : Type) := {P : A -> Prop & exists! a, P a}.
-Definition nabla_inj (A : Type) : A -> nabla A.
+Definition tpp : forall A : Type, forall P : A -> Type, forall x y : A, forall e : x = y, P x -> P y.
 Proof.
-  intro.
-  exists (fun a => a = X).
-  exists X.
-  split.
-  exact (eq_refl _).
+  intros.
+  induction e.
+  exact X.
+Defined.
+
+Lemma sewonsewon : forall (A : Type) (P : A -> Type) (x y : A) (a : P x) (b : P y), forall e : x = y,
+      tpp A P x y e a = b -> existT P x a = existT P y b.
+Proof.
   intros.
   induction H.
-  exact (eq_refl _).
-Defined.
+  unfold tpp.
+  unfold eq_rect.
 
-Definition transport_fiber (A : Type) : (A -> Prop) -> (nabla A -> Prop).
-Proof.
-  intros.
-  exact (forall x, nabla_inj _  x = X0 -> X x).
-Defined.
-
-
-Definition transport_forall : forall A P,  (forall a : nabla A, transport_fiber A P a) -> forall a : A, P a.
-Proof.
-  intros.
-  unfold transport_fiber in H.
-  apply (H (nabla_inj _ a)).
-  apply eq_refl.
-Defined.
-
-Definition sewon_sewon : forall A P (a c : A) b d, existT P a b = existT P c d -> a = c.
-Proof.
-  intros.
-  auto.
-  Check existT P a b.
-  apply (@lp {x : A & P x} A (@projT1 A P  ) (existT P a b) (existT P c d)) in H.
-  simpl in H.
-  exact H.
-Defined.
-
-  
-Definition transport_eq : forall A (a b : A), nabla_inj _ a = nabla_inj _ b -> a = b.
-Proof.
-  intros.
-  unfold nabla_inj in H.
-  pose proof (sewon_sewon _ _ _ _ _ _ H).
-  apply (lp _ _ (fun f => f a)) in H0.
-  induction H0.
-  apply eq_refl.
-Defined.
-
-
-Definition lift_unary  A B (f : A -> B) : nabla A -> nabla B.
-Proof.
-  intros.
-  destruct X.
-  exists (fun b => exists a : A, x a /\ b = f a).
   destruct e.
-  exists (f x0).
-  split.
-  exists x0.
-  destruct H.
-  split; auto.
-  intros.
-  destruct H0.
-  destruct H0.
-  destruct H.
-  induction (H2 _ H0).
-  auto.
+  exact eq_refl.
 Defined.
-
-Definition lift_binary  A B C (f : A -> B -> C) : nabla A -> nabla B -> nabla C.
-Proof.
-  intros.
-  destruct X.
-  destruct X0.
-  exists (fun c => exists a b, x a /\ x0 b  /\ c = f a b ).
-  destruct e, e0.
-  exists (f x1 x2).
-  split.
-  exists x1.
-  exists x2.
-  destruct H, H0.
-  repeat split; auto.
-
-  intros.
-  destruct H, H0, H1.
-  destruct H1.
-  destruct H1.
-  destruct H4.
-  induction (H2 _ H1).
-  induction (H3 _ H4).
-  auto.
-Defined.
-
-
-Lemma Prop_is_stable : nabla Prop ->  Prop.
-Proof.
-  intro.
-  (* unfold nabla in X. *)
-  (* destruct X. *)
-  (* destruct e. *)
-  exact (X = nabla_inj _ True).
-Defined.
-
-(* Goal forall A ( P : A -> Prop), (forall n : nat, exists y, P y) -> exists xn : nat -> A, forall n, P (xn n). *)
-(* Proof. *)
-(*   intros. *)
-(*   exists (fun n => proj1 _ _ (X n)). *)
-(*   intro. *)
-(*   destruct (X n). *)
-(*   simpl. *)
-(*   exact p. *)
-(* Defined. *)
-
-
-(* Goal forall A ( P : A -> Prop), (forall n : nat, {y | P y}) -> exists xn : nat -> A, forall n, P (xn n). *)
-(* Proof. *)
-(*   intros. *)
-(*   exists (fun n => pr1 _ _ (X n)). *)
-(*   intro. *)
-(*   destruct (X n). *)
-(*   simpl. *)
-(*   exact p. *)
-(* Defined. *)
-
-
-(*   simpl. *)
-
-Axiom Prop_ext : forall P Q : Prop, (P -> Q) -> (Q -> P) -> P = Q.
-Axiom fun_ext : forall A B (f g: A -> B), (forall x, f x = g x) -> f = g.
-
-
-Lemma Prop_nabla_prop : (fun x => Prop_is_stable (nabla_inj Prop x)) = fun x => x.
-Proof.
-  apply fun_ext.
-  intro P.
-  apply Prop_ext.
-  intros.
-  unfold Prop_is_stable in H.
-
-  pose proof (sewon_sewon _ _ _ _ _ _ H).
-  apply (lp _ _ (fun x => x P)) in H0.
-  assert (P = True).
-  induction H0.
-  apply eq_refl.
-  rewrite H1.
-  auto.
-  intros.
-  unfold Prop_is_stable.
-  assert (P = True).
-  apply Prop_ext; auto.
-  induction H0; auto.
-Qed.
-
-Lemma nabla_inj2 : forall A (x y : nabla A),(forall a b, ((x = nabla_inj _ a) /\ (y = nabla_inj _ b)) -> a = b) ->  (x = y).
-Proof.
-  intros.
-  
-
-  
-  destruct x, y.
-  destruct e, e0.
-  assert (x1 = x2).
-  pose proof (H x1 x2).
-  apply H0.
-  H0.
-  elim H0.
-  split.
-
-  
-  pose proof (sewon_sewon _ _ _ _ _ _ H0).
-  pose proof (x  = x0).
-  
-Admitted.
-
-
-Lemma nabla_Prop_prop : (fun x => nabla_inj _ (Prop_is_stable x)) = fun x => x.
-Proof.
-  apply fun_ext.
-  intro.
-  unfold Prop_is_stable.
-  apply nabla_inj2.
-  intros.
-  destruct H.
-
-  apply (transport_eq) in H.
-  rewrite H0 in H.
-  rewrite<- H.
-  apply Prop_ext.
-  intro.
-  apply transport_eq in H1.
-  rewrite H1; auto.
-  intro.
-  assert (b = True).
-  
-  apply Prop_ext; auto.
-  induction H2; auto.
-Defined.
-
-
-
-Goal forall x y, x + y = y + x.
-Proof.
-  apply (transport_forall _ (fun x => forall y, x + y = y + x)).
-  intro.
-  intro.
-  intro.
-  apply (transport_forall).
-  intros.
-  intro.
-  intro.
-  apply transport_eq.
-  intros.
   
   
-  intros.
+Module Nabla.
+ 
+  Definition nabla (A : Type) := {P : A -> Prop & exists! a, P a}.
+  Definition nabla_inj (A : Type) : A -> nabla A.
+  Proof.
+    intro.
+    exists (fun a => a = X).
+    exists X.
+    split.
+    exact (eq_refl _).
+    intros.
+    induction H.
+    exact (eq_refl _).
+  Defined.
+
+  Definition transport_fiber (A : Type) : (A -> Prop) -> (nabla A -> Prop).
+  Proof.
+    intros.
+    exact (forall x, nabla_inj _  x = X0 -> X x).
+  Defined.
+
+
+  Definition transport_forall : forall A P,  (forall a : nabla A, transport_fiber A P a) -> forall a : A, P a.
+  Proof.
+    intros.
+    unfold transport_fiber in H.
+    apply (H (nabla_inj _ a)).
+    apply eq_refl.
+  Defined.
+
+  Definition sewon_sewon : forall A P (a c : A) b d, existT P a b = existT P c d -> a = c.
+  Proof.
+    intros.
+    auto.
+    Check existT P a b.
+    apply (@lp {x : A & P x} A (@projT1 A P  ) (existT P a b) (existT P c d)) in H.
+    simpl in H.
+    exact H.
+  Defined.
+
   
+  Definition transport_eq : forall A (a b : A), nabla_inj _ a = nabla_inj _ b -> a = b.
+  Proof.
+    intros.
+    unfold nabla_inj in H.
+    pose proof (sewon_sewon _ _ _ _ _ _ H).
+    apply (lp _ _ (fun f => f a)) in H0.
+    induction H0.
+    apply eq_refl.
+  Defined.
+
+
+  Definition lift_unary  A B (f : A -> B) : nabla A -> nabla B.
+  Proof.
+    intros.
+    destruct X.
+    exists (fun b => exists a : A, x a /\ b = f a).
+    destruct e.
+    exists (f x0).
+    split.
+    exists x0.
+    destruct H.
+    split; auto.
+    intros.
+    destruct H0.
+    destruct H0.
+    destruct H.
+    induction (H2 _ H0).
+    auto.
+  Defined.
+
+  Definition lift_binary  A B C (f : A -> B -> C) : nabla A -> nabla B -> nabla C.
+  Proof.
+    intros.
+    destruct X.
+    destruct X0.
+    exists (fun c => exists a b, x a /\ x0 b  /\ c = f a b ).
+    destruct e, e0.
+    exists (f x1 x2).
+    split.
+    exists x1.
+    exists x2.
+    destruct H, H0.
+    repeat split; auto.
+
+    intros.
+    destruct H, H0, H1.
+    destruct H1.
+    destruct H1.
+    destruct H4.
+    induction (H2 _ H1).
+    induction (H3 _ H4).
+    auto.
+  Defined.
+
+
+  Lemma Prop_is_stable : nabla Prop ->  Prop.
+  Proof.
+    intro.
+    (* unfold nabla in X. *)
+    (* destruct X. *)
+    (* destruct e. *)
+    exact (X = nabla_inj _ True).
+  Defined.
+
+  (* Goal forall A ( P : A -> Prop), (forall n : nat, exists y, P y) -> exists xn : nat -> A, forall n, P (xn n). *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   exists (fun n => proj1 _ _ (X n)). *)
+  (*   intro. *)
+  (*   destruct (X n). *)
+  (*   simpl. *)
+  (*   exact p. *)
+  (* Defined. *)
+
+
+  (* Goal forall A ( P : A -> Prop), (forall n : nat, {y | P y}) -> exists xn : nat -> A, forall n, P (xn n). *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   exists (fun n => pr1 _ _ (X n)). *)
+  (*   intro. *)
+  (*   destruct (X n). *)
+  (*   simpl. *)
+  (*   exact p. *)
+  (* Defined. *)
+
+
+  (*   simpl. *)
+
+
+
+  Lemma Prop_nabla_prop : (fun x => Prop_is_stable (nabla_inj Prop x)) = fun x => x.
+  Proof.
+    apply fun_ext.
+    intro P.
+    apply Prop_ext.
+    intros.
+    unfold Prop_is_stable in H.
+
+    pose proof (sewon_sewon _ _ _ _ _ _ H).
+    apply (lp _ _ (fun x => x P)) in H0.
+    assert (P = True).
+    induction H0.
+    apply eq_refl.
+    rewrite H1.
+    auto.
+    intros.
+    unfold Prop_is_stable.
+    assert (P = True).
+    apply Prop_ext; auto.
+    induction H0; auto.
+  Qed.
+
+
+  Lemma nabla_mono : forall A (x y : A), nabla_inj _ x = nabla_inj _ y -> x = y.
+  Proof.
+    intros.
+    apply sewon_sewon in H.
+    Check lp.
+    
+    apply (lp _ _  (fun f => f x)) in H.
+    induction H.
+    apply eq_refl.
+  Defined.
+
+
+
+  Lemma nabla_inj2 : forall A (x y : nabla A),(forall a b, ((x = nabla_inj _ a) /\ (y = nabla_inj _ b)) -> a = b) ->  (x = y).
+  Proof.
+    intros.
+    
+
+    
+    destruct x, y.
+    destruct e, e0.
+    assert (x1 = x2).
+    pose proof (H x1 x2).
+    apply H0.
+    
+  Admitted.
+
+
+  Definition nabla_lift (A B : Type) : (A -> B) -> (nabla A) -> nabla B.
+  Proof.
+    intros.
+    exists (fun a => exists x, a = (X x) /\ X0 = nabla_inj _ x).
+    destruct X0.
+    destruct e.
+    exists (X x0).
+    split.
+    exists x0.
+    split; auto.
+    destruct u.
+
+    
+    
+    unfold nabla_inj.
+
+
+    assert (x = fun a : A => a = x0).
+    apply fun_ext.
+    intro.
+    apply Prop_ext.
+    intro.
+    induction (e _ H).
+
+    apply eq_refl.
+    intro.
+    induction H.
+    exact x1.
+
+
+    apply (sewonsewon _ _ _ _ _ _ H).
+    apply irrl.
+
+    
+    intros.
+    destruct H.
+    destruct H.
+    rewrite H.
+    apply lp.
+    apply nabla_mono.
+    induction H0.
+    unfold nabla_inj.
+    assert ((fun a : A => a = x0) = x).
+    apply fun_ext.
+    intro.
+    apply Prop_ext.
+    intro.
+    induction H0.
+    destruct u; auto.
+    intro.
+    destruct u.
+    induction (H2 _ H0).
+    apply eq_refl.
+    
+    
+    apply (sewonsewon _ _ _ _ _ _ H0).
+    apply irrl.
+  Defined.
+
+  (* Definition nabla_mult (A : Type) : nabla (nabla A) -> nabla A. *)
+  (* Proof. *)
+  (*   intro. *)
+  (*   exists (fun a : A => nabla_inj _ (nabla_inj _ a) = X). *)
+  (*   destruct X. *)
+  (*   destruct e. *)
+  (*   destruct x0. *)
+  (*   destruct e. *)
+
+  (*   exists x1. *)
+
+  
+  
+
+
+
+  Lemma nabla_Prop_prop : (fun x => nabla_inj _ (Prop_is_stable x)) = fun x => x.
+  Proof.
+    apply fun_ext.
+    intro.
+    unfold Prop_is_stable.
+    apply nabla_inj2.
+    intros.
+    destruct H.
+
+    apply (transport_eq) in H.
+    rewrite H0 in H.
+    rewrite<- H.
+    apply Prop_ext.
+    intro.
+    apply transport_eq in H1.
+    rewrite H1; auto.
+    intro.
+    assert (b = True).
+    
+    apply Prop_ext; auto.
+    induction H2; auto.
+  Defined.
+
+End Nabla.
+
+
+
+
 
 
   
@@ -814,33 +842,3 @@ Ltac relate :=
                                          
   | _ => apply skip
   end.
-
-
-Goal forall x : R, is_total x -> is_total (sqrt x).
-Proof.
-  intros.
-  unfold sqrt.
-  destruct (Rcase_abs x).
-  
-  apply is_total_constant0.
-
-  unfold Rsqrt.
-  simpl.
-  destruct (Rsqrt_exists x (Rge_le x 0 r)).
-  destruct a.
-  
-  total.
-
-Goal forall (y : Real) (p : y <> Real0) (z : R), relator (y/p) z -> z = z.
-  classical.
-  relate.
-  
-  intros.
-  relate.
-
-  Holger p.
-  relate.
-Admitted.
-
-  
-  
