@@ -2,7 +2,14 @@ Require Import Real.
 Require Import Nabla.
 Require Import Reals.
 
-
+(*
+  Unlike the ideal classical reals described in the paper,
+  Coq's classical real R is partial; i.e., 1/0 is a valid term of tyle R.
+  Hence, we define totalR as sub-object of R which are total.
+  For the purpose, we defien a classical predicate is_total : R -> Prop, 
+  and define totalR := {x : R | is_total x}.
+  We axiomatize our relator as a function of type relator : Real -> totalR.
+ *)
 
 
 
@@ -80,110 +87,111 @@ Defined.
 
 
 
-Module Relator.
-  Parameter relator : Real -> Nabla.nabla totalR.
-  Axiom relator_mono : forall x y, relator x = relator y -> x = y.
-  Axiom relator_epi : forall y, exists x, y = relator x. 
-  Lemma relator_mono_neg : forall x y, x <> y -> relator x <> relator y.
-  Proof.
-    intros.
-    intro.
-    apply relator_mono in H0.
-    exact (H H0).
-  Defined.
+Parameter relator : Real -> Nabla.nabla totalR.
+Axiom relator_mono : forall x y, relator x = relator y -> x = y.
+Axiom relator_epi : forall y, exists x, y = relator x. 
+Lemma relator_mono_neg : forall x y, x <> y -> relator x <> relator y.
+Proof.
+  intros.
+  intro.
+  apply relator_mono in H0.
+  exact (H H0).
+Defined.
 
-  Definition lift2 : forall A B (x : Nabla.nabla A) (f : A -> B), Nabla.nabla B.
-  Proof.
-    intros.
-    apply (Nabla.lift_unary A _).
-    apply f.
-    apply x.
-  Defined.
-  
-  Definition test : forall x (p : x <> Real0), Nabla.nabla ({x : totalR | x <> totalR0}).
-  Proof.
-    intros.
-    pose proof (relator x).
-    apply Nabla.transport_ex.
-    apply (Nabla.fancy_lift_unary _ _ X).
-    intros.
-    exists (Nabla.nabla_unit _ z).
-    unfold Nabla.transport_fiber.
-    intros.
-    intro.
-    induction (eq_sym H1).
-  Admitted.
-  
-    
-  (*   Nabla.nabla totalR, x <> Nabla.nabla_unit _ totalR0 -> Nabla.nabla totalR. *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   apply (lift2 _ _ x). *)
-    
-    
-  (*   apply (Nabla.lift_unary totalR _). *)
-  (*   intro. *)
-  (*   apply totalRdiv. *)
-  
+Definition lift2 : forall A B (x : Nabla.nabla A) (f : A -> B), Nabla.nabla B.
+Proof.
+  intros.
+  apply (Nabla.lift_unary A _).
+  apply f.
+  apply x.
+Defined.
 
-    
-    
+Definition test : forall x (p : x <> Real0), Nabla.nabla ({x : totalR | x <> totalR0}).
+Proof.
+  intros.
+  pose proof (relator x).
+  apply Nabla.transport_ex.
+  apply (Nabla.fancy_lift_unary _ _ X).
+  intros.
+  exists (Nabla.nabla_unit _ z).
+  unfold Nabla.transport_fiber.
+  intros.
+  intro.
+  induction (eq_sym H1).
+Admitted.
 
 
-  (* axioms for characterizing relator *)
-  Axiom relator_constant0 : relator Real0 = Nabla.nabla_unit _ totalR0.
-  Axiom relator_constant1 : relator Real1 = Nabla.nabla_unit _ totalR1.
-  Axiom relator_addition : forall x y, relator (x + y) = (Nabla.lift_binary _ _ _ totalRadd) (relator x) (relator y).
-  Axiom relator_multiplication : forall x y, relator (x * y) = (Nabla.lift_binary _ _ _ totalRmult) (relator x) (relator y).
-  Axiom relator_subtraction : forall x, relator (-x) = (Nabla.lift_unary _ _ totalRsub) (relator x).
-  (* Axiom relator_division : forall x (p : x <> Real0), *)
-  (*     relator (/p) = (Nabla.lift_unary _ _ (fun x => *)
-  
+(*   Nabla.nabla totalR, x <> Nabla.nabla_unit _ totalR0 -> Nabla.nabla totalR. *)
+(* Proof. *)
+(*   intros. *)
+(*   apply (lift2 _ _ x). *)
+
+
+(*   apply (Nabla.lift_unary totalR _). *)
+(*   intro. *)
+(*   apply totalRdiv. *)
+
+
+
+
+
+
+(* axioms for characterizing relator *)
+Axiom relator_constant0 : relator Real0 = Nabla.nabla_unit _ totalR0.
+Axiom relator_constant1 : relator Real1 = Nabla.nabla_unit _ totalR1.
+Axiom relator_addition : forall x y, relator (x + y) = (Nabla.lift_binary _ _ _ totalRadd) (relator x) (relator y).
+Axiom relator_multiplication : forall x y, relator (x * y) = (Nabla.lift_binary _ _ _ totalRmult) (relator x) (relator y).
+Axiom relator_subtraction : forall x, relator (-x) = (Nabla.lift_unary _ _ totalRsub) (relator x).
+(* Axiom relator_division : forall x (p : x <> Real0), *)
+(*     relator (/p) = (Nabla.lift_unary _ _ (fun x => *)
+
 
   
   (*                                                                                totalRdiv) (relator x). *)
   (* - *)
 
-  Axiom relator_lt : forall x y, x < y = Nabla.lift_domain_binary _ _ _ totalRlt Nabla.Prop_is_nabla_modal (relator x) (relator y). 
+Axiom relator_lt : forall x y, x < y = Nabla.lift_domain_binary _ _ _ totalRlt Nabla.Prop_is_nabla_modal (relator x) (relator y). 
 
   
-End Relator.
 
-
-(* old relator *)
+(* 
+   instead of using relator : Real -> nabla totalR, 
+   the predicate relate : Real -> R -> Prop is more often used
+   for convenience.
+*)
   
-Definition relator : Real -> R -> Prop.
+Definition relate : Real -> R -> Prop.
 Proof.
   intros x y.
-  destruct (Relator.relator x).
+  destruct (relator x).
   exact (exists l : is_total y, x0 (exist _ y l)).
 Defined.
 
-Lemma relator_total : forall x y, relator x y -> is_total y.
+Lemma relate_total : forall x y, relate x y -> is_total y.
 Proof.
   intros.
-  unfold relator in H.
-  destruct (Relator.relator x ).
+  unfold relate in H.
+  destruct (relator x ).
   destruct H.
   exact x1.
 Defined.
   
       
 (* relator homomorphism *)
-Lemma relator_constant0 : relator Real0 R0.
+Lemma relate_constant0 : relate Real0 R0.
 Proof.
-  pose proof Relator.relator_constant0.
-  unfold relator.
+  pose proof relator_constant0.
+  unfold relate.
   rewrite H.
   exists is_total_constant0.
   apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
   apply irrl.
 Qed.
   
-Lemma relator_constant1 : relator Real1 R1.
+Lemma relate_constant1 : relate Real1 R1.
 Proof.
-  pose proof Relator.relator_constant1.
-  unfold relator.
+  pose proof relator_constant1.
+  unfold relate.
   rewrite H.
   exists is_total_constant1.
   apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
@@ -191,26 +199,26 @@ Proof.
 Qed.
 
 
-Lemma relator_addition : forall x y a b, relator x a -> relator y b -> relator (x + y) (a + b)%R.
+Lemma relate_addition : forall x y a b, relate x a -> relate y b -> relate (x + y) (a + b)%R.
 Proof.
 
   intros.
   
-  unfold relator.
+  unfold relate.
 
-  case_eq (Relator.relator (x + y)).  
+  case_eq (relator (x + y)).  
   intros.
   
-  exists (is_total_addition a b (relator_total x a H) (relator_total y b H0)).
+  exists (is_total_addition a b (relate_total x a H) (relate_total y b H0)).
   
 
-  pose proof (Relator.relator_addition x y).
+  pose proof (relator_addition x y).
   rewrite H2 in H1.
   clear H2.
 
   unfold Nabla.lift_binary in H1.
-  case_eq (Relator.relator x); intros.
-  case_eq (Relator.relator y); intros.
+  case_eq (relator x); intros.
+  case_eq (relator y); intros.
   rewrite H2 in H1.
   rewrite H3 in H1.
   pose proof (sewon_sewonp _ _ _ _ _ _  H1).
@@ -230,8 +238,8 @@ Proof.
   assert (a + b = x3 + x4)%R.
   assert (a = x3).
   clear H3 H4.
-  unfold relator in H.
-  destruct (Relator.relator x).
+  unfold relate in H.
+  destruct (relator x).
   destruct H.
   pose proof (sewon_sewonp _ _ _ _ _ _ H2).
   induction H1.
@@ -243,8 +251,8 @@ Proof.
   exact (sewon_sewonp _ _ _ _ _ _ H3).
   assert (b = x4).
   clear H2 H4.
-  unfold relator in H0.
-  destruct (Relator.relator y).
+  unfold relate in H0.
+  destruct (relator y).
   destruct H0.
   pose proof (sewon_sewonp _ _ _ _ _ _ H3).
   induction H2.
@@ -261,22 +269,22 @@ Qed.
 
   
 
-Lemma relator_multiplication : forall x y a b, relator x a -> relator y b -> relator (x * y) (a * b)%R.
+Lemma relate_multiplication : forall x y a b, relate x a -> relate y b -> relate (x * y) (a * b)%R.
 Proof.
   intros.
-  unfold relator.
-  case_eq (Relator.relator (x * y)).  
+  unfold relate.
+  case_eq (relator (x * y)).  
   intros.
-  exists (is_total_multiplication a b (relator_total x a H) (relator_total y b H0)).
+  exists (is_total_multiplication a b (relate_total x a H) (relate_total y b H0)).
   
 
-  pose proof (Relator.relator_multiplication x y).
+  pose proof (relator_multiplication x y).
   rewrite H2 in H1.
   clear H2.
 
   unfold Nabla.lift_binary in H1.
-  case_eq (Relator.relator x); intros.
-  case_eq (Relator.relator y); intros.
+  case_eq (relator x); intros.
+  case_eq (relator y); intros.
   rewrite H2 in H1.
   rewrite H3 in H1.
   pose proof (sewon_sewonp _ _ _ _ _ _  H1).
@@ -296,8 +304,8 @@ Proof.
   assert (a * b = x3 * x4)%R.
   assert (a = x3).
   clear H3 H4.
-  unfold relator in H.
-  destruct (Relator.relator x).
+  unfold relate in H.
+  destruct (relator x).
   destruct H.
   pose proof (sewon_sewonp _ _ _ _ _ _ H2).
   induction H1.
@@ -309,8 +317,8 @@ Proof.
   exact (sewon_sewonp _ _ _ _ _ _ H3).
   assert (b = x4).
   clear H2 H4.
-  unfold relator in H0.
-  destruct (Relator.relator y).
+  unfold relate in H0.
+  destruct (relator y).
   destruct H0.
   pose proof (sewon_sewonp _ _ _ _ _ _ H3).
   induction H2.
@@ -328,21 +336,21 @@ Qed.
 
 
 
-Lemma relator_subtraction : forall x a, relator x a ->  relator (-x) (-a)%R.
+Lemma relate_subtraction : forall x a, relate x a ->  relate (-x) (-a)%R.
 Proof.
   intros.
-  unfold relator.
-  case_eq (Relator.relator (- x)).  
+  unfold relate.
+  case_eq (relator (- x)).  
   intros.
-  exists (is_total_subtraction a (relator_total x a H) ).
+  exists (is_total_subtraction a (relate_total x a H) ).
   
 
-  pose proof (Relator.relator_subtraction x ).
+  pose proof (relator_subtraction x ).
   rewrite H1 in H0.
   clear H1.
 
   unfold Nabla.lift_binary in H0.
-  case_eq (Relator.relator x); intros.
+  case_eq (relator x); intros.
   rewrite H1 in H0.
   pose proof (sewon_sewonp _ _ _ _ _ _  H0).
   rewrite<- H2.
@@ -357,8 +365,8 @@ Proof.
   destruct x2.
   assert (-a = -x2)%R.
   assert (a = x2).
-  unfold relator in H.
-  destruct (Relator.relator x).
+  unfold relate in H.
+  destruct (relator x).
   destruct H.
   pose proof (sewon_sewonp _ _ _ _ _ _ H1).
   induction H3.
@@ -377,17 +385,17 @@ Proof.
 Qed.
 
   
-Lemma relator_divison : forall x (p : x <> Real0) a b, relator x a -> relator (/ p) (/b)%R. 
+Lemma relate_divison : forall x (p : x <> Real0) a b, relate x a -> relate (/ p) (/b)%R. 
 Admitted.
 
 
 (* relator is an anafunction *)
 
-Lemma ana1 : forall x : Real, exists! y : R, relator x y.
+Lemma ana1 : forall x : Real, exists! y : R, relate x y.
 Proof.
   intros.
-  unfold relator.  
-  destruct (Relator.relator x).
+  unfold relate.  
+  destruct (relator x).
   destruct e.
   destruct x1.
   exists x1.
@@ -404,28 +412,28 @@ Proof.
   exact H3.
 Defined.
 
-Lemma ana2 : forall x : R, is_total x -> exists! y : Real, relator y x.
+Lemma ana2 : forall x : R, is_total x -> exists! y : Real, relate y x.
 Proof.
   intros.
-  unfold relator.
-  pose proof (Relator.relator_epi (Nabla.nabla_unit _ (exist _ x H))). 
+  unfold relate.
+  pose proof (relator_epi (Nabla.nabla_unit _ (exist _ x H))). 
   destruct H0.
   exists x0.
   split; auto.
-  destruct (Relator.relator x0).
+  destruct (relator x0).
   pose proof (sewon_sewonp _ _ _ _ _ _ H0).
   rewrite <- H1.
   exists H.
   auto.
   intro.
 
-  pose proof (Relator.relator_mono x0 x').
+  pose proof (relator_mono x0 x').
   intro.
   apply H1.
   clear H1.
   
   rewrite <- H0.
-  destruct (Relator.relator x').
+  destruct (relator x').
   unfold Nabla.nabla_unit.
   assert ( (fun a : {x2 : R | is_total x2} => a = exist (fun x2 : R => is_total x2) x H)
            =
@@ -461,7 +469,7 @@ Proof.
 Defined.
 
 
-Lemma relator_unique_R : forall x y a b, relator x a -> relator y b -> x = y -> a = b.
+Lemma relate_unique_R : forall x y a b, relate x a -> relate y b -> x = y -> a = b.
 Proof.
   intros.
   rewrite H1 in H.
@@ -472,12 +480,12 @@ Proof.
   exact (eq_refl _).
 Qed.
 
-Lemma relator_unique_Real : forall x y a b, relator x a -> relator y b -> a = b -> x = y.
+Lemma relate_unique_Real : forall x y a b, relate x a -> relate y b -> a = b -> x = y.
 Proof.
   intros.
   rewrite H1 in H.
-  pose proof (ana2 _ (relator_total _ _ H)).
-  pose proof (ana2 _ (relator_total _ _ H0)).
+  pose proof (ana2 _ (relate_total _ _ H)).
+  pose proof (ana2 _ (relate_total _ _ H0)).
   destruct H2 as [i1 [j1 k1]].
   destruct H3 as [i2 [j2 k2]].
   rewrite<- (k1 _ H).
@@ -488,7 +496,7 @@ Qed.
 Ltac total :=
   auto;
   match goal with
-  | H : (relator ?x ?y) |- is_total ?y => exact (relator_total _ _ H)
+  | H : (relate ?x ?y) |- is_total ?y => exact (relate_total _ _ H)
   | |- is_total R0 => exact is_total_constant0
   | |- is_total R1 => exact is_total_constant1
   | |- is_total (?x + ?y) => apply is_total_addition; [total | total] 
@@ -501,15 +509,15 @@ Ltac total :=
 
   
 
-Lemma transport_eq : forall a b : Real, (forall x y, relator a x -> relator b y -> x = y) -> a = b.
+Lemma transport_eq : forall a b : Real, (forall x y, relate a x -> relate b y -> x = y) -> a = b.
 Proof.
   intros.
-  pose proof (Relator.relator_mono a b).
+  pose proof (relator_mono a b).
   apply H0.
   clear H0.
-  unfold relator in H.
-  destruct (Relator.relator a).
-  destruct (Relator.relator b).
+  unfold relate in H.
+  destruct (relator a).
+  destruct (relator b).
   destruct e, e0.
   destruct x1, x2.
   pose proof (H x1 x2).
@@ -545,12 +553,12 @@ Proof.
 Defined.
 
 
-Lemma transport_eq_inv : forall a b x y, relator a x -> relator b y -> a = b -> x = y.
+Lemma transport_eq_inv : forall a b x y, relate a x -> relate b y -> a = b -> x = y.
 Proof.
   intros.
   induction H1.
-  unfold relator in H, H0.
-  destruct (Relator.relator a).
+  unfold relate in H, H0.
+  destruct (relator a).
   destruct e, H, H0.
   destruct H1.
   pose proof (H2 _ H).
@@ -560,14 +568,14 @@ Proof.
   exact H4.
 Defined.
 
-Lemma transport_lt : forall a b : Real, (forall x y, relator a x -> relator b y -> (x < y)%R) -> a < b.
+Lemma transport_lt : forall a b : Real, (forall x y, relate a x -> relate b y -> (x < y)%R) -> a < b.
 Proof.
   intros.
-  pose proof (Relator.relator_lt a b).
+  pose proof (relator_lt a b).
   rewrite H0.
   clear H0.
-  unfold relator in H.
-  destruct (Relator.relator a), (Relator.relator b).
+  unfold relate in H.
+  destruct (relator a), (relator b).
   destruct e, e0.
   destruct x1, x2.
   pose proof (H x1 x2).
@@ -656,18 +664,18 @@ Proof.
 Qed.
 
 
-Lemma transport_lt_inv : forall a b x y, relator a x -> relator b y -> (a < b) -> (x < y)%R.
+Lemma transport_lt_inv : forall a b x y, relate a x -> relate b y -> (a < b) -> (x < y)%R.
 Proof.
   intros.
   intros.
-  pose proof (Relator.relator_lt a b).
+  pose proof (relator_lt a b).
   rewrite H2 in H1.
   clear H2.
-  pose proof (relator_total _ _ H).
-  pose proof (relator_total _ _ H0).
-  assert (Relator.relator a = Nabla.nabla_unit _ (exist _ x H2)).
-  unfold relator in H.
-  destruct (Relator.relator a).
+  pose proof (relate_total _ _ H).
+  pose proof (relate_total _ _ H0).
+  assert (relator a = Nabla.nabla_unit _ (exist _ x H2)).
+  unfold relate in H.
+  destruct (relator a).
   unfold Nabla.nabla_unit.
   assert (x0 = (fun a0 : {x1 : R | is_total x1} => a0 = exist (fun x1 : R => is_total x1) x H2)).
   apply fun_ext.
@@ -694,9 +702,9 @@ Proof.
   rewrite H4 in H1.
   clear H4.
 
-  assert (Relator.relator b = Nabla.nabla_unit _ (exist _ y H3)).
-  unfold relator in H0.
-  destruct (Relator.relator b).
+  assert (relator b = Nabla.nabla_unit _ (exist _ y H3)).
+  unfold relate in H0.
+  destruct (relator b).
   unfold Nabla.nabla_unit.
   assert (x0 =  (fun a0 : {x1 : R | is_total x1} => a0 = exist (fun x1 : R => is_total x1) y H3)).
   apply fun_ext.
@@ -756,19 +764,19 @@ Defined.
 
 
 
-Lemma transport_eq2 : forall a b x y, relator a x -> relator b y -> x = y -> a = b.
+Lemma transport_eq2 : forall a b x y, relate a x -> relate b y -> x = y -> a = b.
 Proof.
-  apply relator_unique_Real.
+  apply relate_unique_Real.
 Defined.
 
 
-Lemma transport_lt2 : forall a b x y, relator a x -> relator b y -> (x < y)%R -> a < b.
+Lemma transport_lt2 : forall a b x y, relate a x -> relate b y -> (x < y)%R -> a < b.
 Proof.
   intros.
   apply transport_lt.
   intros.
-  induction (relator_unique_R _ _ _ _ H H2).
-  induction (relator_unique_R _ _ _ _ H0 H3).
+  induction (relate_unique_R _ _ _ _ H H2).
+  induction (relate_unique_R _ _ _ _ H0 H3).
   exact H1.
   apply eq_refl. 
   apply eq_refl. 
@@ -778,11 +786,11 @@ Defined.
 Definition transport_fiber : (Real -> Prop) -> (R -> Prop).
 Proof.
   intros.
-  exact (forall x : Real, relator x H -> X x).
+  exact (forall x : Real, relate x H -> X x).
 Defined.
 
 
-Definition transport_leq : forall a b : Real, (forall x y, relator a x -> relator b y -> (x <= y)%R) -> a <= b.
+Definition transport_leq : forall a b : Real, (forall x y, relate a x -> relate b y -> (x <= y)%R) -> a <= b.
 Proof.
   intros.
   destruct (ana1 a) as [aa [hh _]].
@@ -795,7 +803,7 @@ Proof.
 Qed.
 
 
-Definition transport_geq : forall a b : Real, (forall x y, relator a x -> relator b y -> (x >= y)%R) -> a >= b.
+Definition transport_geq : forall a b : Real, (forall x y, relate a x -> relate b y -> (x >= y)%R) -> a >= b.
 Proof.
   intros.
   destruct (ana1 a) as [aa [hh _]].
@@ -807,7 +815,7 @@ Proof.
   right; apply (transport_eq2 _ _ _ _ hh jj H0).
 Qed.
 
-Definition transport_neq : forall a b : Real, (forall x y, relator a x -> relator b y -> (x <> y)%R) -> a <> b.
+Definition transport_neq : forall a b : Real, (forall x y, relate a x -> relate b y -> (x <> y)%R) -> a <> b.
 Proof.
   intros.
   destruct (ana1 a) as [aa [hh _]].
@@ -817,7 +825,7 @@ Proof.
   
   destruct H0.
   induction H1.
-  apply (relator_unique_R _ _ _ _ hh jj).
+  apply (relate_unique_R _ _ _ _ hh jj).
   apply eq_refl.
 Qed.
 
@@ -843,7 +851,7 @@ Defined.
 (* Defined. *)
 
 
-Definition transport_leq_inv : forall a b x y, relator a x -> relator b y -> (a <= b) -> (x <= y)%R.
+Definition transport_leq_inv : forall a b x y, relate a x -> relate b y -> (a <= b) -> (x <= y)%R.
 Proof.
   intros.
   destruct H1.
@@ -852,10 +860,10 @@ Proof.
   exact H1.
   right.
   induction H1.
-  apply (relator_unique_R _ _ _ _ H H0 (eq_refl _)).
+  apply (relate_unique_R _ _ _ _ H H0 (eq_refl _)).
 Qed.
 
-Definition transport_geq_inv : forall a b x y, relator a x -> relator b y -> (a >= b) -> (x >= y)%R.
+Definition transport_geq_inv : forall a b x y, relate a x -> relate b y -> (a >= b) -> (x >= y)%R.
 Proof.
   intros.
   destruct H1.
@@ -864,16 +872,16 @@ Proof.
   exact H1.
   right.
   induction H1.
-  apply (relator_unique_R _ _ _ _ H H0 (eq_refl _)).
+  apply (relate_unique_R _ _ _ _ H H0 (eq_refl _)).
 Qed.
 
 
-Definition transport_neq_inv : forall a b x y, relator a x -> relator b y -> (a <> b) -> (x <> y)%R.
+Definition transport_neq_inv : forall a b x y, relate a x -> relate b y -> (a <> b) -> (x <> y)%R.
 Proof.
   intros.
   intro.
   induction H2.
-  exact (H1 (relator_unique_Real _ _ _ _ H H0 (eq_refl _))).
+  exact (H1 (relate_unique_Real _ _ _ _ H H0 (eq_refl _))).
 Defined.
 
 
@@ -952,75 +960,75 @@ Proof.
 Defined.
 
 
-Definition Holber0: forall x, relator Real0 x -> x = R0.
+Definition Holber0: forall x, relate Real0 x -> x = R0.
 Proof.
   intros.
-  rewrite (relator_unique_R _ _ _ _ relator_constant0 H (eq_refl _)).
+  rewrite (relate_unique_R _ _ _ _ relate_constant0 H (eq_refl _)).
   apply eq_refl.
 Qed.
 
-Definition Holber1: forall x, relator Real1 x -> x = R1.
+Definition Holber1: forall x, relate Real1 x -> x = R1.
 Proof.
   intros.
-  rewrite (relator_unique_R _ _ _ _ relator_constant1 H (eq_refl _)).
+  rewrite (relate_unique_R _ _ _ _ relate_constant1 H (eq_refl _)).
   apply eq_refl.
 Qed.
 
 
-Definition Holber2 : forall a b x y z, relator x a -> relator y b -> relator (x + y) z ->
+Definition Holber2 : forall a b x y z, relate x a -> relate y b -> relate (x + y) z ->
                                   z = (a + b)%R.
 Proof.
   intros.
-  pose proof (relator_addition x y a b H H0).
-  exact (relator_unique_R _ _ _ _ H1 H2 (eq_refl _)).
+  pose proof (relate_addition x y a b H H0).
+  exact (relate_unique_R _ _ _ _ H1 H2 (eq_refl _)).
 Defined.
 
 
 
 
 
-Definition Holber3 : forall a b x y z, relator x a -> relator y b -> relator (x * y) z ->
+Definition Holber3 : forall a b x y z, relate x a -> relate y b -> relate (x * y) z ->
                                   z = (a * b)%R.
 Proof.
   intros.
-  pose proof (relator_multiplication x y a b H H0).
-  exact (relator_unique_R _ _ _ _ H1 H2 (eq_refl _)).
+  pose proof (relate_multiplication x y a b H H0).
+  exact (relate_unique_R _ _ _ _ H1 H2 (eq_refl _)).
 Defined.
 
-Definition Holber4 : forall a  x  z, relator x a -> relator (-x) z ->
+Definition Holber4 : forall a  x  z, relate x a -> relate (-x) z ->
                                   z = (-a)%R.
 Proof.
   intros.
-  pose proof (relator_subtraction x a H).
-  exact (relator_unique_R _ _ _ _ H0 H1 (eq_refl _)).
+  pose proof (relate_subtraction x a H).
+  exact (relate_unique_R _ _ _ _ H0 H1 (eq_refl _)).
 Defined.
 
-Definition Holber6 : forall a  x  z (p : x <> Real0), relator x a -> relator (/p) z ->
+Definition Holber6 : forall a  x  z (p : x <> Real0), relate x a -> relate (/p) z ->
                                   z = (/a)%R.
 Proof.
   intros.
-  pose proof (relator_divison x p a a H).
-  exact (relator_unique_R _ _ _ _ H0 H1 (eq_refl _)).
+  pose proof (relate_divison x p a a H).
+  exact (relate_unique_R _ _ _ _ H0 H1 (eq_refl _)).
 Defined.
 
-Definition Holber7 : forall a b x y z (p : y <> Real0), relator x a -> relator y b -> relator (x / p) z -> z = (a/b)%R.
+Definition Holber7 : forall a b x y z (p : y <> Real0), relate x a -> relate y b -> relate (x / p) z -> z = (a/b)%R.
 Proof.
   intros.
   replace (a / b)%R with (a * / b)%R by auto.
   replace (x / p) with (x */ p) in H1 by auto.
-  pose proof (relator_divison y p b b H0).
+  pose proof (relate_divison y p b b H0).
   apply (Holber3 _ _ _ _ _ H H2).
   exact H1.
 Defined.
 
 
-Definition Holber5 : forall a b x y z, relator x a -> relator y b -> relator (x - y) z ->
+Definition Holber5 : forall a b x y z, relate x a -> relate y b -> relate (x - y) z ->
                                   z = (a - b)%R.
 Proof.
   intros.
   replace (a - b)%R with (a + - b)%R by ring.
   replace (x - y) with (x + - y) in H1 by ring.
-  pose proof (relator_subtraction y b H0).
+  pose proof (relate_subtraction y b H0).
   apply (Holber2 _ _ _ _ _ H H2 H1).
 Defined.
 
@@ -1061,9 +1069,9 @@ Ltac classical :=
 Ltac relate :=
   
   match goal with
-  | H : (relator Real0 ?x) |- _ => (apply Holber0 in H; try induction (eq_symm H); clear H; relate)
-  | H : (relator Real1 ?x) |- _ => (apply Holber1 in H; try induction (eq_symm H); clear H; relate)
-  | H : (relator (?x + ?y) (?z)) |- _ =>
+  | H : (relate Real0 ?x) |- _ => (apply Holber0 in H; try induction (eq_symm H); clear H; relate)
+  | H : (relate Real1 ?x) |- _ => (apply Holber1 in H; try induction (eq_symm H); clear H; relate)
+  | H : (relate (?x + ?y) (?z)) |- _ =>
     (idtac ""x; 
      let a := fresh "x" in
      let b := fresh "y" in
@@ -1079,7 +1087,7 @@ Ltac relate :=
       relate
     ))
 
-  | H : (relator (?x - ?y) (?z)) |- _ =>
+  | H : (relate (?x - ?y) (?z)) |- _ =>
     (idtac " "; 
      let a := fresh "x" in
      let b := fresh "y" in
@@ -1095,7 +1103,7 @@ Ltac relate :=
       relate
     ))
 
-  | H : (relator (?x / ?p) (?z)) |- _ =>
+  | H : (relate (?x / ?p) (?z)) |- _ =>
     match type of  p with
     | ?y <> Real0 =>
       (idtac "";
@@ -1116,7 +1124,7 @@ Ltac relate :=
     | _ => idtac "" 
     end
       
-  | H : (relator (?x * ?y) (?z)) |- _ =>
+  | H : (relate (?x * ?y) (?z)) |- _ =>
     (idtac " "; 
      let a := fresh "x" in
      let b := fresh "y" in
@@ -1132,7 +1140,7 @@ Ltac relate :=
       relate
     ))
 
-  | H : (relator (- ?x) (?y)) |- _ =>
+  | H : (relate (- ?x) (?y)) |- _ =>
     (idtac " "
      ;
      let a := fresh "x" in
@@ -1149,7 +1157,7 @@ Ltac relate :=
 
 
 
-  | H : (relator (@Realdiv ?x ?p) (?y)) |- _ =>
+  | H : (relate (@Realdiv ?x ?p) (?y)) |- _ =>
     (idtac ""
      (* ;  *)
      (* let a := fresh "x" in *)
@@ -1163,7 +1171,7 @@ Ltac relate :=
      (*  relate *)
      (* ) *)
     )
-  | H : (relator (/ ?p) (?y)) |- _ =>
+  | H : (relate (/ ?p) (?y)) |- _ =>
     match type of p with
     | ?x <> Real0 =>
       let a := fresh "x" in
@@ -1180,16 +1188,16 @@ Ltac relate :=
     | _ => apply skip
     end 
       
-  | H1 : (relator (?x) (?y)), H2 : (relator (?x) (?z))  |- _ =>
+  | H1 : (relate (?x) (?y)), H2 : (relate (?x) (?z))  |- _ =>
     (idtac " ";
-     induction (relator_unique_R _ _ _ _ H1 H2 (eq_refl _));
+     induction (relate_unique_R _ _ _ _ H1 H2 (eq_refl _));
      clear H1;
      relate
     )
       
-  | H1 : (relator (?x) (?z)), H2 : (relator (?y) (?z))  |- _ =>
+  | H1 : (relate (?x) (?z)), H2 : (relate (?y) (?z))  |- _ =>
     (idtac " ";
-     induction (relator_unique_Real _ _ _ _ H1 H2 (eq_refl _));
+     induction (relate_unique_Real _ _ _ _ H1 H2 (eq_refl _));
      clear H1;
      relate
     )
