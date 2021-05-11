@@ -15,8 +15,8 @@ Extract Constant M "a" => " a ".
 Extract Inlined Constant Nat.log2 => "(integer . integerLog2)".
 
 (* Axioms for Kleenean *)
-Extract Inlined Constant trueK => "true".
-Extract Inlined Constant falseK => "false".
+(* Extract Inlined Constant trueK => "true".
+Extract Inlined Constant falseK => "false". *)
                                    
 (* Axioms for Multivalueness *)
 Extract Inlined Constant unitM => "id".
@@ -33,14 +33,12 @@ Extract Inlined Constant singletonM => "id".
 Extract Inlined Constant Real0 => "(creal 0)".
 Extract Inlined Constant Real1 => "(creal 1)".
 
-Extract Inlined Constant Realplus => "add".
-Extract Inlined Constant Realmult => "mul".
+Extract Inlined Constant Realplus => "(+)".
+Extract Inlined Constant Realmult => "(*)".
 Extract Inlined Constant Realopp => "negate".
 Extract Inlined Constant Realinv => "recip".
 Extract Inlined Constant Realltb => "(<)".
 Extract Inlined Constant limit => "limit".
-
-
 
 Extract Inductive bool => "Bool" [ "True" "False" ].
 Extract Inductive sumbool => "Bool" [ "True" "False" ].
@@ -60,8 +58,6 @@ Extraction Language Haskell.
 
 Extract Inductive prod => "(,)"  [ "(,)" ].
 
-
-
 (* Sewon's lab seminar talk material*)
 (* Maximum *)
 
@@ -74,3 +70,24 @@ Recursive Extraction Realmax.
 
 (* sqrt *)
 Recursive Extraction restr_sqrt.
+
+(*
+
+In the generated Haskell file, replace the first three lines with:
+
+module ${ModuleName} where
+
+import qualified Prelude
+import MixedTypesNumPrelude
+import AERN2.Real
+import Math.NumberTheory.Logarithms (integerLog2)
+
+
+The Haskell module will require the following packages:
+- collect-errors
+- mixed-types-num >= 0.5
+- aern2-mp >= 0.2
+- aern2-real >= 0.2
+- integer-logarithms
+
+*)
