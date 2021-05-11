@@ -10,5 +10,6 @@ RealMetric.v
 Real.v
 Minmax.v
 IVT.v
+Relator.v
 RealCoqReal.v
 sqrt.v

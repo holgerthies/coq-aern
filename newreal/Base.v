@@ -1,9 +1,23 @@
-Axiom irrl : forall P : Prop, forall x y : P, x = y.
+(* Extensionality Axioms for our type theory *)
 Axiom lem : forall P : Prop, P \/ ~P.
 Axiom Prop_ext : forall P Q : Prop, (P -> Q) -> (Q -> P) -> P = Q.
 Axiom fun_ext : forall A B (f g: A -> B), (forall x, f x = g x) -> f = g.
+
+(* Proof irrelevence derived from axioms *)
+Lemma irrl : forall P : Prop, forall x y : P, x = y.
+Proof.
+  intros P x.
+  assert (P = True).
+  apply Prop_ext; intro; auto.
   
-  
+  induction (eq_sym H).
+  destruct x.
+  intro.
+  destruct y.
+  apply eq_refl.
+Qed.
+
+(* Auxiliary functions *)
 Definition lp : forall S T (f : S -> T) (a b : S), a = b -> f a = f b.
 Proof.
   intros.

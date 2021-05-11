@@ -1,7 +1,8 @@
 Require Import Base.
 
 Module Nabla.
- 
+
+  (* Nabla is a idempotent monad *)
   Definition nabla (A : Type) := {P : A -> Prop | exists! a, P a}.
   Definition nabla_unit (A : Type) : A -> nabla A.
   Proof.
