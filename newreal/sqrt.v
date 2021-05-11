@@ -44,7 +44,7 @@ Proof.
   move => Bl Bu rx RX.
   split.
   - apply /transport_leq_inv/Bl => //.
-    by apply  (relate_divison _ IZReal4neq0 4%R 4 (IZReal_relator 4)).
+    by apply  (relate_divison _ IZReal4neq0 4%R (IZReal_relator 4)).
   apply /transport_leq_inv/Bu => //.
   by apply IZReal_relator.
 Qed.
