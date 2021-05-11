@@ -1,7 +1,7 @@
 Require Import Real.
 Require Import Nabla.
 Require Import Reals.
-Require Import Relator.
+Require Export Relator.
   
 Definition relate : Real -> R -> Prop.
 Proof.
