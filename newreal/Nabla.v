@@ -434,15 +434,66 @@ Module Nabla.
     apply x.
     exact (lift_binary A B C f X X0).
   Defined.
+
+  (* Definition fancy_lift_unary_tmp  A B : forall x : nabla A, (forall z : A, x = nabla_unit A z -> B) -> (B -> Prop). *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   exact (   *)
+  (*   destruct x. *)
+  (*   exists  *)
+  (*   destruct e. *)
+    
+  Lemma nabla_mono : forall A (x y : A), nabla_unit _ x = nabla_unit _ y -> x = y.
+  Proof.
+    intros.
+    apply sewon_sewonp in H.
+    
+    apply (lp _ _  (fun f => f x)) in H.
+    induction H.
+    apply eq_refl.
+  Defined.
+
+
   
   Definition fancy_lift_unary  A B : forall x : nabla A, (forall z : A, x = nabla_unit A z -> B) -> nabla  B.
   Proof.
-    intros.
-    apply (lift_domain_unary A _).
-    intro.
-    pose proof (X X0).
 
-  Admitted.
+    intros.
+    exists (fun b => forall (a : A) (p : x = nabla_unit A a), b = X a p).  
+
+    destruct x.
+
+    destruct e.
+    destruct u.
+    assert ( exist (fun P : A -> Prop => exists ! a : A, P a) x (ex_intro (unique (fun a : A => x a)) x0 (conj x1 e)) = nabla_unit A x0).
+    apply nabla_eq_at.
+    simpl.
+    apply fun_ext.
+    intro.
+    apply Prop_ext.
+    intro.
+    rewrite (e _ H); auto.
+    intro.
+    rewrite H; exact x1.
+    exists (X _ H).
+    split.
+
+    intros.
+    assert (x0 = a).
+    rewrite H in p.
+    apply nabla_mono in p.
+    exact p.
+    induction H0.
+    assert (H = p) by apply irrl.
+    rewrite H0.
+    apply eq_refl.
+
+
+    intros.
+    apply eq_sym.
+    apply H0.
+  Defined.
+  
   
 
   Definition transport_ex : forall A P, (nabla {x : nabla A | transport_fiber _ P x}) -> nabla {x | P x}.
@@ -461,17 +512,6 @@ Module Nabla.
     apply X.
   Defined.
   
-    
-  Lemma nabla_mono : forall A (x y : A), nabla_unit _ x = nabla_unit _ y -> x = y.
-  Proof.
-    intros.
-    apply sewon_sewonp in H.
-    
-    apply (lp _ _  (fun f => f x)) in H.
-    induction H.
-    apply eq_refl.
-  Defined.
-
 
 
   Lemma nabla_unit2 : forall A (x y : nabla A),(forall a b, ((x = nabla_unit _ a) /\ (y = nabla_unit _ b)) -> a = b) ->  (x = y).
@@ -485,9 +525,52 @@ Module Nabla.
     assert (x1 = x2).
     pose proof (H x1 x2).
     apply H0.
+    split.
+    apply nabla_eq_at.
+    simpl.
+    apply fun_ext.
+    intros.
+    apply Prop_ext.
+    intro.
+    destruct u.
+    pose proof (e _ H1).
+    rewrite H2; auto.
+    intro.
+    induction H1.
+    destruct u.
+    exact x1.
+    apply nabla_eq_at.
+    simpl.
+    apply fun_ext.
+    intros.
+    apply Prop_ext.
+    intro.
+    destruct u0.
+    pose proof (e _ H1).
+    rewrite H2; auto.
+    intro.
+    induction H1.
+    destruct u0.
+    exact x2.
+    assert (x = x0).
+    apply fun_ext.
+    intro.
+    destruct u, u0.
+    apply Prop_ext; intro.
     
-  Admitted.
+    induction (e _ H1).
+    induction H0.
+    exact x5.
 
+    induction (e0 _ H1).
+    induction H0.
+    exact x4.
+    
+    
+    apply (sewonsewonp _ _ _ _ _ _ H1).
+    apply irrl.
+  Qed.
+  
 
   Definition nabla_lift (A B : Type) : (A -> B) -> (nabla A) -> nabla B.
   Proof.
@@ -612,11 +695,15 @@ Module Nabla.
   Qed.
   
 
-  (* Definition fancy_lift : forall A B (x : nabla A), (forall y : A, x = nabla_unit _ y -> nabla B) -> nabla B. *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   apply X. *)
     
+  
+  Definition lift2 : forall A B (x : Nabla.nabla A) (f : A -> B), Nabla.nabla B.
+  Proof.
+    intros.
+    apply (Nabla.lift_unary A _).
+    apply f.
+    apply x.
+  Defined.
+  
 
-    
 End Nabla.

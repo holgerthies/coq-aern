@@ -13,7 +13,7 @@ Require Import Reals.
 
 
 
-(* totality *)
+(** totality *)
 Inductive is_total : R -> Prop :=
   is_total_constant0 : is_total R0
 | is_total_constant1 : is_total R1
@@ -86,6 +86,7 @@ Defined.
 
 
 
+(** relator *)
 
 Parameter relator : Real -> Nabla.nabla totalR.
 Axiom relator_mono : forall x y, relator x = relator y -> x = y.
@@ -98,42 +99,6 @@ Proof.
   exact (H H0).
 Defined.
 
-Definition lift2 : forall A B (x : Nabla.nabla A) (f : A -> B), Nabla.nabla B.
-Proof.
-  intros.
-  apply (Nabla.lift_unary A _).
-  apply f.
-  apply x.
-Defined.
-
-Definition test : forall x (p : x <> Real0), Nabla.nabla ({x : totalR | x <> totalR0}).
-Proof.
-  intros.
-  pose proof (relator x).
-  apply Nabla.transport_ex.
-  apply (Nabla.fancy_lift_unary _ _ X).
-  intros.
-  exists (Nabla.nabla_unit _ z).
-  unfold Nabla.transport_fiber.
-  intros.
-  intro.
-  induction (eq_sym H1).
-Admitted.
-
-
-(*   Nabla.nabla totalR, x <> Nabla.nabla_unit _ totalR0 -> Nabla.nabla totalR. *)
-(* Proof. *)
-(*   intros. *)
-(*   apply (lift2 _ _ x). *)
-
-
-(*   apply (Nabla.lift_unary totalR _). *)
-(*   intro. *)
-(*   apply totalRdiv. *)
-
-
-
-
 
 
 (* axioms for characterizing relator *)
@@ -142,17 +107,44 @@ Axiom relator_constant1 : relator Real1 = Nabla.nabla_unit _ totalR1.
 Axiom relator_addition : forall x y, relator (x + y) = (Nabla.lift_binary _ _ _ totalRadd) (relator x) (relator y).
 Axiom relator_multiplication : forall x y, relator (x * y) = (Nabla.lift_binary _ _ _ totalRmult) (relator x) (relator y).
 Axiom relator_subtraction : forall x, relator (-x) = (Nabla.lift_unary _ _ totalRsub) (relator x).
-(* Axiom relator_division : forall x (p : x <> Real0), *)
-(*     relator (/p) = (Nabla.lift_unary _ _ (fun x => *)
 
 
-  
-  (*                                                                                totalRdiv) (relator x). *)
-  (* - *)
+
+Definition relator_div_tmp : forall x (p : x <> Real0), Nabla.nabla totalR.
+Proof.
+  intros.
+  assert (Nabla.nabla ({x : totalR | x <> totalR0})).
+  apply Nabla.transport_ex.
+  apply (Nabla.fancy_lift_unary _ _ (relator x)).
+  intros.
+  exists (Nabla.nabla_unit _ z).
+  unfold Nabla.transport_fiber.
+  intros.
+  intro.
+  pose proof (Nabla.nabla_mono _ _ _ H0).
+  rewrite H2 in H1.
+  rewrite H1 in H.
+  contradict p.
+  pose proof (relator_constant0).
+  rewrite <- H3 in H.
+  apply relator_mono.
+  exact H.
+
+  apply (Nabla.lift_unary {x : totalR | x <> totalR0} _).
+  intro.
+  exact (totalRdiv H).
+  exact X.
+Defined.
+
+Axiom relator_division : forall x (p : x <> Real0), relator (/ p) = relator_div_tmp x p.
 
 Axiom relator_lt : forall x y, x < y = Nabla.lift_domain_binary _ _ _ totalRlt Nabla.Prop_is_nabla_modal (relator x) (relator y). 
 
-  
+
+
+
+
+(** totality *)
 
 (* 
    instead of using relator : Real -> nabla totalR, 
@@ -385,8 +377,155 @@ Proof.
 Qed.
 
   
-Lemma relate_divison : forall x (p : x <> Real0) a b, relate x a -> relate (/ p) (/b)%R. 
-Admitted.
+Lemma relate_divison : forall x (p : x <> Real0) a, relate x a -> relate (/ p) (/a)%R. 
+Proof.
+  intros.
+  unfold relate.
+  case_eq (relator (/p)).
+  intros.
+  assert (a <> R0).
+  pose proof (relator_mono_neg _ _ p).
+  unfold relate in H.
+  destruct (relator x).
+  intro.
+  induction (eq_sym H2).
+  contradict H1.
+  apply Nabla.nabla_eq_at.
+  simpl.
+  pose proof (relator_constant0).
+  rewrite H1.
+  simpl.
+  apply fun_ext.
+  intro.
+  apply Prop_ext; intro.
+  destruct H.
+  destruct e0.
+  destruct H4.
+  pose proof (H5 _ H).
+  pose proof (H5 _ H3).
+  rewrite H6 in H7.
+  rewrite <- H7.
+  apply (sewonsewonp _ _ _ _ _ _ (eq_refl R0)).
+  apply irrl.
+  rewrite H3.
+  destruct H.
+  assert ((exist (fun x : R => is_total x) R0 x3) = totalR0).
+  apply (sewonsewonp _ _ _ _ _ _ (eq_refl R0)).
+  apply irrl.
+  rewrite <- H4; auto.
+  pose proof (relate_total _ _ H).
+  
+  exists (is_total_division _ H2 H1).
+
+  pose proof (relator_division x p).
+  
+  rewrite H0 in H3.
+  
+  unfold relator_div_tmp in H3.
+  unfold Nabla.lift_unary in H3.
+  unfold Nabla.transport_ex in H3.
+  unfold Nabla.lift_domain_unary in H3.
+  unfold Nabla.lift_unary in H3.
+  unfold Nabla.nabla_is_modal in H3.
+  unfold Nabla.fancy_lift_unary in H3.
+  unfold Nabla.nabla_mult in H3.
+  
+  pose proof (sewon_sewonp _ _ _ _ _ _ H3).
+  clear H3.
+  rewrite H4.
+
+  clear H4.
+  assert (exist _ a H2 <> totalR0).
+  intro.
+  apply sewon_sewonp in H3.
+  exact (H1 H3).
+  exists (exist _ (exist _ a H2) H3).
+  assert (forall x2 : totalR, Nabla.nabla_unit totalR x2 = Nabla.nabla_unit _ (exist _ a H2) -> x2 <> totalR0).
+  intros.
+  intro.
+  
+  induction (eq_sym H5).
+  contradict H1.
+  apply Nabla.nabla_mono in H4.
+  apply sewon_sewonp in H4.
+  rewrite H4; auto.
+
+
+  split.
+  exists (exist _ ( Nabla.nabla_unit _ (exist _ a H2)) H4).
+  split.
+  intros.
+
+  unfold Nabla.transport_fiber.
+  assert ( (Nabla.nabla_unit {x1 : R | is_total x1} (exist (fun x1 : R => is_total x1) a H2))
+           = (Nabla.nabla_unit totalR a0)).
+  apply Nabla.nabla_eq_at.
+  simpl.
+  apply fun_ext.
+  intro.
+  apply Prop_ext; intro.
+  rewrite H5.
+  unfold relate in H.
+  destruct (relator x).
+  destruct e0.
+  destruct u.
+  apply sewon_sewonp in p0.
+  apply (lp _ _ (fun k => k a0)) in p0.
+  assert (x2 a0) by (rewrite p0; auto).
+  pose proof (e0 _ H6).
+  destruct H.
+  pose proof (e0 _ H).
+  rewrite <- H7, H8.
+  apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
+  apply irrl.
+  induction (eq_sym H5).
+  
+  unfold relate in H.
+  destruct (relator x).
+  destruct e0.
+  destruct u.
+  apply sewon_sewonp in p0.
+  apply (lp _ _ (fun k => k a0)) in p0.
+  assert (x1 a0) by (rewrite p0; auto).
+  pose proof (e0 _ H6).
+  destruct H.
+  pose proof (e0 _ H).
+  rewrite <- H7, H8.
+  apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
+  apply irrl.
+
+  
+  apply (sewonsewonp _ _ _ _ _ _ H5).
+  apply irrl.
+
+  apply Nabla.nabla_eq_at.
+  simpl.
+  apply fun_ext.
+  intro.
+  apply Prop_ext; intros.
+  rewrite H5.
+  assert (
+      (exist (fun x2 : R => is_total x2) a H2)
+      =
+      a0).
+  apply sewon_sewonp in p0.
+  apply (lp _ _ (fun k => k a0)) in p0.
+  apply eq_sym; rewrite p0.
+  apply eq_refl.
+  apply (sewonsewonp _ _ _ _ _ _ H6).
+  apply irrl.
+  pose proof (H5 (exist _ a H2) (eq_refl _)).
+  rewrite H6.
+  apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
+  apply irrl.
+
+
+  unfold totalRdiv.
+  apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
+  apply irrl.
+
+Defined.
+
 
 
 (* relator is an anafunction *)
@@ -1007,7 +1146,7 @@ Definition Holber6 : forall a  x  z (p : x <> Real0), relate x a -> relate (/p) 
                                   z = (/a)%R.
 Proof.
   intros.
-  pose proof (relate_divison x p a a H).
+  pose proof (relate_divison x p a H).
   exact (relate_unique_R _ _ _ _ H0 H1 (eq_refl _)).
 Defined.
 
@@ -1016,7 +1155,7 @@ Proof.
   intros.
   replace (a / b)%R with (a * / b)%R by auto.
   replace (x / p) with (x */ p) in H1 by auto.
-  pose proof (relate_divison y p b b H0).
+  pose proof (relate_divison y p b H0).
   apply (Holber3 _ _ _ _ _ H H2).
   exact H1.
 Defined.
