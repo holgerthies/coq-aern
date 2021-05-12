@@ -8,6 +8,22 @@ Parameter falseK : K.
 Definition upK : K -> Prop := fun b : K => b = trueK.
 Definition downK : K -> Prop := fun b : K => b = falseK.
 
+Definition definedK (k : K) := upK k \/ downK k.
+
+Parameter kneg : K -> K.
+Parameter kland : K -> K -> K.
+Parameter klor : K -> K -> K.
+
+Axiom definedK_is_bool : forall k, definedK k -> {upK k} + {downK k}.
+  
+Axiom kneg_up : forall k : K, upK (kneg k) = downK k. 
+Axiom kneg_down : forall k : K, downK (kneg k) = upK k.
+Axiom kland_up : forall a b : K, upK (kland a b) = upK a /\ upK b.
+Axiom kland_down : forall a b : K, downK (kland a b) = downK a \/ downK b.
+Axiom klor_up : forall a b : K, upK (klor a b) = upK a \/ upK b.
+Axiom klor_down : forall a b : K, downK (klor a b) = downK a /\ downK b.
+
+
 Parameter M : Type -> Type.
 Parameter unitM : forall T : Type, T -> M T.
 Parameter multM : forall T : Type, M (M T) -> M T.

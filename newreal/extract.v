@@ -10,6 +10,11 @@ Require Import sqrt.
 (* Real is Real, K is LazyBoolean, and M T is T *)
 Extract Inlined Constant Real => "CReal".
 Extract Inlined Constant K => "CKleenean".
+
+Extract Inlined Constant kneg => "??".
+Extract Inlined Constant kland => "??".
+Extract Inlined Constant klor => "??".
+
 Extract Constant M "a" => " a ".
 
 Extract Inlined Constant Nat.log2 => "(integer . integerLog2)".
@@ -70,6 +75,14 @@ Recursive Extraction Realmax.
 
 (* sqrt *)
 Recursive Extraction restr_sqrt.
+
+Require Import Nabla.
+
+(* Require Import Coq.Reals.Abstract.ConstructiveMinMax. *)
+
+(* Recursive Extraction CRmin. *)
+
+
 
 (*
 
