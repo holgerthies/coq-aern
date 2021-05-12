@@ -496,7 +496,16 @@ Module Nabla.
   Defined.
   
   
-
+  
+  Definition fancy_lift_unary_2  A B : forall x : nabla A, (forall z : A, x = nabla_unit A z -> nabla B) -> nabla B.
+  Proof.
+    
+    intros.
+    destruct (nabla_is_modal B) as [p _ ].
+    apply p.
+    exact (fancy_lift_unary _ _ x X).
+  Defined.
+  
   Definition transport_ex : forall A P, (nabla {x : nabla A | transport_fiber _ P x}) -> nabla {x | P x}.
   Proof.
     intros.
@@ -705,6 +714,264 @@ Module Nabla.
     apply f.
     apply x.
   Defined.
+
+
+
+
+  (* transporting *)
+
+  Definition transport_exist_tmp : forall A P, (nabla {x : A | P x}) -> nabla A. 
+  Proof.
+    intros.
+    apply (fancy_lift_unary _ _ X).
+    intros.
+    destruct z.
+    exact x.
+  Defined.
+
+  Definition tp (A B: Type) : A = B -> A -> B.
+  Proof.
+    intros.
+    induction H.
+    exact X.
+  Defined.
   
+  Definition tpp (A B: Prop) : A = B -> A -> B.
+  Proof.
+    intros.
+    induction H.
+    exact H0.
+  Defined.    
+  
+  Definition transport_exist : forall A P, (nabla {x : A | P x}) -> {x : nabla A | transport_fiber _ P x}.
+  Proof.
+    intros.
+    unfold transport_fiber.
+    exists (transport_exist_tmp _ _ X).
+    intros.
+    destruct X.
+    destruct e.
+    destruct u.
+    
+    
+    unfold transport_exist_tmp in H.
+    unfold fancy_lift_unary in H.
+    apply (sewon_sewonp) in H.
+    apply (lp _ _ (fun k => k x)) in H.
+    pose proof (tpp _ _ H (eq_refl _)).
+    pose proof (H0 x1).
+    assert ( exist (fun P0 : {x : A | P x} -> Prop => exists ! a : {x : A | P x}, P0 a) x0
+                   (ex_intro (unique (fun a : {x : A | P x} => x0 a)) x1 (conj x2 e)) = nabla_unit {x : A | P x} x1).
+    clear H H1 H0.
+    apply nabla_eq_at.
+    simpl.
+    apply fun_ext.
+    intro.
+    apply Prop_ext.
+    intro.
+    induction (e _ H).
+    apply eq_refl.
+    intro.
+    induction H.
+    exact x2.
+    pose proof (H1 H2).
+    clear H H0 H1.
+    rewrite H3.
+    destruct x1.
+    exact p.
+  Defined.
+
+  Definition transport_to : forall A B, nabla (A -> B) -> nabla A -> nabla B.
+  Proof.
+    intros.
+    apply (fancy_lift_unary_2 _ _  X).
+    intros.
+    apply (fancy_lift_unary _ _  X0).
+    intros.
+    exact (z z0). 
+  Defined.
+  
+  (* Definition transport_to2 : forall A B, nabla (A -> B) -> nabla A -> nabla B. *)
+  (* Proof. *)
+  (*   intros A B F. *)
+  (*   pose proof (transport_to A B F). *)
+    
+  (*   intros. *)
+  (*   apply (fancy_lift_unary _ _  X). *)
+  (*   intros. *)
+  (*   exact (z X0). *)
+  (* Defined. *)
+  
+  
+  Definition transport_all : forall A (P : A -> Prop), (nabla (forall x : A, P x)) -> forall x : nabla A, nabla (transport_fiber _ P x).
+  Proof.
+    intros.
+    unfold transport_fiber.
+    apply (fancy_lift_unary_2 _ _ x).
+    intros.
+    apply (fancy_lift_unary _ _ X).
+    intros.
+    rewrite H in H1.
+    apply nabla_mono in H1.
+    rewrite H1.
+    exact (z0 z).
+  Defined.
+
+  (* Print ex. *)
+  (* Goal forall A P (x y : A) p q, ex_intro P x p = ex_intro P y q -> x = y . *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   destruct (ex_intro P x p). *)
+  (*   destruct (ex_intro P y q). *)
+  (*   destruct  *)
+
+  Lemma test : forall P : Prop, nabla P -> P.
+  Proof.
+    intros.
+    destruct X.
+    destruct e.
+    exact x0.
+  Defined.
+
+  Lemma Props_are_modal : forall P : Prop, is_equiv (nabla_unit P).
+  Proof.
+    intros.
+    exists (test P).
+    unfold fc, id; split.
+    apply fun_ext.
+    intro.
+    apply irrl.
+    apply fun_ext; intro.
+    apply nabla_eq_at.
+    simpl.
+    destruct x.
+    simpl.
+    destruct e.
+  apply fun_ext; intro.
+    apply Prop_ext; intro.
+
+    induction H.
+    destruct u; auto.
+    destruct u.
+    induction (H1 _ H); auto.
+  Qed.
+
+  Lemma Props_are_modal_2 : forall P : Prop, [nabla P] = P.
+  Proof.
+    intros.
+    apply Prop_ext.
+    intro.
+    destruct H; auto.
+    destruct x; auto.
+    destruct e; auto.
+    intro.
+    exists (nabla_unit _ H).
+    auto.
+  Qed.
+  
+    
+
+    
+  (* Definition transport_exist_c_tmp : forall A P, (nabla (exists x : A , P x)) -> nabla A.  *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   apply (fancy_lift_unary_2 _ _ X). *)
+  (*   intros. *)
+  (*   exists (fun a => exists p, ex_intro _ a p = z). *)
+  (*   destruct z. *)
+  (*   exists x. *)
+  (*   split; auto. *)
+  (*   exists p. *)
+  (*   apply irrl. *)
+  (*   intros. *)
+  (*   destruct H0. *)
+
+  (*   apply sewon_ *)
+    
+  (*   exact x. *)
+  (* Defined. *)
+
+   
+  Definition transport_exist_c : forall A P, (nabla (exists x : A, P x)) -> exists x : nabla A, transport_fiber _ P x.
+  Proof.
+    intros.
+    unfold transport_fiber.
+    apply test.
+    apply (fancy_lift_unary _ _ X).
+    intros.
+    destruct z.
+    exists (nabla_unit _ x).
+    intros.
+    induction (nabla_mono _ _ _  H0).
+    exact p.
+  Defined.
+
+     
+  Definition transport_exist_c_inv : forall A P, (nabla (exists x : A, P (nabla_unit _ x))) -> exists x : nabla A, P x.
+  Proof.
+    intros.
+    apply test.
+    apply (fancy_lift_unary _ _ X).
+    intros.
+    destruct z.
+    exists (nabla_unit A x).
+    exact p.
+  Defined.
+
+  Definition transport_all_c_inv : forall A (P : nabla A -> Prop), (nabla (forall x : A, P (nabla_unit _ x))) -> forall x : nabla A, nabla (P x).
+  Proof.
+    intros.
+    apply (fancy_lift_unary_2 _ _ x).
+    intros.
+    apply (fancy_lift_unary _ _ X).
+    intros.
+    rewrite H.
+    exact (z0 z).
+  Defined.
+  
+  Definition transport_lor : forall A B : Prop, nabla (A \/ B) -> (( [nabla A] ) \/ ([ nabla B])).
+  Proof.
+    intros.
+    apply test.
+    apply (fancy_lift_unary _ _ X).
+    intros.
+    destruct z.
+    left.
+    exists (nabla_unit _ a); auto.
+    right.
+    exists (nabla_unit _ b); auto.
+  Defined.
+  
+  Definition transport_land : forall A B : Prop, nabla (A /\ B) -> (( [nabla A] ) /\ ([ nabla B])).
+  Proof.
+    intros.
+    apply test.
+    apply (fancy_lift_unary _ _ X).
+    intros.
+    destruct z.
+    split.
+    exists (nabla_unit _ a); auto.
+    exists (nabla_unit _ b); auto.
+  Defined.
+
+  
+  
+
+  (* Definition transport_exist : forall A P, (nabla {x : A | P x}) -> nabla {x : nabla A | transport_fiber _ P x}. *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   unfold transport_fiber. *)
+  (*   apply (fancy_lift_unary _ _ X). *)
+  (*   intros. *)
+  (*   destruct z. *)
+  (*   exists (nabla_unit _ x). *)
+  (*   intro. *)
+  (*   intro. *)
+  (*   pose proof (nabla_mono _ _ _ H0). *)
+  (*   induction H1. *)
+  (*   exact p. *)
+  (* Defined. *)
+  
+
 
 End Nabla.

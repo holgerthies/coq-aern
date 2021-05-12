@@ -2,6 +2,9 @@
 Axiom lem : forall P : Prop, P \/ ~P.
 Axiom Prop_ext : forall P Q : Prop, (P -> Q) -> (Q -> P) -> P = Q.
 Axiom fun_ext : forall A B (f g: A -> B), (forall x, f x = g x) -> f = g.
+Definition classic : Type -> Prop := fun A => exists x : A, True.
+
+Notation "[ A ]" := (classic A) : type_scope.
 
 (* Proof irrelevence derived from axioms *)
 Lemma irrl : forall P : Prop, forall x y : P, x = y.

@@ -144,3 +144,63 @@ Axiom relator_lt : forall x y, x < y = Nabla.lift_domain_binary _ _ _ totalRlt N
 
 
 
+
+Section transfer.
+
+  Definition transfer_fiberT : (Real -> Type) -> (Nabla.nabla totalR -> Type).
+  Proof.
+    intros P x.
+    exact (forall y, x = relator y -> P y).
+  Defined.
+  
+
+  Definition transfer_fiberP : (Real -> Prop) -> (Nabla.nabla totalR -> Prop).
+  Proof.
+    intros P x.
+    exact (forall y, x = relator y -> P y).
+  Defined.
+
+  
+  Definition transfer_forallP : forall (P : Real -> Prop),
+      (forall x : Nabla.nabla totalR,(transfer_fiberP P x)) -> (forall x : Real, P x).
+  Proof.
+    unfold transfer_fiberP.    
+    intros.
+    pose proof (H (relator x)).
+    apply (H0 x (eq_refl _)).
+  Defined.
+
+  
+  Definition transfer_existsP : forall (P : Real -> Prop), (exists x : Nabla.nabla totalR, (transfer_fiberP P x)) -> (exists x : Real, P x).
+  Proof.
+    unfold transfer_fiberP.    
+    intros.
+    destruct H.
+    pose proof (relator_epi x).
+    destruct H0.
+    exists x0.
+    exact (H _ H0).
+  Defined.
+ 
+  
+
+
+  
+  (* Definition transfer_forallT : forall (P : Real -> Type), (forall x : Nabla.nabla totalR, Nabla.nabla (transfer_fiberT P x)) -> (forall x : Real, P x). *)
+  (* Proof. *)
+  (*   unfold transfer_fiberT.     *)
+  (*   intros. *)
+    
+    
+  
+
+  
+  (* Definition transfer_forallT : forall (P : Real -> Type), (forall x : Nabla.nabla totalR, Nabla.nabla (transfer_fiberT P x)) -> (forall x : Real, P x). *)
+  (* Proof. *)
+  (*   unfold transfer_fiberT.     *)
+  (*   intros. *)
+    
+    
+  
+End transfer.
+  
