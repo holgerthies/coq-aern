@@ -12,12 +12,14 @@ Extract Inlined Constant Real => "(WithCurrentPrec (CN MPBall) p)".
 Extract Inlined Constant K => "(CN MxP.Kleenean)".
 Extract Constant M "a" => " a ".
 
-Extract Inlined Constant Nat.log2 => "(MxP.integer . integerLog2)".
-
 (* Axioms for Kleenean *)
-(* Extract Inlined Constant trueK => "true".
-Extract Inlined Constant falseK => "false". *)
+Extract Inlined Constant trueK => "(cn MxP.CertainTrue)".
+Extract Inlined Constant falseK => "(cn MxP.CertainFalse)".
                                    
+Extract Inlined Constant kneg => "MxP.not".
+Extract Inlined Constant kland => "(MxP.&&)".
+Extract Inlined Constant klor => "(MxP.||)".
+
 (* Axioms for Multivalueness *)
 Extract Inlined Constant unitM => "id".
 Extract Inlined Constant multM => "id".
@@ -29,8 +31,6 @@ Extract Inlined Constant mjoin => "liftTakeErrors".
 but it needs to correctly propagate CN and WithCurrentPrec wrappers. *)
 Extract Inlined Constant countableM => "id".
 Extract Inlined Constant singletonM => "id".
-
-
 
 (* Exact Real Number Operations *)
 Extract Inlined Constant Real0 => "0".
@@ -45,6 +45,8 @@ Extract Inlined Constant limit => "limit".
 
 (* Extract Inductive bool => "(CN Bool)" [ "(cn True)" "(cn False)" ]. *)
 Extract Inductive sumbool => "(CN Bool)" [ "True" "False" ].
+(* The missing CN in the constants is compensated for 
+   by our mapping for mjoin. *)
 
 (* some shortcuts for efficiency. Not necessary *)
 Extract Inlined Constant  Real2 => "2".
@@ -61,7 +63,7 @@ Extraction Language Haskell.
 
 Extract Inductive prod => "(,)"  [ "(,)" ].
 
-
+Extract Inlined Constant Nat.log2 => "(MxP.integer . integerLog2)".
 
 (* Sewon's lab seminar talk material*)
 (* Maximum *)
@@ -95,7 +97,7 @@ import qualified Prelude
 import Prelude hiding (pred, succ)
 import qualified MixedTypesNumPrelude as MxP
 import MixedTypesNumPrelude (ifThenElse)
-import Numeric.CollectErrors (CN,liftTakeErrors)
+import Numeric.CollectErrors (CN,cn,liftTakeErrors)
 import AERN2.Limit
 import AERN2.MP
 import AERN2.MP.Dyadic ()
