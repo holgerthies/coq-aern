@@ -64,7 +64,6 @@ Extract Inductive prod => "(,)"  [ "(,)" ].
 (* root finding function *)
 Recursive Extraction  CIVT.
 
-
 (* maximum *)
 Recursive Extraction Realmax.
 
@@ -72,6 +71,13 @@ Recursive Extraction Realmax.
 Recursive Extraction restr_sqrt.
 
 (*
+
+The Haskell module will require the following packages:
+- collect-errors >= 0.1.2
+- mixed-types-num >= 0.5
+- aern2-mp >= 0.2
+- aern2-real >= 0.2
+- integer-logarithms
 
 In the generated Haskell file, replace the first three lines with:
 
@@ -81,13 +87,5 @@ import qualified Prelude
 import MixedTypesNumPrelude
 import AERN2.Real
 import Math.NumberTheory.Logarithms (integerLog2)
-
-
-The Haskell module will require the following packages:
-- collect-errors
-- mixed-types-num >= 0.5
-- aern2-mp >= 0.2
-- aern2-real >= 0.2
-- integer-logarithms
 
 *)
