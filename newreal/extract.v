@@ -43,18 +43,18 @@ Extract Inlined Constant Realmult => "(*)".
 Extract Inlined Constant Realopp => "negate".
 Extract Inlined Constant Realinv => "recip".
 Extract Inlined Constant Reallt_semidec => "(<)".
-Extract Inlined Constant Realgt_semidec => "(>)".
 Extract Inlined Constant limit => "limit".
 
 Extract Inductive bool => "Bool" [ "True" "False" ].
 Extract Inductive sumbool => "Bool" [ "True" "False" ].
 
 (* some shortcuts for efficiency. Not necessary *)
-Extract Inlined Constant  Real2 => "(creal 2)".
-Extract Inlined Constant  Real3 => "(creal 3)".
+Extract Inlined Constant Real2 => "(creal 2)".
+Extract Inlined Constant Real3 => "(creal 3)".
 Extract Inlined Constant Realminus => "sub".
 Extract Inlined Constant Realdiv => "divide".
 Extract Inlined Constant prec => "((creal 0.5)^)".
+Extract Inlined Constant Realgt_semidec => "(>)".
 
 
 (* ExtractConstant M => " ".        (*  *) *)
