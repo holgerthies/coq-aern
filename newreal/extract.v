@@ -42,7 +42,8 @@ Extract Inlined Constant Realplus => "(+)".
 Extract Inlined Constant Realmult => "(*)".
 Extract Inlined Constant Realopp => "negate".
 Extract Inlined Constant Realinv => "recip".
-Extract Inlined Constant Realltb => "(<)".
+Extract Inlined Constant Reallt_semidec => "(<)".
+Extract Inlined Constant Realgt_semidec => "(>)".
 Extract Inlined Constant limit => "limit".
 
 Extract Inductive bool => "Bool" [ "True" "False" ].

@@ -40,7 +40,7 @@ Extract Inlined Constant Realplus => "(+)".
 Extract Inlined Constant Realmult => "(*)".
 Extract Inlined Constant Realopp => "negate".
 Extract Inlined Constant Realinv => "recip".
-Extract Inlined Constant Realltb => "(MxP.<)".
+Extract Inlined Constant Reallt_semidec => "(MxP.<)".
 Extract Inlined Constant limit => "limit".
 
 (* Extract Inductive bool => "(CN Bool)" [ "(cn True)" "(cn False)" ]. *)
@@ -65,7 +65,6 @@ Extract Inductive prod => "(,)"  [ "(,)" ].
 
 Extract Inlined Constant Nat.log2 => "(MxP.integer . integerLog2)".
 
-(* Sewon's lab seminar talk material*)
 (* Maximum *)
 
 (* root finding function *)
