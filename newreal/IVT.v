@@ -625,7 +625,7 @@ Proof.
   rewrite (Nat.add_1_r n) in H0.  
   left; exact H0.
 Qed.
-Hint Resolve refining_S : Realiny.
+Global Hint Resolve refining_S : Realiny.
 
 
   
@@ -697,8 +697,15 @@ Proof.
     apply Reallt_plus_r_lt; exact Real1_gt_Real0.
 Qed.
 
+Lemma inv_unif : forall a b (c : a <> Real0) (d : b <> Real0), a = b -> @Realinv a c = @Realinv b d.
+Proof.
+  intros.
+  induction H.
+  assert (k : c = d) by apply irrl.
+  induction k; auto.
+Qed.
 
-
+  
 Definition trisect (f : Real -> Real) (a b : Real)
   : continuous f -> uniq f a b -> [(a',b') | uniq f a' b' /\ talve a a' b' b  ].
 Proof.
@@ -725,7 +732,7 @@ Proof.
          assert (Real2 + Real1 <> Real0) as Path.
          rewrite path.
          auto with Realiny.         
-         rewrite <- (neq_path (Real2+Real1) Real0 Path (Realgt_neq (Real2 + Real1) Real0
+         rewrite <- (irrl _ Path (Realgt_neq (Real2 + Real1) Real0
          (eq_ind (Real0 + Real0) (fun t : Real => t < Real2 + Real1) (Reallt_lt_plus_lt Real0 Real2 Real0 Real1 H1 H2) Real0
                  (Realplus_unit Real0)))) in H3.
          assert (/dReal3 = /Path).
@@ -799,7 +806,7 @@ Proof.
          assert (Real1 + Real2 <> Real0) as Path.
          rewrite path.
          auto with Realiny.         
-         rewrite <- (neq_path (Real1+Real2) Real0 Path (Realgt_neq (Real1 + Real2) Real0
+         rewrite <- (irrl _ Path (Realgt_neq (Real1 + Real2) Real0
          (eq_ind (Real0 + Real0) (fun t : Real => t < Real1 + Real2) (Reallt_lt_plus_lt Real0 Real1 Real0 Real2 H2 H1) Real0
             (Realplus_unit Real0)))) in H3.
          assert (/dReal3 = /Path).
@@ -878,7 +885,7 @@ Proof.
          assert (Real2 + Real1 <> Real0) as Path.
          rewrite path.
          auto with Realiny.         
-         rewrite <- (neq_path (Real2+Real1) Real0 Path (Realgt_neq (Real2 + Real1) Real0
+         rewrite <- (irrl _  Path (Realgt_neq (Real2 + Real1) Real0
          (eq_ind (Real0 + Real0) (fun t : Real => t < Real2 + Real1) (Reallt_lt_plus_lt Real0 Real2 Real0 Real1 H1 H2) Real0
             (Realplus_unit Real0)))) in H3.
          assert (/dReal3 = /Path).
@@ -907,7 +914,7 @@ Proof.
          assert (Real1 + Real2 <> Real0) as Path.
          rewrite path.
          auto with Realiny.         
-         rewrite <- (neq_path (Real1+Real2) Real0 Path (Realgt_neq (Real1 + Real2) Real0
+         rewrite <- (irrl _  Path (Realgt_neq (Real1 + Real2) Real0
          (eq_ind (Real0 + Real0) (fun t : Real => t < Real1 + Real2) (Reallt_lt_plus_lt Real0 Real1 Real0 Real2 H2 H1) Real0
             (Realplus_unit Real0)))) in H3.
          assert (/dReal3 = /Path).
@@ -951,7 +958,7 @@ Notation "{ ( a , b ) | P }" := (sigT (fun a => {b | P})) : type_scope.
 
 
 
-Hint Resolve Real1_gt_Real0: Realiny.
+Global Hint Resolve Real1_gt_Real0: Realiny.
 Lemma root_approx  (f : Real -> Real)
          (cont : continuous f) (uni : uniq f Real0 Real1)  (n : nat)
   : [(a,b)| uniq f a b /\ refining Real0 a b Real1 n].

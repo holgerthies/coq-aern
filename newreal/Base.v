@@ -81,6 +81,13 @@ Proof.
 Defined.
 
 
+Definition pr1 : forall A (P : A -> Prop) (a : {x | P x}), A.
+Proof.
+  intros.
+  destruct a.
+  exact x.
+Defined.
+
 Definition sewon_sewonp : forall A P (a c : A) b d, exist P a b = exist P c d -> a = c.
 Proof.
   intros.

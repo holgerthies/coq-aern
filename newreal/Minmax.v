@@ -40,7 +40,7 @@ Proof.
   split; auto.
   intro H; contradict c3; apply Reallt_nlt; auto.
 Qed.
-Hint Resolve W_M_or W_M_Or W_max: Realiny.
+Global Hint Resolve W_M_or W_M_Or W_max: Realiny.
 
 (***************************************************************)
 (** ** min                                                     *)
@@ -105,7 +105,7 @@ Proof.
   split; auto.
   intro H; contradict c3; apply Reallt_nlt; auto.
 Qed.
-Hint Resolve W_m_or  W_min: Realiny.
+Global Hint Resolve W_m_or  W_min: Realiny.
 
 
 Lemma Realmax : forall x y, {z | W_M x y z}.

@@ -10,37 +10,37 @@ Lemma Realge_triv : forall z, z >= z.
 Proof.
   intro z;  right; exact eq_refl.
 Qed.
-Hint Resolve Realge_triv: Realiny.
+Global Hint Resolve Realge_triv: Realiny.
 
 Lemma Realle_triv : forall z, z <= z.
 Proof.
   intro z; right; exact eq_refl.
 Qed.
-Hint Resolve Realle_triv: Realiny.
+Global Hint Resolve Realle_triv: Realiny.
 
 Lemma Reallt_le : forall z1 z2, z1<z2 -> z1 <= z2.
 Proof.
   intros z1 z2 p; left; exact p.
 Qed.
-Hint Resolve Reallt_le: Realiny.
+Global Hint Resolve Reallt_le: Realiny.
 
 Lemma Realgt_ge : forall z1 z2, z1>z2 -> z1 >= z2.
 Proof.
   intros z1 z2 p; left; exact p.
 Qed.
-Hint Resolve Realgt_ge: Realiny.
+Global Hint Resolve Realgt_ge: Realiny.
 
 Lemma Realeq_le : forall z1 z2, z1 = z2 -> z1 <= z2.
 Proof.
   intros z1 z2 p; rewrite p; right; exact eq_refl.
 Qed.
-Hint Resolve Realeq_le: Realiny.
+Global Hint Resolve Realeq_le: Realiny.
 
 Lemma Realeq_ge : forall z1 z2, z1 = z2 -> z1 >= z2.
 Proof.
   intros z1 z2 p; rewrite p; right; exact eq_refl.
 Qed.
-Hint Resolve Realeq_ge: Realiny.
+Global Hint Resolve Realeq_ge: Realiny.
 
 Lemma Realeq_plus_eq : forall z1 z2 z3, z1 = z2 -> z1 + z3 = z2 + z3.
 Proof.
@@ -48,7 +48,7 @@ Proof.
   rewrite p.
   exact eq_refl.
 Qed.
-Hint Resolve Realeq_plus_eq: Realiny.
+Global Hint Resolve Realeq_plus_eq: Realiny.
 
 Lemma Realge_le : forall z1 z2, z1 >= z2 -> z2 <= z1.
 Proof.
@@ -57,7 +57,7 @@ Proof.
   left; auto.
   right; rewrite H; exact eq_refl.
 Qed.
-Hint Resolve Realge_le: Realiny.
+Global Hint Resolve Realge_le: Realiny.
 
 Lemma Realle_ge : forall z1 z2, z1 <= z2 -> z2 >= z1.
 Proof.
@@ -66,7 +66,7 @@ Proof.
   left; auto.
   right; rewrite H; exact eq_refl.
 Qed.
-Hint Resolve Realle_ge: Realiny.
+Global Hint Resolve Realle_ge: Realiny.
 
 
   
@@ -85,7 +85,7 @@ Proof.
   contradict (q H0).
   exact H.
 Qed.
-Hint Resolve Realnle_ge: Realiny.
+Global Hint Resolve Realnle_ge: Realiny.
   
 Lemma Realdiv_distr : forall z1 z2 z3, forall p : z3<>Real0,  z1/p + z2/p = (z1+z2)/p.
 Proof.
@@ -95,7 +95,7 @@ Proof.
   unfold Realdiv.
   ring.
 Qed.
-Hint Resolve Realdiv_distr: Realiny.
+Global Hint Resolve Realdiv_distr: Realiny.
 
 Lemma Realle_plus_le : forall z1 z2 z3, z1 <= z2 -> z1+z3 <= z2+z3.
 Proof.
@@ -106,7 +106,7 @@ Proof.
     replace (z2+z3) with (z3+z2) by ring; left; exact H.
   rewrite H; right; auto with Realiny.
 Qed.
-Hint Resolve Realle_plus_le: Realiny.
+Global Hint Resolve Realle_plus_le: Realiny.
 
   
 Lemma Realnlt_triv : forall x, ~ x < x.
@@ -117,7 +117,7 @@ Proof.
   contradict H.
   intuition.
 Qed.
-Hint Resolve Realnlt_triv: Realiny.
+Global Hint Resolve Realnlt_triv: Realiny.
 
 
 
@@ -128,7 +128,7 @@ Proof.
   ring_simplify in H0.
   exact H0.
 Qed.
-Hint Resolve Real2_gt_Real1: Realiny.
+Global Hint Resolve Real2_gt_Real1: Realiny.
 
 
 
@@ -140,7 +140,7 @@ Proof.
   apply (Realnlt_triv z1).
   pattern z1 at 2; rewrite q; trivial.
 Qed.
-Hint Resolve Reallt_neq: Realiny.
+Global Hint Resolve Reallt_neq: Realiny.
 
 Definition dReal2 := Real2_neq_Real0.
 Lemma Realminus_half : forall z, z - z/dReal2 = z/dReal2.
@@ -164,7 +164,7 @@ Proof.
   replace (z*(Real1+Real1) -z) with z by ring.
   ring.
 Qed.
-Hint Resolve Realminus_half: Realiny.
+Global Hint Resolve Realminus_half: Realiny.
   
 Lemma Realgt_nle: forall z1 z2, z1 > z2 -> ~ z1 <= z2.
 Proof.
@@ -172,14 +172,14 @@ Proof.
   contradict p; exact (Reallt_nlt z1 z2 q1).
   rewrite q2 in p; contradict p; auto with Realiny.
 Qed.
-Hint Resolve Realgt_nle: Realiny.
+Global Hint Resolve Realgt_nle: Realiny.
 
 Lemma Realgt_ngt : forall z1 z2, z1 > z2 -> ~ z2 > z1.
 Proof.
   intros z1 z2 p.
   contradict p; exact (Reallt_nlt z1 z2 p).
 Qed.
-Hint Resolve Realgt_ngt: Realiny.
+Global Hint Resolve Realgt_ngt: Realiny.
 
 Lemma Realgt_nge : forall z1 z2, z1 > z2 -> ~ z2 >= z1.
 Proof.
@@ -187,7 +187,7 @@ Proof.
   contradict p; exact (Reallt_nlt z1 z2 q1).
   rewrite q2 in p; contradict p; auto with Realiny.
 Qed.
-Hint Resolve Realgt_nge: Realiny.
+Global Hint Resolve Realgt_nge: Realiny.
 
 Lemma Realge_ge_eq : forall z1 z2, z1 >= z2 -> z2 >= z1 -> z1 = z2.
 Proof.
@@ -224,7 +224,7 @@ Proof.
   auto with Realiny.
   exact H.
 Qed.
-Hint Resolve Realge_ge_eq Realge_le_eq Realle_ge_eq Realle_le_eq: Realiny.
+Global Hint Resolve Realge_ge_eq Realge_le_eq Realle_ge_eq Realle_le_eq: Realiny.
 
 
 Lemma Realle_lt_lt : forall z1 z2 z3, z1<=z2 -> z2 < z3 -> z1<z3.
@@ -237,7 +237,7 @@ Proof.
   contradict q3; apply (Reallt_nlt); exact H.
   rewrite H in q3; contradict q3; auto with Realiny.
 Qed.
-Hint Resolve Realle_lt_lt: Realiny.
+Global Hint Resolve Realle_lt_lt: Realiny.
 
 Lemma Reallt_le_lt : forall z1 z2 z3, z1 < z2 -> z2 <= z3 -> z1 < z3.
 Proof.
@@ -246,7 +246,7 @@ Proof.
   exact (Reallt_lt_lt z1 z2 z3 p1 q1).
   rewrite<- q2; exact p1.
 Qed.
-Hint Resolve Reallt_le_lt: Realiny.
+Global Hint Resolve Reallt_le_lt: Realiny.
 
 Lemma Realle_le_le : forall z1 z2 z3, z1 <= z2 -> z2 <= z3 -> z1 <= z3.
 Proof.
@@ -257,7 +257,7 @@ Proof.
   rewrite p12; left; exact p21.
   rewrite p12; rewrite <- p22; right; exact eq_refl.
 Qed.
-Hint Resolve Realle_le_le: Realiny.
+Global Hint Resolve Realle_le_le: Realiny.
 
 Lemma Reallt_plus_r_lt : forall r r1 r2:Real, r1 < r2 -> r1 + r < r2 + r.
 Proof.
@@ -266,7 +266,7 @@ Proof.
     replace (r2+r) with (r+r2) by ring;
     auto with Realiny.
 Qed.
-Hint Resolve Reallt_plus_lt: Realiny.
+Global Hint Resolve Reallt_plus_lt: Realiny.
 
 
 Lemma Real2_pos : Real2 > Real0.
@@ -277,14 +277,14 @@ Proof.
   pose proof (Reallt_lt_lt Real0 Real1 (Real1 + Real1) H H0).
   auto.
 Qed.
-Hint Resolve Real2_pos: Realiny.
+Global Hint Resolve Real2_pos: Realiny.
 
 Lemma Realeq_eq_mult_eq : forall a b c d, a = b -> c = d -> a*c = b*d.
 Proof.
   intros.
   rewrite H; rewrite H0; exact eq_refl.
 Qed.
-Hint Resolve Realeq_eq_mult_eq: Realiny.
+Global Hint Resolve Realeq_eq_mult_eq: Realiny.
 
 Lemma Realhalf_gt_zero : forall a, a > Real0 -> a / dReal2 > Real0. 
 Proof.
@@ -309,7 +309,7 @@ Proof.
   contradict p; auto with Realiny.
   exact p3.
 Qed.
-Hint Resolve Realhalf_gt_zero: Realiny.
+Global Hint Resolve Realhalf_gt_zero: Realiny.
 
 
 Lemma Realgt_half : forall a, a > Real0 -> a > a / dReal2.
@@ -328,7 +328,7 @@ Proof.
   ring_simplify in H.
   exact H.
 Qed.
-Hint Resolve Realgt_half: Realiny.
+Global Hint Resolve Realgt_half: Realiny.
   
 Lemma Realgt_minus_gt_zero : forall a b : Real, a > b -> a - b > Real0.
 Proof.
@@ -337,7 +337,7 @@ Proof.
   replace Real0 with (-b+b) by ring.
   apply Reallt_plus_lt; auto with Realiny.
 Qed.
-Hint Resolve Realgt_minus_gt_zero: Realiny.
+Global Hint Resolve Realgt_minus_gt_zero: Realiny.
 
 
 Lemma Reallt_lt_plus_lt : forall r1 r2 r3 r4, r1 < r2 -> r3 < r4 -> r1 + r3 < r2 + r4.
@@ -348,14 +348,14 @@ Proof.
   auto with Realiny.
   exact (Reallt_lt_lt (r1+r3) (r2+r3) (r2+r4) H H0).
 Qed.
-Hint Resolve Reallt_lt_plus_lt: Realiny. 
+Global Hint Resolve Reallt_lt_plus_lt: Realiny. 
 
 Definition padding : forall a b : Real, a > b -> {ε : Real | ε > Real0 /\ a = ε + b}.
 Proof.
   intros a b p; exists (a - b).
   constructor 1; auto with Realiny; ring.
 Defined.
-Hint Resolve padding: Realiny.
+Global Hint Resolve padding: Realiny.
 
 
 Lemma Reallt_anti : forall z1 z2, z1<z2 -> -z2< -z1.
@@ -364,7 +364,7 @@ Proof.
   apply (Reallt_plus_lt (-z1-z2) z1 z2) in p.
   ring_simplify in p; exact p.
 Qed.
-Hint Resolve Reallt_anti: Realiny.
+Global Hint Resolve Reallt_anti: Realiny.
 
 Lemma Reallt_anti_anti : forall z1 z2, - z1 < - z2 -> z2< z1.
 Proof.
@@ -374,7 +374,7 @@ Proof.
   apply Reallt_anti.
   exact p.
 Qed.
-Hint Resolve Reallt_anti_anti: Realiny.
+Global Hint Resolve Reallt_anti_anti: Realiny.
 
 
 
@@ -433,7 +433,7 @@ Proof.
   replace (/dReal1*Real1) with Real1 by auto with Realiny.
   exact eq_refl.
 Qed.
-Hint Resolve Realinv_unit: Realiny.
+Global Hint Resolve Realinv_unit: Realiny.
 
 
 Lemma square_pos : forall z, z <> Real0 -> z *z > Real0.
@@ -461,7 +461,7 @@ Proof.
   pose proof (Realmult_inv z).
   assert (z <> Real0) as H12 by auto with Realiny.
   pose proof (H1  H12) as H2.
-  pose proof (neq_path z Real0 H12 (Realgt_neq z Real0 p)) as path.
+  assert (path : H12 = (Realgt_neq z Real0 p)) by apply irrl.
   rewrite path in H2.
   rewrite H0 in H2; ring_simplify in H2; contradict H2; auto with Realiny.
   pose proof (H H10) as H0.
@@ -474,14 +474,14 @@ Proof.
   ring_simplify in H1.
   exact H1.
 Qed.
-Hint Resolve Realpos_inv_pos2:Realiny.
+Global Hint Resolve Realpos_inv_pos2:Realiny.
 
 Lemma Realpos_inv_pos : forall z, forall p : z > Real0, forall q : z <> Real0, / q > Real0.
 Proof.
   intros.
-  rewrite (neq_path z Real0 q (Realgt_neq z Real0 p)); auto with Realiny.
+  rewrite (irrl _ q (Realgt_neq z Real0 p)); auto with Realiny.
 Qed.
-Hint Resolve Realpos_inv_pos : Realiny.
+Global Hint Resolve Realpos_inv_pos : Realiny.
 
 Lemma Reallt_mult_r_pos_lt : forall z1 z2 z3, z3 > Real0 -> z1 < z2 -> z1 * z3 < z2 * z3.
 Proof.
@@ -490,7 +490,7 @@ Proof.
   replace (z2*z3) with (z3*z2) by ring.
   auto with Realiny.
 Qed.
-Hint Resolve Reallt_mult_r_pos_lt: Realiny.
+Global Hint Resolve Reallt_mult_r_pos_lt: Realiny.
 
 
 Lemma prec_S : forall n, prec (S n) < prec n.
@@ -507,7 +507,7 @@ Proof.
   apply (Reallt_mult_r_pos_lt (prec n / dReal2) (prec n)  (/dReal2) H0) in IHn.
   auto.
 Qed.
-Hint Resolve prec_S: Realiny.
+Global Hint Resolve prec_S: Realiny.
 
 Lemma prec_hom : forall n m, prec (n+m) = prec n * prec m.
 Proof.
@@ -520,7 +520,7 @@ Proof.
   unfold Realdiv.
   ring.
 Qed.      
-Hint Resolve prec_hom: Realiny.
+Global Hint Resolve prec_hom: Realiny.
 
 Definition dg0 {z:Real}(p:z>Real0) : z <> Real0 :=  Realgt_neq z Real0 p.
 Lemma Reallt_mult_pos_move_rr : forall a b c, forall p :a > Real0, b*a < c -> b < c / (dg0 p).
@@ -534,7 +534,7 @@ Proof.
   ring_simplify in q.
   auto with Realiny.
 Qed.
-Hint Resolve Reallt_mult_pos_move_rr: Realiny.
+Global Hint Resolve Reallt_mult_pos_move_rr: Realiny.
 
 Lemma Reallt_mult_pos_move_rl : forall a b c, forall p :a > Real0, a*b < c -> b < c / (dg0 p).
 Proof.
@@ -542,7 +542,7 @@ Proof.
   replace (a*b) with (b*a) in q by ring.
   apply Reallt_mult_pos_move_rr; auto. 
 Qed.
-Hint Resolve Reallt_mult_pos_move_rl: Realiny.
+Global Hint Resolve Reallt_mult_pos_move_rl: Realiny.
 
 Lemma Realgt_mult_pos_move_rl : forall a b c, forall p:a > Real0,  a*b > c -> b > c / (dg0 p).
   intros a b c p q.
@@ -555,17 +555,17 @@ Lemma Realgt_mult_pos_move_rl : forall a b c, forall p:a > Real0,  a*b > c -> b 
   ring_simplify in q.
   auto with Realiny.
 Qed.
-Hint Resolve Realgt_mult_pos_move_rl: Realiny.
+Global Hint Resolve Realgt_mult_pos_move_rl: Realiny.
 
 Lemma Reallt_mult_pos_move_rr_n
   : forall (a b c : Real) (p : a > Real0) (q : a <> Real0), b * a < c -> b < c / q.
 Proof.
   intros.
-  pose proof (neq_path a Real0 q (Realgt_neq a Real0 p)).
+  pose proof (irrl _ q (Realgt_neq a Real0 p)).
   rewrite H0.
   apply Reallt_mult_pos_move_rr; exact H.
 Qed.
-Hint Resolve Reallt_mult_pos_move_rr_n: Realiny.
+Global Hint Resolve Reallt_mult_pos_move_rr_n: Realiny.
 
 
 (** prec embedding is always positive **)
@@ -578,7 +578,7 @@ Proof.
     replace (Real1+Real1) with (Real2) by auto.
     auto with Realiny.
 Defined.
-Hint Resolve prec_pos: Realiny.
+Global Hint Resolve prec_pos: Realiny.
 
 
 Lemma NReal_hom : forall n m, NReal (n+m) = NReal n + NReal m.
@@ -593,7 +593,7 @@ Proof.
   rewrite (H0 n). rewrite (H0 ((n+m)%nat)).
   rewrite IHn; ring.
 Qed.
-Hint Resolve NReal_hom: Realiny.
+Global Hint Resolve NReal_hom: Realiny.
 
 Lemma NReal_pos : forall n, (n>0)%nat -> NReal n > Real0.
 Proof.
@@ -613,7 +613,7 @@ Proof.
   assert (NReal 1 = Real1). simpl. ring.
   rewrite H0; exact H1.
 Qed.
-Hint Resolve NReal_pos: Realiny.
+Global Hint Resolve NReal_pos: Realiny.
 
 
 Lemma NReal_S : forall n, NReal (S n) = Real1 + NReal n.
@@ -813,7 +813,7 @@ Proof.
   simpl in H0.
   rewrite H0; exact eq_refl.
 Qed.
-Hint Resolve Zdouble_minus: arith.
+Global Hint Resolve Zdouble_minus: arith.
 
 Lemma IZReal_hom : forall n m, IZReal (n+m) = IZReal n + IZReal m.
 Proof.
@@ -876,7 +876,7 @@ Proof.
   pose proof (Reallt_lt_plus_lt Real0 z1 Real0 z2 H H0).
   ring_simplify in H1; exact H1.
 Qed.
-Hint Resolve Realgt0_merge_gt: Realiny.
+Global Hint Resolve Realgt0_merge_gt: Realiny.
 
 
 Lemma Reallt_lt_lt_lt : forall a b c d, a<b -> b<c -> c<d -> a<d.
@@ -884,7 +884,7 @@ Proof.
   intros a b c d p q r.
   exact (Reallt_lt_lt a b d p (Reallt_lt_lt b c d q r)).
 Qed.
-Hint Resolve Reallt_lt_lt_lt: Realiny.
+Global Hint Resolve Reallt_lt_lt_lt: Realiny.
 
 
 Lemma gt1_mult_gt_self : forall z1 z2, z1 > Real1 -> z2 > Real0 -> z1 * z2 > z2.
@@ -898,7 +898,7 @@ Proof.
   pose proof (Reallt_mult_pos_lt epsilon Real0 z2 c1 q).
   ring_simplify in H; exact H.
 Qed.
-Hint Resolve  gt1_mult_gt_self: Realiny.
+Global Hint Resolve  gt1_mult_gt_self: Realiny.
 
 
 Lemma Reallt_pos_mult_pos_pos : forall z1 z2, z1 > Real0 -> z2 > Real0 -> z1 * z2 > Real0.
@@ -907,7 +907,7 @@ Proof.
   pose proof (Reallt_mult_pos_lt z1 Real0 z2 H H0).
   replace (z1*Real0) with Real0 in H1 by ring; auto.
 Qed.
-Hint Resolve Reallt_pos_mult_pos_pos: Realiny.
+Global Hint Resolve Reallt_pos_mult_pos_pos: Realiny.
   
 Lemma pos_square_gt_gt : forall z1 z2, z1 > Real0 -> z2 > Real0 -> z1*z1 > z2*z2 -> z1 > z2.
 Proof.
@@ -922,7 +922,7 @@ Proof.
 
   + exact s.
 Qed.
-Hint Resolve pos_square_gt_gt: Realiny.
+Global Hint Resolve pos_square_gt_gt: Realiny.
 
 Lemma pos_square_eq_eq : forall z1 z2, z1 > Real0 -> z2 > Real0 -> z1*z1 = z2*z2 -> z1 = z2.
 Proof.
@@ -941,7 +941,7 @@ Proof.
   rewrite H1 in H4;
     contradict H4; auto with Realiny.
 Qed.
-Hint Resolve pos_square_eq_eq: Realiny.
+Global Hint Resolve pos_square_eq_eq: Realiny.
 
 
 Lemma gt0_gt0_plus_gt0 : forall z1 z2, z1 > Real0 -> z2 > Real0 -> z1 + z2 > Real0.
@@ -949,7 +949,7 @@ Proof.
   intros.
   auto with Realiny.
 Qed.
-Hint Resolve gt0_gt0_plus_gt0: Realiny.
+Global Hint Resolve gt0_gt0_plus_gt0: Realiny.
 
 Lemma Reallt_le_lt_lt : forall z1 z2 z3 z4, z1 <z2 -> z2 <= z3 -> z3 < z4 -> z1 < z4.
   intros.
@@ -967,7 +967,7 @@ Lemma dReal2_pos : Real0 < / dReal2.
 Proof.
   assert (/dReal2 > Real0); auto with Realiny.  
 Qed.
-Hint Resolve dReal2_pos: Realiny.
+Global Hint Resolve dReal2_pos: Realiny.
   
            
 Lemma Realeq_mult_eq : forall z z1 z2, z1 = z2 -> z*z1=z*z2.
@@ -995,7 +995,7 @@ Proof.
     apply (Reallt_lt_lt (-ε + y) y x p) in H.
     replace (-ε+y) with (y-ε) in H by ring; left; exact H.
 Defined.
-Hint Resolve W_split : Realiny.
+Global Hint Resolve W_split : Realiny.
 (** string but multivalued split **)
 Lemma M_split : forall x y ε, ε > Real0 -> M ({x>y-ε} + {y>x-ε}).
 Proof.
@@ -1003,7 +1003,7 @@ Proof.
   apply (choose (x > y-ε) (y > x-ε)); auto with Realiny.
 Defined.
 
-Hint Resolve M_split : Realiny.
+Global Hint Resolve M_split : Realiny.
 
   
 Lemma not_bounded : forall x, [ y | y > x ].

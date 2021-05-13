@@ -7,67 +7,6 @@ Require Import RealOrderTactic.
 
 
 
-(* Lemma limit_unique : forall s x y, fast_converge s x -> fast_converge s y -> x = y. *)
-(* Proof. *)
-(* Admitted. *)
-
-
-(* Definition single_limit : *)
-(*   forall (P : Real -> Prop), (exists z, P z) -> *)
-(*     (forall n, {e | (exists a : Real, P a /\ - prec n < e - a < prec n) }) -> {a : Real | P a}. *)
-(* Proof. *)
-
-(* Definition single_limit : *)
-(*   forall (P : Real -> Prop), (exists! z, P z) -> *)
-(*     (forall n, {e | (exists a : Real, P a /\ - prec n < e - a < prec n) }) -> {a : Real | P a}. *)
-(* Proof. *)
-(*   intros. *)
-(*   assert (exists x, fast_converge (fun n => pr1 _ _ (H0 n)) x). *)
-(*   destruct H. *)
-(*   exists x. *)
-(*   intro. *)
-(*   unfold pr1. *)
-(*   destruct (H0 n). *)
-(*   destruct e. *)
-(*   destruct H1. *)
-(*   destruct H. *)
-(*   rewrite (H3 _ H1). *)
-
-  
-(*   split. *)
-(*   destruct H2. *)
-(*   add_both_side_by. *)
-(*   add_both_side_by H4. *)
-(*   replace (- prec n - x1 + x0 ) with  ( - prec n + x0 - x1) by ring. *)
-(*   auto. *)
-(*   destruct H2. *)
-(*   add_both_side_by. *)
-(*   add_both_side_by H2. *)
-(*   replace ( x1 - x0 - prec n) with ( - x0 + x1 - prec n ) by ring. *)
-(*   auto. *)
-(*   exists (pr1 _ _ (limit _ H1)). *)
-
-(*   destruct H1. *)
-(*   assert (x = ((pr1 Real *)
-(*        (fast_converge *)
-(*           (fun n : nat => pr1 Real (fun e : Real => exists a : Real, P a /\ - prec n < e - a < prec n) (H0 n))) *)
-(*        (limit (fun n : nat => pr1 Real (fun e : Real => exists a : Real, P a /\ - prec n < e - a < prec n) (H0 n)) *)
-(*           (ex_intro *)
-(*              (fun x0 : Real => *)
-(*               fast_converge *)
-(*                 (fun n : nat => *)
-(*                    pr1 Real (fun e : Real => exists a : Real, P a /\ - prec n < e - a < prec n) (H0 n)) x0) x f))))). *)
-(*   simpl. *)
-  
-(*   apply (limit_unique  (fun n : nat => pr1 Real (fun e : Real => exists a : Real, P a /\ - prec n < e - a < prec n) (H0 n)) ). *)
-(*   exact f. *)
-(*   admit. *)
-(*   rewrite <- H1. *)
-  
-
-
-
-
 Definition mslimitp :
   forall (P : Real -> Prop),
     (exists! z, P z) ->
@@ -351,7 +290,7 @@ Proof.
 Qed.
 
 
-Hint Resolve abs_pos dist_pos_t: Realiny.
+Global Hint Resolve abs_pos dist_pos_t: Realiny.
 
 
 (* let us have a strong definition of dist then make other obligations derivable *)
@@ -385,7 +324,7 @@ Proof.
 Qed.
 
    
-Hint Resolve dist_prop: Realiny.
+Global Hint Resolve dist_prop: Realiny.
 
 (* Parameter dist : Real -> Real -> Real. *)
 (* Definition abs (z:Real) : Real := dist Real0 z. *)
@@ -643,7 +582,7 @@ Proof.
   exact (H1 H0).
 Qed.
 
-Hint Resolve  dist_pos dist_symm dist_tri dist_zero: Realiny.
+Global Hint Resolve  dist_pos dist_symm dist_tri dist_zero: Realiny.
 
 
 
@@ -679,7 +618,7 @@ Proof.
   replace (z1 - z2 - z3) with (-z2 + z1 - z3) by ring.
   exact p1.
 Qed.
-Hint Resolve Realmetric_sand: Realiny.
+Global Hint Resolve Realmetric_sand: Realiny.
 
 
 Lemma Realmetric_plus_inv : forall z1 z2 z3, dist z1 z2 = dist (z3 + z1) (z3 + z2).
@@ -688,7 +627,7 @@ Proof.
     replace (z3+z1) with (z1+z3) by ring;
     replace (z3+z2) with (z2+z3) by ring; exact (Realmetric_inv z1 z2 z3).
 Qed.
-Hint Resolve Realmetric_plus_inv: Realiny.
+Global Hint Resolve Realmetric_plus_inv: Realiny.
 
 
 Lemma Realmetric_or : forall z1 z2, dist z1 z2 = z1 - z2 \/ dist z1 z2 = z2 - z1.
@@ -702,7 +641,7 @@ Proof.
   exact (l2 r2).
   left; rewrite (l1 r3); exact eq_refl.
 Qed.
-Hint Resolve Realmetric_or: Realiny.
+Global Hint Resolve Realmetric_or: Realiny.
 
 Lemma Realmetric_Or : forall z1 z2, (dist z1 z2 = z1-z2 /\ z1 >= z2) \/
                                 (dist z1 z2 = z2-z1 /\ z2 >= z1).
@@ -717,7 +656,7 @@ Proof.
   right; exact r2.
   left; rewrite (l1 r3); exact (conj eq_refl (Realgt_ge z1 z2 r3)).
 Qed.
-Hint Resolve Realmetric_Or: Realiny.
+Global Hint Resolve Realmetric_Or: Realiny.
 
 Lemma Realmetric_gtgt_sand : forall z1 z2 z3, z3> Real0 -> z1-z3<z2<z1+z3 -> dist z1 z2 < z3.
 Proof.
@@ -733,7 +672,7 @@ Proof.
   replace (-z1+z2) with (z2-z1) in p2 by ring.
   exact p2.
 Qed.
-Hint Resolve Realmetric_gtgt_sand: Realiny.
+Global Hint Resolve Realmetric_gtgt_sand: Realiny.
 
 
 Lemma Realmetric_minus_inv : forall z1 z2 z3, dist z1 z2 = dist (z1 - z3) (z2 - z3).
@@ -743,7 +682,7 @@ Proof.
   replace (z1-z3) with (z1+-z3) by ring;
   replace (z2-z3) with (z2+-z3) by ring; exact H.    
 Qed.
-Hint Resolve Realmetric_minus_inv: Realiny.
+Global Hint Resolve Realmetric_minus_inv: Realiny.
 
 
 Lemma lt_metric : forall x y, x < y -> dist x y = y - x.
@@ -753,7 +692,7 @@ Proof.
   contradict Q; auto with Realiny.
   exact P.
 Qed.
-Hint Resolve lt_metric: Realiny.
+Global Hint Resolve lt_metric: Realiny.
 
 Lemma le_metric : forall x y, x <= y -> dist x y = y - x.
 Proof.
@@ -764,21 +703,21 @@ Proof.
   ring_simplify.
   rewrite (dist_zero y y); exact eq_refl.
 Qed.
-Hint Resolve le_metric: Realiny.
+Global Hint Resolve le_metric: Realiny.
 
 Lemma dist_0_1 : dist Real0 Real1 = Real1.
 Proof.
   rewrite (lt_metric Real0 Real1 Real1_gt_Real0).
   ring.
 Qed.
-Hint Resolve dist_0_1: Realiny.
+Global Hint Resolve dist_0_1: Realiny.
 
 Lemma dist_1_0 : dist Real1 Real0 = Real1.
 Proof.
   rewrite (dist_symm Real1 Real0).
   exact dist_0_1.
 Qed.
-Hint Resolve dist_1_0: Realiny.
+Global Hint Resolve dist_1_0: Realiny.
 
 
 
@@ -906,7 +845,7 @@ Proof.
     apply (Reallt_mult_r_pos_lt x y w2 r) in p.
     apply (Reallt_plus_lt  (w1*x) (x*w2) (y*w2)) in p.
     assert (w1+w2 <> Real0) as Path by auto with Realiny.
-    rewrite <- (neq_path (w1+w2) Real0 Path (Realgt_neq (w1 + w2) Real0
+    rewrite <- (irrl  _ Path (Realgt_neq (w1 + w2) Real0
     (eq_ind (Real0 + Real0) (fun t : Real => t < w1 + w2) (Reallt_lt_plus_lt Real0 w1 Real0 w2 q r) Real0
             (Realplus_unit Real0)))).
     
@@ -926,7 +865,7 @@ Proof.
     apply (Reallt_mult_r_pos_lt x y w1 q) in p.
     apply (Reallt_plus_lt  (w2*y) (x*w1) (y*w1)) in p.
     assert (w1+w2 <> Real0) as Path by auto with Realiny.
-    rewrite <- (neq_path (w1+w2) Real0 Path (Realgt_neq (w1 + w2) Real0
+    rewrite <- (irrl _ Path (Realgt_neq (w1 + w2) Real0
     (eq_ind (Real0 + Real0) (fun t : Real => t < w1 + w2) (Reallt_lt_plus_lt Real0 w1 Real0 w2 q r) Real0
             (Realplus_unit Real0)))).
 
