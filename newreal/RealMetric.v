@@ -13,7 +13,7 @@ Definition mslimitp :
     ((forall n, [e  | (exists a : Real, P a /\ -prec n < e - a < prec n)]) -> {a : Real | P a}).
 Proof.
   intros.
-  apply (countableM)  in X.
+  apply (countableLiftM)  in X.
   apply singletonM.
   intros x y.
   destruct H, x, y.
@@ -798,7 +798,7 @@ Definition mslimit :
     ((forall n, [e  | (exists a : Real, P a /\ dist e a < prec n)]) -> {a : Real | P a}).
 Proof.
   intros.
-  apply (countableM)  in X.
+  apply (countableLiftM)  in X.
   apply singletonM.
   intros x y.
   destruct H, x, y.
