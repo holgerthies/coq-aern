@@ -11,18 +11,18 @@ Require Import sqrt.
 Extract Inlined Constant Real => "CReal".
 Extract Inlined Constant K => "CKleenean".
 
-Extract Inlined Constant kneg => "??".
-Extract Inlined Constant kland => "??".
-Extract Inlined Constant klor => "??".
+(* Axioms for Kleenean *)
+Extract Inlined Constant trueK => "(ckleenean True)".
+Extract Inlined Constant falseK => "(ckleenean False)".
+                                   
+Extract Inlined Constant kneg => "not".
+Extract Inlined Constant kland => "(&&)".
+Extract Inlined Constant klor => "(||)".
 
 Extract Constant M "a" => " a ".
 
 Extract Inlined Constant Nat.log2 => "(integer . integerLog2)".
 
-(* Axioms for Kleenean *)
-(* Extract Inlined Constant trueK => "true".
-Extract Inlined Constant falseK => "false". *)
-                                   
 (* Axioms for Multivalueness *)
 Extract Inlined Constant unitM => "id".
 Extract Inlined Constant multM => "id".
