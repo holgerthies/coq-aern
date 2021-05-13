@@ -973,5 +973,123 @@ Module Nabla.
   (* Defined. *)
   
 
+  Definition lift_predicate : forall A (P : A -> Prop), nabla A -> Prop.
+  Proof.
+    intros.
+    exact (lift_domain_unary _ _ P (Prop_is_nabla_modal) X).
+  Defined.
 
+  Goal forall A (P : A -> Prop), (lift_predicate A P) = (transport_fiber _ P).
+  Proof.
+    intros.
+    apply fun_ext.
+    intros.
+    apply Prop_ext.
+    intro.
+    intro.
+    intro.
+    destruct x.
+    apply (sewon_sewonp) in H0.
+    assert (x x0).
+    rewrite <- (lp _ _ (fun k => k x0) _ _ H0); auto. 
+    destruct e.
+    destruct u.
+    pose proof (e _ H1).
+    induction H2.
+    simpl in H.
+    unfold lift_predicate in H.
+    unfold lift_domain_unary in H.
+    destruct (Prop_is_nabla_modal).
+    destruct a.
+
+    unfold fc, id in H1, H0.
+    unfold lift_unary in H.
+    unfold fc, id in H2, H3.
+    apply (lp _ _ (fun k => k (P x1))) in H2.
+    rewrite <- H2.
+
+    assert (
+        (exist (fun P : Prop -> Prop => exists ! a : Prop, P a) (fun b : Prop => exists a : A, x a /\ b = P a)
+               (ex_intro (unique (fun a : Prop => exists a0 : A, x a0 /\ a = P a0)) (P x1)
+                         (conj (ex_intro (fun a : A => x a /\ P x1 = P a) x1 (conj x2 eq_refl))
+                    (fun (x' : Prop) (H0 : exists a : A, x a /\ x' = P a) =>
+                       match H0 with
+                       | ex_intro _ x2 (conj H2 H3) =>
+                         eq_ind x1 (fun x3 : A => x x3 -> x' = P x3 -> P x1 = x')
+                                (fun (_ : x x1) (H5 : x' = P x1) => eq_sym H5) x2 (e x2 H2) H2 H3
+                       end))))
+        =
+        (nabla_unit Prop (P x1))).
+    apply (nabla_eq_at).
+    simpl.
+    apply fun_ext.
+    intro.
+    apply Prop_ext.
+    intro.
+    destruct H4.
+    destruct H4.
+    rewrite H5.
+    pose proof (e _ H4).
+    rewrite H6; auto.
+    intro.
+    exists x1.
+    split; auto.
+    rewrite <- H4; auto.
+
+    intro.
+    unfold lift_predicate.
+    unfold transport_fiber in H.
+    unfold lift_domain_unary.
+    destruct (Prop_is_nabla_modal).
+    unfold fc, id in a.
+    destruct a.
+    destruct x.
+    destruct e.
+
+    destruct u.
+    pose proof (H x1).
+    assert (nabla_unit A x1 =
+            exist (fun P : A -> Prop => exists ! a : A, P a) x (ex_intro (unique (fun a : A => x a)) x1 (conj x2 e)) ).
+    apply nabla_eq_at.
+    simpl.
+    apply fun_ext.
+    intro.
+    apply Prop_ext.
+    intro.
+    induction H3; auto.
+    intro.
+    
+    pose proof (e _  H3); auto.
+    pose proof (H2 H3).
+    clear H H2 H3.
+
+    apply (lp _ _ (fun l => l (P x1))) in H0.
+    assert (
+        (lift_unary A Prop P
+                    (exist (fun P0 : A -> Prop => exists ! a : A, P0 a) x (ex_intro (unique (fun a : A => x a)) x1 (conj x2 e))))
+        =
+        (nabla_unit Prop (P x1))).
+    simpl.
+    apply nabla_eq_at.
+    simpl.
+    apply fun_ext.
+    intro.
+    apply Prop_ext; intros.
+    destruct H.
+    destruct H.
+    rewrite H2.
+    rewrite (e _ H).
+    auto.
+    exists x1.
+    split; auto.
+    rewrite H.
+    rewrite H0.
+    exact H4.
+  Qed.
+  
+    
+    
+  
+
+  
 End Nabla.
