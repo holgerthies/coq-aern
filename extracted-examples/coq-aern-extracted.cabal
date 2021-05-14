@@ -1,0 +1,56 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 6e43fde76f450628900151170971ebaa0030ecbcd2e0c4a48cd974a934efaa1f
+
+name:           coq-aern-extracted
+version:        0.1.0.0
+synopsis:       Exact real programs extracted from coq-aern
+category:       Math
+build-type:     Simple
+
+library
+  exposed-modules:
+      IVT
+      IVTMB
+      Max
+      MaxMB
+      Sqrt
+      SqrtMB
+  other-modules:
+      Paths_coq_aern_extracted
+  hs-source-dirs:
+      src
+  default-extensions: RebindableSyntax, PostfixOperators, ScopedTypeVariables, TypeFamilies, TypeOperators, ConstraintKinds, DefaultSignatures MultiParamTypeClasses FlexibleContexts FlexibleInstances
+  ghc-options: -Wall -rtsopts -fno-warn-missing-signatures -fno-warn-partial-type-signatures
+  build-depends:
+      aern2-mp >=0.2
+    , aern2-real >=0.2
+    , base ==4.*
+    , collect-errors >=0.1.3
+    , integer-logarithms
+    , mixed-types-num >=0.5.1
+  default-language: Haskell2010
+
+executable coq-aern-extracted-bench
+  main-is: bench.hs
+  other-modules:
+      Paths_coq_aern_extracted
+  hs-source-dirs:
+      bench
+  default-extensions: RebindableSyntax, PostfixOperators, ScopedTypeVariables, TypeFamilies, TypeOperators, ConstraintKinds, DefaultSignatures MultiParamTypeClasses FlexibleContexts FlexibleInstances
+  ghc-options: -rtsopts -threaded -with-rtsopts=-N -Wall -O2
+  build-depends:
+      aern2-mp
+    , aern2-real
+    , base ==4.*
+    , collect-errors >=0.1.3
+    , coq-aern-extracted
+    , criterion
+    , deepseq
+    , integer-logarithms
+    , mixed-types-num >=0.5.1
+  default-language: Haskell2010
