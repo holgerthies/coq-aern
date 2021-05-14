@@ -6,30 +6,32 @@ Require Import IVT.
 Require Import Minmax.
 Require Import sqrt.
 
+Extraction Language Haskell.
 
 (* Real is Real, K is LazyBoolean, and M T is T *)
 Extract Inlined Constant Real => "(WithCurrentPrec (CN MPBall) p)".
-Extract Inlined Constant K => "(CN MxP.Kleenean)".
-Extract Constant M "a" => " a ".
+Extract Inlined Constant K => "(CN Kleenean)".
 
 (* Axioms for Kleenean *)
-Extract Inlined Constant trueK => "(cn MxP.CertainTrue)".
-Extract Inlined Constant falseK => "(cn MxP.CertainFalse)".
+Extract Inlined Constant trueK => "(cn $ kleenean True)".
+Extract Inlined Constant falseK => "(cn $ kleenean False)".
                                    
-Extract Inlined Constant kneg => "MxP.not".
-Extract Inlined Constant kland => "(MxP.&&)".
-Extract Inlined Constant klor => "(MxP.||)".
+Extract Inlined Constant kneg => "not".
+Extract Inlined Constant kland => "(&&)".
+Extract Inlined Constant klor => "(||)".
+
+Extract Inlined Constant choose => "select".
 
 (* Axioms for Multivalueness *)
+Extract Constant M "a" => " a ".
 Extract Inlined Constant unitM => "id".
 Extract Inlined Constant multM => "id".
 Extract Inlined Constant liftM => "id".
 
-Extract Inlined Constant choose => "select".
 Extract Inlined Constant mjoin => "liftTakeErrors".
 (* mjoin is more-or-less the identity function, 
 but it needs to correctly propagate CN and WithCurrentPrec wrappers. *)
-Extract Inlined Constant countableM => "id".
+Extract Inlined Constant countableMprop => "id".
 Extract Inlined Constant singletonM => "id".
 
 (* Exact Real Number Operations *)
@@ -40,7 +42,8 @@ Extract Inlined Constant Realplus => "(+)".
 Extract Inlined Constant Realmult => "(*)".
 Extract Inlined Constant Realopp => "negate".
 Extract Inlined Constant Realinv => "recip".
-Extract Inlined Constant Reallt_semidec => "(MxP.<)".
+Extract Inlined Constant Reallt_semidec => "(<)".
+Extract Inlined Constant Realgt_semidec => "(>)".
 Extract Inlined Constant limit => "limit".
 
 (* Extract Inductive bool => "(CN Bool)" [ "(cn True)" "(cn False)" ]. *)
@@ -55,55 +58,49 @@ Extract Inlined Constant Realminus => "(-)".
 Extract Inlined Constant Realdiv => "(/)".
 Extract Inlined Constant prec => "(0.5^)".
 
-
-(* ExtractConstant M => " ".        (*  *) *)
-
 Extract Inductive sigT => "(,)" ["(,)"].
-Extraction Language Haskell.
-
 Extract Inductive prod => "(,)"  [ "(,)" ].
 
-Extract Inlined Constant Nat.log2 => "(MxP.integer . integerLog2)".
+Extract Inlined Constant Nat.log2 => "(integer . integerLog2)".
 
 (* Maximum *)
 
 (* root finding function *)
-Recursive Extraction  CIVT.
+Extraction "IVTMB" CIVT.
 
 (* maximum *)
-Recursive Extraction Realmax.
+Extraction "MaxMB" Realmax.
 
 (* sqrt *)
-Recursive Extraction restr_sqrt.
+Extraction "SqrtMB" restr_sqrt.
 
 (*
 
 The Haskell module will require the following packages:
 - collect-errors >= 0.1.2
-- mixed-types-num >= 0.5
+- mixed-types-num >= 0.5.2
 - aern2-mp >= 0.2
 - aern2-real >= 0.2
 - integer-logarithms
 
-The generated Haskell file needs the following edits to make it work:
+The generated Haskell files need the following edits to make them work:
 
-(1) Replace the first three lines with:
+(1) Add the following language options and imports:
 
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
-module ${ModuleName} where
-import qualified Prelude
-import Prelude hiding (pred, succ)
-import qualified MixedTypesNumPrelude as MxP
-import MixedTypesNumPrelude (ifThenElse)
+
+import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
+import Numeric.OrdGenericBool
+import MixedTypesNumPrelude (ifThenElse, (<), (>), not, (&&), (||), integer, Kleenean(..), kleenean)
+import Math.NumberTheory.Logarithms (integerLog2)
 import Numeric.CollectErrors (CN,cn,liftTakeErrors)
-import AERN2.Limit
 import AERN2.MP
 import AERN2.MP.Dyadic ()
 import AERN2.MP.WithCurrentPrec
+import AERN2.Limit
 import AERN2.Real(select)
 import AERN2.Real.Type
-import Math.NumberTheory.Logarithms (integerLog2)
 
 (2) Add "(HasCurrentPrecision p) => " to every function signature that features
 the type variable "p", eg:
@@ -111,9 +108,9 @@ the type variable "p", eg:
 realgtb :: (HasCurrentPrecision p) => (WithPrecision (CN MPBall) p)
 	       ->
            (WithPrecision (CN MPBall) p)
-           -> (CN MxP.Kleenean)
+           -> (CN Kleenean)
 realgtb z1 z2 =
-  (MxP.<) z2 z1
+  (<) z2 z1
 
 (3) To use the generated functions to compute a real number, use eg:
 
