@@ -29,7 +29,7 @@ Extract Inlined Constant multM => "id".
 Extract Inlined Constant liftM => "id".
 
 (* Extract Inlined Constant mjoin => "id". *)
-Extract Inlined Constant countableMprop => "id".
+Extract Inlined Constant countableLiftM => "id".
 Extract Inlined Constant singletonM => "id".
 
 (* Exact Real Number Operations *)

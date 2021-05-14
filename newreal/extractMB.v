@@ -31,7 +31,7 @@ Extract Inlined Constant liftM => "id".
 Extract Inlined Constant mjoin => "liftTakeErrors".
 (* mjoin is more-or-less the identity function, 
 but it needs to correctly propagate CN and WithCurrentPrec wrappers. *)
-Extract Inlined Constant countableMprop => "id".
+Extract Inlined Constant countableLiftM => "id".
 Extract Inlined Constant singletonM => "id".
 
 (* Exact Real Number Operations *)
