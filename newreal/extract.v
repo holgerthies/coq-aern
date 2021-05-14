@@ -90,7 +90,7 @@ In the generated Haskell files, add the following imports:
 
 import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
 import Numeric.OrdGenericBool
-import MixedTypesNumPrelude (ifThenElse, (<), (>), not, (&&), (||), integer)
+import MixedTypesNumPrelude (ifThenElse, integer)
 import Math.NumberTheory.Logarithms (integerLog2)
 import AERN2.Real
 

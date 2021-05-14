@@ -85,14 +85,16 @@ The Haskell module will require the following packages:
 
 The generated Haskell files need the following edits to make them work:
 
-(1) Add the following language options and imports:
+(1) Add the following language options at the start of the file:
 
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE PolyKinds #-}
 
+(2) Add the following imports after "import qualified Prelude":
+
 import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
 import Numeric.OrdGenericBool
-import MixedTypesNumPrelude (ifThenElse, (<), (>), not, (&&), (||), integer, Kleenean(..), kleenean)
+import MixedTypesNumPrelude (ifThenElse, integer, Kleenean(..), kleenean)
 import Math.NumberTheory.Logarithms (integerLog2)
 import Numeric.CollectErrors (CN,cn,liftTakeErrors)
 import AERN2.MP
@@ -102,7 +104,7 @@ import AERN2.Limit
 import AERN2.Real(select)
 import AERN2.Real.Type
 
-(2) Add "(HasCurrentPrecision p) => " to every function signature that features
+(3) Add "(HasCurrentPrecision p) => " to every function signature that features
 the type variable "p", eg:
 
 realgtb :: (HasCurrentPrecision p) => (WithPrecision (CN MPBall) p)
@@ -112,7 +114,7 @@ realgtb :: (HasCurrentPrecision p) => (WithPrecision (CN MPBall) p)
 realgtb z1 z2 =
   (<) z2 z1
 
-(3) To use the generated functions to compute a real number, use eg:
+(4) To use the generated functions to compute a real number, use eg:
 
 testRealmax1 :: CN MPBall
 testRealmax1 = runWithPrec (prec 1000000) $ realmax (pi-pi) 0
