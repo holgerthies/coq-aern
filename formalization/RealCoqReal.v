@@ -27,7 +27,7 @@ Proof.
   unfold relate.
   rewrite H.
   exists is_total_constant0.
-  apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
+  apply (sigma_eqP _ _ _ _ _ _ (eq_refl _)).
   apply irrl.
 Qed.
   
@@ -37,7 +37,7 @@ Proof.
   unfold relate.
   rewrite H.
   exists is_total_constant1.
-  apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
+  apply (sigma_eqP _ _ _ _ _ _ (eq_refl _)).
   apply irrl.
 Qed.
 
@@ -64,7 +64,7 @@ Proof.
   case_eq (relator y); intros.
   rewrite H2 in H1.
   rewrite H3 in H1.
-  pose proof (sewon_sewonp _ _ _ _ _ _  H1).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _  H1).
   rewrite<- H4.
 
   clear H1.
@@ -84,29 +84,29 @@ Proof.
   unfold relate in H.
   destruct (relator x).
   destruct H.
-  pose proof (sewon_sewonp _ _ _ _ _ _ H2).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H2).
   induction H1.
   destruct e2.
   destruct u.
   pose proof (e2 _ H).
   pose proof (e2 _ x5).
   rewrite H1 in H3.
-  exact (sewon_sewonp _ _ _ _ _ _ H3).
+  exact (sigma_eqP_pr1 _ _ _ _ _ _ H3).
   assert (b = x4).
   clear H2 H4.
   unfold relate in H0.
   destruct (relator y).
   destruct H0.
-  pose proof (sewon_sewonp _ _ _ _ _ _ H3).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H3).
   induction H2.
   destruct e2.
   destruct u.
   pose proof (e2 _ x6).
   pose proof (e2 _ H0).
   rewrite H4 in H2.
-  exact (sewon_sewonp _ _ _ _ _ _ H2).
+  exact (sigma_eqP_pr1 _ _ _ _ _ _ H2).
   rewrite H1; rewrite H5; apply eq_refl.
-  apply (sewonsewonp _ _ _ _ _ _ H1).
+  apply (sigma_eqP _ _ _ _ _ _ H1).
   apply irrl.
 Qed.
 
@@ -130,7 +130,7 @@ Proof.
   case_eq (relator y); intros.
   rewrite H2 in H1.
   rewrite H3 in H1.
-  pose proof (sewon_sewonp _ _ _ _ _ _  H1).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _  H1).
   rewrite<- H4.
 
   clear H1.
@@ -150,29 +150,29 @@ Proof.
   unfold relate in H.
   destruct (relator x).
   destruct H.
-  pose proof (sewon_sewonp _ _ _ _ _ _ H2).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H2).
   induction H1.
   destruct e2.
   destruct u.
   pose proof (e2 _ H).
   pose proof (e2 _ x5).
   rewrite H1 in H3.
-  exact (sewon_sewonp _ _ _ _ _ _ H3).
+  exact (sigma_eqP_pr1 _ _ _ _ _ _ H3).
   assert (b = x4).
   clear H2 H4.
   unfold relate in H0.
   destruct (relator y).
   destruct H0.
-  pose proof (sewon_sewonp _ _ _ _ _ _ H3).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H3).
   induction H2.
   destruct e2.
   destruct u.
   pose proof (e2 _ x6).
   pose proof (e2 _ H0).
   rewrite H4 in H2.
-  exact (sewon_sewonp _ _ _ _ _ _ H2).
+  exact (sigma_eqP_pr1 _ _ _ _ _ _ H2).
   rewrite H1; rewrite H5; apply eq_refl.
-  apply (sewonsewonp _ _ _ _ _ _ H1).
+  apply (sigma_eqP _ _ _ _ _ _ H1).
   apply irrl.
 Qed.
 
@@ -195,7 +195,7 @@ Proof.
   unfold Nabla.lift_binary in H0.
   case_eq (relator x); intros.
   rewrite H1 in H0.
-  pose proof (sewon_sewonp _ _ _ _ _ _  H0).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _  H0).
   rewrite<- H2.
 
   unfold totalRsub.
@@ -211,7 +211,7 @@ Proof.
   unfold relate in H.
   destruct (relator x).
   destruct H.
-  pose proof (sewon_sewonp _ _ _ _ _ _ H1).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H1).
   induction H3.
   
   
@@ -220,10 +220,10 @@ Proof.
   pose proof (e1 _ H).
   pose proof (e1 _ x3).
   rewrite H4 in H3.
-  pose proof (sewon_sewonp _ _ _ _ _ _ H3).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H3).
   rewrite H5; auto.
   rewrite H3; auto.
-  apply (sewonsewonp _ _ _ _ _ _ H3).
+  apply (sigma_eqP _ _ _ _ _ _ H3).
   apply irrl.
 Qed.
 
@@ -256,12 +256,12 @@ Proof.
   pose proof (H5 _ H3).
   rewrite H6 in H7.
   rewrite <- H7.
-  apply (sewonsewonp _ _ _ _ _ _ (eq_refl R0)).
+  apply (sigma_eqP _ _ _ _ _ _ (eq_refl R0)).
   apply irrl.
   rewrite H3.
   destruct H.
   assert ((exist (fun x : R => is_total x) R0 x3) = totalR0).
-  apply (sewonsewonp _ _ _ _ _ _ (eq_refl R0)).
+  apply (sigma_eqP _ _ _ _ _ _ (eq_refl R0)).
   apply irrl.
   rewrite <- H4; auto.
   pose proof (relate_total _ _ H).
@@ -281,14 +281,14 @@ Proof.
   unfold Nabla.fancy_lift_unary in H3.
   unfold Nabla.nabla_mult in H3.
   
-  pose proof (sewon_sewonp _ _ _ _ _ _ H3).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H3).
   clear H3.
   rewrite H4.
 
   clear H4.
   assert (exist _ a H2 <> totalR0).
   intro.
-  apply sewon_sewonp in H3.
+  apply sigma_eqP_pr1 in H3.
   exact (H1 H3).
   exists (exist _ (exist _ a H2) H3).
   assert (forall x2 : totalR, Nabla.nabla_unit totalR x2 = Nabla.nabla_unit _ (exist _ a H2) -> x2 <> totalR0).
@@ -298,7 +298,7 @@ Proof.
   induction (eq_sym H5).
   contradict H1.
   apply Nabla.nabla_mono in H4.
-  apply sewon_sewonp in H4.
+  apply sigma_eqP_pr1 in H4.
   rewrite H4; auto.
 
 
@@ -320,14 +320,14 @@ Proof.
   destruct (relator x).
   destruct e0.
   destruct u.
-  apply sewon_sewonp in p0.
+  apply sigma_eqP_pr1 in p0.
   apply (lp _ _ (fun k => k a0)) in p0.
   assert (x2 a0) by (rewrite p0; auto).
   pose proof (e0 _ H6).
   destruct H.
   pose proof (e0 _ H).
   rewrite <- H7, H8.
-  apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
+  apply (sigma_eqP _ _ _ _ _ _ (eq_refl _)).
   apply irrl.
   induction (eq_sym H5).
   
@@ -335,18 +335,18 @@ Proof.
   destruct (relator x).
   destruct e0.
   destruct u.
-  apply sewon_sewonp in p0.
+  apply sigma_eqP_pr1 in p0.
   apply (lp _ _ (fun k => k a0)) in p0.
   assert (x1 a0) by (rewrite p0; auto).
   pose proof (e0 _ H6).
   destruct H.
   pose proof (e0 _ H).
   rewrite <- H7, H8.
-  apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
+  apply (sigma_eqP _ _ _ _ _ _ (eq_refl _)).
   apply irrl.
 
   
-  apply (sewonsewonp _ _ _ _ _ _ H5).
+  apply (sigma_eqP _ _ _ _ _ _ H5).
   apply irrl.
 
   apply Nabla.nabla_eq_at.
@@ -359,20 +359,20 @@ Proof.
       (exist (fun x2 : R => is_total x2) a H2)
       =
       a0).
-  apply sewon_sewonp in p0.
+  apply sigma_eqP_pr1 in p0.
   apply (lp _ _ (fun k => k a0)) in p0.
   apply eq_sym; rewrite p0.
   apply eq_refl.
-  apply (sewonsewonp _ _ _ _ _ _ H6).
+  apply (sigma_eqP _ _ _ _ _ _ H6).
   apply irrl.
   pose proof (H5 (exist _ a H2) (eq_refl _)).
   rewrite H6.
-  apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
+  apply (sigma_eqP _ _ _ _ _ _ (eq_refl _)).
   apply irrl.
 
 
   unfold totalRdiv.
-  apply (sewonsewonp _ _ _ _ _ _ (eq_refl _)).
+  apply (sigma_eqP _ _ _ _ _ _ (eq_refl _)).
   apply irrl.
 
 Defined.
@@ -398,7 +398,7 @@ Proof.
   destruct H.
   destruct H0.
   pose proof (H1 _ H0).
-  pose proof (sewon_sewonp _ _ _ _ _ _ H2).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H2).
   exact H3.
 Defined.
 
@@ -411,7 +411,7 @@ Proof.
   exists x0.
   split; auto.
   destruct (relator x0).
-  pose proof (sewon_sewonp _ _ _ _ _ _ H0).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H0).
   rewrite <- H1.
   exists H.
   auto.
@@ -451,10 +451,10 @@ Proof.
   pose proof (H4 _ H2).
   pose proof (H4 _ H1).
   rewrite H6 in H5.
-  pose proof (sewon_sewonp _ _ _ _ _ _ H5).
-  apply (sewonsewonp _ _ _ _ _ _ H7).
+  pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H5).
+  apply (sigma_eqP _ _ _ _ _ _ H7).
   apply irrl.
-  apply (sewonsewonp _ _ _ _ _ _ H1).
+  apply (sigma_eqP _ _ _ _ _ _ H1).
   apply irrl.
 Defined.
 
@@ -538,7 +538,7 @@ Proof.
   induction H9.
   rewrite H8 in H4.
   exact H4.
-  apply (sewonsewonp _ _ _ _ _ _ H3).
+  apply (sigma_eqP _ _ _ _ _ _ H3).
   apply irrl.
 Defined.
 
@@ -554,7 +554,7 @@ Proof.
   pose proof (H2 _ H).
   pose proof (H2 _ H0).
   rewrite H3 in H4.
-  apply (sewon_sewonp _ _ _ _ _ _ ) in H4.
+  apply (sigma_eqP_pr1 _ _ _ _ _ _ ) in H4.
   exact H4.
 Defined.
 
@@ -599,7 +599,7 @@ Proof.
   rewrite H0.
   destruct u.
   exact H1.
-  apply (sewonsewonp _ _ _ _ _ _ H0).
+  apply (sigma_eqP _ _ _ _ _ _ H0).
   apply irrl.
   rewrite H0.
   clear H0.
@@ -621,7 +621,7 @@ Proof.
   rewrite H0.
   destruct u0.
   exact H1.
-  apply (sewonsewonp _ _ _ _ _ _ H0).
+  apply (sigma_eqP _ _ _ _ _ _ H0).
   apply irrl.
   rewrite H0.
   clear H0.
@@ -687,7 +687,7 @@ Proof.
   assert (x2 = H2) by apply irrl.
   rewrite H5 in H.
   exact H.
-  apply (sewonsewonp _ _ _ _ _ _ H4).
+  apply (sigma_eqP _ _ _ _ _ _ H4).
   apply irrl.
   rewrite H4 in H1.
   clear H4.
@@ -716,7 +716,7 @@ Proof.
   assert (x2 = H3) by apply irrl.
   rewrite H5 in H0.
   exact H0.
-  apply (sewonsewonp _ _ _ _ _ _ H4).
+  apply (sigma_eqP _ _ _ _ _ _ H4).
   apply irrl.
   rewrite H4 in H1.
   clear H4.

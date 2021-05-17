@@ -28,6 +28,11 @@ Proof.
   exact (eq_refl _).
 Defined.
 
+(* equivalence in extensional type theory *)
+Definition id (A : Type) : A -> A := fun x => x.
+Definition fc {A B C : Type} (f : B -> C) (g : A -> B) : A -> C := fun x => f (g x).
+Definition is_equiv {A B : Type} (f : A -> B) := {g : B -> A | fc g f = id _ /\ fc f g = id _}.
+
 
 (* transporting path *)
 Definition tpp : forall A : Type, forall P : A -> Type, forall x y : A, forall e : x = y, P x -> P y.
@@ -38,7 +43,7 @@ Proof.
 Defined.
 
 (* path of sigma types *)
-Lemma sewonsewon : forall (A : Type) (P : A -> Type) (x y : A) (a : P x) (b : P y), forall e : x = y,
+Lemma sigma_eqT : forall (A : Type) (P : A -> Type) (x y : A) (a : P x) (b : P y), forall e : x = y,
       tpp A P x y e a = b -> existT P x a = existT P y b.
 Proof.
   intros.
@@ -51,7 +56,7 @@ Proof.
 Defined.
 
 (* path of sigma types *)
-Lemma sewonsewonp : forall (A : Type) (P : A -> Prop) (x y : A) (a : P x) (b : P y), forall e : x = y,
+Lemma sigma_eqP : forall (A : Type) (P : A -> Prop) (x y : A) (a : P x) (b : P y), forall e : x = y,
       tpp A P x y e a = b -> exist P x a = exist P y b.
 Proof.
   intros.
@@ -64,7 +69,7 @@ Proof.
 Defined.
 
 
-Definition sewon_sewon : forall A P (a c : A) b d, existT P a b = existT P c d -> a = c.
+Definition sigma_eqT_pr1 : forall A P (a c : A) b d, existT P a b = existT P c d -> a = c.
 Proof.
   intros.
   auto.
@@ -88,7 +93,7 @@ Proof.
   exact x.
 Defined.
 
-Definition sewon_sewonp : forall A P (a c : A) b d, exist P a b = exist P c d -> a = c.
+Definition sigma_eqP_pr1 : forall A P (a c : A) b d, exist P a b = exist P c d -> a = c.
 Proof.
   intros.
   apply (@lp {x : A | P x} A (@projP1 A P  ) (exist P a b) (exist P c d)) in H.
@@ -96,7 +101,3 @@ Proof.
   exact H.
 Defined.
   
-(* equivalence in extensional type theory *)
-Definition id (A : Type) : A -> A := fun x => x.
-Definition fc {A B C : Type} (f : B -> C) (g : A -> B) : A -> C := fun x => f (g x).
-Definition is_equiv {A B : Type} (f : A -> B) := {g : B -> A | fc g f = id _ /\ fc f g = id _}.
