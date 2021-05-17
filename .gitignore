@@ -41,4 +41,5 @@ nlia.cache
 nra.cachedump
 newreal/*.hs
 .stack-work
+stack.yaml.lock
 **/bench/logs
