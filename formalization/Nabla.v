@@ -48,7 +48,7 @@ Module Nabla.
     intro.
     rewrite H1.
     exact x2.
-    apply (sewonsewonp _ _ _ _ _ _ H1).
+    apply (sigma_eqP _ _ _ _ _ _ H1).
     apply irrl.
     rewrite<- H1.
     exact H.
@@ -57,7 +57,7 @@ Module Nabla.
     destruct H.
     pose proof (H1 _ H0).
     unfold nabla_unit in H2.
-    pose proof (sewon_sewonp _ _ _ _ _ _ H2).
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H2).
     apply (lp _ _ (fun f => f x1)) in H3.
     rewrite <- H3.
     destruct u.
@@ -69,7 +69,7 @@ Module Nabla.
     intros.
     destruct a, b.
     simpl in H.
-    apply (sewonsewonp _ _ _ _ _ _ H).
+    apply (sigma_eqP _ _ _ _ _ _ H).
     apply irrl.
   Qed.
   
@@ -181,7 +181,7 @@ Module Nabla.
 
     intro.
     pose proof ( e _ H0).
-    pose proof (sewon_sewonp _ _ _ _ _ _ H1).
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H1).
     apply (lp _ _ (fun k => k x3)) in H2.
     assert (x1 x3) by (rewrite H2; auto).
     pose proof (e0 _ H3).
@@ -192,11 +192,11 @@ Module Nabla.
     intro.
     rewrite H.
     pose proof ( e _ H0).
-    pose proof (sewon_sewonp _ _ _ _ _ _ H1).
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H1).
     rewrite H2.
     auto.
     
-    pose proof (sewon_sewonp _ _ _ _ _ _ H).
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H).
     rewrite H1.
     auto.
     rewrite <- H0.
@@ -250,7 +250,7 @@ Module Nabla.
     pose proof (H2 _ H0).
     pose proof (H2 _ H).
     rewrite H3 in H4.
-    pose proof (sewon_sewonp _ _ _ _ _ _ H4).
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H4).
     apply (lp _ _ (fun l => l x1)) in H5.
     rewrite <- H5.
     auto.
@@ -279,7 +279,7 @@ Module Nabla.
   Proof.
     intros.
     unfold nabla_unit in H.
-    pose proof (sewon_sewonp _ _ _ _ _ _ H).
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H).
     apply (lp _ _ (fun f => f a)) in H0.
     induction H0.
     apply eq_refl.
@@ -347,9 +347,9 @@ Module Nabla.
     exists y.
 
     unfold nabla_unit in H.
-    pose proof (sewon_sewonp _ _ _ _ _ _ H). 
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H). 
     unfold nabla_unit in H0.
-    pose proof (sewon_sewonp _ _ _ _ _ _ H0). 
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H0). 
    
     apply (lp _ _ (fun f => f x)) in H2.
     apply (lp _ _ (fun f => f y)) in H3.
@@ -363,9 +363,9 @@ Module Nabla.
     rewrite H3; clear H3.
     
     unfold nabla_unit in H.
-    pose proof (sewon_sewonp _ _ _ _ _ _ H). 
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H). 
     unfold nabla_unit in H0.
-    pose proof (sewon_sewonp _ _ _ _ _ _ H0). 
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H0). 
     apply (lp _ _ (fun f => f x)) in H3.
     apply (lp _ _ (fun f => f y)) in H4.
     assert (x0 x) by (rewrite<- H3; apply eq_refl).
@@ -379,7 +379,7 @@ Module Nabla.
     pose proof (e0 _ H6).
     rewrite <- H8, <- H7, <- H4,<- H3.
     apply eq_refl.
-    apply (sewonsewonp _ _ _ _ _ _ H1).
+    apply (sigma_eqP _ _ _ _ _ _ H1).
     apply irrl.
   Qed.
   
@@ -398,14 +398,14 @@ Module Nabla.
     split; auto.
 
     unfold nabla_unit in H.
-    pose proof (sewon_sewonp _ _ _ _ _ _ H).
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H).
     apply (lp _ _ (fun f => f x)) in H1.
     rewrite <- H1; apply eq_refl.
     intro.
     repeat destruct H0.
     rewrite H1; clear H1.
     unfold nabla_unit in H.
-    pose proof (sewon_sewonp _ _ _ _ _ _ H).
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H).
     apply (lp _ _ (fun f => f x)) in H1.
     assert (x0 x) by (rewrite <- H1; apply eq_refl).
     destruct e.
@@ -414,7 +414,7 @@ Module Nabla.
     pose proof (e _ H2).
     rewrite <- H3, <- H4.
     auto.
-    apply (sewonsewonp _ _ _ _ _ _ H0).
+    apply (sigma_eqP _ _ _ _ _ _ H0).
     apply irrl.
   Qed.
     
@@ -447,7 +447,7 @@ Module Nabla.
   Lemma nabla_mono : forall A (x y : A), nabla_unit _ x = nabla_unit _ y -> x = y.
   Proof.
     intros.
-    apply sewon_sewonp in H.
+    apply sigma_eqP_pr1 in H.
     
     apply (lp _ _  (fun f => f x)) in H.
     induction H.
@@ -577,7 +577,7 @@ Module Nabla.
     exact x4.
     
     
-    apply (sewonsewonp _ _ _ _ _ _ H1).
+    apply (sigma_eqP _ _ _ _ _ _ H1).
     apply irrl.
   Qed.
   
@@ -612,7 +612,7 @@ Module Nabla.
     exact x1.
 
 
-    apply (sewonsewonp _ _ _ _ _ _ H).
+    apply (sigma_eqP _ _ _ _ _ _ H).
     apply irrl.
 
     
@@ -637,7 +637,7 @@ Module Nabla.
     apply eq_refl.
     
     
-    apply (sewonsewonp _ _ _ _ _ _ H0).
+    apply (sigma_eqP _ _ _ _ _ _ H0).
     apply irrl.
   Defined.
 
@@ -671,7 +671,7 @@ Module Nabla.
     apply Prop_ext.
     intros H.
 
-    pose proof (sewon_sewonp _ _ _ _ _ _ H).
+    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H).
     apply (lp _ _ (fun x => x P)) in H0.
     assert (P = True).
     induction H0.
@@ -756,7 +756,7 @@ Module Nabla.
     
     unfold transport_exist_tmp in H.
     unfold fancy_lift_unary in H.
-    apply (sewon_sewonp) in H.
+    apply (sigma_eqP_pr1) in H.
     apply (lp _ _ (fun k => k x)) in H.
     pose proof (tpp _ _ H (eq_refl _)).
     pose proof (H0 x1).
@@ -989,7 +989,7 @@ Module Nabla.
     intro.
     intro.
     destruct x.
-    apply (sewon_sewonp) in H0.
+    apply (sigma_eqP_pr1) in H0.
     assert (x x0).
     rewrite <- (lp _ _ (fun k => k x0) _ _ H0); auto. 
     destruct e.

@@ -79,7 +79,7 @@ Proof.
   intro H.
   unfold totalR0 in p.
   contradict p.
-  apply (sewonsewonp _ _ _ _ _ _ H).
+  apply (sigma_eqP _ _ _ _ _ _ H).
   apply irrl.  
   exact (is_total_division x tx H).
 Defined.
