@@ -75,3 +75,30 @@ The benchmarks measurements can be reproduced using the provided script [runBenc
 
 ## Executing extracted code
 
+* Install `stack` (a Haskell build tool).
+
+  * [Official stack installation instructions](https://docs.haskellstack.org/en/stable/install_and_upgrade/)
+
+* Build the package using stack:
+
+  * Locate the folder `extracted-examples`
+
+  * (optional) Check that the provided `stack.yaml` meets your needs.
+
+  * Run `stack install` in the `extracted-examples` folder.
+  
+    * The first time round it may take long time and install a large number of packages.
+  
+  * Test the executable:
+
+        $ coq-aern-extracted-bench realmaxE 100
+        [0 ± ~2.2569e-36 ~2^(-118)]
+        accuracy: bits 118
+
+* Execute the code in the Haskell interactive environment:
+
+        $ stack repl src/Max.hs
+        *Max> realmax ((sqrt 2)/2) (1/(sqrt 2)) ? (prec 1000)
+        [0.707106781186547524400844362104849039284835937688474036588339868995366239231053519425193767163820... ± ~0.0000 ~2^(-1229)]
+
+        
