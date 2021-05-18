@@ -4,7 +4,7 @@ Coq formalization of constructive reals for exact real computation and code extr
 
 ## Installation instructions
 
-Our formalziation is implemented in the [Coq proof assistant](https://coq.inria.fr/).
+Our formalization is implemented in the [Coq proof assistant](https://coq.inria.fr/).
 You should have Coq installed and running.
 We tested our code with Coq version 8.13.2.
 
