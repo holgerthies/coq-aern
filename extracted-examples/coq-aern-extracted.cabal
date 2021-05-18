@@ -4,13 +4,25 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6e43fde76f450628900151170971ebaa0030ecbcd2e0c4a48cd974a934efaa1f
+-- hash: da864fb6309044f65b5bc2c69c38da8bc84e820c32baff6dac73a528f3433a13
 
 name:           coq-aern-extracted
 version:        0.1.0.0
 synopsis:       Exact real programs extracted from coq-aern
+description:    Please see the README on GitHub at <https://github.com/holgerthies/coq-aern>
 category:       Math
+homepage:       https://github.com/holgerthies/coq-aern#readme
+bug-reports:    https://github.com/holgerthies/coq-aern/issues
+author:         Michal Konečný, Holger Thies, Sewon Park
+maintainer:     mikkonecny@gmail.com
+copyright:      2021 Michal Konečný, Holger Thies, Sewon Park
+license:        MIT
+license-file:   LICENSE
 build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/holgerthies/coq-aern
 
 library
   exposed-modules:
@@ -24,8 +36,7 @@ library
       Paths_coq_aern_extracted
   hs-source-dirs:
       src
-  default-extensions: RebindableSyntax, PostfixOperators, ScopedTypeVariables, TypeFamilies, TypeOperators, ConstraintKinds, DefaultSignatures MultiParamTypeClasses FlexibleContexts FlexibleInstances
-  ghc-options: -Wall -rtsopts -fno-warn-missing-signatures -fno-warn-partial-type-signatures
+  ghc-options: -Wall -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-unused-imports -fno-warn-name-shadowing
   build-depends:
       aern2-mp >=0.2
     , aern2-real >=0.2
@@ -41,7 +52,6 @@ executable coq-aern-extracted-bench
       Paths_coq_aern_extracted
   hs-source-dirs:
       bench
-  default-extensions: RebindableSyntax, PostfixOperators, ScopedTypeVariables, TypeFamilies, TypeOperators, ConstraintKinds, DefaultSignatures MultiParamTypeClasses FlexibleContexts FlexibleInstances
   ghc-options: -rtsopts -threaded -with-rtsopts=-N -Wall -O2
   build-depends:
       aern2-mp

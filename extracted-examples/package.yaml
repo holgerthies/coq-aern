@@ -1,10 +1,10 @@
 name:                coq-aern-extracted
 version:             0.1.0.0
-# github:              "michalkonecny/aern2"
-# license:             BSD3
-# author:              "Michal Konecny"
-# maintainer:          "mikkonecny@gmail.com"
-# copyright:           "2015-2021 Michal Konecny"
+github:              "holgerthies/coq-aern"
+license:             MIT
+author:              "Michal Konečný, Holger Thies, Sewon Park"
+maintainer:          "mikkonecny@gmail.com"
+copyright:           "2021 Michal Konečný, Holger Thies, Sewon Park"
 
 # extra-source-files:
 # - README.md
@@ -16,7 +16,7 @@ category:            Math
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-# description:         Please see the README on GitHub at <https://github.com/michalkonecny/aern2/aern2-demos#readme>
+description:         Please see the README on GitHub at <https://github.com/holgerthies/coq-aern>
 
 dependencies:
 - base == 4.*
@@ -26,22 +26,10 @@ dependencies:
 - aern2-mp >= 0.2
 - aern2-real >= 0.2
 
-default-extensions:
-- RebindableSyntax,
-- PostfixOperators,
-- ScopedTypeVariables,
-- TypeFamilies,
-- TypeOperators,
-- ConstraintKinds,
-- DefaultSignatures
-- MultiParamTypeClasses
-- FlexibleContexts
-- FlexibleInstances
-
 library:
   source-dirs: src
   ghc-options:
-  - -Wall -rtsopts -fno-warn-missing-signatures -fno-warn-partial-type-signatures
+  - -Wall -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-unused-imports -fno-warn-name-shadowing
 
 executables:
   coq-aern-extracted-bench:
