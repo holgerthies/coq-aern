@@ -1,7 +1,7 @@
 module Max where
 
 import qualified Prelude
-import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
+import Prelude hiding (pi, pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
 import Numeric.OrdGenericBool
 import MixedTypesNumPrelude (ifThenElse, integer)
 import Math.NumberTheory.Logarithms (integerLog2)

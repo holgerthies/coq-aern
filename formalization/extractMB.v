@@ -92,7 +92,7 @@ The generated Haskell files need the following edits to make them work:
 
 (2) Add the following imports after "import qualified Prelude":
 
-import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
+import Prelude hiding (pi, pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
 import Numeric.OrdGenericBool
 import MixedTypesNumPrelude (ifThenElse, integer, Kleenean(..), kleenean)
 import Math.NumberTheory.Logarithms (integerLog2)
@@ -100,9 +100,7 @@ import Numeric.CollectErrors (CN,cn,liftTakeErrors)
 import AERN2.MP
 import AERN2.MP.Dyadic ()
 import AERN2.MP.WithCurrentPrec
-import AERN2.Limit
-import AERN2.Real(select)
-import AERN2.Real.Type
+import AERN2.Real
 
 (3) Add "(HasCurrentPrecision p) => " to every function signature that features
 the type variable "p", eg:

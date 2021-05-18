@@ -88,7 +88,7 @@ The Haskell module will require the following packages:
 
 In the generated Haskell files, add the following imports:
 
-import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
+import Prelude hiding (pi, pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
 import Numeric.OrdGenericBool
 import MixedTypesNumPrelude (ifThenElse, integer)
 import Math.NumberTheory.Logarithms (integerLog2)
