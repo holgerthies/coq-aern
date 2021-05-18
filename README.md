@@ -15,9 +15,9 @@ The only exception is the file `sqrt.v` which uses some libraries for classical 
 
 To execute `sqrt.v` you additionally need to install the following Coq packages:
 
-* [Coquelicot 3.2](http://coquelicot.saclay.inria.fr/)
-* [mathcomp-ssreflect 1.12.0](https://math-comp.github.io/)
-* [interval 4.2.0](http://coq-interval.gforge.inria.fr/)
+- [Coquelicot 3.2](http://coquelicot.saclay.inria.fr/)
+- [mathcomp-ssreflect 1.12.0](https://math-comp.github.io/)
+- [interval 4.2.0](http://coq-interval.gforge.inria.fr/)
 
 These libraries can be installed e.g. using `opam install`.
 
@@ -25,15 +25,15 @@ These libraries can be installed e.g. using `opam install`.
 
 Code extraction is available in two modes, as defined in the following files, respectively:
 
-* `Extract.v`
-* `ExtractMB.v`
+- `Extract.v`
+- `ExtractMB.v`
 
 After processing these files, coq produces Haskell files, one for each example and mode.  The files need minor mechanical post-processing described below.  The extracted post-processed compilable code is also available in folder [extracted-examples/src](extracted-examples/src).
 For example, the executable versions of `realmax` are in files `Max.hs` and `MaxMB.hs`.
 
 ### Post-processing
 
-* `Extract.v`
+- `Extract.v`
   1. Add the following import statements
 
       ```Haskell
@@ -44,7 +44,7 @@ For example, the executable versions of `realmax` are in files `Max.hs` and `Max
       import AERN2.Real
       ```
 
-* `ExtractMB.v`
+- `ExtractMB.v`
   1. Add the following import statements:
 
       ```Haskell
@@ -81,32 +81,39 @@ The benchmarks measurements can be reproduced using the provided script [runBenc
 
 ## Executing extracted code
 
-* Install `stack` (a Haskell build tool).
+- Install `stack` (a Haskell build tool).
 
-  * [Official stack installation instructions](https://docs.haskellstack.org/en/stable/install_and_upgrade/)
+  - [Official stack installation instructions](https://docs.haskellstack.org/en/stable/install_and_upgrade/)
+- Locate the folder `extracted-examples`
 
-* Build the package using stack:
+- (optional) Check that the provided `stack.yaml` meets your needs.
 
-  * Locate the folder `extracted-examples`
-
-  * (optional) Check that the provided `stack.yaml` meets your needs.
-
-  * Run `stack install` in the `extracted-examples` folder.
-  
-    * The first time round it may take long time and install a large number of packages.
-  
-  * Test the executable:
-
-    ```Text
-    $ coq-aern-extracted-bench realmaxE 100
-    [0 ± ~2.2569e-36 ~2^(-118)]
-    accuracy: bits 118
-    ```
-
-* Execute the code in the Haskell interactive environment:
+### Executing interactively (Mode `Extract.v`)
 
   ```Text
   $ stack repl src/Max.hs
   *Max> realmax ((sqrt 2)/2) (1/(sqrt 2)) ? (prec 1000)
   [0.707106781186547524400844362104849039284835937688474036588339868995366239231053519425193767163820... ± ~0.0000 ~2^(-1229)]
+  ```
+
+### Executing interactively (Mode `ExtractMB.v`)
+
+  ```Text
+  $ stack repl src/MaxMB.hs
+  *MaxMB> runWithPrec (prec 1000) $ realmax (pi-pi) 0
+  [0 ± ~2.6269e-287 ~2^(-951)]
+  ```
+
+### Compiling benchmark executable
+
+- Run `stack install` in the `extracted-examples` folder.
+  
+  - The first time round it may take long time and install a large number of packages.
+  
+- Test the executable:
+
+  ```Text
+  $ coq-aern-extracted-bench realmaxE 100
+  [0 ± ~2.2569e-36 ~2^(-118)]
+  accuracy: bits 118
   ```
