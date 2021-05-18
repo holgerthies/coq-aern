@@ -77,10 +77,11 @@ Extraction "SqrtMB" restr_sqrt.
 (*
 
 The Haskell module will require the following packages:
-- collect-errors >= 0.1.2
-- mixed-types-num >= 0.5.2
-- aern2-mp >= 0.2
-- aern2-real >= 0.2
+- cdar-mBound >= 0.1.0.1
+- collect-errors >= 0.1.4
+- mixed-types-num >= 0.5.3
+- aern2-mp >= 0.2.1
+- aern2-real >= 0.2.1
 - integer-logarithms
 
 The generated Haskell files need the following edits to make them work:
@@ -92,7 +93,7 @@ The generated Haskell files need the following edits to make them work:
 
 (2) Add the following imports after "import qualified Prelude":
 
-import Prelude hiding (pi, pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
+import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
 import Numeric.OrdGenericBool
 import MixedTypesNumPrelude (ifThenElse, integer, Kleenean(..), kleenean)
 import Math.NumberTheory.Logarithms (integerLog2)
@@ -100,7 +101,7 @@ import Numeric.CollectErrors (CN,cn,liftTakeErrors)
 import AERN2.MP
 import AERN2.MP.Dyadic ()
 import AERN2.MP.WithCurrentPrec
-import AERN2.Real
+import AERN2.Real hiding (pi)
 
 (3) Add "(HasCurrentPrecision p) => " to every function signature that features
 the type variable "p", eg:
@@ -118,6 +119,6 @@ testRealmax1 :: CN MPBall
 testRealmax1 = runWithPrec (prec 1000000) $ realmax (pi-pi) 0
 
 testRealmax2 :: CReal
-testRealmax2 = crealFromWithCurrentPrec $ realmax (pi-pi) 0
+testRealmax2 = creal $ WithAnyPrec $ realmax (pi-pi) 0
 
 *)

@@ -80,10 +80,11 @@ Extraction "Sqrt" restr_sqrt.
 (*
 
 The Haskell module will require the following packages:
-- collect-errors >= 0.1.2
-- mixed-types-num >= 0.5.2
-- aern2-mp >= 0.2
-- aern2-real >= 0.2
+- cdar-mBound >= 0.1.0.1
+- collect-errors >= 0.1.4
+- mixed-types-num >= 0.5.3
+- aern2-mp >= 0.2.1
+- aern2-real >= 0.2.1
 - integer-logarithms
 
 In the generated Haskell files, add the following imports:

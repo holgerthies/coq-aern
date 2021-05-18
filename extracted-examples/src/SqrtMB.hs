@@ -3,7 +3,7 @@
 module SqrtMB where
 
 import qualified Prelude
-import Prelude hiding (pi, pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
+import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
 import Numeric.OrdGenericBool
 import MixedTypesNumPrelude (ifThenElse, integer, Kleenean(..), kleenean)
 import Math.NumberTheory.Logarithms (integerLog2)
@@ -11,7 +11,7 @@ import Numeric.CollectErrors (CN,cn,liftTakeErrors)
 import AERN2.MP
 import AERN2.MP.Dyadic ()
 import AERN2.MP.WithCurrentPrec
-import AERN2.Real
+import AERN2.Real hiding (pi)
 
 __ :: any
 __ = Prelude.error "Logical or arity value used"

@@ -49,8 +49,8 @@ extra-deps:
 - cdar-mBound-0.1.0.1
 - collect-errors-0.1.4.0
 - mixed-types-num-0.5.3.0
-- aern2-mp-0.2.0.0
-- aern2-real-0.2.0.0
+- aern2-mp-0.2.1.0
+- aern2-real-0.2.1.0
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
