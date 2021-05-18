@@ -19,9 +19,9 @@ To execute `sqrt.v` you additionally need to install the following Coq packages:
 * [mathcomp-ssreflect 1.12.0](https://math-comp.github.io/)
 * [interval 4.2.0](http://coq-interval.gforge.inria.fr/)
 
-These libraries can e.g. be installed using `opam install`.
+These libraries can be installed e.g. using `opam install`.
 
-## Code extraction to Haskell/AERN 
+## Code extraction to Haskell/AERN
 
 Code extraction is available in two modes, as defined in the following files, respectively:
 
@@ -36,19 +36,19 @@ For example, the executable versions of `realmax` are in files `Max.hs` and `Max
 * `Extract.v`
   1. Add the following import statements
 
-        ```Haskell
-        import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
-        import Numeric.OrdGenericBool
-        import MixedTypesNumPrelude (ifThenElse, integer)
-        import Math.NumberTheory.Logarithms (integerLog2)
-        import AERN2.Real
-        ```
+      ```Haskell
+      import Prelude hiding (pi, pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
+      import Numeric.OrdGenericBool
+      import MixedTypesNumPrelude (ifThenElse, integer)
+      import Math.NumberTheory.Logarithms (integerLog2)
+      import AERN2.Real
+      ```
 
 * `ExtractMB.v`
   1. Add the following import statements:
 
       ```Haskell
-      import Prelude hiding (pred, succ, (==),(/=),(<), (<=),(>),(>=),not,(&&),(||))
+      import Prelude hiding (pi, pred, succ, (==),(/=),(<), (<=),(>),(>=),not,(&&),(||))
       import Numeric.OrdGenericBool
       import MixedTypesNumPrelude (ifThenElse, integer,   Kleenean(..), kleenean)
       import Math.NumberTheory.Logarithms (integerLog2)
@@ -56,9 +56,7 @@ For example, the executable versions of `realmax` are in files `Max.hs` and `Max
       import AERN2.MP
       import AERN2.MP.Dyadic ()
       import AERN2.MP.WithCurrentPrec
-      import AERN2.Limit
-      import AERN2.Real(select)
-      import AERN2.Real.Type
+      import AERN2.Real
       ```
 
   2. Add the following LANGUAGE options:
@@ -99,14 +97,16 @@ The benchmarks measurements can be reproduced using the provided script [runBenc
   
   * Test the executable:
 
-        $ coq-aern-extracted-bench realmaxE 100
-        [0 ± ~2.2569e-36 ~2^(-118)]
-        accuracy: bits 118
+    ```Text
+    $ coq-aern-extracted-bench realmaxE 100
+    [0 ± ~2.2569e-36 ~2^(-118)]
+    accuracy: bits 118
+    ```
 
 * Execute the code in the Haskell interactive environment:
 
-        $ stack repl src/Max.hs
-        *Max> realmax ((sqrt 2)/2) (1/(sqrt 2)) ? (prec 1000)
-        [0.707106781186547524400844362104849039284835937688474036588339868995366239231053519425193767163820... ± ~0.0000 ~2^(-1229)]
-
-        
+  ```Text
+  $ stack repl src/Max.hs
+  *Max> realmax ((sqrt 2)/2) (1/(sqrt 2)) ? (prec 1000)
+  [0.707106781186547524400844362104849039284835937688474036588339868995366239231053519425193767163820... ± ~0.0000 ~2^(-1229)]
+  ```
