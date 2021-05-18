@@ -4,14 +4,22 @@ Coq formalization of constructive reals for exact real computation and code extr
 
 ## Installation instructions
 
-You should have coq installed and running.
-We tested our code with coq version 8.13.2.
+Our formalziation is implemented in the [Coq proof assistant](https://coq.inria.fr/).
+You should have Coq installed and running.
+We tested our code with Coq version 8.13.2.
 
-The square root example has some additional dependencies:
+To built the code you can just clone this repository and run `make` in the `formalization` subfolder.
 
-* coquelicot 3.2
-* mathcomp-ssreflect 1.12.0
-* interval 4.2.0
+Most of the implementation does not have any additional dependencies.
+The only exception is the file `sqrt.v` which uses some libraries for classical analysis.
+
+To execute `sqrt.v` you additionally need to install the following Coq packages:
+
+* [Coquelicot 3.2](http://coquelicot.saclay.inria.fr/)
+* [mathcomp-ssreflect 1.12.0](https://math-comp.github.io/)
+* [interval 4.2.0](http://coq-interval.gforge.inria.fr/)
+
+These libraries can e.g. be installed using `opam install`.
 
 ## Code extraction to Haskell/AERN 
 
