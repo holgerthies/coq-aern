@@ -1,4 +1,4 @@
-# coq-aern <!-- omit in toc -->
+# Axiomatic Reals and Certified Efficient ExactReal Computation <!-- omit in toc -->
 
 Coq formalization of constructive reals for exact real computation and code extraction to Haskell/AERN.
 
