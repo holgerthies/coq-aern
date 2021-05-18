@@ -95,17 +95,28 @@ For example, the executable versions of `realmax` are in files `Max.hs` and `Max
 ### 3.1. Executing interactively (Mode `Extract.v`)
 
   ```Text
-  $ stack repl src/Max.hs
-  *Max> realmax ((sqrt 2)/2) (1/(sqrt 2)) ? (prec 1000)
+  $ stack repl src/Max.hs --ghci-options "-Wno-type-defaults -Wno-unused-imports"
+
+  *Max> realmax ((sqrt 2)/2) (1/(sqrt 2)) ? (bits 1000)
   [0.707106781186547524400844362104849039284835937688474036588339868995366239231053519425193767163820... ± ~0.0000 ~2^(-1229)]
+
+  *Max> (realmax (pi-pi) 0) ? (bits 1000)
+  [0 ± ~0.0000 ~2^(-1228)]
   ```
 
 ### 3.2. Executing interactively (Mode `ExtractMB.v`)
 
   ```Text
-  $ stack repl src/MaxMB.hs
+  $ stack repl src/MaxMB.hs --ghci-options "-Wno-type-defaults -Wno-unused-imports"
+
   *MaxMB> runWithPrec (prec 1000) $ realmax (pi-pi) 0
   [0 ± ~2.6269e-287 ~2^(-951)]
+
+  *MaxMB> creal $ WithAnyPrec $ realmax (pi-pi) 0
+  {?(prec 36): [0 ± ~8.7311e-11 ~2^(-33)]}
+
+  *MaxMB> (creal $ WithAnyPrec $ realmax (pi-pi) 0) ? (bits 1000)
+  [0 ± ~0.0000 ~2^(-1170)]
   ```
 
 ### 3.3. Compiling benchmark executable
