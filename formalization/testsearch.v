@@ -51,7 +51,8 @@ Require Import Psatz.
 Require Import Nat.
 
 (* ******************************************** *)
-(* search for nat with "choosable" precidate P *)
+(* search for n with P n for a non-deterministically 
+                         "choosable" precidate P *)
 (* ******************************************** *)
 
 Definition mjoinM (p q : Prop) (T : Type) : ({p}+{q} -> M T) ->  M ({p}+{q}) -> M T.
@@ -87,9 +88,51 @@ Definition constructive_search_choose_nat
     (e : exists n : nat, P n) =>
   linear_search_choose P P_decM 0 (let (n, p) := e in O_witness P n (stop P n p)).
 
+(* ******************************************** *)
+(* search for the minimal n with P n for a 
+  "non-deterministically choosable" precidate P  *)
+(* ******************************************** *)
+
+Definition linear_search_min_choose 
+  (P : nat -> Prop)
+  (P_decM : (forall n : nat, M ({P n.+1} + {~ P n}))) 
+  := 
+fix linear_search (m : nat) (not_Pm : ~P m) (not_Pm1 : ~P m.+1) (b : before_witness P m.+2) {struct b} :
+	M {n : nat | P (n.+2) /\ ~ P n} := 
+  mjoinM _ _ _ 
+    (fun P_dec =>
+      match P_dec with
+      | left yes_next => 
+          unitM _ (exist [eta (fun n => P (n.+2) /\ ~ P n)] m.+1 (conj yes_next not_Pm1))
+      | right no => linear_search m.+1 not_Pm1 no (inv_before_witness P m.+2 b no)
+      end)
+    (P_decM m.+2).
+
+Definition constructive_search_min_choose_nat
+  : forall P : nat -> Prop,
+      (forall n : nat, M ({P n.+1} + {~ P n}) ) ->
+      (exists n : nat, P n) -> 
+      ~P O ->
+      ~P (S(O)) ->
+      M {n : nat | P (n.+2) /\ ~ P n}
+  :=
+    fun 
+    (P : nat -> Prop) 
+    (P_decM : forall n : nat, M ({P n.+1} + {~ P n}))
+    (e : exists n : nat, P n) 
+    not_P0 not_P1 =>
+  linear_search_min_choose P P_decM 0 not_P0 not_P1 
+    (let (n, p) := e in 
+    (inv_before_witness P _ 
+      (inv_before_witness P _ 
+        (O_witness P n (stop P n p))
+        not_P0)
+      not_P1)).
+
 
 (* ******************************************** *)
-(* Code exracted from ConstructiveEpsilon for reference: *)
+(* Code exracted from ConstructiveEpsilon. 
+             Included here only for reference.  *)
 (* ******************************************** *)
 
 (* 
