@@ -127,7 +127,68 @@ Definition constructive_search_min_choose_nat
       (inv_before_witness P _ 
         (O_witness P n (stop P n p))
         not_P0)
-      not_P1)).
+      not_P1))
+.
+
+Require Import Real RealCoqReal.
+
+Definition lt_prec x n := prec n < x.
+
+Definition is_magnitude1 x n := 
+  lt_prec x n.+2 /\ not (lt_prec x n)
+.
+    (* prec n.+2 < x < prec n. *)
+
+Lemma weaken_orM_r : forall P Q Q': Prop, (Q -> Q') -> M ({P}+{Q}) -> M ({P}+{Q'}).
+Proof.
+  intros P Q Q' QQ'.
+  apply liftM.
+  move => [iP|iQ].
+  left. by auto.
+  right. exact (QQ' iQ).
+Qed.
+
+Lemma half_lt_one : Real1 / Real2_neq_Real0 < Real1.
+Proof.
+Admitted.
+
+Definition magnitude1 x : (Real0 < x < Real1 / Real2_neq_Real0) 
+  -> M { n | is_magnitude1 x n }.
+Proof.
+  move => [pos lt2].
+  unfold is_magnitude1.
+  apply constructive_search_min_choose_nat.
+  unfold lt_prec.
+  intros.
+  apply (weaken_orM_r _ (x < prec n) _).
+  intros.
+  auto with Realiny.
+  apply choose.
+  auto with Realiny.
+  auto with Realiny.
+
+  (* prec n.+1 < x \/ x < prec n *)
+  destruct (Realtotal_order x (prec n)) as [H|[H|H]].
+  right. exact H.
+  left. rewrite H. apply prec_S.
+  left. unfold Realgt in H. apply (Reallt_lt_lt _ (prec n) _).
+  apply prec_S. exact H.
+
+  (* ~ lt_prec x 0 *)
+  Focus 2. unfold lt_prec. apply Realgt_ngt. unfold prec. unfold Realgt. 
+  have h := half_lt_one.
+  apply (Reallt_lt_lt _ (Real1 / Real2_neq_Real0) _); auto.
+
+  (* ~ lt_prec x 1 *)
+  Focus 2. unfold lt_prec. unfold prec. apply Realgt_ngt. unfold Realgt. auto.
+
+  (* exists n : nat, lt_prec x n *)
+  (* TODO
+    Derive n from a binary logarithm of x.
+    ? Use relate and results from standard reals.  
+  *)
+
+Admitted.
 
 
 (* ******************************************** *)
