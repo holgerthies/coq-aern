@@ -51,7 +51,7 @@ Require Import Psatz.
 Require Import Nat.
 
 (* ******************************************** *)
-(* search for nat with choosable precidates P, Q *)
+(* search for nat with "choosable" precidate P *)
 (* ******************************************** *)
 
 Definition mjoinM (p q : Prop) (T : Type) : ({p}+{q} -> M T) ->  M ({p}+{q}) -> M T.
@@ -60,91 +60,39 @@ Proof.
   exact (lift_domM _ _ f x).
 Defined.
 
-Definition n_witness_aux1 P n k: 
-  before_witness P (n+(k.+1)) -> before_witness P ((n+k).+1).
-  by rewrite -addnS.
-Defined.
-
-Definition n_witness_aux2 P n: 
-  before_witness P (n+0) -> before_witness P n.
-  by rewrite -plus_n_O.
-Defined.
-
-Definition n_witness (P : nat -> Prop) (n : nat)
-: forall (k : nat),
-    before_witness P (n + k) -> before_witness P n
-:= 
-  fix n_witness k :=
-    match k as k0 return (before_witness P (n+k0) -> before_witness P n) with
-    | 0 => n_witness_aux2 _ _
-    | k0.+1 => 
-        fun b : before_witness P (n+(k0.+1)) => 
-          n_witness k0 (next P (n+k0) (n_witness_aux1 P _ _ b))
-    end.
-
-Definition inv_before_witness_choose
-  (P : nat -> Prop) (n : nat) (b : before_witness P n) 
-  : (exists k, P (n.+1 + k)) -> before_witness P n.+1
-  :=
-  match b with
-  | @stop _ _ _ =>
-    fun p_after_n : (exists k, P (n.+1 + k)) =>
-      (let (k, op) := p_after_n in 
-        n_witness P (n.+1) k (stop P (n.+1 + k) op))
-  | @next _ _ b0 => fun=> b0
-  end.
 
 Definition linear_search_choose 
   (P : nat -> Prop)
-  (P_decM : (forall n : nat, M ({P n} + { P (n.+1)} + {~ P n} ) ) )
+  (P_decM : (forall n : nat, M ({P n.+1} + {~ P n}))) 
   := 
 fix linear_search (m : nat) (b : before_witness P m) {struct b} :
 	M {n : nat | P n} := 
   mjoinM _ _ _ 
     (fun P_dec =>
       match P_dec with
-      | left yes => unitM _ (exist [eta P] m yes)
-      | right no => linear_search m.+1 (inv_before_witness_choose P m b no)
+      | left yes_next => unitM _ (exist [eta P] m.+1 yes_next)
+      | right no => linear_search m.+1 (inv_before_witness P m b no)
       end)
     (P_decM m).
 
-
-Definition linear_search_choose 
-  (P : nat -> Prop)
-  (P_decM : (forall n : nat, M ({P n} + { exists k, P (n.+1 + k) }))) 
-  := 
-fix linear_search (m : nat) (b : before_witness P m) {struct b} :
-	M {n : nat | P n} := 
-  mjoinM _ _ _ 
-    (fun P_dec =>
-      match P_dec with
-      | left yes => unitM _ (exist [eta P] m yes)
-      | right no => linear_search m.+1 (inv_before_witness_choose P m b no)
-      end)
-    (P_decM m).
-
-
-(* TODO *)
 Definition constructive_search_choose_nat
   : forall P : nat -> Prop,
-      (forall n : nat, M ({P n} + { P (n.+1)} + {~ P n} ) ) ->
+      (forall n : nat, M ({P n.+1} + {~ P n}) ) ->
       (exists n : nat, P n) -> 
       M {n : nat | P n}
   :=
     fun 
     (P : nat -> Prop) 
-    (P_dec : forall n : nat, 
-        {P n} + { exists m, m >= n+.1 /\ P m })
+    (P_decM : forall n : nat, M ({P n.+1} + {~ P n}))
     (e : exists n : nat, P n) =>
-  linear_search P P_dec 0 (let (n, p) := e in O_witness P n (stop P n p))
-     : forall P : nat -> Prop,
-         (forall n : nat, {P n} + {~ P n}) ->
-         (exists n : nat, P n) -> {n : nat | P n}
+  linear_search_choose P P_decM 0 (let (n, p) := e in O_witness P n (stop P n p)).
 
 
 (* ******************************************** *)
-(* Code from ConstructiveEpsilon: *)
+(* Code exracted from ConstructiveEpsilon for reference: *)
 (* ******************************************** *)
+
+(* 
 
 Inductive before_witness (P : nat -> Prop) (n : nat) : Prop :=
 	stop : P n -> before_witness P n
@@ -218,4 +166,6 @@ Definition constructive_indefinite_ground_description_nat
   linear_search P P_dec 0 (let (n, p) := e in O_witness P n (stop P n p))
      : forall P : nat -> Prop,
          (forall n : nat, {P n} + {~ P n}) ->
-  (exists n : nat, P n) -> {n : nat | P n}.
+  (exists n : nat, P n) -> {n : nat | P n}. 
+  
+  *)
