@@ -86,7 +86,19 @@ Proof.
   exact H.
 Qed.
 Global Hint Resolve Realnle_ge: Realiny.
-  
+
+Lemma Realnge_le : forall z1 z2, ~ z1 < z2 -> z1 >= z2.
+Proof.
+  intros z1 z2 q.
+  intuition.
+  destruct (Realtotal_order z1 z2).
+  contradict (q H).
+  unfold Realge.
+  apply or_comm.
+  auto.
+Qed.
+Global Hint Resolve Realnge_le: Realiny.
+
 Lemma Realdiv_distr : forall z1 z2 z3, forall p : z3<>Real0,  z1/p + z2/p = (z1+z2)/p.
 Proof.
   intros z1 z2 z3 nz.
