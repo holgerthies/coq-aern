@@ -42,3 +42,11 @@ Proof.
   apply (relate_divison Real2 Real2_neq_Real0 2).
   by apply IZReal_relator.
 Qed.
+
+Lemma IZReal4neq0 : IZReal 4 <> Real0.
+Proof.
+  classical.
+  relate.
+  rewrite (relate_IZReal _ _ H).
+  by lra.
+Qed.

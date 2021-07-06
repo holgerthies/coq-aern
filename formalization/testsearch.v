@@ -296,6 +296,132 @@ Proof.
   by apply /transport_lt_inv/pos/R1/relate_constant0.
 Qed.
 
+Definition Zpow (x : Real) (xne0 : x <> Real0) z := match z with
+                       | 0%Z => Real1
+                       | Z.pos p => RealRing.pow x (Pos.to_nat p)
+                       | Z.neg p => RealRing.pow (/ xne0) (Pos.to_nat p)
+                     end.
+
+Lemma dec_x_lt_2 x : M ({x < Real2} + {Real1 < x}).
+Proof.
+  have := (M_split x (IZReal 3 / dReal2) (/ dReal2) dReal2_pos).
+  apply mjoin.
+  case => H.
+  right.
+  - classical.
+    relate.
+    suff : ((3 / 2) - (/ 2) < y)%R by lra.
+    apply /transport_lt_inv/H/H1.
+    by apply /relate_addition/relate_subtraction/relate_divison/IZReal_relator/relate_multiplication/relate_divison/IZReal_relator/IZReal_relator.
+  left.
+  classical.
+  relate.
+  have -> : (y = 2)%R by apply relate_IZReal.
+  suff : (x0 - ( / 2) < (3 / 2))%R by lra.
+  by apply /transport_lt_inv/H/relate_multiplication/relate_divison/IZReal_relator/IZReal_relator/relate_addition/relate_subtraction/relate_divison/IZReal_relator.
+Qed.
+
+Lemma Zpow_prec n : Zpow _ Real2_neq_Real0 (- Z.of_nat n) = prec n.
+Proof.
+  rewrite /Zpow.
+  case e :(- Z.of_nat n)%Z => [| p | p]; try by lia.
+  - suff  -> : (n = 0) by auto.
+    lia.
+  have -> : Pos.to_nat p = n by lia.
+  elim n => // n' IH /=.
+  rewrite Realmult_comm.
+  by apply Realeq_eq_mult_eq.
+Qed.  
+
+
+Definition is_magnitude x z := Zpow _ Real2_neq_Real0 (z - 2) <= x <= Zpow _ Real2_neq_Real0 z. 
+
+Lemma Zpow_case x xneq0 z : Zpow x xneq0 z = RealRing.pow x (Z.to_nat z) \/ Zpow x xneq0 z = RealRing.pow (/ xneq0) (Z.to_nat (- z)).
+Proof.
+  case (Z.neg_nonneg_cases z) => H.
+  right.
+  - by case e : z => [| p | p] // /=; try lia.
+  left.
+  by case e : z => [| p | p] // /=; try lia.
+Qed.
+
+Lemma magnitude_half x z : is_magnitude (x / Real2_neq_Real0) z -> is_magnitude x (z+1).
+Proof.
+  move => [H1 H2].
+  split.
+  simpl.
+Admitted.
+Lemma magnitude_fourth x z : is_magnitude (x /IZReal4neq0) z -> is_magnitude x (z+2).
+Proof.
+  suff -> : (x / IZReal4neq0) = (x / Real2_neq_Real0 / Real2_neq_Real0).
+  - move => H.
+    have H' := (magnitude_half _ _ (magnitude_half _ _ H)).
+    have -> : (z + 2 = z + 1 + 1)%Z by lia.
+    exact H'.
+  classical.
+  relate.
+  rewrite (relate_IZReal _ _ Hb1).
+  rewrite (relate_IZReal _ _ Hb0).
+  by lra.
+Qed.
+
+Lemma magnitude_inv x (xneq0 : x<> Real0) z : is_magnitude (/ xneq0) z -> is_magnitude x (-z+2).
+Proof.
+Admitted.
+
+(* first extend magnitude to numbers <= 2 *)
+Definition magnitude2 x : (Real0 < x < Real2) -> M { z | is_magnitude x z }.
+Proof.
+  move => [xgt0 xle1].
+  pose y := (x / IZReal4neq0).
+  have yB : (Real0 < y < Real1 / Real2_neq_Real0).
+  - rewrite /Realdiv; rewrite Realmult_unit/y.
+    split;classical;relate;rewrite (relate_IZReal _ _ Hb).
+    suff : (0 < x0)%R by lra.
+    apply /transport_lt_inv/xgt0/Ha/relate_constant0.
+    rewrite (relate_IZReal _ _ Ha0).
+    suff : (x1 < 2)%R by lra.
+    by apply /transport_lt_inv/xle1/IZReal_relator/Ha.
+  have magy n : is_magnitude y n -> is_magnitude x (n+2)%Z by apply magnitude_fourth.
+  suff : M { z | is_magnitude y z}.
+  - apply liftM.
+    case => z zprp.
+    exists (z+2)%Z.
+    exact (magy _ zprp).
+  (* y is less than 1/2 => magnitude1 can be used *)
+  have := magnitude1 _ yB.
+  apply liftM.
+  case => n nprp.
+  exists (- Z.of_nat n)%Z.
+  split; last by rewrite Zpow_prec; apply Realge_le; apply Realnge_le; apply nprp.
+  have -> : ((- Z.of_nat n - 2) = (- Z.of_nat (n.+2)%coq_nat))%Z by lia.
+  by rewrite Zpow_prec; apply Reallt_le;apply nprp.
+Qed.
+
+Lemma magnitude x : Real0 < x -> M {z | is_magnitude x z}.
+Proof.
+  move => xgt0.
+  have := dec_x_lt_2 x. 
+  apply mjoinM.
+  case => H; first by apply magnitude2.
+  have xneg0 : (x <> Real0) by apply (Realgt_neq _ _ xgt0).
+  suff I : (Real0 < / xneg0 < Real2).
+  - have := magnitude2 _ I.
+    apply liftM.
+    case => z zprp.
+    exists (-z+2)%Z.
+    by apply (magnitude_inv x xneg0).
+  split; classical; relate.
+  - apply Rinv_0_lt_compat.
+    by apply /transport_lt_inv/xgt0/Ha/relate_constant0.
+   rewrite (relate_IZReal _ _ H1).
+   have -> : (2 = / / 2)%R by lra.
+   apply Rinv_lt_contravar.
+   suff : (0 < x1)%R by lra.
+   apply /transport_lt_inv/xgt0/Ha/relate_constant0.
+   suff : (1 < x1)%R by lra.
+   apply /transport_lt_inv/H/Ha/relate_constant1.
+ Qed.
 (* ******************************************** *)
 (* Code exracted from ConstructiveEpsilon. 
              Included here only for reference.  *)
