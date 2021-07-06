@@ -96,7 +96,7 @@ Proof.
   by exists 10%N.
 Defined.
 
-Compute let (a,_) := testLPO1 in a.
+(* Compute let (a,_) := testLPO1 in a. *)
 (* 
 	 = 10
      : nat
