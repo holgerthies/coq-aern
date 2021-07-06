@@ -1,11 +1,10 @@
 From mathcomp Require Import all_ssreflect.
-Require Import Real Reals RealCoqReal.
+Require Import Real Reals RealCoqReal RealHelpers.
 From Coquelicot Require Import Coquelicot.
 Require Import Psatz.
 
 Require Import Interval.Tactic.
 Open Scope Real_scope.
-
 
 
 Lemma sqrt_bound_helper x :  (/ IZReal4neq0) <= x -> (x <= Real2) -> forall rx, relate x rx -> ((/ 4) <= rx <= 2)%R.
