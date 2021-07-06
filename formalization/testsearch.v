@@ -1,6 +1,8 @@
 Require Import ConstructiveEpsilon.
-Require Import PeanoNat.
 Require Import Real.
+From mathcomp Require Import all_ssreflect.
+Require Import Psatz.
+Require Import Nat.
 
 (* 
    Multivalued searching from existing searching:
@@ -59,11 +61,7 @@ Proof.
 Defined.
 (*********)
 
-From mathcomp Require Import all_ssreflect.
-
 Require Import Kleene.
-Require Import Psatz.
-Require Import Nat.
 Require Import Reals.
 Require Import RealCoqReal RealHelpers.
 
@@ -107,6 +105,7 @@ Qed.
                          "choosable" precidate P *)
 (* ******************************************** *)
 
+(* 
 Definition linear_search_choose 
   (P : nat -> Prop)
   (P_decM : (forall n : nat, M ({P n.+1} + {~ P n}))) 
@@ -116,7 +115,7 @@ fix linear_search (m : nat) (b : before_witness P m) {struct b} :
   lift_domM _ _
     (fun P_dec =>
       match P_dec with
-      | left yes_next => unitM _ (exist [eta P] m.+1 yes_next)
+      | left yes_next => unitM _ (exist _ m.+1 yes_next)
       | right no => linear_search m.+1 (inv_before_witness P m b no)
       end)
     (P_decM m).
@@ -131,7 +130,8 @@ Definition constructive_search_choose_nat
     (P : nat -> Prop) 
     (P_decM : forall n : nat, M ({P n.+1} + {~ P n}))
     (e : exists n : nat, P n) =>
-  linear_search_choose P P_decM 0 (let (n, p) := e in O_witness P n (stop P n p)).
+  linear_search_choose P P_decM 0 (let (n, p) := e in O_witness P n (stop P n p)). 
+*)
 
 (* ******************************************** *)
 (* search for the minimal n with P n for a 
@@ -148,7 +148,7 @@ fix linear_search (m : nat) (not_Pm : ~P m) (not_Pm1 : ~P m.+1) (b : before_witn
     (fun P_dec =>
       match P_dec with
       | left yes_next => 
-          unitM _ (exist [eta (fun n => P (n.+2) /\ ~ P n)] m.+1 (conj yes_next not_Pm1))
+          unitM _ (exist _ m.+1 (conj yes_next not_Pm1))
       | right no => linear_search m.+1 not_Pm1 no (inv_before_witness P m.+2 b no)
       end)
     (P_decM m.+2).
