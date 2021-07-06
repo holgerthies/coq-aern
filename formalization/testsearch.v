@@ -49,6 +49,43 @@ Extraction Language Haskell.
 Require Import Kleene.
 Require Import Psatz.
 Require Import Nat.
+Require Import Reals.
+
+Require Import Real RealCoqReal RealHelpers.
+
+(* results about (/ 2 ^ n) adapted  from incone *)
+Lemma tpmn_lt n: (0 < /2^n)%R.
+Proof. apply/Rinv_0_lt_compat/pow_lt; lra. Qed.
+
+Lemma pwr2gtz m: exists n, (2^n > m)%nat.
+Proof.
+  elim: m => [ | m [n /leP ih]]; first by exists 0%nat; apply /leP => /=; lia.
+  by exists n.+1; apply /leP => /=; lia.
+Qed.
+
+Lemma dns0_tpmn: forall eps, (0 < eps)%R -> exists n, (/2^n < eps)%R.
+Proof.
+  move => eps epsprp.
+  pose z := Z.to_nat (up (/eps)).
+  have [n /leP nprp]:= pwr2gtz z; have g0: (0 < 2^n)%R by apply pow_lt; lra.
+  exists n.
+  rewrite -[eps]Rinv_involutive; try lra.
+  apply Rinv_lt_contravar; first by rewrite Rmult_comm; apply Rdiv_lt_0_compat;  try lra.
+  have ->: (2 = INR 2)%R by trivial.
+  rewrite -pow_INR.
+  apply /Rlt_le_trans/(le_INR _ _ nprp).
+  suff : (INR z.+1 > (/ eps))%R by lra.
+  apply /Rgt_trans/(archimed (/ eps)).1.
+  rewrite S_INR.
+  rewrite INR_IZR_INZ.
+  unfold z.
+  rewrite Z2Nat.id; first by lra.
+  apply le_IZR.
+  have epsprp' : (0 < / eps)%R by apply Rinv_0_lt_compat.
+  suff: ((IZR (up (/ eps))) > (/ eps))%R by lra.
+  by apply archimed.
+Qed.
+
 
 (* ******************************************** *)
 (* search for n with P n for a non-deterministically 
@@ -130,7 +167,6 @@ Definition constructive_search_min_choose_nat
       not_P1))
 .
 
-Require Import Real RealCoqReal.
 
 Definition lt_prec x n := prec n < x.
 
@@ -150,7 +186,11 @@ Qed.
 
 Lemma half_lt_one : Real1 / Real2_neq_Real0 < Real1.
 Proof.
-Admitted.
+classical.
+relate.
+suff -> : (y = 2)%R by lra.
+by apply relate_IZReal.
+Qed.
 
 Definition magnitude1 x : (Real0 < x < Real1 / Real2_neq_Real0) 
   -> M { n | is_magnitude1 x n }.
@@ -181,15 +221,17 @@ Proof.
 
   (* ~ lt_prec x 1 *)
   Focus 2. unfold lt_prec. unfold prec. apply Realgt_ngt. unfold Realgt. auto.
-
-  (* exists n : nat, lt_prec x n *)
-  (* TODO
-    Derive n from a binary logarithm of x.
-    ? Use relate and results from standard reals.  
-  *)
-
-Admitted.
-
+  unfold lt_prec.
+  case (ana1 x) => xr [R1 R2].
+  suff : exists n,  (/ 2 ^ n < xr)%R.
+  - case => n nprp.
+    exists n.
+    have P := (relate_prec n).
+    classical.
+    by relate.
+  apply dns0_tpmn.
+  by apply /transport_lt_inv/pos/R1/relate_constant0.
+Qed.
 
 (* ******************************************** *)
 (* Code exracted from ConstructiveEpsilon. 
