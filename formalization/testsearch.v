@@ -1,6 +1,69 @@
-From mathcomp Require Import all_ssreflect.
 Require Import ConstructiveEpsilon.
 Require Import PeanoNat.
+Require Import Real.
+
+(* 
+   Multivalued searching from existing searching:
+     constructive_indefinite_ground_description_nat_Acc_PQ
+   It is not yet decided if this to be used for our searching.. 
+ *)
+Definition when_first : forall P Q : nat -> Prop, (forall n : nat, {P n} + {Q n}) -> (nat -> Prop).
+Proof.
+  intros.
+  destruct (H H0).
+  exact True.
+  exact False.
+Defined.
+    
+Definition constructive_indefinite_ground_description_nat_Acc_PQ :
+  forall P Q : nat -> Prop, (forall n : nat, {P n} + {Q n}) -> (exists n : nat, ~ Q n) -> {n : nat | P n}.
+Proof.
+  intros P Q H H0.
+  pose proof (constructive_indefinite_ground_description_nat_Acc (when_first P Q H)).
+  assert ((forall n : nat, {when_first P Q H n} + {~ when_first P Q H n})).
+  clear H1.
+  intro.
+  unfold when_first.
+  destruct (H n).
+  left; auto.
+  right; auto.
+
+  pose proof (H1 H2).
+  clear H1 H2.
+  assert (exists n : nat, when_first P Q H n).
+  clear H3.
+  unfold when_first.
+  destruct H0.
+  exists x.
+  destruct (H x); auto.
+
+  pose proof (H3 H1).
+  clear H3 H1.
+  destruct H2.
+  unfold when_first in w.
+  exists x.
+  destruct (H x).
+  auto.
+  induction w.
+Defined.
+
+Definition constructive_indefinite_ground_description_nat_Acc_PQ_M :
+  forall P Q : nat -> Prop, (forall n : nat, M ({P n} + {Q n})) -> (exists n : nat, ~ Q n) -> M {n : nat | P n}.
+Proof.
+  intros.
+  apply countableLiftM in X.
+  apply (liftM (forall n : nat, {P n} + {Q n})).
+  intro.
+  apply (constructive_indefinite_ground_description_nat_Acc_PQ P Q); auto.
+  exact X.
+Defined.
+(*********)
+
+
+
+
+
+From mathcomp Require Import all_ssreflect.
 
 (* ******************************************** *)
 (* search for nat with decidable precidate P *)
@@ -50,8 +113,8 @@ Require Import Kleene.
 Require Import Psatz.
 Require Import Nat.
 Require Import Reals.
+Require Import RealCoqReal RealHelpers.
 
-Require Import Real RealCoqReal RealHelpers.
 
 (* results about (/ 2 ^ n) adapted  from incone *)
 Lemma tpmn_lt n: (0 < /2^n)%R.
