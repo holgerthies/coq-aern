@@ -107,20 +107,13 @@ Qed.
                          "choosable" precidate P *)
 (* ******************************************** *)
 
-Definition mjoinM (p q : Prop) (T : Type) : ({p}+{q} -> M T) ->  M ({p}+{q}) -> M T.
-Proof.
-  intros f x.
-  exact (lift_domM _ _ f x).
-Defined.
-
-
 Definition linear_search_choose 
   (P : nat -> Prop)
   (P_decM : (forall n : nat, M ({P n.+1} + {~ P n}))) 
   := 
 fix linear_search (m : nat) (b : before_witness P m) {struct b} :
 	M {n : nat | P n} := 
-  mjoinM _ _ _ 
+  lift_domM _ _
     (fun P_dec =>
       match P_dec with
       | left yes_next => unitM _ (exist [eta P] m.+1 yes_next)
@@ -151,7 +144,7 @@ Definition linear_search_min_choose
   := 
 fix linear_search (m : nat) (not_Pm : ~P m) (not_Pm1 : ~P m.+1) (b : before_witness P m.+2) {struct b} :
 	M {n : nat | P (n.+2) /\ ~ P n} := 
-  mjoinM _ _ _ 
+  lift_domM _ _ 
     (fun P_dec =>
       match P_dec with
       | left yes_next => 
@@ -181,7 +174,6 @@ Definition constructive_search_min_choose_nat
         not_P0)
       not_P1))
 .
-
 
 Definition lt_prec x n := prec n < x.
 
@@ -354,7 +346,7 @@ Lemma magnitude x : Real0 < x -> M {z | is_magnitude x z}.
 Proof.
   move => xgt0.
   have := dec_x_lt_2 x. 
-  apply mjoinM.
+  apply lift_domM.
   case => H; first by apply magnitude2.
   have xneg0 : (x <> Real0) by apply (Realgt_neq _ _ xgt0).
   suff I : (Real0 < / xneg0 < Real2).
