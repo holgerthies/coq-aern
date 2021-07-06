@@ -1,6 +1,7 @@
 Require Import Extraction.
 Require ExtrHaskellBasic.
 Require ExtrHaskellNatInteger.
+Require ExtrHaskellZInteger.
 Require Import Real.
 Require Import IVT.
 Require Import Minmax.
@@ -70,6 +71,9 @@ Extraction "Max" Realmax.
 
 (* sqrt *)
 Extraction "Sqrt" restr_sqrt.
+
+Require Import testsearch.
+Extraction "Magnitude" magnitude.
 
 (* Require Import Nabla. *)
 

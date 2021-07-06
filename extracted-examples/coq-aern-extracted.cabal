@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2fd4dd52c12c7f514ba42c38be175c8d2a3c7aa86d9450023c96dff109f238bf
+-- hash: 25042dda5cd33f8e0dbec0fa38f7b6b2d9fcff4b7fac09d94b92bc57a73e7844
 
 name:           coq-aern-extracted
 version:        0.1.0.0
@@ -28,6 +28,8 @@ library
   exposed-modules:
       IVT
       IVTMB
+      Magnitude
+      MagnitudeMB
       Max
       MaxMB
       Sqrt

@@ -1,20 +1,22 @@
 Require Import Extraction.
 Require ExtrHaskellBasic.
 Require ExtrHaskellNatInteger.
+Require ExtrHaskellZInteger.
 Require Import Real.
 Require Import IVT.
 Require Import Minmax.
 Require Import sqrt.
+Require Import testsearch.
 
 Extraction Language Haskell.
 
 (* Real is Real, K is LazyBoolean, and M T is T *)
 Extract Inlined Constant Real => "(WithCurrentPrec (CN MPBall) p)".
-Extract Inlined Constant K => "(CN Kleenean)".
+Extract Inlined Constant K => "Kleenean".
 
 (* Axioms for Kleenean *)
-Extract Inlined Constant trueK => "(cn $ kleenean True)".
-Extract Inlined Constant falseK => "(cn $ kleenean False)".
+Extract Inlined Constant trueK => "(kleenean True)".
+Extract Inlined Constant falseK => "(kleenean False)".
                                    
 Extract Inlined Constant kneg => "not".
 Extract Inlined Constant kland => "(&&)".
@@ -23,16 +25,18 @@ Extract Inlined Constant klor => "(||)".
 Extract Inlined Constant choose => "select".
 
 (* Axioms for Multivalueness *)
-Extract Constant M "a" => " a ".
-Extract Inlined Constant unitM => "id".
-Extract Inlined Constant multM => "id".
-Extract Inlined Constant liftM => "id".
+Extract Constant M "a" => " CN a ".
+Extract Inlined Constant unitM => "cn".
+Extract Inlined Constant multM => "join".
+Extract Inlined Constant liftM => "Prelude.fmap".
 
-Extract Inlined Constant mjoin => "liftTakeErrors".
+Extract Inlined Constant mjoin => "Prelude.fmap".
+(* Extract Inlined Constant mjoin => "liftTakeErrors". *)
 (* mjoin is more-or-less the identity function, 
 but it needs to correctly propagate CN and WithCurrentPrec wrappers. *)
-Extract Inlined Constant countableLiftM => "id".
-Extract Inlined Constant singletonM => "id".
+
+(* Extract Inlined Constant countableLiftM => "(\f -> cn (unCN . f))". *)
+(* Extract Inlined Constant singletonM => "unCN". *)
 
 (* Exact Real Number Operations *)
 Extract Inlined Constant Real0 => "0".
@@ -45,9 +49,11 @@ Extract Inlined Constant Realinv => "recip".
 Extract Inlined Constant Reallt_semidec => "(<)".
 Extract Inlined Constant Realgt_semidec => "(>)".
 Extract Inlined Constant limit => "limit".
+Extract Inlined Constant slimit => "limit".
+Extract Inlined Constant mslimit => "limit".
 
-(* Extract Inductive bool => "(CN Bool)" [ "(cn True)" "(cn False)" ]. *)
-Extract Inductive sumbool => "(CN Bool)" [ "True" "False" ].
+(* Extract Inductive bool => "Bool" [ "True" "False" ]. *)
+Extract Inductive sumbool => "Bool" [ "True" "False" ].
 (* The missing CN in the constants is compensated for 
    by our mapping for mjoin. *)
 
@@ -74,6 +80,9 @@ Extraction "MaxMB" Realmax.
 (* sqrt *)
 Extraction "SqrtMB" restr_sqrt.
 
+(* magnitude *)
+Extraction "MagnitudeMB" magnitude.
+
 (*
 
 The Haskell module will require the following packages:
@@ -94,6 +103,7 @@ The generated Haskell files need the following edits to make them work:
 (2) Add the following imports after "import qualified Prelude":
 
 import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
+import Control.Monad (join)
 import Numeric.OrdGenericBool
 import MixedTypesNumPrelude (ifThenElse, integer, Kleenean(..), kleenean)
 import Math.NumberTheory.Logarithms (integerLog2)
