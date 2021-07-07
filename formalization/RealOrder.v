@@ -42,6 +42,31 @@ Proof.
 Qed.
 Global Hint Resolve Realeq_ge: Realiny.
 
+Lemma Realle_plus_le : forall z x y, x <= y -> z + x <= z + y.
+Proof.
+  intros.
+  destruct H.
+  left.
+  apply Reallt_plus_lt.
+  exact H.
+  right.
+  apply (lp _ _ (fun x => z + x)) in H.
+  exact H.
+Qed.
+
+
+Lemma Realge_plus_ge : forall z x y, x >= y -> z + x >= z + y.
+Proof.
+  intros.
+  destruct H.
+  left.
+  apply Reallt_plus_lt.
+  exact H.
+  right.
+  apply (lp _ _ (fun x => z + x)) in H.
+  exact H.
+Qed.
+
 Lemma Realeq_plus_eq : forall z1 z2 z3, z1 = z2 -> z1 + z3 = z2 + z3.
 Proof.
   intros z1 z2 z3 p.
@@ -109,16 +134,18 @@ Proof.
 Qed.
 Global Hint Resolve Realdiv_distr: Realiny.
 
-Lemma Realle_plus_le : forall z1 z2 z3, z1 <= z2 -> z1+z3 <= z2+z3.
-Proof.
-  intros z1 z2 z3 p.
-  destruct p.
-  apply (Reallt_plus_lt z3 z1 z2) in H.
-  replace (z1+z3) with (z3+z1) by ring;
-    replace (z2+z3) with (z3+z2) by ring; left; exact H.
-  rewrite H; right; auto with Realiny.
-Qed.
-Global Hint Resolve Realle_plus_le: Realiny.
+(* Check Realle_plus_le. *)
+
+(* Lemma Realle_plus_le : forall z1 z2 z3, z1 <= z2 -> z1+z3 <= z2+z3. *)
+(* Proof. *)
+(*   intros z1 z2 z3 p. *)
+(*   destruct p. *)
+(*   apply (Reallt_plus_lt z3 z1 z2) in H. *)
+(*   replace (z1+z3) with (z3+z1) by ring; *)
+(*     replace (z2+z3) with (z3+z2) by ring; left; exact H. *)
+(*   rewrite H; right; auto with Realiny. *)
+(* Qed. *)
+(* Global Hint Resolve Realle_plus_le: Realiny. *)
 
   
 Lemma Realnlt_triv : forall x, ~ x < x.
@@ -580,6 +607,7 @@ Qed.
 Global Hint Resolve Reallt_mult_pos_move_rr_n: Realiny.
 
 
+
 (** prec embedding is always positive **)
 Lemma prec_pos : forall n, prec n > Real0.
 Proof.
@@ -606,6 +634,19 @@ Proof.
   rewrite IHn; ring.
 Qed.
 Global Hint Resolve NReal_hom: Realiny.
+
+Lemma prec_twice : forall n, prec (n + 1) + prec (n + 1) = prec n.
+Proof.
+  intros.
+  rewrite (prec_hom n 1).
+  rewrite <- Realmult_plus_distr.
+  simpl.
+  unfold Realdiv.
+  rewrite (Realmult_comm (Real1)).
+  rewrite <- Realmult_plus_distr.
+  rewrite Realmult_inv, Realmult_comm, Realmult_unit.
+  auto.
+Qed.
 
 Lemma NReal_pos : forall n, (n>0)%nat -> NReal n > Real0.
 Proof.
@@ -974,6 +1015,18 @@ Lemma Reallt_lt_le_lt : forall z1 z2 z3 z4, z1 <z2 -> z2 < z3 -> z3 <= z4 -> z1 
   apply (Reallt_lt_lt z1 z2 z3 H) in H0.
   exact (Reallt_le_lt z1 z3 z4 H0 H1).
 Qed.
+
+Lemma Realle_le_plus_le : forall a b c d, a <= b -> c <= d -> a + c <= b + d.
+Proof.
+  intros.
+  apply (Realle_plus_le c) in H.
+  apply (Realle_plus_le b) in H0.
+  
+  replace (c + a) with (a + c) in H by ring.
+  replace (b + c) with (c + b) in H0 by ring.
+  exact (Realle_le_le _ _ _ H H0).
+Qed.
+
 
 Lemma dReal2_pos : Real0 < / dReal2.
 Proof.

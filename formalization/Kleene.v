@@ -108,3 +108,14 @@ Proof.
 Defined.
 
 
+Definition extensionM : forall A B, M (A -> B) -> (M A -> M B).
+Proof.
+  intros.
+  apply (lift_domM A).
+  intro.
+  apply (liftM (A ->B)).
+  auto.
+  auto.
+  auto.
+Defined.
+

@@ -232,10 +232,6 @@ Fixpoint prec (n : nat) : Real :=
   end.
 Arguments prec n%nat.
 
-(* constructive limit axiom *)
-Axiom limit :
-  forall (P : Real -> Prop),
-    (exists! z, P z) ->
-    ((forall n, {e : Real | (exists a : Real, P a /\ - prec n < e - a < prec n)}) ->
-    {a : Real | P a}).
 
+(* Classical Archimediean property *)
+Axiom RealArchimedean : forall r : Real, r > Real0 -> exists n, prec n < r.

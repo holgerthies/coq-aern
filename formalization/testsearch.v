@@ -4,11 +4,32 @@ From mathcomp Require Import all_ssreflect.
 Require Import Psatz.
 Require Import Nat.
 
+
+Goal (M Real -> (nat -> Real -> M Real) -> M (nat -> Real)).
+Proof.
+  intros.
+  pose proof (nat_rec (fun _ => Real)).
+  simpl in H.
+  pose proof (liftM _ _ H).
+  pose proof (extensionM (nat -> Real -> Real) (nat -> Real)).
+  apply X2.
+  apply X1.
+  exact X.
+  
+  
+  apply X0 in X.
+  
+Check nat_rec.
+Check Real.
+
+
 (* 
    Multivalued searching from existing searching:
      constructive_indefinite_ground_description_nat_Acc_PQ
    It is not yet decided if this to be used for our searching.. 
  *)
+
+
 Definition when_first : forall P Q : nat -> Prop, (forall n : nat, {P n} + {Q n}) -> (nat -> Prop).
 Proof.
   intros.
