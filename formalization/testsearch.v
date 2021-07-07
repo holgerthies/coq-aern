@@ -3,6 +3,7 @@ Require Import Real.
 From mathcomp Require Import all_ssreflect.
 Require Import Psatz.
 Require Import Nat.
+Require Import PeanoNat.
 
 (* 
    Multivalued searching from existing searching:
@@ -19,49 +20,6 @@ Proof.
   exact False.
 Defined.
     
-Definition constructive_indefinite_ground_description_nat_Acc_PQ :
-  forall P Q : nat -> Prop, (forall n : nat, {P n} + {Q n}) -> (exists n : nat, ~ Q n) -> {n : nat | P n}.
-Proof.
-  intros P Q H H0.
-  pose proof (constructive_indefinite_ground_description_nat_Acc (when_first P Q H)).
-  assert ((forall n : nat, {when_first P Q H n} + {~ when_first P Q H n})).
-  clear H1.
-  intro.
-  unfold when_first.
-  destruct (H n).
-  left; auto.
-  right; auto.
-
-  pose proof (H1 H2).
-  clear H1 H2.
-  assert (exists n : nat, when_first P Q H n).
-  clear H3.
-  unfold when_first.
-  destruct H0.
-  exists x.
-  destruct (H x); auto.
-
-  pose proof (H3 H1).
-  clear H3 H1.
-  destruct H2.
-  unfold when_first in w.
-  exists x.
-  destruct (H x).
-  auto.
-  induction w.
-Defined.
-
-Definition constructive_indefinite_ground_description_nat_Acc_PQ_M :
-  forall P Q : nat -> Prop, (forall n : nat, M ({P n} + {Q n})) -> (exists n : nat, ~ Q n) -> M {n : nat | P n}.
-Proof.
-  intros.
-  apply countableLiftM in X.
-  apply (liftM (forall n : nat, {P n} + {Q n})).
-  intro.
-  apply (constructive_indefinite_ground_description_nat_Acc_PQ P Q); auto.
-  exact X.
-Defined.
-
 Definition epsilon_smallest_PQ
   : forall P Q : nat -> Prop,
        (forall n, {P n} + {Q n}) ->
@@ -161,79 +119,24 @@ Qed.
 
 
 (* ******************************************** *)
-(* search for n with P n for a non-deterministically 
-                         "choosable" precidate P *)
-(* ******************************************** *)
-
-(* 
-Definition linear_search_choose 
-  (P : nat -> Prop)
-  (P_decM : (forall n : nat, M ({P n.+1} + {~ P n}))) 
-  := 
-fix linear_search (m : nat) (b : before_witness P m) {struct b} :
-	M {n : nat | P n} := 
-  lift_domM _ _
-    (fun P_dec =>
-      match P_dec with
-      | left yes_next => unitM _ (exist _ m.+1 yes_next)
-      | right no => linear_search m.+1 (inv_before_witness P m b no)
-      end)
-    (P_decM m).
-
-Definition constructive_search_choose_nat
-  : forall P : nat -> Prop,
-      (forall n : nat, M ({P n.+1} + {~ P n}) ) ->
-      (exists n : nat, P n) -> 
-      M {n : nat | P n}
-  :=
-    fun 
-    (P : nat -> Prop) 
-    (P_decM : forall n : nat, M ({P n.+1} + {~ P n}))
-    (e : exists n : nat, P n) =>
-  linear_search_choose P P_decM 0 (let (n, p) := e in O_witness P n (stop P n p)). 
-*)
-
-(* ******************************************** *)
 (* search for the minimal n with P n for a 
   "non-deterministically choosable" precidate P  *)
 (* ******************************************** *)
 
-Definition linear_search_min_choose 
-  (P : nat -> Prop)
-  (P_decM : (forall n : nat, M ({P n.+1} + {~ P n}))) 
-  := 
-fix linear_search (m : nat) (not_Pm : ~P m) (not_Pm1 : ~P m.+1) (b : before_witness P m.+2) {struct b} :
-	M {n : nat | P (n.+2) /\ ~ P n} := 
-  lift_domM _ _ 
-    (fun P_dec =>
-      match P_dec with
-      | left yes_next => 
-          unitM _ (exist _ m.+1 (conj yes_next not_Pm1))
-      | right no => linear_search m.+1 not_Pm1 no (inv_before_witness P m.+2 b no)
-      end)
-    (P_decM m.+2).
-
-Definition constructive_search_min_choose_nat
+Definition epsilon_smallest_choose_M
   : forall P : nat -> Prop,
       (forall n : nat, M ({P n.+1} + {~ P n}) ) ->
       (exists n : nat, P n) -> 
-      ~P O ->
-      ~P (S(O)) ->
-      M {n : nat | P (n.+2) /\ ~ P n}
-  :=
-    fun 
-    (P : nat -> Prop) 
-    (P_decM : forall n : nat, M ({P n.+1} + {~ P n}))
-    (e : exists n : nat, P n) 
-    not_P0 not_P1 =>
-  linear_search_min_choose P P_decM 0 not_P0 not_P1 
-    (let (n, p) := e in 
-    (inv_before_witness P _ 
-      (inv_before_witness P _ 
-        (O_witness P n (stop P n p))
-        not_P0)
-      not_P1))
-.
+      M {n : nat | P (n.+1) /\ (forall k, (k < n)%coq_nat -> ~ P k)}.
+Proof.
+  intros P P_decM e.
+  apply epsilon_smallest_PQ_M.
+  exact P_decM.
+  destruct e.
+  exists x.
+  auto.
+Defined.
+    
 
 Definition lt_prec x n := prec n < x.
 
@@ -263,42 +166,74 @@ Definition magnitude1 x : (Real0 < x < Real1 / Real2_neq_Real0)
   -> M { n | is_magnitude1 x n }.
 Proof.
   move => [pos lt2].
+
+  (* x < Real1 *)
+  have lt1 : x < Real1.
+  have h := half_lt_one.
+  apply (Reallt_lt_lt _ (Real1 / Real2_neq_Real0) _); auto.
+
   unfold is_magnitude1.
-  apply constructive_search_min_choose_nat.
-  unfold lt_prec.
+  Definition P x n := lt_prec x (n.+1).
+  suff g1M : M { n : nat | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)}.
+  apply (liftM ({n : nat | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)})).
+  2: { exact g1M. }
+  clear g1M. intro g1.
+  destruct g1 as [n H].
+  exists n.
+  unfold P in H.
+  split.
+  destruct H. auto.
+  destruct H.
+
+  destruct n.
+  (* ~ lt_prec x 0 *)
+  unfold lt_prec. apply Realgt_ngt. unfold prec. unfold Realgt. auto. 
+
+  (* ~ lt_prec x n.+1 *)
+  have H0n := H0 n.
+  suff lt_S : (n < n.+1)%coq_nat by auto.
+  by lia.
+  
+  apply (epsilon_smallest_choose_M).
+  unfold P. unfold lt_prec.
   intros.
-  apply (weaken_orM_r _ (x < prec n) _).
+  apply (weaken_orM_r _ (x < prec n.+1) _).
   intros.
-  auto with Realiny.
+  apply Reallt_nlt. auto.
+
   apply choose.
   auto with Realiny.
   auto with Realiny.
 
-  (* prec n.+1 < x \/ x < prec n *)
-  destruct (Realtotal_order x (prec n)) as [H|[H|H]].
+  (* prec n.+2 < x \/ x < prec n.+1 *)
+  destruct (Realtotal_order x (prec n.+1)) as [H|[H|H]].
   right. exact H.
   left. rewrite H. apply prec_S.
-  left. unfold Realgt in H. apply (Reallt_lt_lt _ (prec n) _).
+  left. unfold Realgt in H. apply (Reallt_lt_lt _ (prec n.+1) _).
   apply prec_S. exact H.
 
-  (* ~ lt_prec x 0 *)
-  Focus 2. unfold lt_prec. apply Realgt_ngt. unfold prec. unfold Realgt. 
-  have h := half_lt_one.
-  apply (Reallt_lt_lt _ (Real1 / Real2_neq_Real0) _); auto.
-
-  (* ~ lt_prec x 1 *)
-  Focus 2. unfold lt_prec. unfold prec. apply Realgt_ngt. unfold Realgt. auto.
-  unfold lt_prec.
+  unfold P. unfold lt_prec.
   case (ana1 x) => xr [R1 R2].
-  suff : exists n,  (/ 2 ^ n < xr)%R.
+  suff : exists n,  (/ 2 ^ n.+1 < xr)%R.
   - case => n nprp.
     exists n.
-    have P := (relate_prec n).
+    have P := (relate_prec n.+1).
     classical.
     by relate.
-  apply dns0_tpmn.
-  by apply /transport_lt_inv/pos/R1/relate_constant0.
-Qed.
+  have xrpos : (0 < xr)%R.
+  apply /transport_lt_inv/pos/R1/relate_constant0.
+  have xrlt1 : (xr < 1)%R.
+  apply /transport_lt_inv/lt1. auto. 
+  apply relate_constant1.
+
+  have H := dns0_tpmn xr xrpos.
+  destruct H as [n H].
+  destruct n.
+  have xrgt1 : (1 < xr)%R. lra. 
+  lra. (* contradiction between xrlt1 xrgt1 *)
+
+  exists n. auto.
+Defined.
 
 Definition Zpow (x : Real) (xne0 : x <> Real0) z := match z with
                        | 0%Z => Real1
@@ -426,85 +361,3 @@ Proof.
    suff : (1 < x1)%R by lra.
    apply /transport_lt_inv/H/Ha/relate_constant1.
  Qed.
-(* ******************************************** *)
-(* Code exracted from ConstructiveEpsilon. 
-             Included here only for reference.  *)
-(* ******************************************** *)
-
-(* 
-
-Inductive before_witness (P : nat -> Prop) (n : nat) : Prop :=
-	stop : P n -> before_witness P n
-  | next : before_witness P n.+1 -> before_witness P n.
-
-Definition inv_before_witness
-  : forall (P : nat -> Prop) (n : nat),
-  before_witness P n -> ~ P n -> before_witness P n.+1
-  :=
-fun (P : nat -> Prop) (n : nat) (b : before_witness P n) =>
-match b with
-| @stop _ _ p =>
-	fun not_p : ~ P n =>
-    match not_p p return (before_witness P n.+1) with
-    end
-| @next _ _ b0 => fun=> b0
-end.
-
-Definition constructive_indefinite_ground_description_nat
-  : forall P : nat -> Prop,
-      (forall n : nat, {P n} + {~ P n}) ->
-      (exists n : nat, P n) -> {n : nat | P n}
-  :=
-fun (P : nat -> Prop) 
-  (P_dec : forall n : nat, {P n} + {~ P n})
-  (e : exists n : nat, P n) =>
-linear_search P P_dec 0 (let (n, p) := e in O_witness P n (stop P n p)).
-      
-      
-Definition constructive_indefinite_ground_description_nat
-  : forall P : nat -> Prop,
-  (forall n : nat, {P n} + {~ P n}) ->
-  (exists n : nat, P n) -> {n : nat | P n}
-  :=
-fun (P : nat -> Prop) 
-    (P_dec : forall n : nat, {P n} + {~ P n})
-    (e : exists n : nat, P n) =>
-  linear_search P P_dec 0 (let (n, p) := e in O_witness P n (stop P n p)).
-
-Definition O_witness
-  : forall (P : nat -> Prop) (n : nat),
-  before_witness P n -> before_witness P 0
-:=
-fun P : nat -> Prop =>
-  fix O_witness (n : nat) : before_witness P n -> before_witness P 0 :=
-    match n as n0 return (before_witness P n0 -> before_witness P 0) with
-    | 0 => id
-    | n0.+1 => fun b : before_witness P n0.+1 => O_witness n0 (next P n0 b)
-    end.
-
-Definition linear_search
-  : forall P : nat -> Prop,
-  (forall n : nat, {P n} + {~ P n}) ->
-  forall m : nat, before_witness P m -> {n : nat | P n}
-  :=
-fun (P : nat -> Prop) (P_dec : forall n : nat, {P n} + {~ P n}) =>
-    fix linear_search (m : nat) (b : before_witness P m) {struct b} :
-	  {n : nat | P n} :=
-      match P_dec m with
-      | left yes => exist [eta P] m yes
-      | right no => linear_search m.+1 (inv_before_witness P m b no)
-      end.
-
-Definition constructive_indefinite_ground_description_nat
-  : forall P : nat -> Prop,
-  (forall n : nat, {P n} + {~ P n}) ->
-  (exists n : nat, P n) -> {n : nat | P n}  
-  :=
-  fun (P : nat -> Prop) (P_dec : forall n : nat, {P n} + {~ P n})
-    (e : exists n : nat, P n) =>
-  linear_search P P_dec 0 (let (n, p) := e in O_witness P n (stop P n p))
-     : forall P : nat -> Prop,
-         (forall n : nat, {P n} + {~ P n}) ->
-  (exists n : nat, P n) -> {n : nat | P n}. 
-  
-  *)
