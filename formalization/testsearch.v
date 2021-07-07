@@ -61,6 +61,64 @@ Proof.
   apply (constructive_indefinite_ground_description_nat_Acc_PQ P Q); auto.
   exact X.
 Defined.
+
+Definition epsilon_smallest_PQ
+  : forall P Q : nat -> Prop,
+       (forall n, {P n} + {Q n}) ->
+       (exists n, ~Q n) ->
+       {n | P n /\ (forall k, (k < n)%coq_nat -> Q k)}.
+Proof.
+  intros P Q H H0.
+  pose proof (epsilon_smallest (when_first P Q H)).
+
+  (* eliminate first premise of H1: *)
+  assert ((forall n : nat, {when_first P Q H n} + {~ when_first P Q H n})).
+  clear H1.
+  intro.
+  unfold when_first.
+  destruct (H n).
+  left; auto.
+  right; auto.
+  pose proof (H1 H2).
+  clear H1 H2.
+     
+  (* eliminate another premise of H1 (now H3): *)
+  assert (exists n : nat, when_first P Q H n).
+  clear H3.
+  unfold when_first.
+  destruct H0.
+  exists x.
+  destruct (H x); auto.
+  pose proof (H3 H1).
+  clear H3 H1.
+
+  destruct H2.
+  unfold when_first in a.
+  exists x.
+  destruct (H x).
+  destruct a.
+  split. auto.
+  intros k kx.
+  have Hk := (H2 k kx).
+  destruct (H k). by induction Hk. by auto.
+  destruct a.
+  induction H1.
+Defined.
+
+Definition epsilon_smallest_PQ_M
+  : forall P Q : nat -> Prop,
+       (forall n, M ({P n} + {Q n})) ->
+       (exists n, ~Q n) ->
+       [n | P n /\ (forall k, (k < n)%coq_nat -> Q k)].
+Proof.
+  intros.
+  apply countableLiftM in X.
+  apply (liftM (forall n : nat, {P n} + {Q n})).
+  intro.
+  apply (epsilon_smallest_PQ P Q); auto.
+  exact X.
+Defined.
+
 (*********)
 
 Require Import Kleene.
