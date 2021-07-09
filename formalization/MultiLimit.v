@@ -10,7 +10,7 @@ Definition w_approx (P : Real -> Prop) (n : nat) (x : Real) : Prop
 (* a predicate [P : Real -> Prop] is complete if for any converging seqeunce
    [f : nat -> Real] such that [w_approx P n (f n)] holds for all [n : nat],
    the limit point satisfies [P x]. For example, [Real \ {0}] is not complete. *)
-Definition complete_predicate (P : Real -> Prop) :=
+Definition closed_predicate (P : Real -> Prop) :=
   forall f : nat -> Real,
     is_fast_cauchy f -> (forall n, w_approx P n (f n)) -> (forall x, is_fast_limit x f -> P x).
                           
@@ -30,7 +30,7 @@ Admitted.
    [x] is [prec n] approximation of [P]) it gives us a multivalued real numbers 
    that are in [P] *)
 Definition multivalued_limit : forall P : Real -> Prop,
-    complete_predicate P ->
+    closed_predicate P ->
     M {x : Real | w_approx P O x} ->
     (forall n x, w_approx P n x ->
                  M {y : Real | w_approx P (S n) y /\ dist x y <= prec n}) ->
