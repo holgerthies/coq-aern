@@ -1,3 +1,4 @@
+Set Warnings "-parsing".
 Require Import Real testsearch.
 From mathcomp Require Import all_ssreflect.
 Require Import Psatz.
@@ -7,7 +8,7 @@ Require Import PeanoNat.
 Require Import Kleene.
 Require Import Reals.
 Require Import RealCoqReal RealHelpers.
-
+Set Warnings "parsing".
 (* results about (/ 2 ^ n) adapted  from incone *)
 Lemma tpmn_lt n: (0 < /2^n)%R.
 Proof. apply/Rinv_0_lt_compat/pow_lt; lra. Qed.
@@ -112,7 +113,7 @@ Proof.
     exists n.
     have P := (relate_prec n.+1).
     classical.
-    by relate.
+    relate; by trivial.
   have xrpos : (0 < xr)%R.
   apply /transport_lt_inv/pos/R1/relate_constant0.
   have xrlt1 : (xr < 1)%R.

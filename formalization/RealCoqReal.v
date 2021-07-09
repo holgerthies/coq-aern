@@ -1062,7 +1062,7 @@ Ltac relate :=
   | H : (relate Real0 ?x) |- _ => (apply Holber0 in H; try induction (eq_symm H); clear H; relate)
   | H : (relate Real1 ?x) |- _ => (apply Holber1 in H; try induction (eq_symm H); clear H; relate)
   | H : (relate (?x + ?y) (?z)) |- _ =>
-    (idtac ""x; 
+    (
      let a := fresh "x" in
      let b := fresh "y" in
      let Ha := fresh "Ha" in
@@ -1078,7 +1078,7 @@ Ltac relate :=
     ))
 
   | H : (relate (?x - ?y) (?z)) |- _ =>
-    (idtac " "; 
+    (
      let a := fresh "x" in
      let b := fresh "y" in
      let Ha := fresh "Ha" in
@@ -1096,7 +1096,7 @@ Ltac relate :=
   | H : (relate (?x / ?p) (?z)) |- _ =>
     match type of  p with
     | ?y <> Real0 =>
-      (idtac "";
+      (
        let a := fresh "x" in
        let b := fresh "y" in
        let Ha := fresh "Ha" in
@@ -1111,11 +1111,11 @@ Ltac relate :=
         relate
       ))
         
-    | _ => idtac "" 
+    | _ => idtac "hello" 
     end
       
   | H : (relate (?x * ?y) (?z)) |- _ =>
-    (idtac " "; 
+    (
      let a := fresh "x" in
      let b := fresh "y" in
      let Ha := fresh "Ha" in
@@ -1131,8 +1131,7 @@ Ltac relate :=
     ))
 
   | H : (relate (- ?x) (?y)) |- _ =>
-    (idtac " "
-     ;
+    (
      let a := fresh "x" in
      let Ha := fresh "Ha" in
      let Hc := fresh H in
@@ -1144,11 +1143,8 @@ Ltac relate :=
       relate
     )
 )
-
-
-
-  | H : (relate (@Realdiv ?x ?p) (?y)) |- _ =>
-    (idtac ""
+  (* | H : (relate (@Realdiv ?x ?p) (?y)) |- _ =>
+    (idtac "Fifth"
      (* ;  *)
      (* let a := fresh "x" in *)
      (* let Ha := fresh "Ha" in *)
@@ -1160,7 +1156,7 @@ Ltac relate :=
      (*  clear H; *)
      (*  relate *)
      (* ) *)
-    )
+    ) *)
   | H : (relate (/ ?p) (?y)) |- _ =>
     match type of p with
     | ?x <> Real0 =>
@@ -1179,14 +1175,14 @@ Ltac relate :=
     end 
       
   | H1 : (relate (?x) (?y)), H2 : (relate (?x) (?z))  |- _ =>
-    (idtac " ";
+    (
      induction (relate_unique_R _ _ _ _ H1 H2 (eq_refl _));
      clear H1;
      relate
     )
       
   | H1 : (relate (?x) (?z)), H2 : (relate (?y) (?z))  |- _ =>
-    (idtac " ";
+    (
      induction (relate_unique_Real _ _ _ _ H1 H2 (eq_refl _));
      clear H1;
      relate
