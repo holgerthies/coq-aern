@@ -290,11 +290,3 @@ Proof.
   destruct H0.
   exact H0.
 Defined.
-
-
-
-
-Definition w_approx (P : Real -> Prop) (x : Real) (n : nat) : Prop
-  := exists y, P y /\ dist x y < prec n.
-
-  
