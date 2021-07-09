@@ -235,3 +235,16 @@ Arguments prec n%nat.
 
 (* Classical Archimediean property *)
 Axiom RealArchimedean : forall r : Real, r > Real0 -> exists n, prec n < r.
+
+
+
+
+(* 
+   Axiom for constructive metric completeness.
+   Previous axiom changed to be a lemma. And, it is proven in RealLimit.v
+ *)
+Definition is_fast_cauchy (f : nat -> Real) := forall n m, - prec n - prec m <= f n - f m <= prec n + prec m.
+Definition is_fast_limit (x : Real) (f : nat -> Real) := forall n, - prec n <= x - f n <= prec n.
+
+Axiom C_limit :
+  forall f : nat -> Real, is_fast_cauchy f -> {x | is_fast_limit x f}.

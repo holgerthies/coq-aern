@@ -6,13 +6,6 @@ Require Export RealOrder.
 Require Export RealOrderTactic.
 
 
-Definition is_fast_cauchy (f : nat -> Real) := forall n m, - prec n - prec m <= f n - f m <= prec n + prec m.
-Definition is_fast_limit (x : Real) (f : nat -> Real) := forall n, - prec n <= x - f n <= prec n.
-
-Axiom C_limit :
-  forall f : nat -> Real, is_fast_cauchy f -> {x | is_fast_limit x f}.
-
-
 Definition fast_lower_set (f : nat -> Real) := fun x => exists n, x <= f n - prec n.
 Lemma fast_lower_set_nemp : forall f, is_fast_cauchy f -> W_nemp (fast_lower_set f).
 Proof.

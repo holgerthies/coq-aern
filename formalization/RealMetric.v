@@ -4,7 +4,7 @@ Require Import RealAxioms.
 Require Import RealRing.
 Require Import RealOrder.
 Require Import RealOrderTactic.
-Require Import RealLimitAxioms.
+Require Import RealLimit.
 
 
 Definition mslimitp :

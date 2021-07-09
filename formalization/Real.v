@@ -4,6 +4,6 @@ Require Export RealAxioms.
 Require Export RealRing. 
 Require Export RealOrder.
 Require Export RealOrderTactic.
-Require Export RealLimitAxioms.
+Require Export RealLimit.
 Require Export RealMetric.
        
