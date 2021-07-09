@@ -10,6 +10,13 @@ Proof.
 Defined.
 
 Definition isSubsingleton := fun P : Type => forall x y : P, x = y.
+Lemma fun_to_subsingleton_id : forall {A B} (f g : A -> B), isSubsingleton B -> f = g.
+Proof.
+  intros.
+  apply fun_ext.
+  intros.
+  apply H.
+Defined.
 
   
 Definition classic : Type -> Prop := fun A => exists x : A, True.
@@ -42,6 +49,7 @@ Defined.
 Definition id (A : Type) : A -> A := fun x => x.
 Definition fc {A B C : Type} (f : B -> C) (g : A -> B) : A -> C := fun x => f (g x).
 Definition is_equiv {A B : Type} (f : A -> B) := {g : B -> A | fc g f = id _ /\ fc f g = id _}.
+
 
 
 (* transporting path *)

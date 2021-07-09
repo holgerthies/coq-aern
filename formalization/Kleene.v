@@ -1,6 +1,6 @@
 Require Import Base.
 
-(* Kleene type *)
+(** Kleene type **)
 Parameter K : Set.
 Parameter trueK : K.
 Parameter falseK : K.
@@ -21,8 +21,8 @@ Axiom kland_down : forall a b : K, downK (kland a b) = downK a \/ downK b.
 Axiom klor_up : forall a b : K, upK (klor a b) = upK a \/ upK b.
 Axiom klor_down : forall a b : K, downK (klor a b) = downK a /\ downK b.
 
-(* Multivalue monad *)
-(* Functor: *)
+(** Multivalue monad **)
+(* Functor structure: *)
 Parameter M : Type -> Type.
 Parameter liftM : forall A B, (A -> B) -> M A -> M B.
 Axiom liftM_axiom1 : forall A B C (f : A -> B) (g : B -> C),
@@ -44,14 +44,13 @@ Axiom M_coh3 : forall A x, multM A (multM (M A) x) = multM A (liftM (M (M A)) (M
 
 (* when A is subsingleton, A \simeq M A *)
 Axiom elimM : forall A, (forall x y : A, x = y) -> is_equiv (unitM A).
-
 Definition singletonM : forall A, isSubsingleton A -> M A -> A.
 Proof.
   intros.
   exact (projP1 _ _ (elimM A H) X).
 Defined.
 
-(* lifting of a constant function is constant. This is because unit is preserved by M. *)
+(* M unit is singleton {unitM unit tt} *)
 Lemma Munit_is_singleton : forall a : M unit, a = unitM _ tt.
 Proof.
   intros.
@@ -67,33 +66,19 @@ Proof.
   auto.
 Defined.
 
+(* M unit is subsingleton, of course. *)
 Lemma Munit_is_subsingleton : isSubsingleton (M unit).
 Proof.
-  intros x y.
-  rewrite (Munit_is_singleton x).
-  rewrite (Munit_is_singleton y).
-  auto.
+  intros x y; rewrite (Munit_is_singleton x), (Munit_is_singleton y); exact eq_refl.
 Defined.
 
-Lemma fun_to_subsingleton_id : forall {A B} (f g : A -> B), isSubsingleton B -> f = g.
-Proof.
-  intros.
-  apply fun_ext.
-  intros.
-  apply H.
-Defined.
-  
+(* lifting of a constant function is constant. This is because unit is preserved by M. *)  
 Lemma constantM : forall {A B} b, liftM A B (fun _  => b) = fun _ => unitM _ b.
 Proof.
   intros.
   pose proof (liftM_axiom1 A unit B (fun _ => tt) (fun _ => b)).
   rewrite H.
-  assert
-    (
-      (liftM A unit (fun _ : A => tt) )
-      =
-      (fc  (unitM unit) (fun _ : M A => tt))
-    ).
+  assert ((liftM A unit (fun _ : A => tt)) = (fc  (unitM unit) (fun _ : M A => tt))).
   apply fun_to_subsingleton_id.
   apply Munit_is_subsingleton.
   rewrite H0.
@@ -103,20 +88,19 @@ Proof.
   auto.
 Defined.
 
-Definition mjoin (p q : Prop) (T : Type) : ({p}+{q} -> T) ->  M ({p}+{q}) -> M T.
-Proof.
-  intros f x.
-  exact (liftM _ _ f x).
-Defined.
-
-(* we can get sections from repeated M-valued procedures. *)
-Axiom Mrec :
+(* we can get sections from repeated M-valued procedures. 
+   In the simple case, intuitively, when we have x0 : T, 
+   and  f : nat -> T -> M T such that
+   for all y \in (f n) xn, (R n) xn y holds, by repeatedly applying f,
+   we can get a set of pathes {x0, x1, ...} such that R n (xn) (xn+1) holds. *)
+Axiom pathsM :
   forall P : nat -> Type,
   forall R : (forall n, P n -> P (S n) -> Prop),
     M (P O) ->
     (forall n (x : P n), M {y : P (S n) | R n x y}) ->
     M {f : forall n, (P n) | forall m, R m (f m) (f (S m))}.
 
+(* first projection w.r.t. M *)
 Definition MprojP1 : forall A (P : A -> Prop), M {x : A | P x} -> M A.
 Proof.
   intros.
@@ -127,7 +111,10 @@ Proof.
   exact X.
 Defined.  
 
-Definition recM :
+(* similarly as above, when we have when we have x0 : T, and f : nat -> T -> M T,
+   we can apply primitive recursion and get a sequence of M T. 
+   Note that this does not contain any information of paths. *)
+Definition setsM :
   forall P : nat -> Type,
   forall R : (forall n, P n -> P (S n) -> Prop),
     M (P O) ->
@@ -145,27 +132,25 @@ Proof.
   exact X0.
 Defined.
 
-Definition countableMinv : forall P : nat -> Type,
+(* given a collection of sections, get the retraction. *)
+Definition retractionM : forall P : nat -> Type,
     M (forall n, P n) -> (forall n, M (P n)).
 Proof.
   intros P X n.
   apply (liftM _ _ (fun f => f n) X).
 Defined.
 
-Axiom Mrec_prop : forall P R X f, countableMinv _ (MprojP1 _ _ (Mrec P R X f)) = recM P R X f.
-  
-(* Definition Mrec_Mproj1 : *)
-(*   forall P : nat -> Type, *)
-(*   forall R : (forall n, P n -> P (S n) -> Prop), *)
-(*     M (P O) -> *)
-(*     (forall n (x : P n), M {y : P (S n) | R n x y}) -> *)
-(*     M {f : forall n, (P n) | forall m, R m (f m) (f (S m))}. *)
+(* the axiomatized property of pathsM. When we obtain a set of 
+   paths from a procedure, when we get the retraction, make the sequences of sets, 
+   it has to be identical to the one obtained by setsM *)
+Axiom pathsM_prop : forall P R X f, retractionM _ (MprojP1 _ _ (pathsM P R X f)) = setsM P R X f.
 
-                          
+(* A special use case of pathsM: when we have a sequence of sets f : forall n, M (P n), 
+   we can get the set of sections M (forall n, P n) *)
 Definition countableLiftM : forall P : nat -> Type, (forall n, M (P n)) -> M (forall n, P n).
 Proof.
   intros P f.
-  pose proof (Mrec P (fun _ _ _ => True) (f O)).
+  pose proof (pathsM P (fun _ _ _ => True) (f O)).
   simpl in X.
   assert ((forall n : nat, P n -> M {_ : P (S n) | True})).
   intros.
@@ -179,72 +164,51 @@ Proof.
   exact (MprojP1 _ _ X1).
 Defined.
 
-(* Axiom countableLiftM : forall P : nat -> Type, (forall n, M (P n)) -> M (forall n, P n).  *)
-  
-
-Lemma countableMprop : forall P : nat -> Type, forall f,
-      countableMinv P  (countableLiftM P f) = f.
+(* The property of countable lifting. It is the section of the retraction. *)
+Lemma countableLiftM_prop : forall P : nat -> Type, forall f,
+      retractionM P  (countableLiftM P f) = f.
 Proof.
   intros P f.
   unfold countableLiftM.
-  rewrite (Mrec_prop
-                P
-                (fun (n : nat) (_ : P n) (_ : P (S n)) => True)
-                (f 0)
-                (fun (n : nat) (_ : P n) =>
-                   liftM (P (S n)) {_ : P (S n) | True} (fun X2 : P (S n) =>
-                                                           exist (fun _ : P (S n) => True) X2 I)
-                         (f (S n)))).
+  rewrite (pathsM_prop _ _ (f 0) (fun n _ => liftM _ _ (fun X2 => exist _ X2 I) (f (S n)))).
   apply dfun_ext.
   intro.
-  unfold recM.
+  unfold setsM.
   induction x.
   simpl.
   auto.
   simpl.
   rewrite IHx.
   simpl.
-  unfold MprojP1.
-  unfold lift_domM.
-  assert (
-            liftM {_ : P (S x) | True} (P (S x)) (fun X0 : {_ : P (S x) | True} => let (x0, _) := X0 in x0)
-                  (liftM (P (S x)) {_ : P (S x) | True} (fun X0 : P (S x) => exist (fun _ : P (S x) => True) X0 I) (f (S x)))
-=
-                  ( (f (S x)))           
-            
-    ).
+  unfold MprojP1, lift_domM.
+  assert (liftM _ _  (fun X0 : {_ : P (S x) | True} => let (x0, _) := X0 in x0)
+                (liftM _ _ (fun X0 : P (S x) => exist _ X0 I) (f (S x))) = f (S x)).
   pose proof (liftM_axiom1 _ _ _
-                           (fun X0 : P (S x) => exist (fun _ : P (S x) => True) X0 I)
-                           (fun X0 : {_ : P (S x) | True} => let (x0, _) := X0 in x0)
-             ).
+                           (fun X0  => exist _ X0 I)
+                           (fun X0 : {_ : P (S x) | True} => let (x0, _) := X0 in x0)).
   apply (lp  _ _ (fun k => k (f (S x)))) in H.
-  rewrite <- H.
-  rewrite<- liftM_axiom2.
+  rewrite <- H, <- liftM_axiom2.
   exact eq_refl.
   rewrite H.
-  assert
-    (
-      (liftM (P x) (M (P (S x))) (fun _ : P x => f (S x)) (f x))
-      =
-      unitM _ (f (S x))).
-
+  assert ((liftM (P x) (M (P (S x))) (fun _ : P x => f (S x)) (f x)) = unitM _ (f (S x))).
   rewrite constantM.
   exact eq_refl.
-  rewrite H0.
-  rewrite M_coh1.
+  rewrite H0, M_coh1.
   exact eq_refl.
 Defined.
 
-  
-(* Axiom countableMprop : forall P : nat -> Type, forall f, *)
-(*       countableMinv P  (countableLiftM P f) = f. *)
-
+(* when we have two Kleeneans that at least one of are True classically, 
+   we can nondeterministically decide which holds. *)
 Parameter select : forall x y : K, upK x \/ upK y -> M ({ (upK x) } + { (upK y) }).
 
-Notation "[ x | P ]" := (M {x | P}) : type_scope.
-Notation "[ x : T | P ]" := (M {x : T | P}) : type_scope.
-Notation "[ ( a , b ) | P ]" := (M (sigT (fun a => {b | P}))) : type_scope.
+(* when there is p -> T and q -> T, we can nondeterministically join them *)
+Definition mjoin (p q : Prop) (T : Type) : ({p}+{q} -> T) ->  M ({p}+{q}) -> M T.
+Proof.
+  intros f x.
+  exact (liftM _ _ f x).
+Defined.
 
+(* semideciability so that we can work on Prop directly, without mentioning K *)
 Definition semidec := fun P : Prop => {x : K | upK x <-> P}.
 
 Definition choose : forall p q, semidec p -> semidec q -> p \/ q -> M ({p}+{q}).
@@ -260,7 +224,6 @@ Proof.
   apply select.
   destruct H1; auto.
 Defined.
-
 
 Definition dec := fun P : Prop =>  {P} + {~ P}.
 Lemma semidec_dec : forall P, semidec P -> semidec (~ P) -> dec P.
@@ -279,7 +242,6 @@ Proof.
   exact X.
 Defined.
 
-
 Definition extensionM : forall A B, M (A -> B) -> (M A -> M B).
 Proof.
   intros.
@@ -290,4 +252,13 @@ Proof.
   auto.
   auto.
 Defined.
+
+
+
+
+
+
+Notation "[ x | P ]" := (M {x | P}) : type_scope.
+Notation "[ x : T | P ]" := (M {x : T | P}) : type_scope.
+Notation "[ ( a , b ) | P ]" := (M (sigT (fun a => {b | P}))) : type_scope.
 
