@@ -1,7 +1,17 @@
 (* Extensionality Axioms for our type theory *)
 Axiom lem : forall P : Prop, P \/ ~P.
 Axiom Prop_ext : forall P Q : Prop, (P -> Q) -> (Q -> P) -> P = Q.
-Axiom fun_ext : forall A B (f g: A -> B), (forall x, f x = g x) -> f = g.
+Axiom dfun_ext : forall A (P : A -> Type) (f g: forall a : A, P a), (forall x, f x = g x) -> f = g.
+Lemma fun_ext : forall A B (f g: A -> B), (forall x, f x = g x) -> f = g.
+Proof.
+  intros.
+  apply dfun_ext.
+  exact H.
+Defined.
+
+Definition isSubsingleton := fun P : Type => forall x y : P, x = y.
+
+  
 Definition classic : Type -> Prop := fun A => exists x : A, True.
 
 Notation "[ A ]" := (classic A) : type_scope.
