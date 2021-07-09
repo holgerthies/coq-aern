@@ -1,8 +1,8 @@
 From mathcomp Require Import all_ssreflect.
-Require Import Real Reals RealCoqReal RealHelpers.
+Require Import Real Reals RealCoqReal RealHelpers magnitude.
 From Coquelicot Require Import Coquelicot.
 Require Import Psatz.
-
+ Import testsearch.
 Require Import Interval.Tactic.
 Open Scope Real_scope.
 
@@ -141,7 +141,18 @@ Proof.
 Qed.
 
 
-
+Lemma sqrt_unique x :  forall z z', Real0 <= z /\ z * z = x -> Real0 <= z' /\ z' * z' = x -> z = z'.
+Proof.
+  move => z z' [P1 P2] [P1' P2'].
+  Holger P1.
+  Holger P2.
+  Holger P1'.
+  Holger P2'.
+  classical.
+  relate.
+  have B : (0 <= y0)%R by rewrite <- H2;apply Rmult_le_pos.
+  by rewrite <-(sqrt_lem_1 y0 y1), <- (sqrt_lem_1 y0 y) => //.
+Qed.  
 
 Definition restr_sqrt x : (/ IZReal4neq0) <= x -> (x <= Real2) -> {y | Real0 <= y /\ y * y = x}.
 Proof.
@@ -185,4 +196,78 @@ Proof.
     by apply (P _ _ Hx0 Ha0).
   apply Rabs_lt_between.
   by apply (P _ _ Hx0 Ha0).
+Qed.
+
+
+Definition scale x : (Real0 < x) -> M { zy | (Zpow Real2 dReal2 (2*zy.1)) * zy.2 = x /\ (/ IZReal4neq0) <= zy.2 <= Real2 }.
+Proof.
+  move => H.
+  have := (magnitude x H).
+  apply liftM.
+  case => z [zprp1 zprp2].
+  have :  {z' | (z-1 <= 2*z')%Z /\ (2*z' <= z)%Z }.
+  - exists (z / 2)%Z.
+    split; last by apply Zdiv.Z_mult_div_ge; lia.
+    rewrite {1}(Z.div_mod z 2); last by lia.
+    suff : (z mod 2 < 2)%Z by lia.
+    by apply Z.mod_pos_bound;lia.
+  case => z' [z'prp1 z'prp2].
+  exists (z', (Zpow Real2 dReal2 (-2*z')%Z)*x).
+  split.
+  - rewrite -Realmult_assoc -Zpow_plus.
+    have -> : (2*z' + (-2*z') = 0)%Z by lia.
+    by rewrite Realmult_unit.
+  Holger H.
+  have R1 := Zpow_relate Real2 dReal2 (z-2) _ (IZReal_relator 2).
+  have R2 := Zpow_relate Real2 dReal2 z _ (IZReal_relator 2). 
+  have R3 := Zpow_relate Real2 dReal2 (-2*z') _ (IZReal_relator 2). 
+  Holger zprp1.
+  Holger zprp2.
+  relate.
+  split => /=; classical; relate.
+  - rewrite (relate_IZReal _ _ Ha0).
+    apply /Rle_trans/Rmult_le_compat_l/H/powerRZ_le; last by lra.
+    rewrite -powerRZ_add; last by lra.
+    rewrite powerRZ_Rpower; last by lra.
+    have p1 : (- 2 <= -2*z' + (z-2))%Z by lia.
+    apply /Rle_trans/Rle_Rpower/IZR_le/p1; try by lra.
+    by rewrite -powerRZ_Rpower => /=; try lra.   
+  rewrite (relate_IZReal _ _ H3).
+  apply /Rle_trans.
+  apply /Rmult_le_compat_l/H1; first by apply powerRZ_le;lra.
+  rewrite -powerRZ_add; last by lra.
+  rewrite powerRZ_Rpower; last by lra.
+  have p1 : (-2*z' + z <= 1)%Z by lia.
+  apply /Rle_trans.
+  apply /Rle_Rpower/IZR_le/p1; try by lra.
+  by rewrite Rpower_1; lra.
+Defined.
+
+Lemma sqrt_scale x y z sqy: (Zpow Real2 dReal2 (2*z))*y = x -> sqy * sqy = y ->  ((Zpow Real2 dReal2 z)*sqy) * ((Zpow Real2 dReal2 z)*sqy) = x.
+Proof.
+  move => H1 H2.
+  rewrite Realmult_comm -Realmult_assoc -(Realmult_comm sqy) -Realmult_assoc H2.
+  by rewrite Realmult_assoc -Zpow_plus Realmult_comm Z.add_diag.
+Qed.
+
+
+Definition sqrt x : Real0 < x -> {y | Real0 <= y /\ y * y = x}.
+Proof.
+  move => H.
+  apply singletonM => [E1 E2 | ].
+  - elim E1; elim E2 => y [P1 P2] y' [P1' P2']. 
+    apply /sigma_eqP;last by intros;apply irrl.  
+    by apply (sqrt_unique x).
+  have := (scale x H).
+  apply liftM.
+  case => [[z y] [P1 [P2 P2']]].
+  case (restr_sqrt y P2 P2') => sqy [S1 S2].
+  exists ((Zpow Real2 dReal2 z)*sqy).
+  split; last by apply /sqrt_scale/S2.
+  classical.
+  have R := Zpow_relate Real2 dReal2 z _ (IZReal_relator 2).
+  Holger S1.
+  relate.
+  apply Rmult_le_pos => //.
+  by apply powerRZ_le; lra.
 Qed.
