@@ -1,3 +1,4 @@
+Set Warnings "-parsing".
 From mathcomp Require Import all_ssreflect.
 Require Import Real Reals RealCoqReal RealHelpers magnitude.
 From Coquelicot Require Import Coquelicot.
@@ -5,6 +6,7 @@ Require Import Psatz.
  Import testsearch.
 Require Import Interval.Tactic.
 Open Scope Real_scope.
+Set Warnings "parsing".
 
 
 Lemma sqrt_bound_helper x :  (/ IZReal4neq0) <= x -> (x <= Real2) -> forall rx, relate x rx -> ((/ 4) <= rx <= 2)%R.

@@ -1,10 +1,14 @@
 Require Import ConstructiveEpsilon.
 Require Import Real.
+Set Warnings "-parsing".
 From mathcomp Require Import all_ssreflect.
 Require Import Psatz.
 Require Import Nat.
 Require Import PeanoNat.
-
+Require Import Kleene.
+Require Import Reals.
+Require Import RealCoqReal RealHelpers.
+Set Warnings "parsing".
 (* 
    Multivalued searching from existing searching:
      constructive_indefinite_ground_description_nat_Acc_PQ
@@ -80,9 +84,6 @@ Defined.
 (*********)
 
 
-Require Import Kleene.
-Require Import Reals.
-Require Import RealCoqReal RealHelpers.
 
 
 (* ******************************************** *)
@@ -104,7 +105,6 @@ Proof.
   auto.
 Defined.
     
-
 
 Lemma weaken_orM_r : forall P Q Q': Prop, (Q -> Q') -> M ({P}+{Q}) -> M ({P}+{Q'}).
 Proof.

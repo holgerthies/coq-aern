@@ -16,3 +16,4 @@ RealCoqReal.v
 RealHelpers.v
 testsearch.v
 magnitude.v
+sqrt.v
