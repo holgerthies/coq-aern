@@ -14,3 +14,5 @@ IVT.v
 Relator.v
 RealCoqReal.v
 RealHelpers.v
+testsearch.v
+magnitude.v
