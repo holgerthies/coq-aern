@@ -9,38 +9,6 @@ Require Import Kleene.
 Require Import Reals.
 Require Import RealCoqReal RealHelpers.
 Set Warnings "parsing".
-(* results about (/ 2 ^ n) adapted  from incone *)
-Lemma tpmn_lt n: (0 < /2^n)%R.
-Proof. apply/Rinv_0_lt_compat/pow_lt; lra. Qed.
-
-Lemma pwr2gtz m: exists n, (2^n > m)%nat.
-Proof.
-  elim: m => [ | m [n /leP ih]]; first by exists 0%nat; apply /leP => /=; lia.
-  by exists n.+1; apply /leP => /=; lia.
-Qed.
-
-Lemma dns0_tpmn: forall eps, (0 < eps)%R -> exists n, (/2^n < eps)%R.
-Proof.
-  move => eps epsprp.
-  pose z := Z.to_nat (up (/eps)).
-  have [n /leP nprp]:= pwr2gtz z; have g0: (0 < 2^n)%R by apply pow_lt; lra.
-  exists n.
-  rewrite -[eps]Rinv_involutive; try lra.
-  apply Rinv_lt_contravar; first by rewrite Rmult_comm; apply Rdiv_lt_0_compat;  try lra.
-  have ->: (2 = INR 2)%R by trivial.
-  rewrite -pow_INR.
-  apply /Rlt_le_trans/(le_INR _ _ nprp).
-  suff : (INR z.+1 > (/ eps))%R by lra.
-  apply /Rgt_trans/(archimed (/ eps)).1.
-  rewrite S_INR.
-  rewrite INR_IZR_INZ.
-  unfold z.
-  rewrite Z2Nat.id; first by lra.
-  apply le_IZR.
-  have epsprp' : (0 < / eps)%R by apply Rinv_0_lt_compat.
-  suff: ((IZR (up (/ eps))) > (/ eps))%R by lra.
-  by apply archimed.
-Qed.
 
 Lemma half_lt_one : Real1 / Real2_neq_Real0 < Real1.
 Proof.
