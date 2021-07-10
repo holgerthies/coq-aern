@@ -2,12 +2,9 @@ Require Import Extraction.
 Require ExtrHaskellBasic.
 Require ExtrHaskellNatInteger.
 Require ExtrHaskellZInteger.
-Require Import Real.
-Require Import IVT.
-Require Import Minmax.
-Require Import sqrt.
-
 Extraction Language Haskell.
+
+Require Import Real.
 
 (* Real is Real, K is LazyBoolean, and M T is T *)
 Extract Inlined Constant Real => "CReal".
@@ -64,16 +61,20 @@ Extract Inlined Constant Nat.log2 => "(integer . integerLog2)".
 (* Maximum *)
 
 (* root finding function *)
+Require Import IVT.
 Extraction "IVT" CIVT.
 
 (* maximum *)
+Require Import Minmax.
 Extraction "Max" Realmax.
 
-(* sqrt *)
-Extraction "Sqrt" restr_sqrt.
-
+(* magnitude *)
 Require Import testsearch.
 Extraction "Magnitude" magnitude.
+
+(* sqrt *)
+Require Import sqrt.
+Extraction "Sqrt" restr_sqrt.
 
 (* Require Import Nabla. *)
 
