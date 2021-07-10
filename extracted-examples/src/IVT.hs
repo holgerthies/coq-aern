@@ -1,11 +1,11 @@
 module IVT where
 
 import qualified Prelude
-import Prelude hiding (pi, pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
-import Numeric.OrdGenericBool
-import MixedTypesNumPrelude (ifThenElse, integer)
-import Math.NumberTheory.Logarithms (integerLog2)
-import AERN2.Real
+import qualified Numeric.OrdGenericBool as OGB
+import MixedTypesNumPrelude (ifThenElse)
+import qualified MixedTypesNumPrelude as MNP
+import qualified Math.NumberTheory.Logarithms as Logs
+import qualified AERN2.Real as AERN2
 
 nat_rect :: a1 -> (Prelude.Integer -> a1 -> a1) -> Prelude.Integer -> a1
 nat_rect f f0 n =
@@ -17,56 +17,109 @@ nat_rect f f0 n =
 type Sig a = a
   -- singleton inductive, whose constructor was exist
   
+projP1 :: a1 -> a1
+projP1 x =
+  x
+
 type M a =  a 
 
 lift_domM :: (a1 -> M a2) -> (M a1) -> M a2
 lift_domM f x =
-  id (id f x)
+  Prelude.id (Prelude.id f x)
 
-mjoin :: (Bool -> a1) -> (M Bool) -> M a1
+mjoin :: (Prelude.Bool -> a1) -> (M Prelude.Bool) -> M a1
 mjoin =
-  id
+  Prelude.id
 
-type Semidec = CKleenean
+type Semidec = AERN2.CKleenean
 
-slimit :: (Prelude.Integer -> CReal) -> CReal
+iPReal_2 :: Prelude.Integer -> AERN2.CReal
+iPReal_2 p =
+  (\fI fO fH n -> if n Prelude.== 1 then fH () else
+                   if Prelude.odd n
+                   then fI (n `Prelude.div` 2)
+                   else fO (n `Prelude.div` 2))
+    (\p0 ->
+    (Prelude.*) ((Prelude.+) 1 1) ((Prelude.+) 1 (iPReal_2 p0)))
+    (\p0 -> (Prelude.*) ((Prelude.+) 1 1) (iPReal_2 p0))
+    (\_ -> (Prelude.+) 1 1)
+    p
+
+iPReal :: Prelude.Integer -> AERN2.CReal
+iPReal p =
+  (\fI fO fH n -> if n Prelude.== 1 then fH () else
+                   if Prelude.odd n
+                   then fI (n `Prelude.div` 2)
+                   else fO (n `Prelude.div` 2))
+    (\p0 -> (Prelude.+) 1 (iPReal_2 p0))
+    (\p0 -> iPReal_2 p0)
+    (\_ -> 1)
+    p
+
+iZReal :: Prelude.Integer -> AERN2.CReal
+iZReal z =
+  (\fO fP fN n -> if n Prelude.== 0 then fO () else
+                   if n Prelude.> 0 then fP n else
+                   fN (Prelude.negate n))
+    (\_ -> 0)
+    (\n -> iPReal n)
+    (\n -> Prelude.negate (iPReal n))
+    z
+
+limit :: (Prelude.Integer -> AERN2.CReal) -> AERN2.CReal
+limit p =
+  projP1 (AERN2.limit (\n -> projP1 (p n)))
+
+slimit :: (Prelude.Integer -> AERN2.CReal) -> AERN2.CReal
 slimit =
   limit
 
-mslimit :: (Prelude.Integer -> M CReal) -> CReal
+mslimit :: (Prelude.Integer -> M AERN2.CReal) -> AERN2.CReal
 mslimit x =
-  let {x0 = id x} in id (id slimit x0)
+  let {x0 = Prelude.id x} in Prelude.id (Prelude.id slimit x0)
 
-m_uniq_pick :: (CReal -> CReal) -> CReal -> CReal -> CReal -> CReal -> M Bool
+m_uniq_pick :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal -> AERN2.CReal ->
+               AERN2.CReal -> AERN2.CReal -> M Prelude.Bool
 m_uniq_pick f _ b c _ =
-  select ((<) (f b) 0) ((<) 0 (f c))
+  AERN2.select ((OGB.<) (f b) 0) ((OGB.<) 0 (f c))
 
-trisect :: (CReal -> CReal) -> CReal -> CReal -> M ((,) CReal CReal)
+real3 :: AERN2.CReal
+real3 =
+  iZReal ((\x -> x) ((\x -> 2 Prelude.* x Prelude.+ 1) 1))
+
+trisect :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal -> AERN2.CReal -> M
+           ((,) AERN2.CReal AERN2.CReal)
 trisect f a b =
   mjoin (\h0 ->
     case h0 of {
-     True -> (,) ((/) ((+) ((*) 2 a) b) 3) b;
-     False -> (,) a ((/) ((+) a ((*) 2 b)) 3)})
-    (m_uniq_pick f a ((/) ((+) ((*) 2 a) b) 3) ((/) ((+) a ((*) 2 b)) 3) b)
+     Prelude.True -> (,)
+      ((Prelude./) ((Prelude.+) ((Prelude.*) 2 a) b) real3) b;
+     Prelude.False -> (,) a
+      ((Prelude./) ((Prelude.+) a ((Prelude.*) 2 b)) real3)})
+    (m_uniq_pick f a ((Prelude./) ((Prelude.+) ((Prelude.*) 2 a) b) real3)
+      ((Prelude./) ((Prelude.+) a ((Prelude.*) 2 b)) real3) b)
 
-halving :: (CReal -> CReal) -> CReal -> CReal -> M ((,) CReal CReal)
+halving :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal -> AERN2.CReal -> M
+           ((,) AERN2.CReal AERN2.CReal)
 halving f a b =
   let {one = trisect f a b} in
   lift_domM (\q ->
     case q of {
-     (,) x s -> let {x0 = trisect f x s} in id (\h1 -> h1) x0}) one
+     (,) x s -> let {x0 = trisect f x s} in Prelude.id (\h1 -> h1) x0}) one
 
-root_approx :: (CReal -> CReal) -> Prelude.Integer -> M ((,) CReal CReal)
+root_approx :: (AERN2.CReal -> AERN2.CReal) -> Prelude.Integer -> M
+               ((,) AERN2.CReal AERN2.CReal)
 root_approx f n =
-  nat_rect (id ((,) 0 1)) (\_ iHn ->
+  nat_rect (Prelude.id ((,) 0 1)) (\_ iHn ->
     lift_domM (\x ->
       case x of {
-       (,) x0 s -> let {x1 = halving f x0 s} in id (\h -> h) x1}) iHn) n
+       (,) x0 s -> let {x1 = halving f x0 s} in Prelude.id (\h -> h) x1}) iHn)
+    n
 
-cIVT :: (CReal -> CReal) -> CReal
+cIVT :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal
 cIVT f =
   mslimit (\n ->
     let {x = root_approx f (Prelude.succ n)} in
-    id (\h -> case h of {
-               (,) x0 _ -> x0}) x)
+    Prelude.id (\h -> case h of {
+                       (,) x0 _ -> x0}) x)
 
