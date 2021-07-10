@@ -1,3 +1,13 @@
+(* 
+   Currently, this module is BROKEN.
+
+   Experimental extraction using iRRAM-style real numbers as intervals with 
+   a fixed precision and fast re-start when it is found that the precision is insufficient.
+   It relies on a hack to quickly propagate a failure due to insufficient precision.
+   The hack is that the M monad is not used for non-determinism but for efficiently 
+   signalling such a failure.  This works sometimes but not always. 
+*)
+
 Require Import Extraction.
 Require ExtrHaskellBasic.
 Require ExtrHaskellNatInteger.
