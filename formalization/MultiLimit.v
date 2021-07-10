@@ -80,3 +80,69 @@ Proof.
   exact X.
 Defined.
 
+Set Warnings "-parsing".
+From mathcomp Require Import all_ssreflect.
+Require Import Real Reals RealCoqReal RealHelpers RealMetric Psatz.
+Set Warnings "parsing".
+
+Lemma consecutive_converging_fast_cauchy' : forall f : nat -> Real,  (forall n, dist (f n) (f (S n)) <= prec n.+1) -> is_fast_cauchy f.
+Proof.
+  move => f H.         
+  have prec_pos n m :  - prec n - prec m <= dist (f n) (f m).
+  - apply /Realle_le_le/dist_pos_t.
+    rewrite <-Realplus_unit.
+    rewrite /Realminus.
+    apply Reallt_le.
+    have -> : Real0 = -Real0 by rewrite -{1}(Realplus_inv Real0) Realplus_unit.
+    by apply Reallt_lt_plus_lt;apply Reallt_anti;apply prec_pos.
+  suff D  : forall n m, dist (f n) (f m) <= prec n + prec m.
+  - move => n m.
+    case (Realmetric_Or (f n) (f m)) => [[<- B] | [P B]].
+    by split => //.
+    suff [H0 H0']: - prec n - prec m <= f m - f n <= prec n + prec m.
+    + have precR1 := (relate_prec m).
+      have precR2 := (relate_prec n).
+      have precR2' := relate_subtraction _ _ (relate_prec n).
+      Holger H0.
+      Holger H0'.
+      split; classical;relate;by lra.
+    rewrite -P.
+    by split => //.
+   suff P n k : dist (f (n + k)%coq_nat) (f n)  <= prec n + prec (n+k)%coq_nat.
+  - move => n m.
+    case (Nat.le_ge_cases n m) => le.
+    have -> : (m = n + (m-n)%coq_nat)%coq_nat by lia.
+    rewrite dist_symm.
+    by apply P.
+    have -> : (n = m + (n-m)%coq_nat)%coq_nat by lia.
+    rewrite Realplus_comm.
+    by apply P.
+  suff P' : dist (f (n+k)%coq_nat) (f n) <= prec n - prec (n+k )%coq_nat.
+  - have precR1 := (relate_prec n).
+    have precR3 := (relate_prec (n+k)%coq_nat).
+    have B1 := (tpmn_lt n).
+    have B2 := (tpmn_lt (n+k)%coq_nat).
+    Holger P'.
+    classical.
+    relate.
+    by lra.
+  elim k => [ | k' IH].
+  - rewrite !Nat.add_0_r.
+    rewrite (dist_zero (f n) (f n)).2 => //.
+    rewrite /Realminus.
+    rewrite Realplus_inv.
+    by apply Realle_triv.
+  have tri : dist (f (n+k'.+1)%coq_nat) (f n) <= dist (f (n+k')%coq_nat) (f (n+k'.+1)%coq_nat) + dist (f (n+k')%coq_nat) (f n) by apply Realge_le;rewrite dist_symm;apply dist_tri.
+  apply /Realle_le_le.
+  apply tri.
+  have -> : ((n+k'.+1)%coq_nat = (n+k')%coq_nat.+1) by lia.
+  apply /Realle_le_le.
+  apply Realle_le_plus_le.
+  apply H.
+  apply IH.
+  rewrite <- (prec_twice (n+k')%coq_nat).
+  rewrite Nat.add_1_r.
+  classical.
+  relate.
+  by lra.
+Qed.
