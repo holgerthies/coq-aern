@@ -7,6 +7,11 @@ Require Import RealOrderTactic.
 Require Import RealLimit.
 
 
+
+Require Import Psatz.
+Require Import PeanoNat.
+
+
 Definition mslimitp :
   forall (P : Real -> Prop),
     (exists! z, P z) ->
@@ -885,3 +890,67 @@ Proof.
 Qed.
     
 
+
+Lemma dist_le_prop : forall a b c, dist a b <= c <-> - c <= a - b <= c.
+Proof.
+  intros.
+  split.
+  intros.
+  destruct (dist_prop a b).
+  destruct H1.
+  destruct (Realtotal_order a b).
+  rewrite (H2 H3) in H.
+  split; auto.
+  apply (Realle_plus_le (a - b - c)) in H; ring_simplify in H; auto.
+  apply (fun a => Realle_le_le _ _ _ a H).
+  pose proof (Reallt_plus_lt (-a) _ _ H3).
+  pose proof (Reallt_plus_lt (-b) _ _ H3).
+  ring_simplify in H4; ring_simplify in H5.
+  pose proof (Reallt_lt_lt _ _ _ H5 H4).
+  replace (a - b) with (-b + a) by ring; replace (b - a) with (- a + b) by ring; left; auto.
+  destruct H3.
+  induction H3.
+  rewrite (H1 (eq_refl)) in H.
+  split; ring_simplify.
+  apply (Realle_plus_le (-c )) in H.
+  ring_simplify in H.
+  auto.
+  auto.
+  rewrite (H0 H3) in H.
+  split; auto.
+  apply (Reallt_plus_lt (- b)) in H3.
+  ring_simplify in H3.
+  replace (-b + a) with (a - b) in H3 by ring.
+  destruct H.
+  pose proof (Reallt_lt_lt _ _ _ H3 H).
+  apply (Reallt_plus_lt (-c)) in H4.
+  ring_simplify in H4.
+  left; apply (Reallt_lt_lt _ _ _ H4 H3).
+  rewrite H.
+  rewrite H in H3.
+  pose proof (Reallt_lt_plus_lt _ _ _ _ H3 H3).
+  apply (Reallt_plus_lt (-c)) in H4.
+  ring_simplify in H4.
+  left; auto.
+  intro.
+  pose proof (dist_prop a b).
+  destruct H0.
+  destruct H1.
+  destruct (Realtotal_order a b).
+  rewrite (H2 H3).
+  destruct H.
+  apply (Realle_plus_le (c + b - a)) in H.
+  ring_simplify in H.
+  exact H.
+  destruct H3.
+  induction H3.
+  rewrite (H1 eq_refl).
+  destruct H.
+  ring_simplify in H3.
+  exact H3.
+  destruct H.
+  rewrite (H0 H3).
+  exact H4.
+Defined.
+
+  
