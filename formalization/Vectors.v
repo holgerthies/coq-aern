@@ -538,3 +538,127 @@ Proof.
   intro.
   apply (euclidean_limit_P P H H0).
 Defined.
+
+Require Import MultiLimit.
+Definition w_approx {n} (P : euclidean n -> Prop) (k : nat) (x : euclidean n) : Prop
+  := exists y, P y /\ euclidean_max_dist x y <= prec k.
+
+Definition closed_predicate {n} (P : euclidean n -> Prop) :=
+  forall f : nat -> euclidean n,
+    euclidean_is_fast_cauchy f -> (forall n, w_approx P n (f n)) -> (forall x, euclidean_is_fast_limit x f -> P x).
+Lemma euclidean_consecutive_converging_fast_cauchy  : forall {d} (f : nat -> euclidean d),
+    (forall n, euclidean_max_dist (f n) (f (S n)) <= prec (S n)) -> euclidean_is_fast_cauchy f.
+Proof.
+  intros.
+  induction d.
+  intros n k.
+  rewrite (dim_zero_destruct (f n)), (dim_zero_destruct (f k)).
+  rewrite (proj2 (euclidean_max_dist_id nil nil) eq_refl).
+  pose proof (prec_pos n).
+  pose proof (prec_pos k).
+  left.
+  pose proof (Reallt_lt_plus_lt _ _ _ _ H0 H1).
+  ring_simplify in H2.
+  auto.
+  intros n k.
+  pose proof (IHd (euclidean_tail_sequence f)).
+  assert (euclidean_is_fast_cauchy (euclidean_tail_sequence f)).
+  apply H0.
+  intro.
+  clear IHd.
+  clear H0.
+  pose proof (H n0).
+  unfold euclidean_tail_sequence.
+  destruct (dim_succ_destruct (f n0)) as [hfn [tfn efn]].
+  destruct (dim_succ_destruct (f (S n0))) as [hfsn [tfsn efsn]].
+  rewrite efn, efsn in H0.
+  pose proof (euclidean_max_dist_cons tfn tfsn hfn hfsn).
+  rewrite H1 in H0.
+  apply (Realmax_le_snd_le) in H0.
+  exact H0.
+  pose proof (H1 n k).
+  clear IHd H1 H0.
+  assert (is_fast_cauchy (euclidean_head_sequence f)).
+  apply consecutive_converging_fast_cauchy.
+  intro.
+  pose proof (H n0).
+  unfold euclidean_head_sequence.
+  destruct (dim_succ_destruct (f n0)) as [hfn [tfn efn]].
+  destruct (dim_succ_destruct (f (S n0))) as [hfsn [tfsn efsn]].
+  rewrite efn, efsn in H0.
+  pose proof (euclidean_max_dist_cons tfn tfsn hfn hfsn).
+  rewrite H1 in H0.
+  apply (Realmax_le_fst_le) in H0.
+  exact H0.
+  pose proof (H0 n k).
+  destruct (dim_succ_destruct (f n)) as [hfn [tfn efn]].
+  destruct (dim_succ_destruct (f k)) as [hfk [tfk efk]].
+  rewrite efn, efk.
+  pose proof (euclidean_max_dist_cons tfn tfk hfn hfk).
+  rewrite H3.
+  unfold euclidean_tail_sequence in H2.
+  rewrite efn, efk in H2.
+  simpl in H2.
+  replace (-prec n - prec k) with (- (prec n + prec k)) in H1 by ring.
+  unfold euclidean_head_sequence in H1.
+  rewrite efn, efk in H1.
+  simpl in H1.
+  
+  apply (proj2 (dist_le_prop hfn hfk (prec n + prec k))) in H1.
+  exact (Realmax_le_le_le _ _ _ H1 H2).
+Qed.
+
+
+Definition euclidean_mlimit_P {d} : forall P : euclidean d -> Prop,
+    closed_predicate P ->
+    M {x | w_approx P O x} ->
+    (forall n x, w_approx P n x ->
+                 M {y  | w_approx P (S n) y /\ euclidean_max_dist x y <= prec (S n)}) ->
+    M {x | P x}. 
+Proof.
+  intros P c X f.
+  assert ((forall n (x : {x | w_approx P n x}),
+              M {y : { y | w_approx P (S n) y} | euclidean_max_dist (projP1 _ _ x) (projP1 _ _ y) <= prec  (S n)})).
+  intros.
+  destruct x.
+  pose proof (f n x w).
+  apply (liftM {y  | w_approx P (S n) y /\ euclidean_max_dist x y <= prec (S n)}).
+  intro.
+  destruct H.
+  destruct a.
+  exists (exist _ x0 H).
+  simpl.
+  exact H0.
+  exact X0.
+  pose proof (pathsM _ _ X X0).
+  simpl in X1.
+  apply (lift_domM {x | w_approx P 0 x}).
+  intro.
+  apply (liftM {f : forall n : nat, {x  | w_approx P n x}
+               | forall m : nat,
+                   euclidean_max_dist (projP1 _ (fun x  => w_approx P m x) (f m))
+                        (projP1 _ (fun y  => w_approx P (S m) y) (f (S m))) <= prec (S m)}).
+  intro.
+  destruct H.
+  destruct H0.
+  simpl in r.
+  assert (euclidean_is_fast_cauchy (fun n => projP1 _ _ (x0 n))).
+  apply euclidean_consecutive_converging_fast_cauchy.
+  exact r.
+  pose proof (euclidean_limit _ H).
+  destruct H0.
+  exists x1.
+  pose proof (c (fun n => projP1 _ _ (x0 n)) H).
+  assert (forall n : nat, w_approx P n ((fun n0 : nat => projP1 _ (w_approx P n0) (x0 n0)) n)).
+  intro.
+  destruct (x0 n).
+  simpl.
+  exact w0.
+  apply (H0 H1).
+  
+  exact e.
+  exact X1.
+  exact X.
+Defined.
+
+
