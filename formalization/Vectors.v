@@ -76,6 +76,36 @@ Proof.
   exact y.
 Defined.
 
+Lemma euclidean_plus_comm : forall {n} (x y : euclidean n), euclidean_plus x y = euclidean_plus  y x.
+Proof.
+  intros.
+  induction n.
+  rewrite (dim_zero_destruct x), (dim_zero_destruct y); auto.
+  destruct (dim_succ_destruct x) as [hx [tx ex]], (dim_succ_destruct y) as [hy [ty ey]].
+  rewrite ex, ey.
+  simpl.
+  rewrite (IHn tx ty).
+  replace (hx + hy) with (hy + hx) by ring.
+  auto.
+Qed.
+
+Lemma euclidean_plus_assoc : forall {n} (x y z : euclidean n), euclidean_plus x (euclidean_plus y z) = euclidean_plus (euclidean_plus x y) z.
+Proof.
+  intros.
+  induction n.
+  rewrite (dim_zero_destruct x), (dim_zero_destruct y), (dim_zero_destruct z); auto.
+  destruct (dim_succ_destruct x) as [hx [tx ex]], (dim_succ_destruct y) as [hy [ty ey]],
+   (dim_succ_destruct z) as [hz [tz ez]].
+  rewrite ex, ey, ez.
+  simpl.
+  rewrite (IHn tx ty tz).
+  rewrite (Realplus_assoc).
+  auto.
+Qed.
+
+  
+
+  
 Definition euclidean_opp {n : nat} (x : euclidean n) : euclidean n.
 Proof.
   induction n.
@@ -662,3 +692,4 @@ Proof.
 Defined.
 
 
+  
