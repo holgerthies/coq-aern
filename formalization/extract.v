@@ -18,7 +18,7 @@ Extract Inlined Constant kneg => "OGB.not".
 Extract Inlined Constant kland => "(OGB.&&)".
 Extract Inlined Constant klor => "(OGB.||)".
 
-Extract Inlined Constant choose => "AERN2.select".
+Extract Inlined Constant select => "AERN2.select".
 
 (* Axioms for Multivalueness *)
 Extract Constant M "a" => " a ".
@@ -26,9 +26,10 @@ Extract Inlined Constant unitM => "Prelude.id".
 Extract Inlined Constant multM => "Prelude.id".
 Extract Inlined Constant liftM => "Prelude.id".
 
-(* Extract Inlined Constant mjoin => "Prelude.id". *)
-Extract Inlined Constant countableLiftM => "Prelude.id".
-Extract Inlined Constant singletonM => "Prelude.id".
+Extract Inlined Constant elimM => "Prelude.id".
+Extract Inlined Constant pathsM => "(\ x0 f n -> Prelude.foldl (Prelude.flip f) x0 [0 .. (n Prelude.- 1)])".
+(* Extracted countableLiftM is too slow. *)
+Extract Inlined Constant countableLiftM => "Prelude.id". 
 
 (* Exact Real Number Operations *)
 Extract Inlined Constant Real0 => "0".
