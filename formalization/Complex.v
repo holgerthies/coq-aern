@@ -184,3 +184,47 @@ Ltac IZComplex_tac t :=
   end.
 
 Add Ring ComplexRing : ComplexTheory (constants [IZComplex_tac]).
+
+Declare Scope C_scope.
+Delimit Scope C_scope with C. 
+Infix "+" := Complex_plus : C_scope.
+Infix "*" := Complex_mult : C_scope.
+Notation "- x" := (Complex_opp x) : C_scope.
+Infix "-" := Complex_minus : C_scope.
+
+(* Definition separated_predicate {n :nat} (P : euclidean n -> Prop) : Prop *)
+(*   := exists n, forall x y, P x -> P y -> euclidean_max_dist x y >= prec n.  *)
+
+(* Lemma separated_predicate_is_closed : forall {n :nat} (P : euclidean n -> Prop), *)
+(*     separated_predicate P -> closed_predicate P. *)
+(* Admitted. *)
+(* Definition is_csqrt x y: Prop :=  (x * x = y)%C. *)
+(* Lemma is_csqrt_is_separated : forall x, separated_predicate (fun y => is_csqrt y x). *)
+(* Proof. *)
+(*   intros. *)
+(*   destruct (Complex_destruct x) as [rx [ix ex]]. *)
+(*   rewrite ex. *)
+(*   unfold is_csqrt. *)
+  
+(*   simpl. *)
+(*   exists O. *)
+(*   intros. *)
+  
+(*   intros n. *)
+    
+(*     : Prop *)
+(*   := exists n, forall x y, P x -> P y -> euclidean_max_dist x y >= prec n.  *)
+
+
+(* Lemma is_csqrt_is_closed : forall x, closed_predicate (fun y => is_csqrt y x). *)
+(* Proof. *)
+(*   intros. *)
+(*   intro. *)
+(*   intros. *)
+  
+(*   pose proof (euclidean_limit f H). *)
+(*   destruct H2. *)
+(*   assert (x0 = x1). *)
+(*   apply (euclidean_limit_is_unique f _ _ H1 e). *)
+(*   induction H2. *)
+(*   assert (x0 =  *)
