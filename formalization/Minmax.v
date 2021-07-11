@@ -197,3 +197,178 @@ Proof.
       rewrite H; ring.
 Defined.
 
+
+
+(* properties of max function *)
+
+
+Lemma Realmax_eq_fst_le : forall x y z, projP1 _ _ (Realmax x y) = z -> x <= z.
+Proof.
+  intros.
+  destruct (Realmax x y).
+  destruct w.
+  destruct a.
+  simpl in H.
+  destruct (Realtotal_order x y).
+  pose proof (e1 H0).
+  induction (eq_sym H1).
+  induction (eq_sym H).
+  left; exact H0.
+  destruct H0.
+  induction H0.
+  induction (e0 eq_refl).
+  right; exact H.
+  induction (e H0).
+  induction (eq_sym H).
+  right; exact (eq_refl).
+Qed.
+
+Lemma Realmax_sym : forall x y, projP1 _ _ (Realmax x y) = projP1 _ _ (Realmax y x).
+Proof.
+  intros.
+  destruct (Realmax x y).
+  destruct (Realmax y x).
+  simpl.
+  destruct w.
+  destruct H0.
+  destruct w0.
+  destruct H3.
+  destruct (Realtotal_order x y).
+  rewrite (H1 H5).
+  rewrite (H2 H5).
+  auto.
+  destruct H5.
+  rewrite (H0 H5).
+  rewrite (H3 (eq_sym H5)).
+  auto.
+  rewrite (H H5).
+  rewrite (H4 H5).
+  auto.
+Qed.
+
+Lemma Realmax_cand : forall x y, projP1 _ _ (Realmax x y) =  x \/ projP1 _ _ (Realmax x y) =  y.
+Proof.
+  intros.
+  destruct (Realmax x y).
+  simpl.
+  destruct w as [p [q r]].
+  destruct (Realtotal_order x y).
+  right; apply r; exact H.
+  destruct H.
+  left; apply q; exact H.
+  left; apply p; exact H.
+Qed.
+
+
+Lemma Realmax_eq_snd_le : forall x y z, projP1 _ _ (Realmax x y) = z -> y <= z.
+Proof.
+  intros.
+  rewrite Realmax_sym in H.
+  apply (Realmax_eq_fst_le y x).
+  exact H.
+Qed.
+
+
+Lemma Realmax_fst_ge_ge : forall x y z, x >= z -> projP1 _ _ (Realmax x y) >= z.
+Proof.
+  intros.
+  destruct (Realmax x y).
+  destruct w.
+  destruct a.
+  simpl.
+  destruct (Realtotal_order x y).
+  pose proof (e1 H0).
+  induction (eq_sym H1).
+  destruct H.
+  left; apply (Reallt_lt_lt _ _ _ H H0).
+  left; rewrite <- H; exact H0.
+  destruct H0.
+  induction H0.
+  rewrite (e0 eq_refl).
+  exact H.
+  rewrite (e H0).
+  exact H.
+Qed.
+
+Lemma Realmax_snd_ge_ge : forall x y z, y >= z -> projP1 _ _ (Realmax x y) >= z.
+Proof.
+  intros.
+  rewrite Realmax_sym.
+  apply (Realmax_fst_ge_ge y x).
+  exact H.
+Qed.
+
+  
+Lemma Realmax_fst_ge : forall x y, projP1 _ _ (Realmax x y) >= x.
+Proof.
+  intros.
+  apply (Realmax_fst_ge_ge _ _ x).
+  right; auto.
+Qed.
+
+  
+Lemma Realmax_snd_ge : forall x y, projP1 _ _ (Realmax x y) >= y.
+Proof.
+  intros.
+  apply (Realmax_snd_ge_ge _ _ y).
+  right; auto.
+Qed.
+  
+
+Lemma Realmax_le_fst_le : forall x y z, projP1 _ _ (Realmax x y) <= z -> x <= z.
+Proof.
+  intros.
+  destruct (Realmax x y).
+  simpl in H.
+  destruct w as [p [q r]].
+  destruct (Realtotal_order x y).
+  induction (eq_sym (r H0)).
+
+  left; apply (Reallt_le_lt _ _ _ H0 H).
+  destruct H0.
+  induction H0.
+  induction (eq_sym (q eq_refl)).
+  exact H.
+  induction (eq_sym (p H0)).
+  exact H.
+Qed.
+
+Lemma Realmax_le_snd_le : forall x y z, projP1 _ _ (Realmax x y) <= z -> y <= z.
+Proof.
+  intros.
+  rewrite Realmax_sym in H.
+  apply (Realmax_le_fst_le y x).
+  exact H.
+Qed.
+
+Lemma Realmax_le_le_le : forall x y z, x<= z -> y <= z -> projP1 _ _ (Realmax x y) <= z.
+Proof.
+  intros.
+  destruct (Realmax_cand x y).
+  rewrite H1; auto.
+  rewrite H1; auto.
+Qed.
+
+
+Lemma Real_le_ge_eq : forall x y, x <= y -> x >= y -> x = y.
+Proof.
+  intros.
+  destruct H, H0.
+  induction (Reallt_nlt _ _ H H0).
+  rewrite H0 in H; induction (Realnlt_triv _ H).
+  rewrite H in H0 ; induction (Realnlt_triv _ H0).
+  exact H.
+Qed.
+
+  
+
+Lemma Realabs_le0_eq0 : forall x, abs x <= Real0 -> x = Real0.
+Proof.
+  intros.
+  pose proof (abs_pos x).
+  destruct H, H0.
+  induction (Reallt_nlt _ _ H H0).
+  rewrite H0 in H; induction (Realnlt_triv _ H).
+  rewrite H in H0 ; induction (Realnlt_triv _ H0).
+  exact (proj1 (abs_zero x) H ). 
+Qed.  
