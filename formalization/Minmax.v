@@ -372,3 +372,64 @@ Proof.
   rewrite H in H0 ; induction (Realnlt_triv _ H0).
   exact (proj1 (abs_zero x) H ). 
 Qed.  
+
+
+
+Definition Realmaxf x y := projP1 _ _ (Realmax x y).
+Lemma Realmax_plus_eq : forall a b c, c + Realmaxf a b = Realmaxf (a + c) (b + c).
+Proof.
+  intros.
+  unfold Realmaxf.
+  destruct (Realmax (a + c) (b + c)),  (Realmax a b).
+  destruct w.
+  destruct a0.
+  destruct w0.
+  destruct a0.
+  simpl.
+  destruct (Realtotal_order a b).
+  rewrite (e4 H).
+  rewrite Realplus_comm; apply eq_sym, e1.
+  apply (Reallt_plus_r_lt c) in H; exact H.
+  destruct H.
+  induction H.
+  rewrite (e3 eq_refl).
+  rewrite (e0 eq_refl); ring.
+  rewrite (e2 H).
+  rewrite (Realplus_comm); apply eq_sym, e.
+  apply (Reallt_plus_r_lt c) in H; exact H.
+Qed.
+
+Lemma Realmax_fst_le_le : forall a b c , a <= b -> a <= Realmaxf b c.
+Proof.
+  intros.
+  unfold Realmaxf.
+  destruct (Realmax b c).
+  simpl.
+  destruct w.
+  destruct H1.
+  destruct (Realtotal_order b c).
+  rewrite (H2 H3).
+  left; apply (Realle_lt_lt _ _ _ H H3).
+  destruct H3.
+  induction H3.
+  rewrite (H1 eq_refl); auto.
+  rewrite (H0 H3); auto.
+Defined.
+
+Lemma Realmax_snd_le_le : forall a b c , a <= b -> a <= Realmaxf c b.
+Proof.
+  intros.
+  unfold Realmaxf.
+  rewrite (Realmax_sym).
+  apply Realmax_fst_le_le.
+  exact H.
+Qed.
+
+
+Lemma Realmax_compwise_le : forall a b c d, a <= b -> c <= d -> projP1 _ _ (Realmax a c) <= projP1 _ _ (Realmax b d).
+Proof.
+  intros.
+  pose proof (Realmax_fst_le_le _ _ d H).
+  pose proof (Realmax_snd_le_le _ _ b H0).
+  apply (Realmax_le_le_le _ _ _ H1 H2).
+Qed.

@@ -57,13 +57,7 @@ Defined.
 
 
 (* metric space *)
-Definition euclidean_max_norm {n : nat} (x : euclidean n) : Real.
-Proof.
-  induction x.
-  exact Real0.
-  destruct (Realmax (abs r) IHx) as [m h].
-  exact m.
-Defined.
+
 
 Definition euclidean_zero (n : nat) : euclidean n.
 Proof.
@@ -94,6 +88,30 @@ Defined.
 
 Definition euclidean_minus {n : nat} (x y : euclidean n) : euclidean n
   := euclidean_plus x (euclidean_opp y).
+
+
+Definition euclidean_max_norm {n : nat} (x : euclidean n) : Real.
+Proof.
+  induction x.
+  exact Real0.
+  destruct (Realmax (abs r) IHx) as [m h].
+  exact m.
+Defined.
+
+Lemma euclidean_max_norm_abs : forall {n : nat} (x : euclidean n), euclidean_max_norm x = euclidean_max_norm (euclidean_opp x).
+Proof.
+  intros.
+  induction n.
+  rewrite (dim_zero_destruct x).
+  simpl; auto.
+  destruct (dim_succ_destruct x) as [hx [tx ex]].
+  rewrite ex.
+  pose proof (IHn tx).
+  simpl.
+  rewrite H.
+  rewrite (abs_symm).
+  auto.
+Qed.
 
 Definition euclidean_max_dist {n : nat} (x y : euclidean n) : Real
   := euclidean_max_norm (euclidean_minus x y).
@@ -215,7 +233,58 @@ Proof.
 Qed.
 
 
-(* euclidean space is complete *)
+
+Lemma Realmax_aux : forall a b c d,  Realmaxf (a + b) (c + d) <= Realmaxf a c + Realmaxf b d.
+Proof.
+  intros.
+  repeat rewrite Realmax_plus_eq.
+  apply Realmax_le_le_le.
+  apply Realmax_fst_le_le.
+  apply Realmax_fst_le_le.
+  right; auto.
+  
+  apply Realmax_snd_le_le.
+  apply Realmax_snd_le_le.
+  right; auto.
+Qed.
+
+
+Lemma euclidean_max_dist_tri : forall {n : nat} (x y z: euclidean n),
+    euclidean_max_dist x z <= euclidean_max_dist x y + euclidean_max_dist y z.
+Proof.
+  intros.
+  induction n.
+  rewrite (dim_zero_destruct x), (dim_zero_destruct y), (dim_zero_destruct z).
+  rewrite (proj2 (euclidean_max_dist_id nil nil) eq_refl). 
+  right; ring.
+  destruct (dim_succ_destruct x) as [hx [tx ex]], (dim_succ_destruct y) as [hy [ty ey]], (dim_succ_destruct z) as [hz [tz ez]].
+  rewrite ex, ey, ez.
+  repeat rewrite (euclidean_max_dist_cons).
+  pose proof (IHn tx ty tz).
+  pose proof (dist_tri hx hy hz).
+  apply Realge_le in H0.
+  pose proof (Realmax_compwise_le _  _ _ _ H0 H).
+  apply (Realle_le_le _ _ _ H1 (Realmax_aux _ _ _ _ )).
+Qed.
+  
+Lemma euclidean_max_dist_sym : forall {n : nat} (x y: euclidean n),
+    euclidean_max_dist x y = euclidean_max_dist y x.
+Proof.
+  intros.
+  unfold euclidean_max_dist.
+  rewrite euclidean_max_norm_abs at 1.
+  unfold euclidean_minus.
+  induction n.
+  rewrite (dim_zero_destruct x), (dim_zero_destruct y); simpl; auto.
+  destruct (dim_succ_destruct x) as [hx [tx ex]], (dim_succ_destruct y) as [hy [ty ey]].
+  rewrite ex, ey.
+  simpl.
+  rewrite <- (IHn tx ty).
+  replace (- (hx + - hy)) with (hy + - hx) by ring.
+  auto.
+Qed.
+
+  (* euclidean space is complete *)
 Definition euclidean_is_fast_cauchy {n : nat} (f : nat -> euclidean n) : Prop
   := forall n m, euclidean_max_dist (f n) (f m) <= prec n + prec m.
 
@@ -318,4 +387,154 @@ Proof.
   exact H1.
 Defined.
 
+Lemma euclidean_limit_is_unique : forall {n : nat} (f : nat -> euclidean n) x y, euclidean_is_fast_limit x f -> euclidean_is_fast_limit y f -> x = y.
+Proof.
+  intros.
+  induction n.
+  rewrite (dim_zero_destruct x), (dim_zero_destruct y); auto.
+  destruct (dim_succ_destruct x) as [hx [tx ex]], (dim_succ_destruct y) as [hy [ty ey]].
+  rewrite ex, ey.
+  assert (tx = ty).
+  apply (IHn (euclidean_tail_sequence f)).
+  intro k.
+  pose proof (H k).
+  destruct (dim_succ_destruct (f k)) as [hfk [tfk efk]].
+  rewrite efk in H1.
+  rewrite ex in H1.
+  pose proof (euclidean_max_dist_cons tx tfk hx hfk).
+  rewrite H2 in H1.
+  clear H2.
+  pose proof (Realmax_le_snd_le _ _ _ H1).
+  unfold euclidean_tail_sequence.
+  rewrite efk.
+  simpl.
+  exact H2.
+  intro k.
+  pose proof (H0 k).
+  destruct (dim_succ_destruct (f k)) as [hfk [tfk efk]].
+  rewrite efk in H1.
+  rewrite ey in H1.
+  pose proof (euclidean_max_dist_cons ty tfk hy hfk).
+  rewrite H2 in H1.
+  clear H2.
+  pose proof (Realmax_le_snd_le _ _ _ H1).
+  unfold euclidean_tail_sequence.
+  rewrite efk.
+  simpl.
+  exact H2.
+  rewrite H1.
+  assert (hx = hy).
+  clear H1.
+  apply (limit_is_unique (euclidean_head_sequence f)).
+  intro k.
+  pose proof (H k).
+  destruct (dim_succ_destruct (f k)) as [hfk [tfk efk]].
+  rewrite efk in H1.
+  rewrite ex in H1.
+  pose proof (euclidean_max_dist_cons tx tfk hx hfk).
+  rewrite H2 in H1.
+  clear H2.
+  pose proof (Realmax_le_fst_le _ _ _ H1).
+  unfold euclidean_head_sequence.
+  rewrite efk.
+  simpl.
+  exact (proj1 (dist_le_prop hx hfk (prec k)) H2).
 
+  intro k.
+  pose proof (H0 k).
+  destruct (dim_succ_destruct (f k)) as [hfk [tfk efk]].
+  rewrite efk in H1.
+  rewrite ey in H1.
+  pose proof (euclidean_max_dist_cons ty tfk hy hfk).
+  rewrite H2 in H1.
+  clear H2.
+  pose proof (Realmax_le_fst_le _ _ _ H1).
+  unfold euclidean_head_sequence.
+  rewrite efk.
+  simpl.
+  exact (proj1 (dist_le_prop hy hfk (prec k)) H2).
+  rewrite H2; auto.
+Qed.
+
+
+  
+Lemma euclidean_limit_P : forall {n : nat} (P : euclidean n -> Prop),
+    (exists! x, P x) -> (forall m, {e  | exists a, P a /\ euclidean_max_dist e a <= prec m}) -> {a | P a}.
+Proof.
+  intros.
+  assert (euclidean_is_fast_cauchy (fun k => projP1 _ _ (H0 k))).
+  intros l m.
+  simpl.
+  destruct (H0 l), (H0 m).
+  simpl.
+  destruct e, e0.
+  destruct H1, H2.
+  destruct H.
+  destruct H.
+  induction (H5 _ H1).
+  induction (H5 _ H2).
+  rewrite euclidean_max_dist_sym in H4.
+  pose proof (Realle_le_plus_le _ _ _ _ H3 H4).
+  pose proof (euclidean_max_dist_tri x x3 x0).
+  apply (Realle_le_le _ _ _ H7 H6).
+  exists (projP1 _ _  (euclidean_limit _ H1)).
+  destruct H.
+  assert ( (projP1 (euclidean n)
+       (fun x0 : euclidean n =>
+        euclidean_is_fast_limit x0
+          (fun k : nat =>
+           projP1 (euclidean n)
+             (fun e : euclidean n =>
+              exists a : euclidean n, P a /\ euclidean_max_dist e a <= prec k) 
+             (H0 k)))
+       (euclidean_limit
+          (fun k : nat =>
+           projP1 (euclidean n)
+             (fun e : euclidean n =>
+              exists a : euclidean n, P a /\ euclidean_max_dist e a <= prec k) 
+             (H0 k)) H1))
+           = x).
+  destruct (
+       (euclidean_limit
+       (fun k : nat =>
+        projP1 (euclidean n)
+          (fun e : euclidean n =>
+           exists a : euclidean n, P a /\ euclidean_max_dist e a <= prec k) 
+          (H0 k)) H1)).
+  simpl.
+  apply (euclidean_limit_is_unique _ _ _ e).
+  intro k.
+  destruct (H0 k).
+  simpl.
+  destruct e0.
+  destruct H2.
+  destruct H.
+  induction (H4 _ H2).
+  rewrite (euclidean_max_dist_sym).
+  exact H3.
+  rewrite H2.
+  destruct H.
+  exact H.
+Defined.
+
+
+Lemma euclidean_mslimit_P : forall {n : nat} (P : euclidean n -> Prop),
+    (exists! x, P x) -> (forall m, M {e  | exists a, P a /\ euclidean_max_dist e a <= prec m}) -> {a | P a}.
+Proof.
+  intros.
+  apply singletonM.
+  intros x y.
+  destruct x, y.
+  destruct H.
+  destruct H.
+  assert (x = x0).
+  rewrite <- (H0 _ p), <- (H0 _ p0); auto.
+  induction H1.
+  assert (p = p0) by apply irrl.
+  rewrite H1.
+  auto.
+  apply countableLiftM in X.
+  apply (fun f => liftM _ _ f X). 
+  intro.
+  apply (euclidean_limit_P P H H0).
+Defined.
