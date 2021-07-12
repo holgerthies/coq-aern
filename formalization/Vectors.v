@@ -572,13 +572,57 @@ Proof.
   apply (euclidean_limit_P P H H0).
 Defined.
 
-Require Import MultiLimit.
-Definition w_approx {n} (P : euclidean n -> Prop) (k : nat) (x : euclidean n) : Prop
+
+
+(* Subsets of Euclidean space *)
+Definition euclidean_complement {T} : (T -> Prop) -> (T -> Prop)   := fun P x => ~ P x.
+Definition euclidean_is_open {n} (P : euclidean n -> Prop) :  Prop
+  :=  forall x, P x -> exists n, forall y, euclidean_max_dist x y < prec n -> P y.
+Definition euclidean_is_closed {n} (S : euclidean n -> Prop) := euclidean_is_open (euclidean_complement S).
+Definition euclidean_w_approx {n} (P : euclidean n -> Prop) (k : nat) (x : euclidean n) : Prop
   := exists y, P y /\ euclidean_max_dist x y <= prec k.
 
-Definition closed_predicate {n} (P : euclidean n -> Prop) :=
-  forall f : nat -> euclidean n,
-    euclidean_is_fast_cauchy f -> (forall n, w_approx P n (f n)) -> (forall x, euclidean_is_fast_limit x f -> P x).
+Definition euclidean_is_seq_closed {n} (P : euclidean n -> Prop) :=
+  forall f, 
+    euclidean_is_fast_cauchy f -> (forall n, euclidean_w_approx P n (f n)) -> (forall x, euclidean_is_fast_limit x f -> P x).
+
+Definition euclidean_is_closed_is_seq_complete : forall {n} (P : euclidean n -> Prop), euclidean_is_closed P -> euclidean_is_seq_closed P.
+Proof.
+  intros d P H f c j a b.
+  destruct (lem (P a)); auto.
+  pose proof (H _ H0).
+  destruct H1.
+  
+  pose proof (j (S (S x))).
+  unfold euclidean_w_approx in H2.
+  destruct H2.
+  destruct H2.
+  pose proof (H1 x0).
+  contradict H2.
+  apply H4.
+  pose proof (b (S (S x))).
+  (* pose proof (proj2 (dist_le_prop a (f (S (S x))) (prec (S (S x)))) H2). *)
+  pose proof (euclidean_max_dist_tri a (f (S (S x))) x0).
+  pose proof (Realle_le_plus_le _ _ _ _ H2 H3).
+  (* apply (Realge_le) in H5. *)
+  pose proof (Realle_le_le _ _ _ H5 H6).
+  apply (Realle_lt_lt _ _ _ H7).
+  assert ( prec (S (S x)) + prec (S (S x)) = prec (S x)).
+  simpl.
+  unfold Realdiv.
+  replace (prec x * / Real2_neq_Real0 * / Real2_neq_Real0 +
+           prec x * / Real2_neq_Real0 * / Real2_neq_Real0) with (prec x * (/ Real2_neq_Real0 * (Real1 + Real1) ) * / Real2_neq_Real0) by ring.
+  rewrite Realmult_inv.
+  ring_simplify.
+  auto.
+  rewrite H8.
+  apply prec_S.
+Defined.
+
+
+
+(* multi limit of euclidean space *)
+Require Import MultiLimit.
 Lemma euclidean_consecutive_converging_fast_cauchy  : forall {d} (f : nat -> euclidean d),
     (forall n, euclidean_max_dist (f n) (f (S n)) <= prec (S n)) -> euclidean_is_fast_cauchy f.
 Proof.
@@ -641,19 +685,19 @@ Qed.
 
 
 Definition euclidean_mlimit_P {d} : forall P : euclidean d -> Prop,
-    closed_predicate P ->
-    M {x | w_approx P O x} ->
-    (forall n x, w_approx P n x ->
-                 M {y  | w_approx P (S n) y /\ euclidean_max_dist x y <= prec (S n)}) ->
+    euclidean_is_seq_closed P ->
+    M {x : euclidean d | euclidean_w_approx P O x} ->
+    (forall n x, euclidean_w_approx P n x ->
+                 M {y  | euclidean_w_approx P (S n) y /\ euclidean_max_dist x y <= prec (S n)}) ->
     M {x | P x}. 
 Proof.
   intros P c X f.
-  assert ((forall n (x : {x | w_approx P n x}),
-              M {y : { y | w_approx P (S n) y} | euclidean_max_dist (projP1 _ _ x) (projP1 _ _ y) <= prec  (S n)})).
+  assert ((forall n (x : {x | euclidean_w_approx P n x}),
+              M {y : { y | euclidean_w_approx P (S n) y} | euclidean_max_dist (projP1 _ _ x) (projP1 _ _ y) <= prec  (S n)})).
   intros.
   destruct x.
-  pose proof (f n x w).
-  apply (liftM {y  | w_approx P (S n) y /\ euclidean_max_dist x y <= prec (S n)}).
+  pose proof (f n x e).
+  apply (liftM {y  | euclidean_w_approx P (S n) y /\ euclidean_max_dist x y <= prec (S n)}).
   intro.
   destruct H.
   destruct a.
@@ -663,12 +707,12 @@ Proof.
   exact X0.
   pose proof (pathsM _ _ X X0).
   simpl in X1.
-  apply (lift_domM {x | w_approx P 0 x}).
+  apply (lift_domM {x | euclidean_w_approx P 0 x}).
   intro.
-  apply (liftM {f : forall n : nat, {x  | w_approx P n x}
+  apply (liftM {f : forall n : nat, {x  | euclidean_w_approx P n x}
                | forall m : nat,
-                   euclidean_max_dist (projP1 _ (fun x  => w_approx P m x) (f m))
-                        (projP1 _ (fun y  => w_approx P (S m) y) (f (S m))) <= prec (S m)}).
+                   euclidean_max_dist (projP1 _ (fun x  => euclidean_w_approx P m x) (f m))
+                        (projP1 _ (fun y  => euclidean_w_approx P (S m) y) (f (S m))) <= prec (S m)}).
   intro.
   destruct H.
   destruct H0.
@@ -680,14 +724,14 @@ Proof.
   destruct H0.
   exists x1.
   pose proof (c (fun n => projP1 _ _ (x0 n)) H).
-  assert (forall n : nat, w_approx P n ((fun n0 : nat => projP1 _ (w_approx P n0) (x0 n0)) n)).
+  assert (forall n : nat, euclidean_w_approx P n ((fun n0 : nat => projP1 _ (euclidean_w_approx P n0) (x0 n0)) n)).
   intro.
   destruct (x0 n).
   simpl.
-  exact w0.
+  exact e1.
   apply (H0 H1).
   
-  exact e.
+  exact e0.
   exact X1.
   exact X.
 Defined.
