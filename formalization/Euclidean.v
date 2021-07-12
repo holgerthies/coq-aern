@@ -55,6 +55,21 @@ Proof.
   auto.
 Defined.
 
+Definition euclidean_head {n : nat} : euclidean (S n) -> Real.
+Proof.
+  intros.
+  destruct (dim_succ_destruct H).
+  exact x.
+Defined.
+
+Definition euclidean_tail {n : nat} : euclidean (S n) -> euclidean n.
+Proof.
+  intros.
+  destruct (dim_succ_destruct H).
+  destruct s.
+  exact x0.
+Defined.
+
 
 (* metric space *)
 

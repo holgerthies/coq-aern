@@ -11,7 +11,7 @@ RealMetric.v
 RealLimit2.v
 Real.v
 Minmax.v
-Vectors.v
+Euclidean.v
 Complex.v
 RealSubsets.v
 IVT.v
