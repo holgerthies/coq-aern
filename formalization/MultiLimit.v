@@ -1,19 +1,21 @@
 Require Import Real.
+Require Import RealSubsets.
 (* computing a multivalued function using limit; e.g., complex sqrt *)
+
 
 Require Import Psatz.
 
 (* for a classical description of real numbers [P : Real -> Prop],
    [x : Real] approximates it by [prec n] *)
-Definition w_approx (P : Real -> Prop) (n : nat) (x : Real) : Prop
-  := exists y, P y /\ dist x y <= prec n.
+(* Definition w_approx (P : Real -> Prop) (n : nat) (x : Real) : Prop *)
+(*   := exists y, P y /\ dist x y <= prec n. *)
 
-(* a predicate [P : Real -> Prop] is complete if for any converging seqeunce
-   [f : nat -> Real] such that [w_approx P n (f n)] holds for all [n : nat],
-   the limit point satisfies [P x]. For example, [Real \ {0}] is not complete. *)
-Definition closed_predicate (P : Real -> Prop) :=
-  forall f : nat -> Real,
-    is_fast_cauchy f -> (forall n, w_approx P n (f n)) -> (forall x, is_fast_limit x f -> P x).
+(* (* a predicate [P : Real -> Prop] is complete if for any converging seqeunce *)
+(*    [f : nat -> Real] such that [w_approx P n (f n)] holds for all [n : nat], *)
+(*    the limit point satisfies [P x]. For example, [Real \ {0}] is not complete. *) *)
+(* Definition closed_predicate (P : Real -> Prop) := *)
+(*   forall f : nat -> Real, *)
+(*     is_fast_cauchy f -> (forall n, w_approx P n (f n)) -> (forall x, is_fast_limit x f -> P x). *)
 
 
 (* from a multivalued procedure apporximating, we get approximating sequences *)
@@ -109,7 +111,7 @@ Defined.
    [x] is [prec n] approximation of [P]) it gives us a multivalued real numbers 
    that are in [P] *)
 Definition Real_mlimit_P : forall P : Real -> Prop,
-    closed_predicate P ->
+    is_seq_closed P ->
     M {x : Real | w_approx P O x} ->
     (forall n x, w_approx P n x ->
                  M {y : Real | w_approx P (S n) y /\ dist x y <= prec (S n)}) ->
