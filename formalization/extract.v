@@ -41,7 +41,7 @@ Extract Inlined Constant Realopp => "Prelude.negate".
 Extract Inlined Constant Realinv => "Prelude.recip".
 Extract Inlined Constant Reallt_semidec => "(OGB.<)".
 Extract Inlined Constant Realgt_semidec => "(OGB.>)".
-Extract Inlined Constant C_limit => "AERN2.limit".
+Extract Inlined Constant Real_limit_p => "AERN2.limit".
 
 Extract Inductive bool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
 Extract Inductive sumbool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].

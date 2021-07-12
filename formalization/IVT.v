@@ -991,7 +991,7 @@ Lemma CIVT : forall (f : Real -> Real),
     continuous f -> uniq f Real0 Real1 -> {z | Real0<z<Real1 /\ f z = Real0}.
 Proof.
   intros f cont u.
-  apply mslimit.
+  apply Real_mslimit_P.
   + (* root is unique that is uniq *)
     destruct u as [_ [_ un]]; exact un.
   + (* construct limit *)
@@ -1032,6 +1032,6 @@ Proof.
            replace (y+-x) with (y-x) in p2 by ring.
            left; exact p2.
        +++ pose proof (Realle_le_le (dist x z) (dist x y) (prec (S n)) F Q4) as H.
-           exact (Realle_lt_lt (dist x z) (prec (S n)) (prec n) H (prec_S n)).
+           left; exact (Realle_lt_lt (dist x z) (prec (S n)) (prec n) H (prec_S n)).
 
 Defined.

@@ -29,12 +29,12 @@ Proof.
   contradict H2.
   apply H4.
   pose proof (b (S (S x))).
-  pose proof (proj2 (dist_le_prop a (f (S (S x))) (prec (S (S x)))) H2).
+  (* pose proof (proj2 (dist_le_prop a (f (S (S x))) (prec (S (S x)))) H2). *)
   pose proof (dist_tri a (f (S (S x))) x0).
-  pose proof (Realle_le_plus_le _ _ _ _ H5 H3).
-  apply (Realge_le) in H6.
-  pose proof (Realle_le_le _ _ _ H6 H7).
-  apply (Realle_lt_lt _ _ _ H8).
+  pose proof (Realle_le_plus_le _ _ _ _ H2 H3).
+  apply (Realge_le) in H5.
+  pose proof (Realle_le_le _ _ _ H5 H6).
+  apply (Realle_lt_lt _ _ _ H7).
   assert ( prec (S (S x)) + prec (S (S x)) = prec (S x)).
   simpl.
   unfold Realdiv.
@@ -43,7 +43,7 @@ Proof.
   rewrite Realmult_inv.
   ring_simplify.
   auto.
-  rewrite H9.
+  rewrite H8.
   apply prec_S.
 Defined.
 

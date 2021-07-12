@@ -5,8 +5,10 @@ Require Export RealRing.
 Require Export RealOrder.
 Require Export RealOrderTactic.
 
+
+(* classical limit *)
 Definition fast_lower_set (f : nat -> Real) := fun x => exists n, x <= f n - prec n.
-Lemma fast_lower_set_nemp : forall f, is_fast_cauchy f -> W_nemp (fast_lower_set f).
+Lemma fast_lower_set_nemp : forall f, is_fast_cauchy_p f -> W_nemp (fast_lower_set f).
 Proof.
   intros.
   exists (f(0) - prec O).
@@ -15,7 +17,7 @@ Proof.
   right; auto.
 Qed.
 
-Lemma lower_set_upbd : forall f, is_fast_cauchy f -> W_upbd (fast_lower_set f).
+Lemma lower_set_upbd : forall f, is_fast_cauchy_p f -> W_upbd (fast_lower_set f).
 Proof.
   intros.
   exists (f(0) + prec 0).
@@ -32,13 +34,13 @@ Proof.
 Defined.
 
 
-Definition W_limit : forall f, is_fast_cauchy f -> exists x, is_fast_limit x f.
+Definition W_limit : forall f, is_fast_cauchy_p f -> exists x, is_fast_limit_p x f.
 Proof.
   intros.
   pose proof (W_complete (fast_lower_set f) (fast_lower_set_nemp f H) (lower_set_upbd f H)).
   destruct H0.
   exists x.
-  unfold is_fast_limit.
+  unfold is_fast_limit_p.
   intro.
   unfold W_sup in H0.
   unfold fast_lower_set in H0.
@@ -74,13 +76,11 @@ Proof.
   replace (- f n + (prec n + f n)) with (prec n) in H4 by ring.
   exact H4.
 Defined.
-
-
   
-Lemma limit_is_unique : forall f x y, is_fast_limit x f -> is_fast_limit y f -> x = y.
+Lemma limit_is_unique : forall f x y, is_fast_limit_p x f -> is_fast_limit_p y f -> x = y.
 Proof.
   intros.
-  unfold is_fast_limit in H, H0.
+  unfold is_fast_limit_p in H, H0.
   destruct (Realtotal_order x y) as [c1|[c2|c3]].
   pose proof (padding y x c1) as H2.
   destruct H2 as [eps [p1 p2]].
@@ -139,7 +139,7 @@ Qed.
 
 (* constructive limit axiom *)
 
-Lemma limit_only_if_fast_cauchy : forall f x, is_fast_limit x f -> is_fast_cauchy f.
+Lemma limit_only_if_fast_cauchy : forall f x, is_fast_limit_p x f -> is_fast_cauchy_p f.
 Proof.
   intros f x H n m.
   pose proof (H n).
@@ -156,14 +156,16 @@ Proof.
   exact H4.
 Qed.
 
-Lemma limit :
+
+
+Lemma Real_limit_P_lt_p :
   forall (P : Real -> Prop),
     (exists! z, P z) ->
     ((forall n, {e : Real | (exists a : Real, P a /\ - prec n < e - a < prec n)}) ->
     {a : Real | P a}).
 Proof.
   intros P f p.
-  assert (is_fast_cauchy (fun n => projP1 _ _ (p n))).
+  assert (is_fast_cauchy_p (fun n => projP1 _ _ (p n))).
   destruct f.
   apply (limit_only_if_fast_cauchy _ x).
   intros n.
@@ -185,21 +187,21 @@ Proof.
   ring_simplify in H1.
   exact H1.
 
-  exists (projP1 _ _ (C_limit _ H)). 
+  exists (projP1 _ _ (Real_limit_p _ H)). 
   destruct f.
   assert (
       (projP1 Real
        (fun x0 : Real =>
-        is_fast_limit x0
+        is_fast_limit_p x0
           (fun n : nat => projP1 Real (fun e : Real => exists a : Real, P a /\ - prec n < e - a < prec n) (p n)))
-       (C_limit
+       (Real_limit_p
           (fun n : nat => projP1 Real (fun e : Real => exists a : Real, P a /\ - prec n < e - a < prec n) (p n)) H))
       =
       x).
-  destruct ((C_limit
+  destruct ((Real_limit_p
                (fun n : nat => projP1 Real (fun e : Real => exists a : Real, P a /\ - prec n < e - a < prec n) (p n)) H)).
   simpl.
-  assert (is_fast_limit x (fun n : nat => projP1 Real (fun e : Real => exists a : Real, P a /\ - prec n < e - a < prec n) (p n))).
+  assert (is_fast_limit_p x (fun n : nat => projP1 Real (fun e : Real => exists a : Real, P a /\ - prec n < e - a < prec n) (p n))).
   intros n.
   destruct (p n).
   simpl.
@@ -225,14 +227,14 @@ Proof.
   exact H0.
 Defined.
 
-Lemma limit_eq :
+Lemma Real_limit_P_p :
   forall (P : Real -> Prop),
     (exists! z, P z) ->
     ((forall n, {e : Real | (exists a : Real, P a /\ - prec n <= e - a <= prec n)}) ->
     {a : Real | P a}).
 Proof.
   intros P f p.
-  assert (is_fast_cauchy (fun n => projP1 _ _ (p n))).
+  assert (is_fast_cauchy_p (fun n => projP1 _ _ (p n))).
   destruct f.
   apply (limit_only_if_fast_cauchy _ x).
   intros n.
@@ -252,21 +254,21 @@ Proof.
   ring_simplify in H1.
   exact H1.
 
-  exists (projP1 _ _ (C_limit _ H)). 
+  exists (projP1 _ _ (Real_limit_p _ H)). 
   destruct f.
   assert (
       (projP1 Real
        (fun x0 : Real =>
-        is_fast_limit x0
+        is_fast_limit_p x0
           (fun n : nat => projP1 Real (fun e : Real => exists a : Real, P a /\ - prec n <= e - a <= prec n) (p n)))
-       (C_limit
+       (Real_limit_p
           (fun n : nat => projP1 Real (fun e : Real => exists a : Real, P a /\ - prec n <= e - a <= prec n) (p n)) H))
       =
       x).
-  destruct ((C_limit
+  destruct ((Real_limit_p
                (fun n : nat => projP1 Real (fun e : Real => exists a : Real, P a /\ - prec n <= e - a <= prec n) (p n)) H)).
   simpl.
-  assert (is_fast_limit x (fun n : nat => projP1 Real (fun e : Real => exists a : Real, P a /\ - prec n <= e - a <= prec n) (p n))).
+  assert (is_fast_limit_p x (fun n : nat => projP1 Real (fun e : Real => exists a : Real, P a /\ - prec n <= e - a <= prec n) (p n))).
   intros n.
   destruct (p n).
   simpl.
@@ -289,4 +291,60 @@ Proof.
   rewrite H1.
   destruct H0.
   exact H0.
+Defined.
+
+
+Definition Real_mslimit_P_p :
+  forall (P : Real -> Prop),
+    (exists! z, P z) ->
+    ((forall n, [e  | (exists a : Real, P a /\ -prec n <= e - a <= prec n)]) -> {a : Real | P a}).
+Proof.
+  intros.
+  apply (countableLiftM)  in X.
+  apply singletonM.
+  intros x y.
+  destruct H, x, y.
+  destruct H.
+  induction (H0 x1 p0).
+  induction (H0 x p).
+  induction (irrl _ p p0).
+  apply eq_refl.
+  assert (exists z : Real, P z).
+  destruct H.
+  exists x.
+  destruct H.
+  exact H.
+  assert ((forall n : nat, {e : Real | exists a : Real, P a /\ - prec n <= e - a <= prec n}) -> {a : Real | P a} ).
+  intro.
+
+  apply  (Real_limit_P_p P H H1).
+  apply (liftM _ _ H1 X).
+Defined.
+
+
+Definition Real_mslimit_P_lt_p :
+  forall (P : Real -> Prop),
+    (exists! z, P z) ->
+    ((forall n, [e  | (exists a : Real, P a /\ -prec n < e - a < prec n)]) -> {a : Real | P a}).
+Proof.
+  intros.
+  apply (countableLiftM)  in X.
+  apply singletonM.
+  intros x y.
+  destruct H, x, y.
+  destruct H.
+  induction (H0 x1 p0).
+  induction (H0 x p).
+  induction (irrl _ p p0).
+  apply eq_refl.
+  assert (exists z : Real, P z).
+  destruct H.
+  exists x.
+  destruct H.
+  exact H.
+  assert ((forall n : nat, {e : Real | exists a : Real, P a /\ - prec n < e - a < prec n}) -> {a : Real | P a} ).
+  intro.
+
+  apply  (Real_limit_P_lt_p P H H1).
+  apply (liftM _ _ H1 X).
 Defined.

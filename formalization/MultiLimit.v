@@ -20,7 +20,10 @@ Definition closed_predicate (P : Real -> Prop) :=
 Lemma consecutive_converging_fast_cauchy : forall f : nat -> Real,
     (forall n, dist (f n) (f (S n)) <= prec (S n)) -> is_fast_cauchy f.
 Proof.
-  intros f H n1 m1.
+  intros f H.
+  apply (proj2 (is_fast_cauchy_iff_p _)).
+  intros n1 m1.
+  
   assert (forall n m k,  (n <= m)%nat -> (k = m - n)%nat ->  - prec n - prec m <= f n - f m <= prec n + prec m).
   intros n m k H0 e.
   assert (m  = k + n)%nat by (rewrite e; lia).
@@ -105,7 +108,7 @@ Defined.
    such that (1) [y] approximates [P] by [prec (n + 1)] and (2) [|x-y| <= prec n] when 
    [x] is [prec n] approximation of [P]) it gives us a multivalued real numbers 
    that are in [P] *)
-Definition multivalued_limit : forall P : Real -> Prop,
+Definition Real_mlimit_P : forall P : Real -> Prop,
     closed_predicate P ->
     M {x : Real | w_approx P O x} ->
     (forall n x, w_approx P n x ->
@@ -141,7 +144,7 @@ Proof.
   assert (is_fast_cauchy (fun n => projP1 _ _ (x0 n))).
   apply consecutive_converging_fast_cauchy.
   exact r.
-  pose proof (C_limit _ H).
+  pose proof (Real_limit _ H).
   destruct H0.
   exists x1.
   pose proof (c (fun n => projP1 _ _ (x0 n)) H).

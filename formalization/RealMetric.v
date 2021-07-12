@@ -4,7 +4,7 @@ Require Import RealAxioms.
 Require Import RealRing.
 Require Import RealOrder.
 Require Import RealOrderTactic.
-Require Import RealLimit.
+Require Import RealLimit1.
 
 
 
@@ -12,39 +12,12 @@ Require Import Psatz.
 Require Import PeanoNat.
 
 
-Definition mslimitp :
-  forall (P : Real -> Prop),
-    (exists! z, P z) ->
-    ((forall n, [e  | (exists a : Real, P a /\ -prec n < e - a < prec n)]) -> {a : Real | P a}).
-Proof.
-  intros.
-  apply (countableLiftM)  in X.
-  apply singletonM.
-  intros x y.
-  destruct H, x, y.
-  destruct H.
-  induction (H0 x1 p0).
-  induction (H0 x p).
-  induction (irrl _ p p0).
-  apply eq_refl.
-  assert (exists z : Real, P z).
-  destruct H.
-  exists x.
-  destruct H.
-  exact H.
-  assert ((forall n : nat, {e : Real | exists a : Real, P a /\ - prec n < e - a < prec n}) -> {a : Real | P a} ).
-  intro.
-
-  apply  (limit P H H1).
-  apply (liftM _ _ H1 X).
-Defined.
-
 
 Definition abs_prop : forall x : Real, {y : Real | (x > Real0 -> y = x) /\ (x = Real0 -> y = Real0) /\ (x < Real0 -> y = - x)}.
 Proof.
   intros x.
 
-  apply mslimitp.
+  apply Real_mslimit_P_lt_p.
   destruct (Realtotal_order x Real0).
   exists (- x).
   split.
@@ -237,13 +210,6 @@ Proof.
   ring_simplify in H3.
   apply (Reallt_lt_lt _ _ _ H3 H2 ).
   
-
-
-
-
-
-  
-
   (* lifting *)
 
   apply (liftM _ _  H0).
@@ -728,107 +694,6 @@ Global Hint Resolve dist_1_0: Realiny.
 
 
   
-
-Definition slimit :
-  forall (P : Real -> Prop), (exists! z, P z) ->
-    (forall n, {e | (exists a : Real, P a /\ dist e a < prec n) }) -> {a : Real | P a}.
-Proof.
-  intros.
-  apply (limit P H).
-  intro.
-  destruct (H0 n).
-  exists x.
-  destruct e.
-  exists x0.
-  destruct H1.
-  
-  split; auto.
-  destruct (dist_prop x x0).
-  destruct H4.
-  destruct (Realtotal_order x x0).
-  split.
-  apply Reallt_anti_anti.
-  ring_simplify.
-  pose proof (H5 H6).
-  replace (-x + x0) with (x0 - x) by ring.
-  rewrite <- H7.
-  exact H2.
-
-  assert (x - x0 < Real0).
-  apply (Reallt_plus_r_lt (-x0) ) in H6.
-  ring_simplify in H6.
-  exact H6.
-  assert (prec n > Real0) by auto with Realiny.
-  exact (Reallt_lt_lt  _ _ _  H7 H8).
-
-  destruct H6.
-  rewrite H6.
-  replace (x0 - x0) with Real0 by ring.
-  split; auto with Realiny.
-  apply Reallt_anti_anti.
-  ring_simplify.
-  apply prec_pos.
-  apply prec_pos.
-
-  pose proof (H3 H6).
-  rewrite <- H7.
-  split; auto.
-  
-  
-  auto with Realiny.
-  
-  ring_simplify.
-  
-  
-  auto with Realiny.
-  
-  auto with Realiny.
-  
-  
-  ring_simplify in H7.
-  pose proof (dist_pos_t x x0).
-  assert (- prec n < Real0).
-  apply Reallt_anti_anti.
-  ring_simplify.
-  apply prec_pos.
-  destruct H8.
-  apply (Reallt_lt_lt _ _ _ H9 H8).
-  rewrite<- H8.
-  exact H9.
-Defined.
-
-Definition mslimit :
-  forall (P : Real -> Prop),
-    (exists! z, P z) ->
-    ((forall n, [e  | (exists a : Real, P a /\ dist e a < prec n)]) -> {a : Real | P a}).
-Proof.
-  intros.
-  apply (countableLiftM)  in X.
-  apply singletonM.
-  intros x y.
-  destruct H, x, y.
-  destruct H.
-  induction (H0 x1 p0).
-  induction (H0 x p).
-  induction (irrl _ p p0).
-  apply eq_refl.
-  assert (exists z : Real, P z).
-  destruct H.
-  exists x.
-  destruct H.
-  exact H.
-
-  
-  assert ((forall n : nat, {e : Real | exists a : Real, P a /\ dist e a < prec n}) -> {a : Real | P a} ).
-  intro.
-
-  apply  (slimit P H H1).
-  apply (liftM _ _ H1 X).
-Defined.
-
-
-
-
 
 
 Definition convex (x y w1 w2 : Real) : x < y -> w1 > Real0 -> w2 > Real0 -> Real.

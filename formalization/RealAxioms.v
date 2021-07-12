@@ -91,7 +91,7 @@ Fixpoint NReal (n : nat) : Real :=
   end.
 Arguments NReal n%nat.
 
-Fixpoint EZReal (z : EZ) : Real :=
+Definition EZReal (z : EZ) : Real :=
   match z with
   | Epos n => NReal n
   | Ezero => Real0
@@ -242,9 +242,23 @@ Axiom RealArchimedean : forall r : Real, r > Real0 -> exists n, prec n < r.
 (* 
    Axiom for constructive metric completeness.
    Previous axiom changed to be a lemma. And, it is proven in RealLimit.v
- *)
-Definition is_fast_cauchy (f : nat -> Real) := forall n m, - prec n - prec m <= f n - f m <= prec n + prec m.
-Definition is_fast_limit (x : Real) (f : nat -> Real) := forall n, - prec n <= x - f n <= prec n.
 
-Axiom C_limit :
-  forall f : nat -> Real, is_fast_cauchy f -> {x | is_fast_limit x f}.
+   postfix [_p] refers to "pre". Since we do not have metric of real numbers yet, we define "x approximates y by e" by  [- e <= x - y <= e] for now. 
+   Later, in RealMetric.v, we define the metric function [dist : Real -> Real -> Real].
+   Using the metric function, in RealLimit2.v, we define proper limit [Real_limit] that is based on
+   fast cauchy sequences [is_fast_cauchy] that is based on [dist] function.
+
+   There are various forms of limit operations provided by the library.
+
+   - [Real_limit] computes limit of fast cauchy sequences
+   - [Real_limit_P] given a classical predicate [P : Real -> Prop] which claisscally and uniquely defines a real number and a procedure that approximates the real number, it computes the real number.  
+   - [Real_mslimit_P] given a classical predicate [P : Real -> Prop] which claisscally and uniquely defines a real number and a procedure that nondeterministically approximates the real number, it computes the real number.
+   - [Real_mlimit_P] given a classical predicate [P : Real -> Prop] which claisscally defines real numbers and a procedure that nondeterministically approximates the real numbers, when [P] satisfies some property, it computes a real number that [P] defines nondeterministically.
+
+ *)
+
+Definition is_fast_cauchy_p (f : nat -> Real) := forall n m, - prec n - prec m <= f n - f m <= prec n + prec m.
+Definition is_fast_limit_p (x : Real) (f : nat -> Real) := forall n, - prec n <= x - f n <= prec n.
+
+Axiom Real_limit_p :
+  forall f : nat -> Real, is_fast_cauchy_p f -> {x | is_fast_limit_p x f}.

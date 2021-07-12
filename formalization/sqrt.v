@@ -163,7 +163,7 @@ Proof.
   - move => H1 H2.
     apply is_total_limit.
     by apply sqrt_approx_coq_real.
-  apply limit.
+  apply Real_limit_P_lt_p.
   - case (ana1 x) => xr [R1 R2].
     Holger B1.
     Holger B2.

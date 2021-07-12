@@ -111,7 +111,7 @@ Global Hint Resolve W_m_or  W_min: Realiny.
 Lemma Realmax : forall x y, {z | W_M x y z}.
 Proof.
   intros.
-  apply mslimit.
+  apply Real_mslimit_P_lt.
   + (* max is single valued predicate *)
     unfold unique.
     pose proof (W_max x y).

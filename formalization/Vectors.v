@@ -340,6 +340,7 @@ Definition euclidean_head_sequence_is_fast_cauchy {n : nat} (f : nat -> euclidea
 euclidean_is_fast_cauchy f -> is_fast_cauchy (euclidean_head_sequence f). 
 Proof.
   intro.
+  apply (proj2 (is_fast_cauchy_iff_p _)).
   intros m k.
   unfold euclidean_head_sequence.
   destruct (dim_succ_destruct (f m)).
@@ -352,6 +353,8 @@ Proof.
   rewrite e0 in H0.
   rewrite H1 in H0.
   clear H1.
+  simpl in H0.
+  
   replace (- prec m - prec k) with (- (prec m + prec k)) by ring.
   apply (proj1 (dist_le_prop x x0 (prec m + prec k))).
   simpl in H0.
@@ -395,11 +398,11 @@ Proof.
   left; apply prec_pos.
 
   exists (
-      cons (projP1 _ _ (C_limit _ (euclidean_head_sequence_is_fast_cauchy _ H)))
+      cons (projP1 _ _ (Real_limit _ (euclidean_head_sequence_is_fast_cauchy _ H)))
            (projP1 _ _ (IHn _ (euclidean_tail_sequence_is_fast_cauchy _ H)))).
 
   intros m.
-  destruct (C_limit _ (euclidean_head_sequence_is_fast_cauchy _ H)),
+  destruct (Real_limit _ (euclidean_head_sequence_is_fast_cauchy _ H)),
   (IHn _ (euclidean_tail_sequence_is_fast_cauchy _ H)).
   simpl.
   pose proof (i m).
@@ -413,7 +416,7 @@ Proof.
   rewrite H2.
   clear H2.
   apply Realmax_le_le_le.
-  exact (proj2 (dist_le_prop x x1 (prec m)) H0).
+  exact H0.
   exact H1.
 Defined.
 
@@ -633,9 +636,7 @@ Proof.
   unfold euclidean_head_sequence in H1.
   rewrite efn, efk in H1.
   simpl in H1.
-  
-  apply (proj2 (dist_le_prop hfn hfk (prec n + prec k))) in H1.
-  exact (Realmax_le_le_le _ _ _ H1 H2).
+  exact (Realmax_le_le_le _ _ _ H1 H2).  
 Qed.
 
 

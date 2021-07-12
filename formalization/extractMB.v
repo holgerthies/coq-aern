@@ -58,9 +58,9 @@ Extract Inlined Constant Realopp => "negate".
 Extract Inlined Constant Realinv => "recip".
 Extract Inlined Constant Reallt_semidec => "(<)".
 Extract Inlined Constant Realgt_semidec => "(>)".
-Extract Inlined Constant limit => "limit".
-Extract Inlined Constant slimit => "limit".
-Extract Inlined Constant mslimit => "limit".
+Extract Inlined Constant Real_limit_p => "limit".
+(* Extract Inlined Constant slimit => "limit". *)
+(* Extract Inlined Constant mslimit => "limit". *)
 
 (* Extract Inductive bool => "Bool" [ "True" "False" ]. *)
 Extract Inductive sumbool => "Bool" [ "True" "False" ].
