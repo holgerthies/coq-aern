@@ -272,4 +272,83 @@ Proof.
   relate.
   apply Rmult_le_pos => //.
   by apply powerRZ_le; lra.
-Qed.
+Defined.
+
+
+Require Import Complex.
+
+Open Scope C_scope.
+Lemma complex_nonzero_cases  a b : complex a b <> Complex0 -> M ({Real0 < a} + {a < Real0} + {Real0 < b} + {b < Real0}).
+Proof.
+  move => H.
+Admitted.
+
+Lemma complex_neq0 a b : complex a b <> Complex0 -> a <> Real0 \/ b <> Real0.
+Proof.
+Admitted.
+
+Definition csqrt_neq0 (z : Complex) : z <> Complex0  -> M {sqz | sqz * sqz = z}.
+Proof.
+  destruct (Complex_destruct z) as [a [b ->]] => H.
+  have := complex_nonzero_cases _ _ H.
+  have gt0 : Real0 < a*a + b*b.
+  - admit.
+  case (sqrt _ gt0) => absz [absp1 absp2].
+  have [absgt1 absgt2] : Real0 < (absz + a) / dReal2 /\ Real0 < (absz - a) / dReal2.
+  admit.
+  case (sqrt _ absgt1) => c [cprp1 cprp2].
+  case (sqrt _ absgt2) => d [dprp1 dprp2].
+  have P0 : (b*b - (Real2*d)*(Real2 * d)*d*d = (Real2*d)*(Real2*d)*a)%Real.
+  - Holger absp2.
+    Holger cprp2.
+    Holger dprp2.
+    classical.
+    relate.
+    move : H1 H2.
+    rewrite (relate_IZReal _ _ Ha8) => H1 H2.
+    ring_simplify.
+    have -> : (y6 ^ 4 = (y6 ^ 2) ^2)%R by field.
+    have -> : (y6 ^2 = y6*y6)%R by field.
+    by rewrite H2; lra.
+  have P1 : (c*c - d*d = a)%Real.
+  - rewrite cprp2 dprp2.
+    by classical;relate;rewrite (relate_IZReal _ _ Hb1);lra.
+  have simpl1 x y (yneq0 : (Real2*y <> Real0)%Real)  : (x / yneq0 * y = x / dReal2)%Real by classical;relate;Holger yneq0;relate;field; apply Rmult_neq_0_reg.
+  have simpl2 x : (x / dReal2 + x / dReal2 = x)%Real by  classical; relate;rewrite (relate_IZReal _ _ Hb);lra.
+  apply liftM => [[[[]|]| ]] P.
+  - have dneq0 : (Real2*d)%Real <> Real0.
+    admit.
+    exists (complex (b / dneq0) d).
+    rewrite /Complex_mult /=.
+    rewrite (Realmult_comm d).
+    suff -> : (b / dneq0 * (b / dneq0) - d*d = a)%Real by rewrite simpl1 simpl2.
+    Holger P0.
+    Holger dprp2.
+    classical.
+    relate.
+    Holger dneq0.
+    relate.
+    field_simplify_eq; last by apply Rmult_neq_0_reg; lra.
+    by lra.
+  - have cneq0 : (Real2*c)%Real <> Real0.
+    admit.
+    exists (complex c (b / cneq0)).
+    rewrite /Complex_mult /=.
+    rewrite (Realmult_comm c).
+    suff -> : (c*c - b / cneq0 * (b / cneq0) = a)%Real by rewrite simpl1 simpl2.
+    admit.
+  - exists (complex c d).
+    rewrite /Complex_mult /=.
+    suff H0 : (c*d = b / dReal2)%Real by rewrite P1 (Realmult_comm d) H0 simpl2. 
+    apply (sqrt_unique (b / dReal2 * b / dReal2)%Real); Holger absp2; Holger cprp1; Holger cprp2; Holger dprp1; Holger dprp2; Holger P; split; classical; relate; [by apply Rmult_le_pos | |by rewrite (relate_IZReal _ _ Hb3);lra | by lra].
+    move : H2 H4.
+    rewrite (relate_IZReal _ _ Hb6) => H2 H4.
+    field_simplify.
+    field_simplify in H2.
+    field_simplify in H4.
+    rewrite H2 H4.
+    by lra.   
+  exists (complex c (-d)%Real).
+  rewrite /Complex_mult /=.
+  have -> : (c*c - - d * -d = c*c + d*d)%Real. classical;relate.
+Admitted.
