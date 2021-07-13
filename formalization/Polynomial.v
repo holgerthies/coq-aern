@@ -45,6 +45,18 @@ Proof.
   exact (Reallt_lt_lt _ _ _ Real1_gt_Real0 IHn).
 Defined.
 
+Lemma NReal_ge0 : forall n, NReal (n) >= Real0.
+Proof.
+  intros.
+  induction n.
+  right; simpl; auto.
+  simpl.
+  apply (Realge_plus_ge Real1) in IHn.
+  replace (Real1 + Real0) with Real1 in IHn by ring.
+  left; exact (Reallt_le_lt _ _ _ Real1_gt_Real0 (Realge_le _ _ IHn) ).
+Defined.
+
+
 Definition poly_eval_pre {n} : euclidean (S n) -> Real -> Real.
 Proof.
   intros p x.
@@ -195,154 +207,6 @@ Defined.
 
   
 Require Import RealOrderTactic.
-Definition non_zero_upbd : forall {d} (p : euclidean (S d)) x, all_non_zero p -> abs x > Real1 -> abs (poly_eval_pre p x) <= ((npow (abs x) d) * euclidean_max_norm p) * NReal (S d).
-Proof.
-  intros d p x nz ord.
-  induction d.
-  destruct (dim_succ_destruct p).
-  destruct s.
-  rewrite e.
-  simpl.
-  destruct (Minmax.Realmax (abs x0)).
-  ring_simplify.
-  replace (x0 * Real1) with x0 by ring.
-  unfold euclidean_max_norm in w.
-  induction (eq_sym (dim_zero_destruct x1)).
-  simpl in w.
-  unfold Minmax.W_M in w.
-  destruct w.
-  destruct H0.
-  pose proof (abs_pos x0).
-  destruct H2.  
-  rewrite (H H2).
-  right; auto.
-  rewrite (H0 (eq_sym H2)).
-  right; auto.
-
-  destruct (dim_succ_destruct p) as [hp [tp ep]].
-  rewrite ep.
-  assert
-    (abs (poly_eval_pre (cons hp tp) x) <= abs (hp * npow x (S d)) + abs (poly_eval_pre tp x)).
-  apply Realge_le.
-  simpl.
-  pose proof (abs_tri  (hp * npow  x (S d)) (poly_eval_pre tp x)).
-  
-  simpl.
-  simpl in H.
-  exact H.
-  (* assert *)
-  (*   (times (npow (abs x) (S d) * euclidean_max_norm (cons hp tp)) (S (S d)) = *)
-  (*    times ((npow (abs x) (S d)) * (Minmax.Realmaxf (abs hp) (euclidean_max_norm tp))) (S (S d))). *)
-
-  (* admit. *)
-
-  assert (abs (poly_eval_pre tp x) <= (npow (abs x) (S d) * Minmax.Realmaxf (abs hp) (euclidean_max_norm tp)) * (NReal (S d))).
-  assert (nz1 : all_non_zero tp).
-  rewrite ep in nz.
-  simpl in nz.
-  destruct nz as [_ nz].
-  exact nz.
-  pose proof (IHd tp nz1).
-  
-  apply (Realle_le_le _ _ _ H0).
-  assert (Minmax.Realmaxf (abs hp) (euclidean_max_norm tp) >= euclidean_max_norm tp).
-  apply Realle_ge.
-  apply Minmax.Realmax_snd_le_le.
-  right; auto.
-  apply Realge_le in H1.
-  destruct H1.
-  assert ((npow (abs x) d) * (NReal (S d)) > Real0).
-  apply Reallt_pos_mult_pos_pos.
-  apply npow_pos.
-  apply (Reallt_lt_lt _ _ _ Real1_gt_Real0 ord).
-  apply NReal_pos.
-
-  
-  pose proof (Reallt_mult_r_pos_lt _ _ _ H2 H1).
-  
-  replace (npow (abs x) d * euclidean_max_norm tp * NReal (S d)) with (euclidean_max_norm tp * (npow (abs x) d * NReal (S d))) by ring.
-  
-  
-  left.
-  apply (Reallt_lt_lt _ _ _ H3).
-  assert (Minmax.Realmaxf (abs hp) (euclidean_max_norm tp) * (npow (abs x) d * NReal (S d)) > Real0).
-  apply Reallt_pos_mult_pos_pos.
-  pose proof (Minmax.Realmax_fst_le_le (abs hp) (abs hp) (euclidean_max_norm tp)). 
-  assert (abs hp <= abs hp) by (right; auto).
-  pose proof (H4 H5).
-  assert (Real0 < abs hp).
-  pose proof (abs_pos hp).
-  destruct H7.
-  exact H7.
-  unfold all_non_zero in nz.
-  rewrite ep, <- (proj1 (abs_zero _) (eq_sym H7)) in nz.
-  simpl in nz.
-  destruct nz.
-  induction (H8 eq_refl).
-  exact (Reallt_le_lt _ _ _ H7 H6).
-  apply Reallt_pos_mult_pos_pos.
-  apply npow_pos.
-  apply (Reallt_lt_lt _ _ _ Real1_gt_Real0 ord).
-  apply NReal_pos.
-  
-  
-  pose proof (Reallt_mult_r_pos_lt _ _ _  H4 ord).
-  ring_simplify in H5.
-  replace (npow (abs x) (S d)) with ((npow (abs x) d) * abs x).
-
-  ring_simplify.
-  exact H5.
-  simpl.
-  ring.
-
-
-  rewrite <- H1.
-  replace (npow (abs x) (S d)) with ((abs x) * npow (abs x) d) by (simpl; ring).
-  assert (npow (abs x) d * euclidean_max_norm tp * NReal (S d) > Real0).
-  apply Reallt_pos_mult_pos_pos.
-  apply Reallt_pos_mult_pos_pos.
-  apply npow_pos.
-  apply (Reallt_lt_lt _ _ _ Real1_gt_Real0 ord).
-  apply (all_non_zero_pos_norm _ nz1).
-  apply NReal_pos.
-  pose proof (Reallt_mult_r_pos_lt _ _ _  H2 ord).
-  rewrite (Realmult_unit) in H3.
-  ring_simplify in H3.
-  ring_simplify.
-  left; exact H3.
-
-
-  assert (abs (hp * npow x (S d)) <= (npow (abs x) (S d) * Minmax.Realmaxf (abs hp) (euclidean_max_norm tp))).
-  rewrite (abs_distr).
-  rewrite abs_npow_distr.
-  pose proof (Minmax.Realmax_fst_le_le (abs hp)  (abs hp) (euclidean_max_norm tp)).
-  assert (abs hp <= abs hp) by (right; auto).
-  apply H1 in H2.
-  destruct H2.
-  assert (npow (abs x) (S d) > Real0).
-  apply npow_pos.
-  apply (Reallt_lt_lt _ _ _ Real1_gt_Real0 ord).
-  pose proof (Reallt_mult_r_pos_lt _ _ _  H3 H2).
-  left.
-  replace ( npow (abs x) (S d) * Minmax.Realmaxf (abs hp) (euclidean_max_norm tp)) with
-      (Minmax.Realmaxf (abs hp) (euclidean_max_norm tp) * npow (abs x) (S d)) by ring.
-  exact H4.
-  rewrite <- H2.
-  right; ring.
-
-  
-  pose proof (Realle_le_plus_le _ _ _ _ H1 H0).
-  pose proof (Realle_le_le _ _ _ H H2).
-  
-  apply (Realle_le_le _ _ _ H3).
-  assert (euclidean_max_norm (cons hp tp) = Minmax.Realmaxf (abs hp) (euclidean_max_norm tp)).
-  simpl.
-  auto.
-  rewrite H4.
-
-  simpl.
-  right; ring.
-Qed.
 Require Import Minmax.
 
 
@@ -428,35 +292,118 @@ Defined.
 
 Lemma all_zero_eval_pre : forall {n} (p : euclidean (S n)), all_zero p -> forall x, poly_eval_pre p x = Real0.
 Proof.
-Admitted.
+  intros.
+  induction n.
+  destruct (dim_succ_destruct p) as [hp [tp ep]].
+  induction (eq_sym (dim_zero_destruct tp)).
+  rewrite ep.
+  simpl.
+  rewrite ep in H.
+  simpl in H.
+  rewrite H; ring.
+  destruct (dim_succ_destruct p) as [hp [tp ep]].
+  rewrite ep; rewrite ep in H; simpl; simpl in H.
+  destruct H.
+  rewrite (IHn tp H0), H.
+  ring.
+Defined.
 
+Lemma Realmax_id : forall x, Realmaxf x x = x.
+Proof.
+  intros.
+  unfold Realmaxf.
+  destruct (Realmax x x).
+  destruct w as [a [b c]].
+  rewrite <- (b eq_refl).
+  simpl.
+  auto.
+Defined.
+
+  
 Lemma all_zero_euclidean_max_norm : forall {n} (p : euclidean (S n)), all_zero p -> euclidean_max_norm p = Real0.
 Proof.
-Admitted.
+  intros n p H.
+  induction n.
+  destruct (dim_succ_destruct p) as [hp [tp ep]].
+  induction (eq_sym (dim_zero_destruct tp)).
+  rewrite ep.
+  simpl.
+  rewrite ep in H.
+  simpl in H.
+  rewrite H.
+  rewrite (proj2 (abs_zero Real0) (eq_refl)).
+  destruct (Realmax Real0 Real0).
+  destruct w as [a [b c]].
+  exact (b eq_refl).
+  
+  
+  destruct (dim_succ_destruct p) as [hp [tp ep]].
+  rewrite ep; rewrite ep in H; simpl; simpl in H.
+  destruct H.
+  rewrite (IHn tp H0), H.
+  rewrite (proj2 (abs_zero Real0) (eq_refl)).
+  destruct (Realmax Real0 Real0).
+  destruct w as [a [b c]].
+  exact (b eq_refl).
+Defined.
 
 
 Lemma Realmax_le_snd : forall a b, a <= b -> Realmaxf a b = b.
 Proof.
-Admitted.
+  intros.
+  unfold Realmaxf.
+  destruct (Realmax a b).
+  simpl.
+  destruct w as [h1 [h2 h3]].
+  destruct H.
+  exact (h3 H).
+  rewrite <- H; exact (h2 H).
+Defined.
 
 Lemma Realmax_le_fst : forall a b, b <= a -> Realmaxf a b = a.
 Proof.
-Admitted.
-
+  intros.
+  unfold Realmaxf.
+  destruct (Realmax a b).
+  simpl.
+  destruct w as [h1 [h2 h3]].
+  destruct H.
+  exact (h1 H).
+  exact (h2 (eq_sym H)).
+Defined.
 
 Lemma euclidean_max_norm_non_neg : forall {n} x, @euclidean_max_norm n x >= Real0.
 Proof.
-Admitted.
+  intros.
+  induction n.
+  induction (eq_sym (dim_zero_destruct x)).
+  simpl; right; auto.
+  destruct (dim_succ_destruct x) as [hx [tx ex]].
+  rewrite ex.
+  simpl.
+  apply Realle_ge, (Realmax_fst_le_le _ _ _ (abs_pos _)).
+Defined.
 
 Lemma ge0_ge0_plus_ge0 : forall x y, Real0 <= x -> Real0 <= y -> Real0 <= x + y.
 Proof.
-Admitted.
+  intros.
+  pose proof (Realle_le_plus_le _ _ _ _ H H0).
+  rewrite Realplus_unit in H1.
+  exact H1.
+Defined.
 
 Lemma ge0_ge0_mult_ge0 : forall x y, Real0 <= x -> Real0 <= y -> Real0 <= x * y.
 Proof.
-Admitted.
-
-
+  intros.
+  destruct H, H0.
+  left.
+  pose proof (Reallt_mult_pos_lt _ _ _ H H0).
+  replace (x * Real0) with Real0 in H1 by ring. 
+  exact H1.
+  rewrite <- H0; right; ring.
+  rewrite <- H; right; ring.
+  rewrite <- H; right; ring.
+Defined.
 
 Definition next_non_zero : forall {d} (p : euclidean (S d)),
     ~ all_zero p ->
@@ -626,8 +573,65 @@ Defined.
       
 (*     x, all_non_zero p -> abs x > Real1 -> abs (poly_eval_pre p x) <= ((npow (abs x) d) * euclidean_max_norm p) * NReal (S d). *)
 
+Lemma Realle_mult_pos_le: forall r r1 r2 : Real, Real0 <= r -> r1 <= r2 -> r * r1 <= r * r2.
+Proof.
+  intros.
+  destruct H, H0.
+  left; apply (Reallt_mult_pos_lt _ _ _ H H0).
+  rewrite H0; right; auto.
+  rewrite <- H; right; ring.
+  rewrite <- H; right; ring.
+Defined.
+
+Lemma ge0_ge_mult_ge0_ge : forall a b c d, Real0 <= a -> Real0 <= c -> a <= b -> c <= d -> a * c <= b * d.
+Proof.
+  intros.
+  pose proof (Realle_mult_pos_le _ _ _ H H2).
+  apply (Realle_le_le _ _ _ H3).
+  assert (Real0 <= d).
+  apply (Realle_le_le _ _ _ H0 H2).
+  pose proof (Realle_mult_pos_le _ _ _ H4 H1).
+  replace (b * d) with (d * b) by ring.
+  replace (a * d) with (d * a) by ring.
+  exact H5.
+Defined.
+
+Lemma npow_ge1_monotone : forall a b c, a >= Real1 ->  (b <= c)%nat -> npow a b <= npow a c.
+Proof.
+  intros.
+  induction H0.
+  right; auto.
+  simpl.
+  assert (Real0 <= npow a m).
+  apply Realge_le, npow_ge0.
+  apply Realle_ge.
+  left.
+  apply Realge_le in H.
+  exact (Reallt_le_lt _ _ _ Real1_gt_Real0 H).
+  apply Realge_le in H.
+  pose proof (Realle_mult_pos_le _ _ _ H1 H).
+  ring_simplify in H2.
+  rewrite Realmult_comm.
+  exact (Realle_le_le _ _ _ IHle H2).
+Defined.
+
+Lemma NReal_monotone : forall a b, (a <= b)%nat -> NReal a <= NReal b.
+Proof.
+  intros.
+  induction H.
+  right; auto.
+  apply (Realle_le_le _ _ _ IHle).
+  simpl.
+  left.
+  pose proof (Reallt_plus_lt (NReal m) _ _ Real1_gt_Real0).
+  replace (NReal m + Real0) with (NReal m) in H0 by ring.
+  rewrite Realplus_comm.
+  exact H0.
+Defined.
+
+  
 Require Import Wf_nat.
-Goal forall {d} (p : euclidean (S d)) x, euclidean_head p <> Real0 -> abs x > Real1 -> abs (poly_eval_pre p x) <= ((npow (abs x) d) * euclidean_max_norm p) * NReal (S d).
+Lemma leading_term_dominate_aux : forall {d} (p : euclidean (S d)) x, euclidean_head p <> Real0 -> abs x > Real1 -> abs (poly_eval_pre p x) <= ((npow (abs x) d) * euclidean_max_norm p) * NReal (S d).
 Proof.
   intros d p x nz ord.
   induction (lt_wf d) as [n _ IH].
@@ -701,232 +705,105 @@ Proof.
   rewrite h4 in H2.
 
   assert (P :abs (x0 * (x * npow x n)) <= abs x * npow (abs x) n * (let (m0, _) := Realmax (abs x0) (euclidean_max_norm x1) in m0)).
-  admit.
-
+  rewrite abs_distr.
+  rewrite abs_distr.
+  rewrite abs_npow_distr.
+  pose proof (Realmax_fst_le_le (abs x0) (abs x0) (euclidean_max_norm x1)).
+  assert (abs x0 <= abs x0) by (right; auto).
+  apply H3 in H4.
+  replace ( abs x0 * (abs x * npow (abs x) n)) with ((abs x * npow (abs x) n) * abs x0) by ring.
+  (* replace ( abs x * npow (abs x) n * (let (m0, _) := Realmax (abs x0) (euclidean_max_norm x1) in m0)) with ( (let (m0, _) := Realmax (abs x0) (euclidean_max_norm x1) in m0) * (abs x * npow (abs x) n)) by ring. *)
+  
+  apply  (fun y => Realle_mult_pos_le (abs x * npow (abs x) n) _ _ y H4).
+  apply ge0_ge0_mult_ge0.
+  apply abs_pos.
+  apply Realge_le, npow_ge0.
+  apply Realle_ge, abs_pos.
+  
   assert (Q :abs (poly_eval_pre x1 x) <= abs x * npow (abs x) n * (let (m0, _) := Realmax (abs x0) (euclidean_max_norm x1) in m0) *
                                       ( (Real1 + NReal n))).
 
-  admit.
+  apply (Realle_le_le _ _ _ H2).
+
+
+  pose proof (Realmax_snd_le_le (euclidean_max_norm x1) (euclidean_max_norm x1) (abs x0)).
+  assert ((euclidean_max_norm x1) <= (euclidean_max_norm x1)) by (right; auto).
+  apply H3 in H4.
+  
+
+  replace (npow (abs x) m * euclidean_max_norm x1 * NReal (S m))  with
+      (((npow (abs x) m * NReal (S m)) * euclidean_max_norm x1 * Real1)) by ring.
+  replace (abs x * npow (abs x) n * (let (m0, _) := Realmax (abs x0) (euclidean_max_norm x1) in m0) *   (Real1 + NReal n)) with
+      (npow (abs x) n *
+  (Real1 + NReal n)* (let (m0, _) := Realmax (abs x0) (euclidean_max_norm x1) in m0)  * abs x ) by ring.
+
+  repeat apply ge0_ge_mult_ge0_ge.
+  repeat apply ge0_ge0_mult_ge0.
+  apply Realge_le, npow_ge0.
+  apply Realle_ge, abs_pos.
+  apply Realge_le, NReal_ge0.
+  apply Realge_le, euclidean_max_norm_non_neg.
+  left; apply Real1_gt_Real0.
+  repeat apply ge0_ge0_mult_ge0.
+  apply Realge_le, npow_ge0.
+  apply Realle_ge, abs_pos.
+  apply Realge_le, NReal_ge0.
+  apply Realge_le, euclidean_max_norm_non_neg.
+  apply Realge_le, npow_ge0.
+  apply Realle_ge, abs_pos.
+  apply Realge_le, NReal_ge0.
+  
+  replace (Real1 + NReal n) with (NReal (S n)) by (simpl; auto).
+  apply npow_ge1_monotone.
+  left; apply ord.
+  lia.
+  replace (Real1 + NReal n) with (NReal (S n)) by (simpl; auto).
+  apply NReal_monotone.
+  lia.
+  apply (Realmax_snd_le_le (euclidean_max_norm x1) (euclidean_max_norm x1) (abs x0)).
+  right; auto.
+  left; apply ord.
+
 
   pose proof (Realle_le_plus_le _ _ _ _ P Q) as PQ.
   pose proof (Realle_le_le _ _ _ (Realge_le _ _ (abs_tri _ _)) PQ).
   apply (Realle_le_le _ _ _ H3).
   right; ring.
 
-  Qed.
- 
-  
-  
-  
-  assert ( abs x0 <=  (let (m0, _) := Realmax (abs x0) (euclidean_max_norm x1) in m0)).
-  admit.
-  assert (euclidean_max_norm x1 <= (let (m0, _) := Realmax (abs x0) (euclidean_max_norm x1) in m0)).
-  admit.
-  assert (
-
-
-  
-    
-
-  
-  
-  
-  rewrite <- (H0).
-  
-  rewrite<- (h4).
-  
-  
-  assert
-    (abs (poly_eval_pre (cons hp tp) x) <= abs (hp * npow x (S d)) + abs (poly_eval_pre tp x)).
-  apply Realge_le.
-  simpl.
-  pose proof (abs_tri  (hp * npow  x (S d)) (poly_eval_pre tp x)).
-  
-  simpl.
-  simpl in H.
-  exact H.
-  (* assert *)
-  (*   (times (npow (abs x) (S d) * euclidean_max_norm (cons hp tp)) (S (S d)) = *)
-  (*    times ((npow (abs x) (S d)) * (Minmax.Realmaxf (abs hp) (euclidean_max_norm tp))) (S (S d))). *)
-
-  (* admit. *)
-
-
-  
-
-  destruct (lem (all_zero p)).
-  
-  
-  destruct (dim_succ_destruct p) as [x0 [x1 e]].
-  rewrite e; simpl.
-  destruct (Minmax.Realmax (abs x0)).
-  ring_simplify.
-  replace (x0 * Real1) with x0 by ring.
-  unfold euclidean_max_norm in w.
-  induction (eq_sym (dim_zero_destruct x1)).
-  simpl in w.
-  unfold Minmax.W_M in w.
-  destruct w.
-  destruct H0.
-  pose proof (abs_pos x0).
-  destruct H2.  
-  rewrite (H H2).
-  right; auto.
-  rewrite (H0 (eq_sym H2)).
-  right; auto.
-
-  destruct (dim_succ_destruct p) as [hp [tp ep]].
-  rewrite ep.
-  assert
-    (abs (poly_eval_pre (cons hp tp) x) <= abs (hp * npow x (S d)) + abs (poly_eval_pre tp x)).
-  apply Realge_le.
-  simpl.
-  pose proof (abs_tri  (hp * npow  x (S d)) (poly_eval_pre tp x)).
-  
-  simpl.
-  simpl in H.
-  exact H.
-  (* assert *)
-  (*   (times (npow (abs x) (S d) * euclidean_max_norm (cons hp tp)) (S (S d)) = *)
-  (*    times ((npow (abs x) (S d)) * (Minmax.Realmaxf (abs hp) (euclidean_max_norm tp))) (S (S d))). *)
-
-  (* admit. *)
-
-  assert (abs (poly_eval_pre tp x) <= (npow (abs x) (S d) * Minmax.Realmaxf (abs hp) (euclidean_max_norm tp)) * (NReal (S d))).
-  assert (nz1 : all_non_zero tp).
-  rewrite ep in nz.
-  simpl in nz.
-  destruct nz as [_ nz].
-  exact nz.
-  pose proof (IHd tp nz1).
-  
-  apply (Realle_le_le _ _ _ H0).
-  assert (Minmax.Realmaxf (abs hp) (euclidean_max_norm tp) >= euclidean_max_norm tp).
-  apply Realle_ge.
-  apply Minmax.Realmax_snd_le_le.
-  right; auto.
-  apply Realge_le in H1.
-  destruct H1.
-  assert ((npow (abs x) d) * (NReal (S d)) > Real0).
-  apply Reallt_pos_mult_pos_pos.
-  apply npow_pos.
-  apply (Reallt_lt_lt _ _ _ Real1_gt_Real0 ord).
-  apply NReal_pos.
-
-  
-  pose proof (Reallt_mult_r_pos_lt _ _ _ H2 H1).
-  
-  replace (npow (abs x) d * euclidean_max_norm tp * NReal (S d)) with (euclidean_max_norm tp * (npow (abs x) d * NReal (S d))) by ring.
-  
-  
-  left.
-  apply (Reallt_lt_lt _ _ _ H3).
-  assert (Minmax.Realmaxf (abs hp) (euclidean_max_norm tp) * (npow (abs x) d * NReal (S d)) > Real0).
-  apply Reallt_pos_mult_pos_pos.
-  pose proof (Minmax.Realmax_fst_le_le (abs hp) (abs hp) (euclidean_max_norm tp)). 
-  assert (abs hp <= abs hp) by (right; auto).
-  pose proof (H4 H5).
-  assert (Real0 < abs hp).
-  pose proof (abs_pos hp).
-  destruct H7.
-  exact H7.
-  unfold all_non_zero in nz.
-  rewrite ep, <- (proj1 (abs_zero _) (eq_sym H7)) in nz.
-  simpl in nz.
-  destruct nz.
-  induction (H8 eq_refl).
-  exact (Reallt_le_lt _ _ _ H7 H6).
-  apply Reallt_pos_mult_pos_pos.
-  apply npow_pos.
-  apply (Reallt_lt_lt _ _ _ Real1_gt_Real0 ord).
-  apply NReal_pos.
-  
-  
-  pose proof (Reallt_mult_r_pos_lt _ _ _  H4 ord).
-  ring_simplify in H5.
-  replace (npow (abs x) (S d)) with ((npow (abs x) d) * abs x).
-
-  ring_simplify.
-  exact H5.
-  simpl.
-  ring.
-
-
-  rewrite <- H1.
-  replace (npow (abs x) (S d)) with ((abs x) * npow (abs x) d) by (simpl; ring).
-  assert (npow (abs x) d * euclidean_max_norm tp * NReal (S d) > Real0).
-  apply Reallt_pos_mult_pos_pos.
-  apply Reallt_pos_mult_pos_pos.
-  apply npow_pos.
-  apply (Reallt_lt_lt _ _ _ Real1_gt_Real0 ord).
-  apply (all_non_zero_pos_norm _ nz1).
-  apply NReal_pos.
-  pose proof (Reallt_mult_r_pos_lt _ _ _  H2 ord).
-  rewrite (Realmult_unit) in H3.
-  ring_simplify in H3.
-  ring_simplify.
-  left; exact H3.
-
-
-  assert (abs (hp * npow x (S d)) <= (npow (abs x) (S d) * Minmax.Realmaxf (abs hp) (euclidean_max_norm tp))).
-  rewrite (abs_distr).
-  rewrite abs_npow_distr.
-  pose proof (Minmax.Realmax_fst_le_le (abs hp)  (abs hp) (euclidean_max_norm tp)).
-  assert (abs hp <= abs hp) by (right; auto).
-  apply H1 in H2.
-  destruct H2.
-  assert (npow (abs x) (S d) > Real0).
-  apply npow_pos.
-  apply (Reallt_lt_lt _ _ _ Real1_gt_Real0 ord).
-  pose proof (Reallt_mult_r_pos_lt _ _ _  H3 H2).
-  left.
-  replace ( npow (abs x) (S d) * Minmax.Realmaxf (abs hp) (euclidean_max_norm tp)) with
-      (Minmax.Realmaxf (abs hp) (euclidean_max_norm tp) * npow (abs x) (S d)) by ring.
-  exact H4.
-  rewrite <- H2.
-  right; ring.
-
-  
-  pose proof (Realle_le_plus_le _ _ _ _ H1 H0).
-  pose proof (Realle_le_le _ _ _ H H2).
-  
-  apply (Realle_le_le _ _ _ H3).
-  assert (euclidean_max_norm (cons hp tp) = Minmax.Realmaxf (abs hp) (euclidean_max_norm tp)).
-  simpl.
-  auto.
-  rewrite H4.
-
-  simpl.
-  right; ring.
-Qed.
-
- 
-  
-Require Import PeanoNat.
+Defined.
 
 Definition leading_coef {n} (x : poly n) := euclidean_head (projP1 _ _ x).
+Definition coef_max_norm {d} (x : poly d) : Real.
+Proof.
+  destruct x.
+  exact (euclidean_max_norm x).
+Defined.
+
+Lemma leading_term_domainate : forall {d} (p : poly d) x,
+    abs x > Real1 -> abs (poly_eval p x) <=
+                     ((npow (abs x) d) * coef_max_norm p) * NReal (S d).
+                                                           
+Proof.
+  intros.
+  unfold poly_eval.
+  unfold coef_max_norm.
+  destruct p.
+  apply leading_term_dominate_aux. 
+  exact n.
+  exact H.
+Defined.
+
+
+
+Require Import PeanoNat.
+
 Definition odd_poly {n} (x : poly n) := Even.odd n.
 Definition pos_poly {n} (x : poly n) := Real0 < leading_coef x.
 Definition neg_poly {n} (x : poly n) := leading_coef x < Real0.
 
 Lemma poly_pos_bound : forall {n} (p : poly n), odd_poly p ->  pos_poly p -> exists x, forall y, y > x -> poly_eval p y > Real0.
 Proof.
-  intros.
   
 
 
 
-Definition test := cons Real1 (cons Real2 (cons (Real1 + Real1 + Real1) nil)).
-Definition testt : poly 2.
-Proof.
-  exists test.
-  compute.
-  intro.
-  apply Real1_neq_Real0.
-  exact H.
-Defined.
-
-
-
-
-Print (poly_eval testt (Real1 + Real1)).
