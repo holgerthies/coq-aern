@@ -253,7 +253,7 @@ Proof.
 Qed.
 
 
-Definition sqrt x : Real0 < x -> {y | Real0 <= y /\ y * y = x}.
+Definition sqrt_pos x : Real0 < x -> {y | Real0 <= y /\ y * y = x}.
 Proof.
   move => H.
   apply singletonM => [E1 E2 | ].
@@ -275,27 +275,122 @@ Proof.
 Defined.
 
 
+Lemma sqrt_unique_existence x : (Real0 <= x) -> exists ! y, Real0 <= y /\ y*y = x.
+Proof.
+  case (Realtotal_order x Real0) => [p | [-> | p]];  [by pose (Realgt_nle _ _ p) |  |].
+  - exists Real0; by split => [| y]; [ |  apply sqrt_unique]; split; ring_simplify; try apply Realle_triv.
+  case (sqrt_pos _ p) => y prp.
+  exists y.
+  split => // y'.
+  by apply sqrt_unique.
+Qed.
+
+Definition sqrt x : Real0 <= x -> {y | Real0 <= y /\ y * y = x}.
+Proof.
+  move => H.
+  apply Real_mslimit_P_p; first by apply sqrt_unique_existence.
+  move => n.
+  have := M_split x (prec (2*n+1)) (prec (2*n+1)) (prec_pos (2*n+1)).
+  rewrite /Realminus Realplus_inv.
+  apply liftM.
+  case => P.
+  - case (sqrt_pos _ P) => sqx prp.
+    exists sqx.
+    exists sqx.
+    split => //.
+    rewrite Realplus_inv.
+    split; apply Reallt_le; [| by apply prec_pos].
+    apply (Reallt_add_r (prec n)).
+    rewrite Realplus_unit;ring_simplify.
+    by apply prec_pos.
+  exists Real0.
+  case (Realtotal_order x Real0) => [p | [-> | p]];  [by pose (Realgt_nle _ _ p) | exists Real0 |].
+  - split;[by split; ring_simplify;[apply Realle_triv|] |].
+    rewrite Realplus_inv; split; apply Reallt_le; [| by apply prec_pos].
+    apply (Reallt_add_r (prec n)).
+    rewrite Realplus_unit;ring_simplify.
+    by apply prec_pos.
+    case (sqrt_pos _ p) => sqx [prp1 prp2].
+    exists sqx; split => //.
+    rewrite Realplus_unit.
+    split; last by apply Reallt_le;apply /Realle_lt_lt/prec_pos;apply (Realle_add_r sqx); rewrite Realplus_unit Realplus_comm Realplus_inv.
+    have P' : prec (2*n + 1) + prec(2*n +1) > x by apply (Realgt_add_r (-prec (2*n+1))); rewrite Realplus_assoc Realplus_inv Realplus_comm Realplus_unit.
+    apply Reallt_le.
+    apply Reallt_anti.
+    apply pos_square_gt_gt; [by apply prec_pos | |].
+    - apply Realnle_ge => /Realle_ge H'.
+      rewrite <-(Realle_ge_eq _ _  prp1 H') in prp2.
+      ring_simplify in prp2.   
+      move : p.
+      rewrite prp2.
+      by apply Realngt_triv.
+    rewrite prp2 -prec_hom.
+    have -> : (n + n = 2*n)%coq_nat by lia.
+    by rewrite -prec_twice.
+Defined. 
+
 Require Import Complex.
 
 Open Scope C_scope.
+
+Lemma semidec_or P Q : semidec P -> semidec Q -> semidec (P \/ Q).
+Proof.
+  move => H1 H2.
+  destruct H1.
+  destruct H2.
+  destruct i.
+  destruct i0.
+  exists (klor x x0).
+  split.
+  - by destruct (klor_up x x0); rewrite H3;auto.
+Admitted.
+
 Lemma complex_nonzero_cases  a b : complex a b <> Complex0 -> M ({Real0 < a} + {a < Real0} + {Real0 < b} + {b < Real0}).
 Proof.
   move => H.
-Admitted.
+  have neq0_cases : ~(a = Real0 /\ b  = Real0) by move => [C1 C2];rewrite C1 C2 in H.
+  have neq0_cases' : (Real0 < a \/ a < Real0 \/  Real0 < b \/ b < Real0).
+  - case (Realtotal_order Real0 a) => [p | [p | p]]; try by auto.
+    case (Realtotal_order Real0 b) => [p' | [p' | p']]; try by auto.
+    move : neq0_cases.
+    rewrite -p -p'.
+    by case.
+  apply (lift_domM ({Real0 < a} + {a < Real0 \/ Real0 < b \/ b < Real0})).
+  - case => P; first by apply unitM; auto.
+    apply (lift_domM ({a < Real0} + {Real0 < b \/ b < Real0})).
+    case => P'; first by apply unitM; auto.
+    apply (lift_domM ({Real0 < b} + {b < Real0})).
+    case => P'';  by apply unitM; auto.
+  - apply choose => //; try by apply Reallt_semidec.
+  - apply choose => //; try by apply Reallt_semidec.
+    by apply semidec_or; try apply Reallt_semidec.
+  apply choose => //; try by apply Reallt_semidec.
+  apply semidec_or; try apply semidec_or; try by apply Reallt_semidec.
+Qed.
 
-Lemma complex_neq0 a b : complex a b <> Complex0 -> a <> Real0 \/ b <> Real0.
+Lemma square_nonneg : forall z, Real0 <= z *z.
 Proof.
-Admitted.
+  intros.
+  destruct (Realtotal_order z Real0) as [a|[b|c]].
+  - by apply Reallt_le;apply square_pos;apply Reallt_neq.
+  - by rewrite b; ring_simplify;apply Realle_triv.
+  by apply Reallt_le;apply square_pos;apply Realgt_neq.
+Qed.
 
 Definition csqrt_neq0 (z : Complex) : z <> Complex0  -> M {sqz | sqz * sqz = z}.
 Proof.
   destruct (Complex_destruct z) as [a [b ->]] => H.
   have := complex_nonzero_cases _ _ H.
-  have gt0 : Real0 < a*a + b*b.
-  - admit.
+  have gt0 : Real0 <= a*a + b*b by rewrite -(Realplus_unit Real0);apply Realle_le_plus_le; apply square_nonneg.
   case (sqrt _ gt0) => absz [absp1 absp2].
-  have [absgt1 absgt2] : Real0 < (absz + a) / dReal2 /\ Real0 < (absz - a) / dReal2.
-  admit.
+  have [absz_prp1 absz_prp2] : - absz <= a <= absz.
+  - Holger absp2;Holger gt0;Holger absp1.
+    by split; classical;relate; try pose (Holber4 _ _ _ Hb3 H3);nra.
+  have absz_prp' : b <> Real0 -> - absz < a < absz.
+  - move => H0.
+    Holger H0;Holger absp2;Holger gt0;Holger absp1.
+    split; by classical;relate; try pose (Holber4 _ _ _ Hb3 H4);nra.
+  have [absgt1 absgt2] : Real0 <= (absz + a) / dReal2 /\ Real0 <= (absz - a) / dReal2 by split;Holger absz_prp1; Holger absz_prp2; classical; relate; rewrite (relate_IZReal _ _ Hb); pose (Holber4 _ _ _ Ha0 Hx); lra.
   case (sqrt _ absgt1) => c [cprp1 cprp2].
   case (sqrt _ absgt2) => d [dprp1 dprp2].
   have P0 : (b*b - (Real2*d)*(Real2 * d)*d*d = (Real2*d)*(Real2*d)*a)%Real.
@@ -316,39 +411,58 @@ Proof.
   have simpl1 x y (yneq0 : (Real2*y <> Real0)%Real)  : (x / yneq0 * y = x / dReal2)%Real by classical;relate;Holger yneq0;relate;field; apply Rmult_neq_0_reg.
   have simpl2 x : (x / dReal2 + x / dReal2 = x)%Real by  classical; relate;rewrite (relate_IZReal _ _ Hb);lra.
   apply liftM => [[[[]|]| ]] P.
-  - have dneq0 : (Real2*d)%Real <> Real0.
-    admit.
-    exists (complex (b / dneq0) d).
-    rewrite /Complex_mult /=.
-    rewrite (Realmult_comm d).
-    suff -> : (b / dneq0 * (b / dneq0) - d*d = a)%Real by rewrite simpl1 simpl2.
-    Holger P0.
-    Holger dprp2.
-    classical.
-    relate.
-    Holger dneq0.
-    relate.
-    field_simplify_eq; last by apply Rmult_neq_0_reg; lra.
-    by lra.
-  - have cneq0 : (Real2*c)%Real <> Real0.
-    admit.
+  - have cneq0 : (Real2*c)%Real <> Real0 by Holger P;Holger cprp2;Holger absp1;classical;relate; rewrite (relate_IZReal _ _ Ha); rewrite (relate_IZReal _ _ Ha) in H1; nra.
     exists (complex c (b / cneq0)).
     rewrite /Complex_mult /=.
     rewrite (Realmult_comm c).
     suff -> : (c*c - b / cneq0 * (b / cneq0) = a)%Real by rewrite simpl1 simpl2.
-    admit.
-  - exists (complex c d).
+    rewrite -P1.
+    rewrite -P1 in P0.
+    Holger P0.
+    classical.
+    relate.   
+    Holger cneq0.
+    relate.
+    move : H0 H1.
+    rewrite (relate_IZReal _ _ Ha) => H1 H0.
+    by field_simplify_eq; lra.
+  - have dneq0 : (Real2*d)%Real <> Real0 by Holger P;Holger dprp2;Holger absp1;classical;relate;rewrite (relate_IZReal _ _ Ha); rewrite (relate_IZReal _ _ Ha) in H1;nra.
+    exists (complex (b / dneq0) d).
     rewrite /Complex_mult /=.
-    suff H0 : (c*d = b / dReal2)%Real by rewrite P1 (Realmult_comm d) H0 simpl2. 
-    apply (sqrt_unique (b / dReal2 * b / dReal2)%Real); Holger absp2; Holger cprp1; Holger cprp2; Holger dprp1; Holger dprp2; Holger P; split; classical; relate; [by apply Rmult_le_pos | |by rewrite (relate_IZReal _ _ Hb3);lra | by lra].
+    rewrite (Realmult_comm d).
+    suff -> : (b / dneq0 * (b / dneq0) - d*d = a)%Real by rewrite simpl1 simpl2.
+    Holger P0;Holger dprp2;classical;relate;Holger dneq0;relate.
+    field_simplify_eq; last by apply Rmult_neq_0_reg; lra.
+    by lra.
+  - have cneq0 : (Real2*c)%Real <> Real0.
+    have [absz_prp3 absz_prp4] := (absz_prp' (Realgt_neq _ _ P)).
+    + Holger absz_prp3; Holger absz_prp4; Holger cprp2; classical; relate.
+      by move : H0 H1 H2;rewrite (relate_IZReal _ _ Ha); rewrite (Holber4 _ _ _ Ha0 Hx); intros; nra.
+    exists (complex c (b / cneq0)).
+    rewrite /Complex_mult /=.
+    rewrite (Realmult_comm c).
+    suff -> : (c*c - b / cneq0 * (b / cneq0) = a)%Real by rewrite simpl1 simpl2.
+    rewrite -P1.
+    rewrite -P1 in P0.
+    Holger P0;classical;relate;Holger cneq0;relate.
+    move : H0 H1.
+    rewrite (relate_IZReal _ _ Ha) => H1 H0.
+    by field_simplify_eq; lra.
+  exists (complex c (-d)%Real).
+  rewrite /Complex_mult /=.
+  have -> : (c*c - - d * -d = c*c - d*d)%Real by classical;relate;rewrite (Holber4 _ _ _ Hb2 Hb1);lra.
+  suff H0 : (c* -d = b / dReal2)%Real by rewrite P1 (Realmult_comm (-d)) H0 simpl2.
+  suff H1 : (c*d = - b / dReal2)%Real by Holger H1; Holger P; classical; relate;move : H0;rewrite (Holber4 _ _ _ Ha Ha0) (Holber4 _ _ _ Hb2 Hb1);lra.
+  ring_simplify.
+  apply (sqrt_unique (b / dReal2 * b / dReal2)%Real); Holger absp2; Holger cprp1; Holger cprp2; Holger dprp1; Holger dprp2; Holger P; split; classical;relate; [by apply Rmult_le_pos | | |  ].
+  - rewrite (relate_IZReal _ _ Hb6).
     move : H2 H4.
     rewrite (relate_IZReal _ _ Hb6) => H2 H4.
     field_simplify.
     field_simplify in H2.
     field_simplify in H4.
     rewrite H2 H4.
-    by lra.   
-  exists (complex c (-d)%Real).
-  rewrite /Complex_mult /=.
-  have -> : (c*c - - d * -d = c*c + d*d)%Real. classical;relate.
-Admitted.
+    by lra.
+  - by rewrite (relate_IZReal _ _ Hb3) (Holber4 _ _ _ Hb5 Ha0);lra.
+  by rewrite (relate_IZReal _ _ Hb8) (Holber4 _ _ _ Hb7 Ha6);lra.
+Defined.
