@@ -1,5 +1,3 @@
-(* Require Import Real. *)
-
 From mathcomp Require Import all_ssreflect.
 Require Import Base.
 Require Import Coq.Reals.Abstract.ConstructiveReals.
@@ -47,14 +45,35 @@ Definition Realopp x : Real := - x.
 Notation "x > y" := (CRlt _ y x) : ConstructiveReals.
 Notation "x >= y" := (CRle _ y x) : ConstructiveReals.
 
+Lemma CRlt_antisym (x y : Real) : y > x -> x > y -> False.
+Proof.
+  have L := CRltLinear cr.
+  unfold isLinearOrder in L.
+  destruct L as [[L' _] _].
+  apply L'.
+Qed.
+
 Notation "x <@ y" := (CRltProp _ x y) (at level 70, no associativity) : ConstructiveReals.
 Notation "x <=@ y" := ((CRltProp _ y x) -> False) (at level 70, no associativity) : ConstructiveReals.
 Notation "x >@ y" := (CRltProp _ y x) (at level 70, no associativity) : ConstructiveReals.
 Notation "x >=@ y" := ((CRltProp _ x y) -> False) (at level 70, no associativity) : ConstructiveReals.
 Notation "x =@ y" := ((x <=@ y)/\(x >=@ y)) (at level 70, right associativity) : ConstructiveReals.
 
-
 Definition Reallt : Real -> Real -> Prop := CRltProp cr.
+
+Lemma Realeq_refl (x : Real) : x =@ x.
+Proof.
+  suff lt: x <=@ x by auto.
+  intros.
+  apply (CRltEpsilon cr) in H.
+  by apply (CRlt_antisym x x); auto.
+Qed.
+
+Lemma Realeq_sym (x y : Real) : x =@ y -> y =@ x.
+Proof.
+  intros [H1 H2].
+  split; auto.
+Qed.
 
 Lemma Realtotal_order : forall r1 r2 : Real, r1 <@ r2 \/ r1 =@ r2 \/ r1 >@ r2.
 Proof.
@@ -129,12 +148,84 @@ Proof.
   exists y.
   split; auto.
   intro H; contradict H; apply Reallt_nlt; auto.
+  split. apply Realeq_sym.
+  intros. apply Realeq_refl.
 
   exists x.
-  split; auto.
+  split; split;auto.
+  apply Realeq_refl.
+  apply Realeq_refl.
+  intro. apply Realeq_refl.
 
   exists x.
-  split; auto.
-  split; auto.
+  split; split; auto.
+  apply Realeq_refl.
+  apply Realeq_refl.
+  intro. apply Realeq_refl.
   intro H; contradict c3; apply Reallt_nlt; auto.
 Qed.
+
+Lemma Realmax : forall x y, {z | W_M x y z}.
+Proof.
+  intros.
+
+(* TODO *)
+Admitted.
+(* 
+  apply Real_mslimit_P_lt.
+  + (* max is single valued predicate *)
+    unfold unique.
+    pose proof (W_max x y).
+    destruct H as [m H].
+    exists m.
+    split; auto.
+    intros m' H'.
+    destruct (W_M_Or x y m H) as [[H11 H12]|[H11 H12]];
+      destruct (W_M_Or x y m' H') as [[H11' H12']|[H11' H12']];
+      try rewrite <- H11; try rewrite <- H11'; auto with Realiny.   
+  + (* construct limit *)
+    intros.
+    apply (mjoin (x>y - prec n) (y > x - prec n)).
+    ++ intros [c1|c2].
+       +++ (* when x>y-2ⁿ *)
+         exists x.
+         destruct (W_max x y).
+         exists x0.
+         constructor; auto.
+         destruct (W_M_Or x y x0 H) as [[H1 _]|[H1 H2]].
+         ++++ rewrite H1.
+              destruct (dist_zero x0 x0) as [o t]; rewrite (t eq_refl).
+                apply prec_pos.
+                
+         ++++ rewrite <- H1.
+              pose proof (prec_pos n) as P.
+              apply (Reallt_plus_lt y Real0 (prec n)) in P; ring_simplify in P.
+              apply (Realge_le) in H2.
+              apply (Realle_lt_lt x y (y+prec n) H2) in P.
+              assert (y-prec n < x < y+prec n) by auto.
+              pose proof (prec_pos n) as Q.
+              rewrite (dist_symm).
+              apply (Realmetric_gtgt_sand y x (prec n) Q H0).
+              
+       +++ (* when x<y-2ⁿ *)
+         exists y.
+         destruct (W_max x y).
+         exists x0.
+         constructor; auto.
+         destruct (W_M_Or x y x0 H) as [[H1 H2]|[H1 _]].
+         ++++ rewrite <- H1.
+              pose proof (prec_pos n) as P.
+              apply (Reallt_plus_lt x Real0 (prec n)) in P; ring_simplify in P.
+              apply (Realge_le) in H2.
+              apply (Realle_lt_lt y x (x+prec n) H2) in P.
+              assert (x-prec n < y < x+prec n) by auto.
+              pose proof (prec_pos n) as Q.
+              rewrite (dist_symm).
+              apply (Realmetric_gtgt_sand x y (prec n) Q H0).
+           ++++ rewrite H1.
+                destruct (dist_zero x0 x0) as [o t]; rewrite (t eq_refl).
+                apply prec_pos.
+                
+    ++ apply M_split.
+       apply prec_pos.       
+Defined. *)
