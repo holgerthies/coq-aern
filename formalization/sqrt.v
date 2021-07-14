@@ -333,18 +333,6 @@ Require Import Complex.
 
 Open Scope C_scope.
 
-Lemma semidec_or P Q : semidec P -> semidec Q -> semidec (P \/ Q).
-Proof.
-  move => H1 H2.
-  destruct H1.
-  destruct H2.
-  destruct i.
-  destruct i0.
-  exists (klor x x0).
-  split.
-  - by destruct (klor_up x x0); rewrite H3;auto.
-Admitted.
-
 Lemma complex_nonzero_cases  a b : complex a b <> Complex0 -> M ({Real0 < a} + {a < Real0} + {Real0 < b} + {b < Real0}).
 Proof.
   move => H.

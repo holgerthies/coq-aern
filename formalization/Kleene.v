@@ -16,10 +16,10 @@ Axiom definedK_is_bool : forall k, definedK k -> {upK k} + {downK k}.
   
 Axiom kneg_up : forall k : K, upK (kneg k) = downK k. 
 Axiom kneg_down : forall k : K, downK (kneg k) = upK k.
-Axiom kland_up : forall a b : K, upK (kland a b) = upK a /\ upK b.
-Axiom kland_down : forall a b : K, downK (kland a b) = downK a \/ downK b.
-Axiom klor_up : forall a b : K, upK (klor a b) = upK a \/ upK b.
-Axiom klor_down : forall a b : K, downK (klor a b) = downK a /\ downK b.
+Axiom kland_up : forall a b : K, upK (kland a b) = (upK a /\ upK b).
+Axiom kland_down : forall a b : K, downK (kland a b) = (downK a \/ downK b).
+Axiom klor_up : forall a b : K, upK (klor a b) = (upK a \/ upK b).
+Axiom klor_down : forall a b : K, downK (klor a b) = (downK a /\ downK b).
 
 (** Multivalue monad **)
 (* Functor structure: *)
@@ -255,7 +255,22 @@ Defined.
 
 
 
-
+Lemma semidec_or P Q : semidec P -> semidec Q -> semidec (P \/ Q).
+Proof.
+  intros.
+  destruct H as [k1 e1].
+  destruct H0 as [k2 e2].
+  exists (klor k1 k2).
+  split; intro p.
+  rewrite klor_up in p.
+  destruct p as [H | H].
+  left; apply proj1 in e1; apply e1, H.
+  right; apply proj1 in e2; apply e2, H.
+  rewrite klor_up.
+  destruct p as [H | H].
+  left; apply proj2 in e1; apply e1, H.
+  right; apply proj2 in e2; apply e2, H.
+Defined.
 
 
 Notation "[ x | P ]" := (M {x | P}) : type_scope.
