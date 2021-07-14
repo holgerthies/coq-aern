@@ -42,5 +42,6 @@ nra.cachedump
 newreal/*.hs
 .stack-work
 stack.yaml.lock
+extracted-examples/*.cabal
 **/bench/logs
 .vscode
