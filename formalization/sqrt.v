@@ -329,7 +329,7 @@ Proof.
     by rewrite -prec_twice.
 Defined. 
 
-Require Import Complex.
+Require Import Complex Euclidean.
 
 Open Scope C_scope.
 
@@ -454,3 +454,91 @@ Proof.
   - by rewrite (relate_IZReal _ _ Hb3) (Holber4 _ _ _ Hb5 Ha0);lra.
   by rewrite (relate_IZReal _ _ Hb8) (Holber4 _ _ _ Hb7 Ha6);lra.
 Defined.
+
+Lemma prec_lt m n: (m <= n)%coq_nat -> prec n <= prec m. 
+Proof.
+  move => H.
+  have -> : (n = m + (n - m)%coq_nat)%coq_nat by lia. 
+  elim (n-m)%coq_nat => [|m' IH]; first by rewrite Nat.add_0_r; apply Realle_triv.
+  have -> : (m + m'.+1 = (m+m')%coq_nat.+1)%coq_nat by lia.
+  apply Reallt_le.
+  apply /Reallt_le_lt/IH.
+  by apply prec_S.
+Qed.
+
+Lemma two_point_set_closed n (P : euclidean n -> Prop): (forall x1 x2 x3, P x1 -> P x2 -> P x3 -> x1 = x2 \/ x1 = x3 \/ x2 = x3) -> euclidean_is_closed P.
+Proof.
+   move => H.
+   move => x.
+   move => Cx.
+   have Pprp : (forall x, ~ P x) \/ (exists x, P x /\ forall x',  P x' -> x = x') \/ (exists x1 x2, P x1 /\ P x2 /\ (x1 <> x2) /\ forall x3, P x3 -> x1 = x3 \/ x2 = x3).
+   - case (lem (forall x, ~ P x)); try by auto.
+     case (lem (exists x, P x /\ forall x',  P x' -> x = x')); try by auto.
+     case (lem (exists x1 x2, P x1 /\ P x2 /\ (x1 <> x2) /\ forall x3, P x3 -> x1 = x3 \/ x2 = x3)); try by auto.
+     move => H1 H2 H3.
+     apply Classical_Pred_Type.not_all_not_ex in H3.
+     have  H1' := (Classical_Pred_Type.not_ex_all_not _  _ H1 ).
+     have  H2' := (Classical_Pred_Type.not_ex_all_not _  _ H2 ).
+     case H3 => x0 Px0.
+     have /Classical_Prop.not_and_or := (H2' x0); case => // /Classical_Pred_Type.not_all_ex_not x0p.
+     case x0p => x1 x1p.
+     have [x1p1 x1p2] := Classical_Prop.imply_to_and _ _ x1p.
+     have /Classical_Prop.not_and_or := (Classical_Pred_Type.not_ex_all_not _ _ (H1' x0) x1); case => // /Classical_Prop.not_and_or ; case  => // => /Classical_Prop.not_and_or; case => // /Classical_Pred_Type.not_all_ex_not;case => x2 x2prp.
+     have [x2prp1 /Classical_Prop.not_or_and [x2prp2 x2prp3]] := Classical_Prop.imply_to_and _ _ x2prp.
+     have H' := (H _ _ _ Px0 x1p1 x2prp1).
+     contradict H'.
+     case;by auto.
+  case Pprp => [prp | [[x1 [x1prp x1prp']] | [x1 [x2 [Px1 [Px2 [neq prp] ] ]]] ]]; first by exists (0%nat); intros;apply prp.
+  - have dp := (euclidean_max_dist_pos x x1).
+    move : Cx.
+    case (Realtotal_order (euclidean_max_dist x x1) Real0) => [/Realgt_nge | [/euclidean_max_dist_id ->| dx Cx] ] //.
+    case (RealArchimedean _ dx) => m mprp.
+    exists m => y yprp.
+    move => H0.
+    move : mprp yprp.
+    have -> := (x1prp' y H0) => /Reallt_nlt.
+    by auto.
+  have dp1 := (euclidean_max_dist_pos x x1).
+  have dp2 := (euclidean_max_dist_pos x x2).
+  move : Cx.
+  case (Realtotal_order (euclidean_max_dist x x1) Real0) => [/Realgt_nge | [/euclidean_max_dist_id ->| dx1  ] ] //.
+  case (Realtotal_order (euclidean_max_dist x x2) Real0) => [/Realgt_nge | [/euclidean_max_dist_id ->| dx2 Cx] ] //.
+  case (RealArchimedean _ dx1) => m1 m1prp.
+  case (RealArchimedean _ dx2) => m2 m2prp.
+  exists (max m1 m2) => y yprp.
+  suff [H1 H2]: (x1 <> y) /\ (x2 <> y) by move => H0;case (prp y H0).
+  have [P1' P2'] : prec (max m1 m2) < euclidean_max_dist x x1 /\ prec (max m1 m2) < euclidean_max_dist x x2.
+  - split;first by apply /Realle_lt_lt/m1prp/prec_lt/Nat.le_max_l.
+    apply /Realle_lt_lt/m2prp/prec_lt/Nat.le_max_r.
+  split => eq; [move : P1' | move: P2']; by rewrite eq => /Reallt_nlt.
+Qed.
+
+
+Lemma csqrt_solutions (x y z : Complex) : x*x = z -> y*y = z -> (x=y \/ x=-y).
+Proof.
+  case (Complex_destruct x) => [xr [xi ->]].
+  case (Complex_destruct y) => [yr [yi ->]].
+  case (Complex_destruct z) => [zr [zi ->]].
+  rewrite /Complex_mult /= => [[[H1 H1'] [H2 H2']] ].
+  suff : (xr = yr /\ xi = yi)%Real  \/ (xr = -yr /\ xi = -yi)%Real by case => [[-> ->]|[-> ->] ];auto.
+  move : H1 H1' H2 H2'.
+  case (Realtotal_order xr yr) => [p | [->  | p]]; [right | left; split=>// | right].
+Admitted.
+  
+(* approximates  square root by either returning zero for small numbers or computing the actual square root *)
+Definition csqrt_approx (z : Complex) n: M {sqapprox | exists x, x*x = z /\ euclidean_max_dist sqapprox x <= prec n}.
+Admitted.
+
+Definition csqrt (z: Complex) : M {sqz | sqz * sqz = z}.
+Proof.
+  apply euclidean_mlimit_P.
+  - apply euclidean_is_closed_is_seq_complete.
+    apply two_point_set_closed => x1 x2 x3 x1p x2p x3p.
+    case (csqrt_solutions _ _ _ x1p x3p) => P; try by auto.
+    case (csqrt_solutions _ _ _ x2p x3p) => ->; try by auto.
+  - apply /liftM/(csqrt_approx z 0) => [[x0 x0prp]].
+    exists x0.
+    case x0prp => y yprp.
+    by exists y.
+  move => n x.
+Admitted.
