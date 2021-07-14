@@ -10,7 +10,9 @@ module Main where
   
 import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),abs,max,min,not,(&&),(||))
 import Numeric.OrdGenericBool
-import MixedTypesNumPrelude (ifThenElse, CN)
+import MixedTypesNumPrelude (ifThenElse, CN, integer)
+import qualified Data.List as List
+import Data.Maybe (fromJust)
 
 import System.Environment
 
@@ -24,6 +26,7 @@ import Math.NumberTheory.Logarithms (integerLog2)
 import qualified Max
 import qualified IVT
 import qualified Sqrt
+import qualified Magnitude
 
 realmax :: _ => t -> t -> t
 realmax x y = 
@@ -56,6 +59,20 @@ sqrt_approx x n =
   let step y = (y + x/y)/2 in
   (iterate step 1) !! n
 
+magnitude1 :: _ => t -> Integer
+magnitude1 x = 
+  integer $ fromJust $ List.findIndex id $ map test [0..]
+  where
+  test n = select (0.5^^(n+2) < x) (x < 0.5^^(n::Int))
+
+magnitude2 :: _ => t -> Integer
+magnitude2 x = 2 - (magnitude1 (x/4))
+
+magnitude :: _ => t -> Integer
+magnitude x =
+  if select (x < 2) (x > 0.25)
+    then magnitude2 x
+    else 2 - (magnitude2 (1/x))
 
 realmax_bench :: (Floating t) => (t -> t -> t) -> t
 realmax_bench maxfn =
@@ -79,6 +96,8 @@ sqrt_bench1 sqrtfn = sqrtfn 2
 sqrt_bench2 :: (Floating t) => (t -> t) -> t
 sqrt_bench2 sqrtfn = sqrtfn $ sqrtfn 2
 
+magnitude_bench1 :: (Fractional t) => (t -> Integer) -> Integer
+magnitude_bench1 magFn = magFn (0.5^(10000 :: Int))
 
 main :: IO ()
 main =
@@ -98,6 +117,13 @@ main =
   --   showR $ (runWithPrec (prec p) $ realmax_bench realmax)
   -- bench "realmaxMBN" p =
   --   showR $ ((runWithPrec (prec p) $ realmax_bench max) :: CN MPBall)
+
+  bench "magnitude1E" _p =
+    show $ (magnitude_bench1 (Magnitude.magnitude :: CReal -> Integer))
+  bench "magnitude1H" _p =
+    show $ (magnitude_bench1 (magnitude :: CReal -> Integer))
+  -- bench "magnitude1N" p =
+  --   showR $ (magnitude_bench1 sqrt :: CReal) ? (prec p)
 
   bench "sqrt1E" p =
     showR $ (sqrt_bench1 Sqrt.restr_sqrt :: CReal) ? (prec p)
