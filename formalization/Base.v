@@ -9,6 +9,9 @@ Proof.
   exact H.
 Defined.
 
+Axiom countable_choice : forall A (P : nat -> A -> Prop), (forall n, exists x, P n x) -> exists f : nat -> A , forall n, P n (f n).
+
+
 Definition isSubsingleton := fun P : Type => forall x y : P, x = y.
 Lemma fun_to_subsingleton_id : forall {A B} (f g : A -> B), isSubsingleton B -> f = g.
 Proof.

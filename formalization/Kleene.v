@@ -277,3 +277,41 @@ Notation "[ x | P ]" := (M {x | P}) : type_scope.
 Notation "[ x : T | P ]" := (M {x : T | P}) : type_scope.
 Notation "[ ( a , b ) | P ]" := (M (sigT (fun a => {b | P}))) : type_scope.
 
+(* Lemma unitM_is_mono : forall A x y, unitM A x = unitM A y -> x = y. *)
+(* Proof. *)
+(*   intros. *)
+(*   pose (f := (fun a => a = x)). *)
+(*   assert (f x <> f y). *)
+(*   simpl. *)
+(*   unfold f. *)
+(*   Check f. *)
+(*   destruct f. *)
+(*   f. *)
+  
+  
+(* Definition Mand : M Prop -> Prop. *)
+(* Proof. *)
+(*   intro. *)
+(*   exact (X = unitM _ True). *)
+(* Defined. *)
+
+(* Definition Mor : M Prop -> Prop. *)
+(* Proof. *)
+(*   intro. *)
+(*   exact (~ (X = unitM _ False)). *)
+(* Defined. *)
+
+(* Lemma Mor_is_retract : forall P : Prop, Mor (unitM _ P) = P. *)
+(* Proof. *)
+(*   intro P. *)
+(*   destruct (lem P). *)
+(*   unfold Mor. *)
+(*   assert (e : P = True) by (apply Prop_ext; auto). *)
+(*   rewrite e. *)
+(*   apply Prop_ext. *)
+(*   intro; auto. *)
+(*   intro. *)
+(*   intro. *)
+  
+  
+(*   simpl. *)

@@ -2,263 +2,228 @@ Require Export ZArith_base.
 Require Import Base.
 Require Import Kleene.
 
-(* basic axioms for our type theory *)
-Parameter Real : Set.
 
 Declare Scope Real_scope.
 Delimit Scope Real_scope with Real.
-Bind Scope Real_scope with Real.
-
+(* Bind Scope Real_scope with Real. *)
 Local Open Scope Real_scope.
 
-(* algebraic structure of Real *)
-Parameter Real0 : Real.
-Parameter Real1 : Real.
-Parameter Realplus : Real -> Real -> Real.
-Parameter Realmult : Real -> Real -> Real.
-Parameter Realopp : Real -> Real.
-Parameter Realinv : forall {z}, z <> Real0 -> Real.
-Parameter Reallt : Real -> Real -> Prop.
 
-(* real number comparison is semi-decidable *)
-Axiom Reallt_semidec : forall x y : Real, semidec (Reallt x y).
+Structure SemiDecOrderedField : Type :=
+  {
+    real : Set;
+    real_0 : real;
+    real_1 : real;
+    real_plus : real -> real -> real;
+    real_mult : real -> real -> real;
+    real_opp : real -> real;
+    real_inv : forall {z}, z <> real_0 -> real;
+    real_lt : real -> real -> Prop;
+    real_lt_semidec : forall x y : real, semidec (real_lt x y);
 
+    real_plus_comm : forall r1 r2 : real, real_plus r1 r2 = real_plus r2 r1;
+    real_plus_assoc : forall r1 r2 r3 : real, real_plus (real_plus r1 r2) r3 = real_plus r1 (real_plus r2 r3);
+    real_plus_inv : forall r : real, real_plus r (real_opp r) = real_0;
+    real_plus_unit : forall r : real, real_plus real_0 r = r;
+    real_mult_comm : forall r1 r2 : real, real_mult r1 r2 = real_mult r2 r1;
+    real_mult_assoc : forall r1 r2 r3 : real, real_mult (real_mult r1 r2) r3 = real_mult r1 (real_mult r2 r3);
+    real_mult_inv : forall (r : real) (p : r <> real_0), real_mult (real_inv p) r = real_1;
+    real_mult_unit : forall r : real, real_mult real_1 r = r;
+    real_mult_plus_distr: forall r1 r2 r3 : real, real_mult r1 (real_plus r2 r3) = real_plus (real_mult r1 r2) (real_mult r1  r3);
 
-(* Notations *)
-Infix "+" := Realplus : Real_scope.
-Infix "*" := Realmult : Real_scope.
-Notation "- x" := (Realopp x) : Real_scope.
-Notation "/ x" := (Realinv x) : Real_scope.
+    real_1_neq_0 : real_1 <> real_0;
+    real_1_gt_0 : real_lt real_0 real_1;
 
-Infix "<" := Reallt : Real_scope.
+    real_total_order : forall r1 r2 : real, real_lt r1 r2 \/ r1 = r2 \/ real_lt r2 r1;
+    real_lt_nlt : forall r1 r2 : real, real_lt r1 r2 -> ~ real_lt r2 r1;
+    real_lt_lt_lt : forall r1 r2 r3 : real, real_lt r1 r2 -> real_lt r2 r3 -> real_lt r1 r3;
+    real_lt_plus_lt : forall r r1 r2 : real, real_lt r1 r2 -> real_lt (real_plus r r1) (real_plus r r2);
+    real_lt_mult_pos_lt : forall r r1 r2 : real, real_lt real_0 r -> real_lt r1 r2 -> real_lt (real_mult r r1) (real_mult r r2);
+  }.
 
-Definition Realgt (x y:Real) : Prop := y < x.
-Definition Realle (x y:Real) : Prop := x < y \/ x = y.
-Definition Realge (x y:Real) : Prop := Realgt x y \/ x = y.
-Definition Realminus (x y:Real) : Real := x + - y.
-Definition Realdiv (x :Real) {y:Real} (p:y<>Real0) :  Real := x * / p.
+Arguments real_0 {_}.
+Arguments real_1 {_}.
+Arguments real_plus {_}.
+Arguments real_mult {_}.
+Arguments real_opp {_}.
+Arguments real_inv {_}.
+Arguments real_lt {_}.
+Arguments real_lt_semidec {_}.
 
-Definition Realltb : Real -> Real -> K.
+Arguments real_plus_comm {_}.
+Arguments real_plus_assoc {_}.
+Arguments real_plus_inv {_} {_}.
+Arguments real_plus_unit {_}.
+Arguments real_mult_comm {_}.
+Arguments real_mult_assoc {_}.
+Arguments real_mult_inv {_}.
+Arguments real_mult_unit {_}.
+Arguments real_mult_plus_distr {_}.
+Arguments real_1_neq_0 {_}.
+Arguments real_1_gt_0 {_}.
+
+Arguments real_total_order {_}.
+Arguments real_lt_nlt {_}.
+Arguments real_lt_lt_lt {_}.
+Arguments real_lt_plus_lt {_}.
+Arguments real_lt_mult_pos_lt {_}.
+
+Infix "+" := (real_plus ) : Real_scope.
+Infix "*" := (real_mult ) : Real_scope.
+Notation "- x" := (real_opp  x) : Real_scope.
+Notation "/ p" := (real_inv _ p ) : Real_scope.
+Infix "<" := (real_lt ) : Real_scope.
+Definition real_gt {T : SemiDecOrderedField} (x y : real T) : Prop := y < x.
+Definition real_le {T : SemiDecOrderedField} (x y : real T) : Prop := x < y \/ x = y.
+Definition real_ge {T : SemiDecOrderedField} (x y : real T) : Prop := real_gt x y \/ x = y.
+Definition real_minus {T : SemiDecOrderedField} (x y : real T) : real T := x + - y.
+
+Definition real_div {T : SemiDecOrderedField} (x : real T) {y : real T} (p:y <> real_0) : real T := x * (/ p).
+Definition real_ltb {T : SemiDecOrderedField} : real T -> real T -> K.
 Proof.
   intros x y.
-  exact (projP1 _ _ (Reallt_semidec x y)).
+  exact (projP1 _ _ (real_lt_semidec x y)).
 Defined.
 
-Definition Realgtb (x y: Real) : K := Realltb y x.
+Definition real_gtb {T : SemiDecOrderedField} (x y : real T) : K := real_ltb y x.
 
-Infix "-" := Realminus : Real_scope.
-Infix "/" := Realdiv   : Real_scope.
-
-Infix "<=" := Realle : Real_scope.
-Infix ">=" := Realge : Real_scope.
-Infix ">"  := Realgt : Real_scope.
-Infix "<?" := Realltb : Real_scope.
-Infix ">?" := Realgtb : Real_scope.
-
-Notation "x <= y <= z" := (x <= y /\ y <= z) : Real_scope.
-Notation "x <= y < z"  := (x <= y /\ y <  z) : Real_scope.
-Notation "x < y < z"   := (x <  y /\ y <  z) : Real_scope.
-Notation "x < y <= z"  := (x <  y /\ y <= z) : Real_scope.
-
-(**********)
-(* Lemma Realltb_lt_t : forall x y : Real, Realltb x y = trueK <-> x < y. *)
-(* Lemma Realltb_lt_f : forall x y : Real, Realltb x y = falseK <-> y < x. *)
-
-(* Lemma Reallt_semidec : forall x y : Real, semidec (x < y). *)
-(* Proof. *)
-(*   intros x y. exists (x <? y). *)
-(*   exact (Realltb_lt_t x y). *)
-(* Qed. *)
-
-Lemma Realgt_semidec : forall x y : Real, semidec (x > y).
-Proof.
-  intros x y.
-  exact (Reallt_semidec y x).
-Defined.
+Infix "-" := (real_minus) : Real_scope.
+Infix "/" := (real_div ): Real_scope.
+Infix "<=" := (real_le ): Real_scope.
+Infix ">=" := (real_ge): Real_scope.
+Infix ">"  := (real_gt): Real_scope.
+Infix "<?" := (real_ltb): Real_scope.
+Infix ">?" := (real_gtb): Real_scope.
+Notation "x <= y <= z" := (x <= y /\ y <= z): Real_scope.
+Notation "x <= y < z"  := (x <= y /\ y <  z): Real_scope.
+Notation "x < y < z"   := (x <  y /\ y <  z): Real_scope.
+Notation "x < y <= z"  := (x <  y /\ y <= z): Real_scope.
 
 
+(* Definition W_nemp {T : SemiDecOrderedField} (c : real T -> Prop) := exists z, c z. *)
+(* Definition W_upb {T : SemiDecOrderedField} (c : real T -> Prop) (u : real T) := forall z : real T, c z -> z <= u. *)
+(* Definition W_upbd {T : SemiDecOrderedField} (c : real T-> Prop) := exists u, W_upb c u. *)
+(* Definition W_sup {T : SemiDecOrderedField} (c : real T-> Prop) (s : real T) *)
+(*   := W_upb c s /\ (forall s', W_upb c s' -> s <= s'). *)
+(* Definition is_W_complete (T : SemiDecOrderedField) := *)
+(*   forall c : real T -> Prop, W_nemp c ->  W_upbd c -> exists z, W_sup c z.  *)
 
-(* injection from nat and Z to Real *)
 Inductive EZ :=
   Epos : nat -> EZ
 | Ezero : EZ
 | Eneg : nat -> EZ.
 
-Fixpoint NReal (n : nat) : Real :=
+Fixpoint Nreal {T : SemiDecOrderedField} (n : nat) : real T :=
   match n with
-  | O => Real0
-  | S n => Real1 + NReal n
+  | O => real_0 | S n => real_1 + Nreal n
   end.
-Arguments NReal n%nat.
 
-Definition EZReal (z : EZ) : Real :=
+Arguments Nreal _ n%nat.
+
+Definition EZreal {T : SemiDecOrderedField} (z : EZ) : real T:=
   match z with
-  | Epos n => NReal n
-  | Ezero => Real0
-  | Eneg n => - (NReal n)
+  | Epos n => Nreal n
+  | Ezero => real_0 | Eneg n => - (Nreal n)
   end.
-
 
 (**********)
-Fixpoint IPReal_2 (p:positive) : Real :=
+Fixpoint IPreal_2 {T : SemiDecOrderedField} (p:positive) : real T :=
   match p with
-  | xH => Real1 + Real1
-  | xO p => (Real1 + Real1) * IPReal_2 p
-  | xI p => (Real1 + Real1) * (Real1 + IPReal_2 p)
+  | xH => real_1 + real_1
+  | xO p => (real_1 + real_1) * IPreal_2 p
+  | xI p => (real_1 + real_1) * (real_1 + IPreal_2 p)
   end.
 
-Definition IPReal (p:positive) : Real :=
+Definition IPreal {T : SemiDecOrderedField} (p:positive) : real T:=
   match p with
-  | xH => Real1
-  | xO p => IPReal_2 p
-  | xI p => Real1 + IPReal_2 p
+  | xH => real_1
+  | xO p => IPreal_2 p
+  | xI p => real_1 + IPreal_2 p
   end.
-Arguments IPReal p%positive : simpl never.
+Arguments IPreal _ p%positive : simpl never.
 
-Definition IZReal (z:Z) : Real :=
+Definition IZreal {T : SemiDecOrderedField} (z : Z) : real T :=
   match z with
-  | Z0 => Real0
-  | Zpos n => IPReal n
-  | Zneg n => - IPReal n
+  | Z0 => real_0
+  | Zpos n => IPreal n
+  | Zneg n => - IPreal n
   end.
-Arguments IZReal z%Z : simpl never.
+Arguments IZreal _ z%Z : simpl never.
 
 (**********)
-Fixpoint INReal (n:nat) : Real :=
+Fixpoint INreal {T : SemiDecOrderedField} (n:nat) : real T  :=
   match n with
-  | O => Real0
-  | S O => Real1
-  | S n => INReal n + Real1
+  | O => real_0
+  | S O => real_1 
+  | S n => INreal n + real_1
   end.
-Arguments INReal n%nat.
-  
+Arguments INreal _ n%nat.
 
+Definition real_2 {T : SemiDecOrderedField} : real T := IZreal 2.
 
-
-
-(* Classical axioms *)
-Axiom Realplus_comm : forall r1 r2:Real, r1 + r2 = r2 + r1.
-Axiom Realplus_assoc : forall r1 r2 r3:Real, r1 + r2 + r3 = r1 + (r2 + r3).
-Axiom Realplus_inv : forall r:Real, r + - r = Real0.
-Axiom Realplus_unit : forall r:Real, Real0 + r = r.
-Axiom Realmult_comm : forall r1 r2:Real, r1 * r2 = r2 * r1.
-Axiom Realmult_assoc : forall r1 r2 r3:Real, r1 * r2 * r3 = r1 * (r2 * r3).
-Axiom Realmult_inv : forall (r:Real) (p : r <> Real0), / p * r = Real1.
-Axiom Realmult_unit : forall r:Real, Real1 * r = r.
-Axiom Realmult_plus_distr: forall r1 r2 r3:Real, r1 * (r2 + r3) = r1 * r2 + r1 * r3.
-Axiom Real1_neq_Real0 : Real1 <> Real0.
-Axiom Real1_gt_Real0 : Real1 > Real0.
-Axiom Realtotal_order : forall r1 r2 : Real, r1 < r2 \/ r1 = r2 \/ r1 > r2.
-Axiom Reallt_nlt : forall r1 r2 : Real, r1 < r2 -> ~ r2 < r1.
-Axiom Reallt_lt_lt : forall r1 r2 r3:Real, r1 < r2 -> r2 < r3 -> r1 < r3.
-Axiom Reallt_plus_lt : forall r r1 r2:Real, r1 < r2 -> r + r1 < r + r2.
-Axiom Reallt_mult_pos_lt : forall r r1 r2:Real, Real0 < r -> r1 < r2 -> r * r1 < r * r2.
-Definition W_nemp (c : Real -> Prop) := exists z, c z.
-Definition W_upb (c : Real -> Prop) (u : Real) := forall z : Real, c z -> z <= u.
-Definition W_upbd (c : Real -> Prop) := exists u, W_upb c u.
-Definition W_sup (c : Real -> Prop) (s : Real)
-  := W_upb c s /\ (forall s', W_upb c s' -> s <= s').
-Axiom W_complete :
-  forall c : Real -> Prop, W_nemp c ->  W_upbd c -> exists z, W_sup c z. 
-
-
-Global Hint Resolve Realmult_plus_distr: Realiny.
-Global Hint Resolve Realplus_comm Realplus_assoc Realplus_inv Realplus_unit: Realiny.
-Global Hint Resolve Realmult_comm Realmult_assoc Realmult_inv Realmult_unit: Realiny.
-Global Hint Resolve Real1_neq_Real0: Realiny.
-Global Hint Resolve Real1_gt_Real0 Realtotal_order Reallt_nlt Reallt_lt_lt Reallt_plus_lt Reallt_mult_pos_lt: Realiny.
-Global Hint Resolve Reallt_semidec Realgt_semidec W_complete: Realiny.
-
-
-
-(* Accuracy embeding prec : n => 2^{-n} to axiomatize constructive limit *)
-Definition Real2 : Real := IZReal 2.
-
-Lemma Reallt_n_Sn : forall x, x < x + Real1.
+Lemma real_lt_n_Sn : forall {T : SemiDecOrderedField} (x : real T), x < x + real_1.
 Proof.
-intro.
-pose proof Real1_gt_Real0.
-rewrite <- Realplus_unit at 1.
-rewrite Realplus_comm.
-apply (Reallt_plus_lt x).
-auto with Realiny.
+  intros.
+    pose proof (@real_1_gt_0 T).
+    rewrite <- (real_plus_unit) at 1.
+    rewrite (real_plus_comm (real_0) x).
+    apply (real_lt_plus_lt x).
+    apply real_1_gt_0.
+  Qed.
+
+Lemma real_lt_0_2 : forall {T : SemiDecOrderedField}, @real_0 T < real_2.
+Proof.
+  intro T.
+  unfold real_2.
+  unfold IZreal.
+  unfold IPreal.
+  unfold IPreal_2.  
+  apply real_lt_lt_lt with (real_0 + real_1).
+  apply real_lt_n_Sn.
+  rewrite real_plus_comm.
+  apply real_lt_plus_lt.
+  replace (real_1 ) with (@real_0 T + real_1).
+  apply real_lt_n_Sn.
+  apply real_plus_unit.
 Qed.
 
-Lemma Reallt_0_2 : Real0 < Real2.
+Lemma real_ngt_triv : forall {T : SemiDecOrderedField} (x  : real T), ~ x > x.
 Proof.
-  unfold Real2.
-  unfold IZReal.
-  unfold IPReal.
-  unfold IPReal_2.  
-  apply Reallt_lt_lt with (Real0 + Real1).
-  apply Reallt_n_Sn.
-  rewrite Realplus_comm.
-   apply Reallt_plus_lt.
-   replace Real1 with (Real0 + Real1).
-   apply Reallt_n_Sn.
-   apply Realplus_unit.
-Qed.
-
-Lemma Realngt_triv : forall x, ~ x > x.
-Proof.
-  intro x.
+  intros T x.
   intuition.
-  pose proof (Reallt_nlt x x H) as H1.
+  pose proof (real_lt_nlt x x H) as H1.
   contradict H.
   intuition.
 Qed.
 
-Lemma Realgt_neq : forall z1 z2, z1 > z2 -> z1 <> z2.
+Lemma real_gt_neq : forall {T : SemiDecOrderedField} (z1 z2 : real T), z1 > z2 -> z1 <> z2.
 Proof.
+  intro T.
   red.
   intros z1 z2 p q.
-  apply (Realngt_triv z1).
+  apply (real_ngt_triv z1).
   pattern z1 at 2; rewrite q; trivial.
 Qed.
-Global Hint Resolve Reallt_n_Sn Reallt_0_2 Realngt_triv Realgt_neq: Realiny.
 
-
-  
-Lemma Real2_neq_Real0 : Real2 <> Real0.
+Lemma real_2_neq_0 : forall {T : SemiDecOrderedField}, @real_2 T <> real_0.
 Proof.
-  exact (Realgt_neq Real2 Real0 Reallt_0_2).
+  intro T; exact (real_gt_neq  (real_2 ) (real_0 ) (real_lt_0_2 )).
 Qed.
-Global Hint Resolve Real2_neq_Real0: Realiny.
 
-Fixpoint prec (n : nat) : Real :=
+Fixpoint prec {T : SemiDecOrderedField} (n : nat) : real T :=
   match n with
-  | O => Real1
-  | S m => (prec m) / Real2_neq_Real0
+  | O => real_1
+  | S m => (prec m) / (real_2_neq_0)
   end.
-Arguments prec n%nat.
+Arguments prec _ n%nat.
 
+Definition is_fast_cauchy_p {T : SemiDecOrderedField} (f : nat -> real T) := forall n m, - prec n - prec m <= f n - f m <= prec n + prec m.
+Definition is_fast_limit_p {T : SemiDecOrderedField} (x : real T) (f : nat -> real T) := forall n, - prec n <= x - f n <= prec n.
 
-(* Classical Archimediean property *)
-Axiom RealArchimedean : forall r : Real, r > Real0 -> exists n, prec n < r.
-
-
-
-
-(* 
-   Axiom for constructive metric completeness.
-   Previous axiom changed to be a lemma. And, it is proven in RealLimit.v
-
-   postfix [_p] refers to "pre". Since we do not have metric of real numbers yet, we define "x approximates y by e" by  [- e <= x - y <= e] for now. 
-   Later, in RealMetric.v, we define the metric function [dist : Real -> Real -> Real].
-   Using the metric function, in RealLimit2.v, we define proper limit [Real_limit] that is based on
-   fast cauchy sequences [is_fast_cauchy] that is based on [dist] function.
-
-   There are various forms of limit operations provided by the library.
-
-   - [Real_limit] computes limit of fast cauchy sequences
-   - [Real_limit_P] given a classical predicate [P : Real -> Prop] which claisscally and uniquely defines a real number and a procedure that approximates the real number, it computes the real number.  
-   - [Real_mslimit_P] given a classical predicate [P : Real -> Prop] which claisscally and uniquely defines a real number and a procedure that nondeterministically approximates the real number, it computes the real number.
-   - [Real_mlimit_P] given a classical predicate [P : Real -> Prop] which claisscally defines real numbers and a procedure that nondeterministically approximates the real numbers, when [P] satisfies some property, it computes a real number that [P] defines nondeterministically.
-
- *)
-
-Definition is_fast_cauchy_p (f : nat -> Real) := forall n m, - prec n - prec m <= f n - f m <= prec n + prec m.
-Definition is_fast_limit_p (x : Real) (f : nat -> Real) := forall n, - prec n <= x - f n <= prec n.
-
-Axiom Real_limit_p :
-  forall f : nat -> Real, is_fast_cauchy_p f -> {x | is_fast_limit_p x f}.
+Structure ComplArchiSemiDecOrderedField : Type :=
+  {
+    CarrierField : SemiDecOrderedField;
+    (* W_complete : forall c : real CarrierField -> Prop, W_nemp c ->  W_upbd c -> exists z, W_sup c z; *)
+    Archimedean : forall r : real CarrierField, r > real_0 -> exists n, prec n < r;
+    limit_p : forall f : nat -> real CarrierField, is_fast_cauchy_p f -> {x | is_fast_limit_p x f};
+  }.
