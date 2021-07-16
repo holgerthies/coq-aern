@@ -3,11 +3,14 @@ Require Import Kleene.
 Require Import RealAxioms.
 Require Import RealRing.
 
+Require Import Coq.PArith.BinPos.
+
 Open Scope Real_scope.
 
 Section RealOrder.
   Variable T : ComplArchiSemiDecOrderedField.
-  Definition R := CarrierField T.
+  Notation R := (CarrierField T).
+  
   
   Ltac IZReal_tac t :=
     match t with
@@ -22,7 +25,6 @@ Section RealOrder.
     end.
 
   Add Ring realRing : (realTheory R) (constants [IZReal_tac]).
-
   
   Lemma real_ge_triv : forall z : real R, z >= z.
   Proof.
@@ -726,7 +728,7 @@ Proof.
   unfold IPreal_2.  
   destruct n; simpl; ring.
 Qed.
-Require Import Coq.PArith.BinPos.
+
 Lemma IZreal_s1 : forall p, @IZreal R (Z.pos (p~0)) = real_2 * (IZreal (Z.pos p)).
 Proof.
   intro.
@@ -779,84 +781,84 @@ Proof.
   + simpl; ring_simplify; auto.
 Qed.
 
-Lemma IP_N : forall p, N (Pos.to_nat p) = IP p.
+Lemma IPreal_Nreal : forall p, @Nreal R (Pos.to_nat p) = IPreal p.
 Proof.
   intro p.
   induction p.
 
-  + unfold IP.
-    rewrite <- IP2_N.
+  + unfold IPreal.
+    rewrite <- IP2_Nreal.
     rewrite Pos2Nat.inj_xI.
-    rewrite N_S, N_mult.
-    simpl N; ring_simplify.
-    replace (1+1) with 2 by auto.
+    rewrite Nreal_S, Nreal_mult.
+    simpl Nreal.
+    unfold real_2.
     ring.
-
-  + unfold IP.
-    rewrite <- IP2_N.
+    
+  + unfold IPreal.
+    rewrite <- IP2_Nreal.
     rewrite Pos2Nat.inj_xO.
-    rewrite  N_mult.
-    simpl N; ring_simplify.
-    replace (1+1) with 2 by auto.
+    rewrite  Nreal_mult.
+    
+    unfold real_2.
+    unfold Nreal.
     ring.
-
   + simpl; ring_simplify; auto.
 Qed.
 
-Lemma IZ_N : forall p, N (Pos.to_nat p) = IZ (Z.pos p).
+Lemma IZ_Nreal : forall p, @Nreal R (Pos.to_nat p) = IZreal (Z.pos p).
 Proof.
   intro p.
-  rewrite IP_N.
-  unfold IZ; exact eq_refl.
+  rewrite IPreal_Nreal.
+  unfold IZreal; exact eq_refl.
 Qed.
 
-Lemma IZ_pos_pos : forall p1 p2, IZ (Z.pos p1 + Z.pos p2) = IZ (Z.pos p1) + IZ (Z.pos p2).
+Lemma IZreal_pos_pos : forall p1 p2, @IZreal R (Z.pos p1 + Z.pos p2) = IZreal (Z.pos p1) + IZreal (Z.pos p2).
 Proof.
   intros p1 p2.
   replace (Z.pos p1 + Z.pos p2)%Z with (Z.pos (p1+p2))%Z by auto.
-  rewrite<- IZ_N.
+  rewrite<- IZ_Nreal.
   rewrite Pos2Nat.inj_add.
-  rewrite N_hom.
-  rewrite IZ_N.
-  rewrite IZ_N.
+  rewrite Nreal_hom.
+  rewrite IZ_Nreal.
+  rewrite IZ_Nreal.
   exact eq_refl.
 Qed.
 
-Lemma IZ_neg : forall p, IZ (Z.neg p) = - IZ (Z.pos p).
+Lemma IZreal_neg : forall p, @IZreal R (Z.neg p) = - IZreal (Z.pos p).
 Proof.
   intro p.
-  unfold IZ; auto.
+  unfold IZreal; auto.
 Qed.
-Lemma eq_plus_cancel : forall a b c, b + a = c + a -> b = c.
+Lemma real_eq_plus_cancel : forall a b c : real R, b + a = c + a -> b = c.
 Proof.
   intros a b c p.
-  apply (eq_plus_eq (b+a) (c+a) (-a)) in p.
+  apply (real_eq_plus_eq (b+a) (c+a) (-a)) in p.
   ring_simplify in p; exact p.
 Qed.
 
   
-Lemma IZ_pos_neg : forall p1 p2, IZ (Z.pos p1 + Z.neg p2) = IZ (Z.pos p1) + IZ (Z.neg p2).
+Lemma IZreal_pos_neg : forall p1 p2, @IZreal R (Z.pos p1 + Z.neg p2) = IZreal (Z.pos p1) + IZreal (Z.neg p2).
 Proof.
   intros p1 p2.
   destruct (Pos.compare_spec p1 p2).
   +
     rewrite H; simpl.
-    rewrite IZ_neg.
+    rewrite IZreal_neg.
     rewrite Z.pos_sub_diag.
-    replace (IZ 0) with 0 by auto.
+    replace (IZreal 0) with (@real_0 R) by auto.
     ring.
   +
     simpl.
     rewrite (Z.pos_sub_lt p1 p2 H).
-    rewrite IZ_neg; rewrite IZ_neg.
-    rewrite<- IZ_N.
-    rewrite<- IZ_N.
-    rewrite<- IZ_N.
+    rewrite IZreal_neg; rewrite IZreal_neg.
+    rewrite<- IZ_Nreal.
+    rewrite<- IZ_Nreal.
+    rewrite<- IZ_Nreal.
     ring_simplify.
-    assert (N (Pos.to_nat p2) = N( Pos.to_nat p2)) as H1 by exact eq_refl.
-    apply (eq_plus_cancel (N (Pos.to_nat (p2-p1)) + N (Pos.to_nat p2))).
+    assert (@Nreal R (Pos.to_nat p2) = Nreal( Pos.to_nat p2)) as H1 by exact eq_refl.
+    apply (real_eq_plus_cancel (Nreal (Pos.to_nat (p2-p1)) + Nreal (Pos.to_nat p2))).
     ring_simplify.
-    rewrite <- N_hom.
+    rewrite <- Nreal_hom.
     rewrite Pos2Nat.inj_sub; auto.
     rewrite Nat.sub_add; auto.
     apply (Pos2Nat.inj_lt p1 p2) in H.
@@ -865,24 +867,24 @@ Proof.
   +
     simpl.
     rewrite (Z.pos_sub_gt p1 p2 H).
-    rewrite IZ_neg.
-    rewrite <- IZ_N.
-    rewrite <- IZ_N.
-    rewrite <- IZ_N.
-    apply (eq_plus_cancel (N (Pos.to_nat p2))).
+    rewrite IZreal_neg.
+    rewrite <- IZ_Nreal.
+    rewrite <- IZ_Nreal.
+    rewrite <- IZ_Nreal.
+    apply (real_eq_plus_cancel (Nreal (Pos.to_nat p2))).
     ring_simplify.
-    rewrite <- N_hom.
+    rewrite <- Nreal_hom.
     rewrite Pos2Nat.inj_sub; auto.
     rewrite Nat.sub_add; auto.
     apply (Pos2Nat.inj_lt p2 p1) in H.
     apply Nat.lt_le_incl; auto.
 Qed.
 
-Lemma IZ_neg_pos : forall p1 p2, IZ (Z.neg p1 + Z.pos p2) = IZ (Z.neg p1) + IZ (Z.pos p2).
+Lemma IZ_neg_pos : forall p1 p2, @IZreal R (Z.neg p1 + Z.pos p2) = IZreal (Z.neg p1) + IZreal (Z.pos p2).
 Proof.
   intros p1 p2.
   replace (Z.neg p1 + Z.pos p2)%Z with (Z.pos p2 + Z.neg p1)%Z by auto.
-  rewrite IZ_pos_neg; ring.
+  rewrite IZreal_pos_neg; ring.
 Qed.
 
   
@@ -899,26 +901,27 @@ Proof.
 Qed.
 Local Hint Resolve Zdouble_minus: arith.
 
-Lemma IZ_hom : forall n m, IZ (n+m) = IZ n + IZ m.
+Lemma IZreal_hom : forall n m, @IZreal R (n+m) = IZreal n + IZreal m.
 Proof.
   intros n m.
   destruct n; destruct m; try apply IZ_pos_pos; try apply IZ_pos_neg; try apply IZ_neg_pos; try simpl; try ring.
-  rewrite IZ_neg.
-  rewrite IZ_neg.
-  rewrite IZ_neg.
+  apply IZreal_pos_pos.
+  rewrite<- IZreal_pos_neg.
+  auto.
+  repeat rewrite IZreal_neg.
   replace (Z.pos (p+p0)) with (Z.pos p + Z.pos p0)%Z by auto.
-  rewrite (IZ_pos_pos).
+  rewrite  (IZreal_pos_pos).
   ring.
 Qed.  
 
-Lemma IZ_pos : forall z, (z > 0)%Z -> IZ z > 0.
+Lemma IZreal_pos : forall z, (z > 0)%Z -> @IZreal R z > real_0.
 Proof.
   intros z p.
   destruct z.
   + contradict p; apply Zgt_irrefl.
   +
-    rewrite <- IZ_N.
-    apply N_pos.
+    rewrite <- IZ_Nreal.
+    apply Nreal_pos.
     exact (Pos2Nat.is_pos p0).
   +
     contradict p; apply Zgt_asym; apply Z.lt_gt; exact (Pos2Z.neg_is_neg p0).
@@ -927,11 +930,11 @@ Qed.
 
 
 
-Lemma 1_inv_1 : /d1 = 1.
+Lemma real_1_inv_1 : /d1 = real_1.
 Proof.
-  replace (/d1) with (/d1 *1) by ring.
-  pose proof (1_neq_0).
-  replace (/d1 *1) with 1 by auto with real.
+  replace (/d1) with (/d1 *real_1) by ring.
+  pose proof (@real_1_neq_0 R).
+  replace (/d1 *real_1) with (@real_1 R) by auto with real.
   exact eq_refl.
 Qed.
 
@@ -939,187 +942,190 @@ Lemma div_1 : forall z : real R, z/d1 = z.
 Proof.
   intro.
   replace (z/d1) with (z*/d1) by auto.
-  rewrite 1_inv_1; ring.
+  rewrite real_1_inv_1; ring.
 Qed.
-Lemma lt_mult_pos_cancel : forall z z1 z2 : real R, z > 0 -> z1 * z < z2 * z -> z1 < z2.
+Lemma real_lt_mult_pos_cancel : forall z z1 z2 : real R, z > real_0 -> z1 * z < z2 * z -> z1 < z2.
 Proof.
   intros z z1 z2 p q.
-  assert (z <> 0); auto with real.  
+  assert (z <> real_0); auto with real.  
   
-  apply (lt_mult_r_pos_lt (z1*z) (z2 *z) (/H)) in q; auto with real.
-  rewrite mult_assoc in q.
-  rewrite mult_assoc in q.
-  rewrite (mult_comm z (/H)) in q.
+  apply (real_lt_mult_r_pos_lt (z1*z) (z2 *z) (/H)) in q; auto with real.
+  rewrite real_mult_assoc in q.
+  rewrite real_mult_assoc in q.
+  rewrite (real_mult_comm z (/H)) in q.
   rewrite (real_mult_inv z H) in q.
   ring_simplify in q; exact q.
 Qed.
 
-Lemma gt0_merge_gt : forall z1 z2 : real R, z1 > 0 -> z2 > 0 -> z1 + z2 > 0.
+Lemma real_gt0_merge_gt : forall z1 z2 : real R, z1 > real_0 -> z2 > real_0 -> z1 + z2 > real_0.
 Proof.
   intros.
-  pose proof (lt_lt_plus_lt 0 z1 0 z2 H H0).
+  pose proof (real_lt_lt_plus_lt real_0 z1 real_0 z2 H H0).
   ring_simplify in H1; exact H1.
 Qed.
-Local Hint Resolve gt0_merge_gt: real.
+Local Hint Resolve real_gt0_merge_gt: real.
 
 
-Lemma lt_lt_lt_lt : forall a b c d, a<b -> b<c -> c<d -> a<d.
+Lemma real_lt_lt_lt_lt : forall a b c d : real R, a<b -> b<c -> c<d -> a<d.
 Proof.
   intros a b c d p q r.
-  exact (lt_lt_lt a b d p (lt_lt_lt b c d q r)).
+  exact (real_lt_lt_lt a b d p (real_lt_lt_lt b c d q r)).
 Qed.
-Local Hint Resolve lt_lt_lt_lt: real.
+Local Hint Resolve real_lt_lt_lt_lt: real.
 
 
-Lemma gt1_mult_gt_self : forall z1 z2 : real R, z1 > 1 -> z2 > 0 -> z1 * z2 > z2.
+Lemma real_gt1_mult_gt_self : forall z1 z2 : real R, z1 > real_1 -> z2 > real_0 -> z1 * z2 > z2.
 Proof.
   intros z1 z2 p q.
-  pose proof (padding z1 1 p) as [epsilon [c1 c2]].
+  pose proof (padding z1 real_1 p) as [epsilon [c1 c2]].
   rewrite c2.
   ring_simplify.
-  replace z2 with (0 + z2) at 3 by ring.
-  apply lt_plus_r_lt.
-  pose proof (real_lt_mult_pos_lt epsilon 0 z2 c1 q).
+  replace z2 with (real_0 + z2) at 3 by ring.
+  apply real_lt_plus_r_lt.
+  pose proof (real_lt_mult_pos_lt epsilon real_0 z2 c1 q).
   ring_simplify in H; exact H.
 Qed.
-Local Hint Resolve  gt1_mult_gt_self: real.
+Local Hint Resolve  real_gt1_mult_gt_self: real.
 
 
-Lemma lt_pos_mult_pos_pos : forall z1 z2 : real R, z1 > 0 -> z2 > 0 -> z1 * z2 > 0.
+Lemma real_lt_pos_mult_pos_pos : forall z1 z2 : real R, z1 > real_0 -> z2 > real_0 -> z1 * z2 > real_0.
 Proof.
   intros.
-  pose proof (real_lt_mult_pos_lt z1 0 z2 H H0).
-  replace (z1*0) with 0 in H1 by ring; auto.
+  pose proof (real_lt_mult_pos_lt z1 real_0 z2 H H0).
+  replace (z1*real_0) with (@real_0 R) in H1 by ring; auto.
 Qed.
-Local Hint Resolve lt_pos_mult_pos_pos: real.
+Local Hint Resolve real_lt_pos_mult_pos_pos: real.
   
-Lemma pos_square_gt_gt : forall z1 z2 : real R, z1 > 0 -> z2 > 0 -> z1*z1 > z2*z2 -> z1 > z2.
+Lemma real_pos_square_gt_gt : forall z1 z2 : real R, z1 > real_0 -> z2 > real_0 -> z1*z1 > z2*z2 -> z1 > z2.
 Proof.
   intros z1 z2 q p r.
   destruct (real_total_order z1 z2) as [s|[s|s]].
   + pose proof (real_lt_mult_pos_lt z1 z1 z2 q s).
-    pose proof (lt_mult_r_pos_lt z1 z2 z2 p s).
-    pose proof (lt_lt_lt (z1*z1) (z1*z2) (z2*z2) H H0).
+    pose proof (real_lt_mult_r_pos_lt z1 z2 z2 p s).
+    pose proof (real_lt_lt_lt (z1*z1) (z1*z2) (z2*z2) H H0).
     contradict H1; auto with real.
 
   + rewrite s in r; contradict r; auto with real.
 
   + exact s.
 Qed.
-Local Hint Resolve pos_square_gt_gt: real.
+Local Hint Resolve real_pos_square_gt_gt: real.
 
-Lemma pos_square_eq_eq : forall z1 z2 : real R, z1 > 0 -> z2 > 0 -> z1*z1 = z2*z2 -> z1 = z2.
+Lemma real_pos_square_eq_eq : forall z1 z2 : real R, z1 > real_0 -> z2 > real_0 -> z1*z1 = z2*z2 -> z1 = z2.
 Proof.
   intros.
   destruct (real_total_order z1 z2) as [p|[p|p]].
   
   pose proof (real_lt_mult_pos_lt z1 z1 z2 H p).
-  pose proof (lt_mult_r_pos_lt z1 z2 z2 H0 p).
-  pose proof (lt_lt_lt (z1*z1) (z1*z2) (z2*z2) H2 H3).
+  pose proof (real_lt_mult_r_pos_lt z1 z2 z2 H0 p).
+  pose proof (real_lt_lt_lt (z1*z1) (z1*z2) (z2*z2) H2 H3).
   rewrite H1 in H4;
     contradict H4; auto with real.
   auto.
   pose proof (real_lt_mult_pos_lt z2 z2 z1 H0 p).
-  pose proof (lt_mult_r_pos_lt z2 z1 z1 H p).
-  pose proof (lt_lt_lt (z2*z2) (z2*z1) (z1*z1) H2 H3).
+  pose proof (real_lt_mult_r_pos_lt z2 z1 z1 H p).
+  pose proof (real_lt_lt_lt (z2*z2) (z2*z1) (z1*z1) H2 H3).
   rewrite H1 in H4;
     contradict H4; auto with real.
 Qed.
-Local Hint Resolve pos_square_eq_eq: real.
+Local Hint Resolve real_pos_square_eq_eq: real.
 
 
-Lemma gt0_gt0_plus_gt0 : forall z1 z2 : real R, z1 > 0 -> z2 > 0 -> z1 + z2 > 0.
+Lemma real_gt0_gt0_plus_gt0 : forall z1 z2 : real R, z1 > real_0 -> z2 > real_0 -> z1 + z2 > real_0.
 Proof.
   intros.
   auto with real.
 Qed.
-Local Hint Resolve gt0_gt0_plus_gt0: real.
+Local Hint Resolve real_gt0_gt0_plus_gt0: real.
 
-Lemma lt_le_lt_lt : forall z1 z2 z3 z4 : real R, z1 <z2 -> z2 <= z3 -> z3 < z4 -> z1 < z4.
+Lemma real_lt_le_lt_lt : forall z1 z2 z3 z4 : real R, z1 <z2 -> z2 <= z3 -> z3 < z4 -> z1 < z4.
   intros.
-  apply (lt_le_lt z1 z2 z3 H) in H0.
-  exact (lt_lt_lt z1 z3 z4 H0 H1).
+  apply (real_lt_le_lt z1 z2 z3 H) in H0.
+  exact (real_lt_lt_lt z1 z3 z4 H0 H1).
 Qed.
 
-Lemma lt_lt_le_lt : forall z1 z2 z3 z4 : real R, z1 <z2 -> z2 < z3 -> z3 <= z4 -> z1 < z4.
+Lemma real_lt_lt_le_lt : forall z1 z2 z3 z4 : real R, z1 <z2 -> z2 < z3 -> z3 <= z4 -> z1 < z4.
   intros.
-  apply (lt_lt_lt z1 z2 z3 H) in H0.
-  exact (lt_le_lt z1 z3 z4 H0 H1).
+  apply (real_lt_lt_lt z1 z2 z3 H) in H0.
+  exact (real_lt_le_lt z1 z3 z4 H0 H1).
 Qed.
 
-Lemma le_le_plus_le : forall a b c d : real R, a <= b -> c <= d -> a + c <= b + d.
+Lemma real_le_le_plus_le : forall a b c d : real R, a <= b -> c <= d -> a + c <= b + d.
 Proof.
   intros.
-  apply (le_plus_le c) in H.
-  apply (le_plus_le b) in H0.
+  apply (real_le_plus_le c) in H.
+  apply (real_le_plus_le b) in H0.
   
   replace (c + a) with (a + c) in H by ring.
   replace (b + c) with (c + b) in H0 by ring.
-  exact (le_le_le _ _ _ H H0).
+  exact (real_le_le_le _ _ _ H H0).
 Qed.
 
 
-Lemma d2_pos : 0 < / d2.
+Lemma d2_pos : real_0 < / d2.
 Proof.
-  assert (/d2 > 0); auto with real.  
+  assert (/d2 > real_0); auto with real.  
 Qed.
 Local Hint Resolve d2_pos: real.
   
            
-Lemma eq_mult_eq : forall z z1 z2 : real R, z1 = z2 -> z*z1=z*z2.
+Lemma real_eq_mult_eq : forall z z1 z2 : real R, z1 = z2 -> z*z1=z*z2.
 Proof.
   intros.
   auto with real.
 Qed.
 
 
-Lemma W_split : forall x y ε : real R, ε > 0 -> x>y-ε \/ y>x-ε.
+Lemma W_split : forall x y ε : real R, ε > real_0 -> x>y-ε \/ y>x-ε.
 Proof.
   intros x y ε p.
   destruct (real_total_order x y) as [H|[H|H]].
-  + apply (lt_plus_lt (-ε + x) 0 ε) in p.
+  + apply (real_lt_plus_lt (-ε + x) real_0 ε) in p.
     ring_simplify in p.
-    apply (lt_lt_lt (-ε + x) x y p) in H.
+    apply (real_lt_lt_lt (-ε + x) x y p) in H.
     replace (-ε+x) with (x-ε) in H by ring; right; exact H.
   + rewrite H.
     left.
-    apply (lt_plus_lt (y-ε) 0 ε) in p.
+    apply (real_lt_plus_lt (y-ε) real_0 ε) in p.
     ring_simplify in p.
     exact p.
-  + apply (lt_plus_lt (-ε + y) 0 ε) in p.
+  + apply (real_lt_plus_lt (-ε + y) real_0 ε) in p.
     ring_simplify in p.
-    apply (lt_lt_lt (-ε + y) y x p) in H.
+    apply (real_lt_lt_lt (-ε + y) y x p) in H.
     replace (-ε+y) with (y-ε) in H by ring; left; exact H.
 Defined.
 Local Hint Resolve W_split : real.
 (** string but multivalued split **)
-Lemma M_split : forall x y ε : real R, ε > 0 -> M ({x>y-ε} + {y>x-ε}).
+Lemma M_split : forall x y ε : real R, ε > real_0 -> M ({x>y-ε} + {y>x-ε}).
 Proof.
   intros x y ε p.  
   apply (choose (x > y-ε) (y > x-ε)); auto with real.
+  apply real_lt_semidec.
+  apply real_lt_semidec.
 Defined.
 
-Local Hint Resolve M_split : real.
+Hint Resolve M_split : real.
 
   
 Lemma not_bounded : forall x : real R, [ y | y > x ].
 Proof.
   intro x.
-  apply (mjoin (x>0-1) (0>x-1)).
+  apply (mjoin (x>real_0-real_1) (real_0>x-real_1)).
   + intros [c1|c2].
-    ++ exists (x+1).
-       pose proof (1_gt_0).
-       apply (lt_plus_lt x 0 1) in H.
+    ++ exists (x+real_1).
+       pose proof (@real_1_gt_0 R).
+       apply (real_lt_plus_lt x real_0 real_1) in H.
        ring_simplify in H.
        exact H.
-    ++ exists (x+2).
-       pose proof (2_pos).
-       apply (lt_plus_lt x 0 2) in H.
+    ++ exists (x+real_2).
+       pose proof (real_2_pos).
+       apply (real_lt_plus_lt x real_0 real_2) in H.
        ring_simplify in H.
        exact H.
   + apply M_split .
-    exact 1_gt_0.
+    exact real_1_gt_0.
 Defined.
+End RealOrder.
 
 
 (*  Metric and Metric Completeness  *)

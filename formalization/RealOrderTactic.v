@@ -42,31 +42,6 @@ Open Scope Real_scope.
 (* Lemma Realge_add_r : forall z x y, x + z >= y + z -> x >= y. *)
 
 
-Lemma Realle_plus_le : forall z x y, x <= y -> z + x <= z + y.
-Proof.
-  intros.
-  destruct H.
-  left.
-  apply Reallt_plus_lt.
-  exact H.
-  right.
-  apply (lp _ _ (fun x => z + x)) in H.
-  exact H.
-Qed.
-
-
-Lemma Realge_plus_ge : forall z x y, x >= y -> z + x >= z + y.
-Proof.
-  intros.
-  destruct H.
-  left.
-  apply Reallt_plus_lt.
-  exact H.
-  right.
-  apply (lp _ _ (fun x => z + x)) in H.
-  exact H.
-Qed.
-
 
 Inductive ltac_No_arg : Set :=
   | ltac_no_arg : ltac_No_arg.
@@ -76,33 +51,33 @@ Ltac Tac_Real_order s t :=
   match (type of s) with
   |  (?A < ?B) =>
      match (type of t) with
-     | Real =>
-       ((apply (Reallt_plus_lt t _ _) in s);
+     | real _ =>
+       ((apply (@real_lt_plus_lt _ t _ _) in s);
         ring_simplify in s)
      | ltac_No_arg =>
-       ((apply (Reallt_plus_lt (- B) _ _) in s);
+       ((apply (@real_lt_plus_lt _ (- B) _ _) in s);
         ring_simplify in s)
      | _ => fail "has to be Real"
      end
        
   | (?A <= ?B) =>
     match (type of t) with
-    | Real =>
-      ((apply (Realle_plus_le t _ _) in s);
+    | real _ =>
+      ((apply (@real_le_plus_le _ t _ _) in s);
        ring_simplify in s)
     | ltac_No_arg =>
-      ((apply (Realle_plus_le (- B) _ _) in s);
+      ((apply (@real_le_plus_le _ (- B) _ _) in s);
        ring_simplify in s)
     | _ => fail "has to be Real"
     end
       
   |  (?A >= ?B) =>
      match (type of t) with
-     | Real =>
-       ((apply (Realge_plus_ge t _ _) in s);
+     | real _ =>
+       ((apply (@real_ge_plus_ge _ t _ _) in s);
         ring_simplify in s)
      | ltac_No_arg =>
-       ((apply (Realge_plus_ge (- B) _ _) in s);
+       ((apply (@real_ge_plus_ge _ (- B) _ _) in s);
         ring_simplify in s)
      end
        
@@ -110,33 +85,33 @@ Ltac Tac_Real_order s t :=
     match goal with
     | |- (?A < ?B) =>
       match (type of s) with
-      | Real =>
-        (apply (Reallt_add_r s _ _);
+      | real _ =>
+        (apply (@real_lt_add_r s _ _);
          ring_simplify )
       | ltac_No_arg =>
-        ((apply (Reallt_add_r (- B) _ _));
+        ((apply (@real_lt_add_r _ (- B) _ _));
          ring_simplify)
       | _ => fail "has to be Real"
       end
         
     |  |- (?A <= ?B) =>
        match (type of s) with
-       | Real =>
-         (apply (Realle_add_r s _ _);
+       | real _ =>
+         (apply (@real_le_add_r _ s _ _);
           ring_simplify)
        | ltac_No_arg =>
-         ((apply (Realle_add_r (- B) _ _));
+         ((apply (@real_le_add_r _ (- B) _ _));
           ring_simplify)
        | _ => fail "has to be Real"
        end         
     |  |- (?A >= ?B) =>
        
        match (type of s) with
-       | Real =>
-         (apply (Realge_add_r s _ _);
+       | real _ =>
+         (apply (@real_ge_add_r _ s _ _);
           ring_simplify)
        | ltac_No_arg =>
-         ((apply (Realge_add_r (- B) _ _));
+         ((apply (@real_ge_add_r _ (- B) _ _));
           ring_simplify)
        | _ => fail "has to be Real"
        end
