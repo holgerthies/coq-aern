@@ -9,7 +9,7 @@ Require Import Psatz.
 
 (* This file proves that Real is order complete in classical sense *)
 
-Section RealLimi1.
+Section RealLimit0.
   Variable T : ComplArchiSemiDecOrderedField.
   Notation R := (CarrierField T).
   
@@ -59,14 +59,14 @@ Section RealLimi1.
   Qed.
     
   (*  *)
-  Definition is_classical_limit_p (x : real_) (f : nat -> real_) :=
+  Definition is_W_limit_p (x : real_) (f : nat -> real_) :=
     forall n, exists N, forall m, (N <= m)%nat ->  - prec n <= x - f m <= prec n.
-  Definition is_classical_cauchy_p (f : nat -> real_) :=
+  Definition is_W_cauchy_p (f : nat -> real_) :=
     forall n, exists N, forall m k, (N <= m)%nat -> (N <= k)%nat -> - prec n <= f m - f k <= prec n.
 
-  Lemma classical_metric_complete_p_aux_1 :
+  Lemma W_limit_p_aux_1 :
     forall (f : nat -> real_),
-      is_classical_cauchy_p f ->
+      is_W_cauchy_p f ->
       exists h : nat -> nat, 
         forall n m k,  (h n <= m)%nat -> (h n <= k)%nat -> -prec n <= f m - f k <= prec n. 
   Proof.
@@ -76,11 +76,11 @@ Section RealLimi1.
     exact (H n).
   Defined.
     
-  Lemma classical_metric_complete_p :
-    forall (f : nat -> real_), is_classical_cauchy_p f -> exists x, is_classical_limit_p x f.
+  Lemma W_limit_p :
+    forall (f : nat -> real_), is_W_cauchy_p f -> exists x, is_W_limit_p x f.
   Proof.
     intros.
-    destruct (classical_metric_complete_p_aux_1 f H) as [g p].
+    destruct (W_limit_p_aux_1 f H) as [g p].
 
     pose proof (real_limit_p _ (fun n => f ( g n))).
 
@@ -151,81 +151,7 @@ Section RealLimi1.
       exact H6.
   Defined.
   
-  (* Lemma classical_metric_complete_p_aux_1 : *)
-  (*   forall (f : nat -> real_), *)
-  (*     is_classical_cauchy_p f -> *)
-  (*     exists h : nat -> nat, *)
-  (*     forall n m k, (h n <= m)%nat -> (h n <= k)%nat -> -prec n <= f m - f k <= prec n.  *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   apply (countable_choice nat (fun N FN => forall m k, (FN <= m)%nat -> (FN <= k)%nat -> -prec N <= f m - f k <= prec N)). *)
-  (*   intros. *)
-  (*   exact (H n). *)
-  (* Defined. *)
-  
-  (* Lemma classical_metric_complete_p_aux_1 : *)
-  (*   forall (f : nat -> real_), is_classical_cauchy_p f -> exists r : nat -> real_, *)
-  (*       forall n, forall x, is_classical_limit_p x f -> - prec n <= x - r n <= prec n.  *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   apply (countable_choice real_ *)
-  (*                                (fun n y => forall x, is_classical_limit_p x f -> - prec n <= x - y <= prec n)). *)
-  (*   intros. *)
-  (*   pose proof (H (S n)). *)
-  (*   destruct H0. *)
-  (*   exists (f x). *)
-  (*   intros. *)
-  (*   destruct (H1 (S n)). *)
-  (*   pose proof (H0 x (Nat.max x x1)%nat). *)
-  (*   pose proof (H2 (Nat.max x x1)%nat). *)
-  (*   assert (x <= x)%nat by lia. *)
-  (*   assert (x <= Nat.max x x1)%nat by lia. *)
-  (*   assert ((x1 <= Nat.max x x1)%nat) by lia. *)
-  (*   pose proof (H3 H5 H6). *)
-  (*   pose proof (H4 H7). *)
-  (*   split. *)
-  (*   destruct H8 as [_ H8]. *)
-  (*   destruct H9 as [H9 _]. *)
-  (*   pose proof (real_le_le_plus_le _ _ _ _ _ H8 H9). *)
-  (*   apply (real_le_plus_le _ (- f x + f (Nat.max x x1) - prec_ (S n))) in H10. *)
-  (*   replace ( - f x + f (Nat.max x x1) - prec_ (S n) + (f x - f (Nat.max x x1) + - prec_ (S n))) with *)
-  (*       (- (prec_ (S n) + prec_ (S n))) in H10 by ring. *)
-  (*   replace (- f x + f (Nat.max x x1) - prec_ (S n) + (prec_ (S n) + (x0 - f (Nat.max x x1)))) with *)
-  (*       (x0 - f x) in H10 by ring. *)
-  (*   replace (S n)%nat with (n + 1)%nat in H10 by lia. *)
-  (*   rewrite (prec_twice T n) in H10. *)
-  (*   exact H10. *)
 
-  (*   destruct H8 as [H8 _]. *)
-  (*   destruct H9 as [_ H9]. *)
-  (*   pose proof (real_le_le_plus_le _ _ _ _ _ H8 H9). *)
-  (*   apply (real_le_plus_le _ (-f x + f (Nat.max x x1) + prec_ (S n))) in H10. *)
-  (*   replace (- f x + f (Nat.max x x1) + prec_ (S n) + (- prec_ (S n) + (x0 - f (Nat.max x x1)))) with *)
-  (*       (x0 - f x) in H10 by ring. *)
-  (*   replace (- f x + f (Nat.max x x1) + prec_ (S n) + (f x - f (Nat.max x x1) + prec_ (S n))) *)
-  (*     with (prec_ (S n) + prec_ (S n)) in H10 by ring. *)
-  (*   replace (S n)%nat with (n + 1)%nat in H10 by lia. *)
-  (*   rewrite (prec_twice T n) in H10. *)
-  (*   exact H10. *)
-  (* Defined. *)
-    
-  (* Lemma classical_metric_complete_p_aux : *)
-  (*   forall (f : nat -> real_), is_classical_cauchy_p f -> exists g : nat -> real_, is_fast_cauchy_p g /\ (forall x, is_fast_limit_p x g = is_classical_limit_p x f). *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   destruct (classical_metric_complete_p_aux_1 f H). *)
-  (*   exists x. *)
-    
-  
-  (* Lemma classical_metric_complete_p : *)
-  (*   forall (f : nat -> real_), is_classical_cauchy_p f -> exists x, is_classical_limit_p x f. *)
-                                        
-  
-
-  (* Definition is_W_complete (T : SemiDecOrderedField) := *)
-  (*   forall c : real T -> Prop, W_nemp c ->  W_upbd c -> exists z, W_sup c z. *)
-
-  
 
   
   Definition W_is_non_empty (P : real_ -> Prop) := exists z, P z.
@@ -237,7 +163,7 @@ Section RealLimi1.
   (* Definition W_upbd (P : real_ -> Prop) := exists u, W_upb P u. *)
   Definition W_is_sup  (P : real_-> Prop) (s : real_) := W_is_upper_bound P s /\ (forall s', W_is_upper_bound P s' -> s <= s').
    
-  Theorem W_complete_aux :
+  Lemma W_complete_aux :
     forall P : real_ -> Prop,
       W_is_non_empty P ->  W_is_strictly_bounded_above P ->
       exists w, w > real_0_ /\ exists f : nat -> real_,
@@ -286,8 +212,21 @@ Section RealLimi1.
     exact H2.
   Defined.
 
-  Lemma classical_log : forall x : real_, x > real_0_ -> exists n, x * prec n < real_1.
-  Admitted.
+  Lemma W_log : forall x : real_, x > real_0_ -> exists n, x * prec n < real_1.
+  Proof.
+    intros.
+    pose proof (real_Archimedean _ (/ (dg0 _  H))).
+    Search (/ _ ).
+    pose proof (@real_pos_inv_pos2 _ _ H).
+    apply H0 in H1.
+    destruct H1.
+    exists x0.
+    apply (@real_lt_mult_pos_lt _ x _ _ H) in H1.
+    replace ( x * /dg0 T H) with (/dg0 T H * x) in H1 by ring.
+    rewrite (real_mult_inv) in H1.
+    exact H1.
+  Qed.
+  
   
   Lemma prec_monotone : forall n m, (n < m)%nat -> prec_ m < prec_ n.
   Proof.
@@ -298,7 +237,36 @@ Section RealLimi1.
     apply (@real_lt_lt_lt _ _ _ _ H0 IHle).
   Qed.
    
-                                                                                  
+  Lemma W_complete_aux_2 : forall (P : real_ -> Prop) x,
+      ~ W_is_strict_upper_bound P x -> exists y, x <= y /\ P y.
+  Proof.
+    intros.
+    unfold W_is_strict_upper_bound in H.
+    destruct (lem (exists y : real_, x <= y /\ P y)); auto.
+    contradict H.
+    intros.
+    destruct (lem (z < x)); auto.
+    contradict H0.
+    exists z.
+    split; auto.
+    destruct (real_total_order x z).
+    left; exact H0.
+    destruct H0.
+    right; exact H0.
+    contradict (H1 H0).
+  Qed.
+
+  Lemma real_le_lt_plus_lt : forall a b c d : real_, a <= b -> c < d -> a + c < b + d.
+  Proof.
+    intros.
+    destruct H.
+    apply (@real_lt_lt_plus_lt _ _ _ _ _ H H0).
+    rewrite H.
+    apply (@real_lt_plus_lt _ b  _ _ H0).
+  Qed.
+  
+  
+    
   Theorem W_complete : forall P : real_ -> Prop,
       W_is_non_empty P ->  W_is_bounded_above P ->
        exists z, W_is_sup P z.
@@ -308,18 +276,54 @@ Section RealLimi1.
     destruct (lem (W_is_strict_upper_bound P x)).
     assert (W_is_strictly_bounded_above P) by (exists x; auto). 
     pose proof (W_complete_aux P H H2) as [w [pw [f h]]].
-    pose proof (classical_metric_complete_p f).
-    assert (is_classical_cauchy_p f ).
+    pose proof (W_limit_p f).
+    assert (is_W_cauchy_p f ).
     intros n.
     +                           (* prove is Cauchy *)
       
-    destruct (classical_log _ pw) as [i j].
-    exists (i + n)%nat.
+    destruct (W_log _ pw) as [i j].
+    exists (i + n + 1)%nat.
     intros.
+    (* destruct (lem (f m - f n > prec_ n \/ f n - f m > prec_ n)). *)
+    (* destruct H6. *)
+    pose proof (h m) as [pm nm].
+    pose proof (h k) as [pk nk].
+    pose proof (W_complete_aux_2 P _ pm) as [q [qq qqq] ].
+    pose proof (nk _ qqq).
     
-      
-    admit.
+    pose proof (W_complete_aux_2 P _ pk) as [p [pp ppp]].
+    pose proof (nm _ ppp).
+    pose proof (@real_le_lt_plus_lt _ _ _ _ qq H6). 
+    pose proof (@real_le_lt_plus_lt _ _ _ _ pp H7). 
+    apply (@real_lt_plus_lt _ (- q - f k)) in H8.
+    apply (@real_lt_plus_lt _ (- p - f k - w * prec_ m)) in H9.
+    ring_simplify in H8.
+    ring_simplify in H9.
+    replace (f m - f k) with (- f k + f m) by ring.
+    split; left.
+    apply (fun a => @real_lt_lt_lt _ _ _ _ a H9).
+    apply (@real_lt_add_r _ (prec_ n + w * prec_ m)). 
+    ring_simplify.
+    apply (@real_lt_mult_pos_lt _ (prec_ n) _ _ (prec_pos _ _)) in j.
+    ring_simplify in j.
+    apply (fun a => @real_lt_lt_lt _ _ _ _ a j).
+    replace (prec_ n * w * prec_ i) with (w * (prec_ n  * prec_ i)) by ring.
+    apply ( @real_lt_mult_pos_lt _ w _ _ pw).
+    rewrite <- prec_hom.
+    apply prec_monotone.
+    lia.
 
+    apply (@real_lt_lt_lt _ _ _ _ H8).
+    apply (@real_lt_mult_pos_lt _ (prec_ n) _ _ (prec_pos _ _)) in j.
+    ring_simplify in j.
+    apply (fun a => @real_lt_lt_lt _ _ _ _ a j).
+    replace (prec_ n * w * prec_ i) with (w * (prec_ n  * prec_ i)) by ring.
+    apply ( @real_lt_mult_pos_lt _ w _ _ pw).
+    rewrite <- prec_hom.
+    apply prec_monotone.
+    lia.
+
+    +
     destruct (H3 H4).
     exists x0.
     split.
@@ -331,7 +335,7 @@ Section RealLimi1.
     destruct (padding _ _ _ H6) as [eps [pos e]].
     destruct (real_Archimedean _ _ pos) as [k pk].
 
-    destruct (classical_log _ pw) as [i j].
+    destruct (W_log _ pw) as [i j].
     
 
     destruct (H5 (k + 1 )%nat) as [N g].
@@ -372,7 +376,7 @@ Section RealLimi1.
     destruct (padding _ _ _ H6) as [eps [pos e]].
     destruct (real_Archimedean _ _ pos) as [k pk].
 
-    destruct (classical_log _ pw) as [i j].
+    destruct (W_log _ pw) as [i j].
     
 
     destruct (H5 (k + 1 )%nat) as [N g].
@@ -388,7 +392,6 @@ Section RealLimi1.
     ring_simplify in e.
     rewrite <- e.
     destruct H8 as [_ H8].
-    Search (_ < _ ).
     assert (x0 - f N + prec_ k < prec_ (k + 1) + eps).
     destruct H8.
     apply (real_lt_lt_plus_lt _ _ _ _ _ H7 pk).
@@ -410,7 +413,9 @@ Section RealLimi1.
 
     unfold real_le.
     destruct H6; auto.
-    
+
+
+    +
     exists x.
     split; auto.
     intros.
@@ -424,16 +429,5 @@ Section RealLimi1.
     exact (H2 _ H3).
   Qed.
   
-  
-  (* Definition is_classical_cauchy_p (f : nat -> real_) : Prop *)
-  (*   := forall n m, - prec n - prec m <= f n - f m <= prec n + prec m. *)
-  Definition is_classical_limit_p (x : real_) (f : nat -> real_) := forall n, exists m, - prec n <= x - f m <= prec n.
+End RealLimit0.
 
-  
-
-  Lemma 
-  Definition is_W_complete (T : SemiDecOrderedField) :=
-    forall c : real T -> Prop, W_nemp c ->  W_upbd c -> exists z, W_sup c z.
-
-  
-  
