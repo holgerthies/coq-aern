@@ -30,37 +30,31 @@ Section RealOrder.
   Proof.
     intro z;  right; exact eq_refl.
   Qed.
-  Local Hint Resolve real_ge_triv: real.
-
+  
   Lemma real_le_triv : forall z : real R, z <= z.
   Proof.
     intro z; right; exact eq_refl.
   Qed.
-  Local Hint Resolve real_le_triv: real.
 
   Lemma real_lt_le : forall z1 z2 : real R, z1<z2 -> z1 <= z2.
   Proof.
     intros z1 z2 p; left; exact p.
   Qed.
-  Local Hint Resolve real_lt_le: real.
 
   Lemma real_gt_ge : forall z1 z2 : real R, z1>z2 -> z1 >= z2.
   Proof.
     intros z1 z2 p; left; exact p.
   Qed.
-  Local Hint Resolve real_gt_ge: real.
 
   Lemma real_eq_le : forall z1 z2 : real R, z1 = z2 -> z1 <= z2.
   Proof.
     intros z1 z2 p; rewrite p; right; exact eq_refl.
   Qed.
-  Local Hint Resolve real_eq_le: real.
 
   Lemma real_eq_ge : forall z1 z2 : real R, z1 = z2 -> z1 >= z2.
   Proof.
     intros z1 z2 p; rewrite p; right; exact eq_refl.
   Qed.
-  Local Hint Resolve real_eq_ge: real.
 
   Lemma real_le_plus_le : forall z x y : real R, x <= y -> z + x <= z + y.
   Proof.
@@ -93,8 +87,8 @@ Section RealOrder.
     rewrite p.
     exact eq_refl.
   Qed.
-  Local Hint Resolve real_eq_plus_eq: real.
 
+  
   Lemma real_ge_le : forall z1 z2 : real R, z1 >= z2 -> z2 <= z1.
   Proof.
     intros z1 z2 p.
@@ -102,7 +96,7 @@ Section RealOrder.
     left; auto.
     right; rewrite H; exact eq_refl.
   Qed.
-  Local Hint Resolve real_ge_le: real.
+
 
   Lemma real_le_ge : forall z1 z2 : real R, z1 <= z2 -> z2 >= z1.
   Proof.
@@ -111,7 +105,6 @@ Section RealOrder.
     left; auto.
     right; rewrite H; exact eq_refl.
   Qed.
-  Local Hint Resolve real_le_ge: real.
  
   Lemma real_nle_ge : forall z1 z2 : real R, ~ z1 <= z2 -> z1 > z2.
   Proof.
@@ -127,7 +120,6 @@ Section RealOrder.
     contradict (q H0).
     exact H.
   Qed.
-  Local Hint Resolve real_nle_ge: real.
 
   Lemma real_nge_le : forall z1 z2 : real R, ~ z1 < z2 -> z1 >= z2.
   Proof.
@@ -139,7 +131,6 @@ Section RealOrder.
     apply or_comm.
     auto.
   Qed.
-  Local Hint Resolve real_nge_le: real.
 
   Lemma real_div_distr : forall z1 z2 z3 : real R, forall p : z3<>real_0,  z1/p + z2/p = (z1+z2)/p.
   Proof.
@@ -149,7 +140,6 @@ Section RealOrder.
     unfold real_div.
     ring.
   Qed.
-Local Hint Resolve real_div_distr: real.
 
 (* Check le_plus_le. *)
 
@@ -173,8 +163,6 @@ Proof.
   contradict H.
   intuition.
 Qed.
-Local Hint Resolve real_nlt_triv: real.
-
 
 
 Lemma real_2_gt_1 : @real_2 R  > real_1.
@@ -184,7 +172,7 @@ Proof.
   ring_simplify in H0.
   exact H0.
 Qed.
-Local Hint Resolve real_2_gt_1: real.
+
 
 
 
@@ -196,7 +184,7 @@ Proof.
   apply (real_nlt_triv z1).
   pattern z1 at 2; rewrite q; trivial.
 Qed.
-Local Hint Resolve real_lt_neq: real.
+
 
 Definition d2 := @real_2_neq_0 R.
 Lemma real_minus_half : forall z : real R, z - z/d2 = z/d2.
@@ -220,7 +208,9 @@ Proof.
   replace (z*(real_1+real_1) -z) with z by ring.
   ring.
 Qed.
-Local Hint Resolve real_minus_half: real.
+
+
+
   
 Lemma real_gt_nle: forall z1 z2 : real R, z1 > z2 -> ~ z1 <= z2.
 Proof.
@@ -229,14 +219,15 @@ Proof.
   rewrite q2 in p; contradict p.
   apply real_nlt_triv.
 Qed.
-Local Hint Resolve real_gt_nle: real.
+
+
+
 
 Lemma real_gt_ngt : forall z1 z2 : real R, z1 > z2 -> ~ z2 > z1.
 Proof.
   intros z1 z2 p.
   contradict p; exact (real_lt_nlt z1 z2 p).
 Qed.
-Local Hint Resolve real_gt_ngt: real.
 
 Lemma real_gt_nge : forall z1 z2 : real R, z1 > z2 -> ~ z2 >= z1.
 Proof.
@@ -244,9 +235,30 @@ Proof.
   contradict p; exact (real_lt_nlt z1 z2 q1).
   rewrite q2 in p; contradict p; apply real_nlt_triv.
 Qed.
-Local Hint Resolve real_gt_nge: real.
 
-Lemma real_ge_ge_eq : forall z1 z2 : real R, z1 >= z2 -> z2 >= z1 -> z1 = z2.
+
+
+
+  Local Hint Resolve real_ge_triv real_le_triv real_lt_le: real.
+  Local Hint Resolve real_gt_ge: real.
+  Local Hint Resolve real_eq_le: real.
+  Local Hint Resolve real_eq_ge: real.
+  Local Hint Resolve real_eq_plus_eq: real.
+  Local Hint Resolve real_ge_le: real.
+  Local Hint Resolve real_le_ge: real.
+  Local Hint Resolve real_nle_ge: real.
+  Local Hint Resolve real_nge_le: real.
+  Local Hint Resolve real_div_distr: real.
+  Local Hint Resolve real_nlt_triv: real.
+  Local Hint Resolve real_2_gt_1: real.
+  Local Hint Resolve real_lt_neq: real.
+  Local Hint Resolve real_minus_half: real.
+  Local Hint Resolve real_gt_nle: real.
+  Local Hint Resolve real_gt_ngt: real.
+  Local Hint Resolve real_gt_nge: real.
+
+
+  Lemma real_ge_ge_eq : forall z1 z2 : real R, z1 >= z2 -> z2 >= z1 -> z1 = z2.
 Proof.
   intros z1 z2 o1 o2.
   destruct o1.
@@ -281,7 +293,6 @@ Proof.
   auto with real.
   exact H.
 Qed.
-Local Hint Resolve real_ge_ge_eq real_ge_le_eq real_le_ge_eq real_le_le_eq: real.
 
 
 Lemma real_le_lt_lt : forall z1 z2 z3 : real R, z1<=z2 -> z2 < z3 -> z1<z3.
@@ -294,7 +305,6 @@ Proof.
   contradict q3; apply (real_lt_nlt); exact H.
   rewrite H in q3; contradict q3; apply real_nlt_triv. 
 Qed.
-Local Hint Resolve real_le_lt_lt: real.
 
 Lemma real_lt_le_lt : forall z1 z2 z3 : real R, z1 < z2 -> z2 <= z3 -> z1 < z3.
 Proof.
@@ -303,7 +313,6 @@ Proof.
   exact (real_lt_lt_lt z1 z2 z3 p1 q1).
   rewrite<- q2; exact p1.
 Qed.
-Local Hint Resolve real_lt_le_lt: real.
 
 Lemma real_le_le_le : forall z1 z2 z3 : real R, z1 <= z2 -> z2 <= z3 -> z1 <= z3.
 Proof.
@@ -314,7 +323,6 @@ Proof.
   rewrite p12; left; exact p21.
   rewrite p12; rewrite <- p22; right; exact eq_refl.
 Qed.
-Local Hint Resolve real_le_le_le: real.
 
 Lemma real_lt_plus_r_lt : forall r r1 r2 : real R, r1 < r2 -> r1 + r < r2 + r.
 Proof.
@@ -323,7 +331,7 @@ Proof.
     replace (r2+r) with (r+r2) by ring;
    exact (real_lt_plus_lt r r1 r2 p).
 Qed.
-Local Hint Resolve real_lt_plus_lt: real.
+
 
 
 Lemma real_2_pos : @real_2 R > real_0.
@@ -334,14 +342,13 @@ Proof.
   pose proof (real_lt_lt_lt real_0 real_1 (real_1 + real_1) H H0).
   auto.
 Qed.
-Local Hint Resolve real_2_pos: real.
+
 
 Lemma real_eq_eq_mult_eq : forall a b c d : real R, a = b -> c = d -> a*c = b*d.
 Proof.
   intros.
   rewrite H; rewrite H0; exact eq_refl.
 Qed.
-Local Hint Resolve real_eq_eq_mult_eq: real.
 
 Lemma real_half_gt_zero : forall a : real R, a > real_0 -> a / d2 > real_0. 
 Proof.
@@ -366,7 +373,7 @@ Proof.
   contradict p; apply real_nlt_triv. 
   exact p3.
 Qed.
-Local Hint Resolve real_half_gt_zero: real.
+
 
 
 Lemma real_gt_half : forall a : real R, a > real_0 -> a > a / d2.
@@ -385,7 +392,6 @@ Proof.
   ring_simplify in H.
   exact H.
 Qed.
-Local Hint Resolve real_gt_half: real.
   
 Lemma real_gt_minus_gt_zero : forall a b  : real R , a > b -> a - b > real_0.
 Proof.
@@ -394,7 +400,6 @@ Proof.
   replace real_0 with (-b+b) by ring.
   apply real_lt_plus_lt; auto with real.
 Qed.
-Local Hint Resolve real_gt_minus_gt_zero: real.
 
 
 Lemma real_lt_lt_plus_lt : forall r1 r2 r3 r4 : real R, r1 < r2 -> r3 < r4 -> r1 + r3 < r2 + r4.
@@ -405,14 +410,27 @@ Proof.
   auto with real.
   exact (real_lt_lt_lt (r1+r3) (r2+r3) (r2+r4) H H0).
 Qed.
+
+
+Local Hint Resolve real_ge_ge_eq real_ge_le_eq real_le_ge_eq real_le_le_eq: real.
+Local Hint Resolve real_le_lt_lt: real.
+Local Hint Resolve real_lt_le_lt: real.
+Local Hint Resolve real_le_le_le: real.
+Local Hint Resolve real_lt_plus_lt: real.
+Local Hint Resolve real_2_pos: real.
+Local Hint Resolve real_eq_eq_mult_eq: real.
+Local Hint Resolve real_half_gt_zero: real.
+Local Hint Resolve real_gt_half: real.
+Local Hint Resolve real_gt_minus_gt_zero: real.
 Local Hint Resolve real_lt_lt_plus_lt: real. 
+
 
 Definition padding : forall a b  : real R , a > b -> {ε  | ε > real_0 /\ a = ε + b}.
 Proof.
   intros a b p; exists (a - b).
   constructor 1; auto with real; ring.
 Defined.
-Local Hint Resolve padding: real.
+
 
 
 Lemma real_lt_anti : forall z1 z2 : real R, z1<z2 -> -z2< -z1.
@@ -421,7 +439,7 @@ Proof.
   apply (real_lt_plus_lt (-z1-z2) z1 z2) in p.
   ring_simplify in p; exact p.
 Qed.
-Local Hint Resolve real_lt_anti: real.
+
 
 Lemma real_lt_anti_anti : forall z1 z2 : real R, - z1 < - z2 -> z2< z1.
 Proof.
@@ -431,7 +449,6 @@ Proof.
   apply real_lt_anti.
   exact p.
 Qed.
-Local Hint Resolve real_lt_anti_anti: real.
 
 
 
@@ -490,7 +507,6 @@ Proof.
   exact eq_refl.
   apply eq_sym, real_mult_inv.
 Qed.
-Local Hint Resolve real_inv_unit: real.
 
 
 Lemma square_pos : forall z : real R, z <> real_0 -> z *z > real_0.
@@ -539,6 +555,11 @@ Proof.
   exact H1.
   rewrite (real_mult_inv); auto.
 Qed.
+
+Local Hint Resolve padding: real.
+Local Hint Resolve real_lt_anti: real.
+Local Hint Resolve real_lt_anti_anti: real.
+Local Hint Resolve real_inv_unit: real.
 Local Hint Resolve real_pos_inv_pos2:real.
 
 Lemma real_pos_inv_pos : forall z : real R, forall p : z > real_0, forall q : z <> real_0, / q > real_0.
@@ -546,6 +567,7 @@ Proof.
   intros.
   rewrite (irrl _ q (real_gt_neq z real_0 p)); auto with real.
 Qed.
+
 Local Hint Resolve real_pos_inv_pos : real.
 
 Lemma real_lt_mult_r_pos_lt : forall z1 z2 z3 : real R, z3 > real_0 -> z1 < z2 -> z1 * z3 < z2 * z3.
@@ -554,8 +576,7 @@ Proof.
   replace (z1*z3) with (z3*z1) by ring.
   replace (z2*z3) with (z3*z2) by ring.
   apply real_lt_mult_pos_lt; auto.
-  Qed.
-Local Hint Resolve real_lt_mult_r_pos_lt: real.
+Qed.
 
 
 Lemma prec_S : forall n, @prec R (S n) < prec n.
@@ -572,7 +593,6 @@ Proof.
   apply (real_lt_mult_r_pos_lt (prec n / d2) (prec n)  (/d2) H0) in IHn.
   exact IHn.
 Qed.
-Local Hint Resolve prec_S: real.
 
 Lemma prec_hom : forall n m, @prec R (n+m) = prec n * prec m.
 Proof.
@@ -588,7 +608,6 @@ Proof.
   unfold real_div.
   ring.
 Qed.      
-Local Hint Resolve prec_hom: real.
 
 Definition dg0 {z : real R}(p:z>real_0) : z <> real_0 :=  real_gt_neq z real_0 p.
 Lemma real_lt_mult_pos_move_rr : forall a b c : real R, forall p :a > real_0, b*a < c -> b < c / (dg0 p).
@@ -603,7 +622,6 @@ Proof.
   replace (b * real_1) with b in q by ring; exact q.
   rewrite (real_mult_inv); auto.
 Qed.
-Local Hint Resolve real_lt_mult_pos_move_rr: real.
 
 Lemma real_lt_mult_pos_move_rl : forall a b c : real R, forall p :a > real_0, a*b < c -> b < c / (dg0 p).
 Proof.
@@ -611,7 +629,6 @@ Proof.
   replace (a*b) with (b*a) in q by ring.
   apply real_lt_mult_pos_move_rr; auto. 
 Qed.
-Local Hint Resolve real_lt_mult_pos_move_rl: real.
 
 Lemma real_gt_mult_pos_move_rl : forall a b c : real R, forall p:a > real_0,  a*b > c -> b > c / (dg0 p).
   intros a b c p q.
@@ -626,7 +643,6 @@ Lemma real_gt_mult_pos_move_rl : forall a b c : real R, forall p:a > real_0,  a*
   auto with real.
   rewrite (real_mult_inv); auto.
 Qed.
-Local Hint Resolve real_gt_mult_pos_move_rl: real.
 
 Lemma real_lt_mult_pos_move_rr_n
   : forall (a b c : real R) (p : a > real_0) (q : a <> real_0), b * a < c -> b < c / q.
@@ -636,7 +652,6 @@ Proof.
   rewrite H0.
   apply real_lt_mult_pos_move_rr; exact H.
 Qed.
-Local Hint Resolve real_lt_mult_pos_move_rr_n: real.
 
 
 
@@ -650,7 +665,6 @@ Proof.
   replace (real_1+real_1) with (@real_2 R) by auto.
   auto with real.
 Defined.
-Local Hint Resolve prec_pos: real.
 
 
 Lemma Nreal_hom : forall n m, @Nreal R (n+m) = Nreal n + Nreal m.
@@ -665,7 +679,6 @@ Proof.
   rewrite (H0 n). rewrite (H0 ((n+m)%nat)).
   rewrite IHn; ring.
 Qed.
-Local Hint Resolve Nreal_hom: real.
 
 Lemma prec_twice : forall n, @prec R (n + 1) + prec (n + 1) = prec n.
 Proof.
@@ -698,7 +711,6 @@ Proof.
   assert (@Nreal R 1 = real_1). simpl. ring.
   rewrite H0; exact H1.
 Qed.
-Local Hint Resolve Nreal_pos: real.
 
 
 Lemma Nreal_S : forall n, @Nreal R (S n) = real_1 + Nreal n.
@@ -899,7 +911,7 @@ Proof.
   simpl in H0.
   rewrite H0; exact eq_refl.
 Qed.
-Local Hint Resolve Zdouble_minus: arith.
+
 
 Lemma IZreal_hom : forall n m, @IZreal R (n+m) = IZreal n + IZreal m.
 Proof.
@@ -963,7 +975,6 @@ Proof.
   pose proof (real_lt_lt_plus_lt real_0 z1 real_0 z2 H H0).
   ring_simplify in H1; exact H1.
 Qed.
-Local Hint Resolve real_gt0_merge_gt: real.
 
 
 Lemma real_lt_lt_lt_lt : forall a b c d : real R, a<b -> b<c -> c<d -> a<d.
@@ -971,7 +982,7 @@ Proof.
   intros a b c d p q r.
   exact (real_lt_lt_lt a b d p (real_lt_lt_lt b c d q r)).
 Qed.
-Local Hint Resolve real_lt_lt_lt_lt: real.
+
 
 
 Lemma real_gt1_mult_gt_self : forall z1 z2 : real R, z1 > real_1 -> z2 > real_0 -> z1 * z2 > z2.
@@ -985,7 +996,7 @@ Proof.
   pose proof (real_lt_mult_pos_lt epsilon real_0 z2 c1 q).
   ring_simplify in H; exact H.
 Qed.
-Local Hint Resolve  real_gt1_mult_gt_self: real.
+
 
 
 Lemma real_lt_pos_mult_pos_pos : forall z1 z2 : real R, z1 > real_0 -> z2 > real_0 -> z1 * z2 > real_0.
@@ -994,7 +1005,7 @@ Proof.
   pose proof (real_lt_mult_pos_lt z1 real_0 z2 H H0).
   replace (z1*real_0) with (@real_0 R) in H1 by ring; auto.
 Qed.
-Local Hint Resolve real_lt_pos_mult_pos_pos: real.
+
   
 Lemma real_pos_square_gt_gt : forall z1 z2 : real R, z1 > real_0 -> z2 > real_0 -> z1*z1 > z2*z2 -> z1 > z2.
 Proof.
@@ -1009,8 +1020,6 @@ Proof.
 
   + exact s.
 Qed.
-Local Hint Resolve real_pos_square_gt_gt: real.
-
 Lemma real_pos_square_eq_eq : forall z1 z2 : real R, z1 > real_0 -> z2 > real_0 -> z1*z1 = z2*z2 -> z1 = z2.
 Proof.
   intros.
@@ -1028,7 +1037,9 @@ Proof.
   rewrite H1 in H4;
     contradict H4; auto with real.
 Qed.
-Local Hint Resolve real_pos_square_eq_eq: real.
+
+Local Hint Resolve Zdouble_minus: arith.
+Local Hint Resolve real_lt_mult_r_pos_lt prec_S prec_hom real_lt_mult_pos_move_rr real_lt_mult_pos_move_rl real_gt_mult_pos_move_rl real_lt_mult_pos_move_rr_n prec_pos Nreal_hom Nreal_pos real_lt_mult_r_pos_lt prec_S prec_hom real_lt_mult_pos_move_rr real_lt_mult_pos_move_rl real_gt_mult_pos_move_rl real_lt_mult_pos_move_rr_n prec_pos Nreal_hom Nreal_pos  real_gt0_merge_gt real_lt_lt_lt_lt real_gt1_mult_gt_self real_lt_pos_mult_pos_pos real_pos_square_gt_gt real_pos_square_eq_eq: real.
 
 
 Lemma real_gt0_gt0_plus_gt0 : forall z1 z2 : real R, z1 > real_0 -> z2 > real_0 -> z1 + z2 > real_0.
@@ -1036,7 +1047,7 @@ Proof.
   intros.
   auto with real.
 Qed.
-Local Hint Resolve real_gt0_gt0_plus_gt0: real.
+
 
 Lemma real_lt_le_lt_lt : forall z1 z2 z3 z4 : real R, z1 <z2 -> z2 <= z3 -> z3 < z4 -> z1 < z4.
   intros.
@@ -1066,7 +1077,7 @@ Lemma d2_pos : real_0 < / d2.
 Proof.
   assert (/d2 > real_0); auto with real.  
 Qed.
-Local Hint Resolve d2_pos: real.
+
   
            
 Lemma real_eq_mult_eq : forall z z1 z2 : real R, z1 = z2 -> z*z1=z*z2.
@@ -1094,7 +1105,13 @@ Proof.
     apply (real_lt_lt_lt (-ε + y) y x p) in H.
     replace (-ε+y) with (y-ε) in H by ring; left; exact H.
 Defined.
+
+
+Local Hint Resolve real_gt0_gt0_plus_gt0: real.
+Local Hint Resolve d2_pos: real.
 Local Hint Resolve W_split : real.
+
+
 (** string but multivalued split **)
 Lemma M_split : forall x y ε : real R, ε > real_0 -> M ({x>y-ε} + {y>x-ε}).
 Proof.
@@ -1104,9 +1121,8 @@ Proof.
   apply real_lt_semidec.
 Defined.
 
-Hint Resolve M_split : real.
+  Local Hint Resolve M_split : real.
 
-  
 Lemma not_bounded : forall x : real R, [ y | y > x ].
 Proof.
   intro x.
@@ -1128,5 +1144,46 @@ Defined.
 End RealOrder.
 
 
+
 (*  Metric and Metric Completeness  *)
 
+
+Global Hint Resolve real_ge_triv real_le_triv real_lt_le: real.
+Global Hint Resolve real_gt_ge: real.
+Global Hint Resolve real_eq_le: real.
+Global Hint Resolve real_eq_ge: real.
+Global Hint Resolve real_eq_plus_eq: real.
+Global Hint Resolve real_ge_le: real.
+Global Hint Resolve real_le_ge: real.
+Global Hint Resolve real_nle_ge: real.
+Global Hint Resolve real_nge_le: real.
+Global Hint Resolve real_div_distr: real.
+Global Hint Resolve real_nlt_triv: real.
+Global Hint Resolve real_2_gt_1: real.
+Global Hint Resolve real_lt_neq: real.
+Global Hint Resolve real_minus_half: real.
+Global Hint Resolve real_gt_nle: real.
+Global Hint Resolve real_gt_ngt: real.
+Global Hint Resolve real_gt_nge: real.
+Global Hint Resolve real_ge_ge_eq real_ge_le_eq real_le_ge_eq real_le_le_eq: real.
+Global Hint Resolve real_le_lt_lt: real.
+Global Hint Resolve real_lt_le_lt: real.
+Global Hint Resolve real_le_le_le: real.
+Global Hint Resolve real_lt_plus_lt: real.
+Global Hint Resolve real_2_pos: real.
+Global Hint Resolve real_eq_eq_mult_eq: real.
+Global Hint Resolve real_half_gt_zero: real.
+Global Hint Resolve real_gt_half: real.
+Global Hint Resolve real_gt_minus_gt_zero: real.
+Global Hint Resolve real_lt_lt_plus_lt: real. 
+Global Hint Resolve padding: real.
+Global Hint Resolve real_lt_anti: real.
+Global Hint Resolve real_lt_anti_anti: real.
+Global Hint Resolve real_inv_unit: real.
+Global Hint Resolve real_pos_inv_pos2:real.
+Global Hint Resolve Zdouble_minus: arith.
+Global Hint Resolve real_lt_mult_r_pos_lt prec_S prec_hom real_lt_mult_pos_move_rr real_lt_mult_pos_move_rl real_gt_mult_pos_move_rl real_lt_mult_pos_move_rr_n prec_pos Nreal_hom Nreal_pos real_lt_mult_r_pos_lt prec_S prec_hom real_lt_mult_pos_move_rr real_lt_mult_pos_move_rl real_gt_mult_pos_move_rl real_lt_mult_pos_move_rr_n prec_pos Nreal_hom Nreal_pos  real_gt0_merge_gt real_lt_lt_lt_lt real_gt1_mult_gt_self real_lt_pos_mult_pos_pos real_pos_square_gt_gt real_pos_square_eq_eq: real.
+Global Hint Resolve real_gt0_gt0_plus_gt0: real.
+Global Hint Resolve d2_pos: real.
+Global Hint Resolve W_split : real.
+Global Hint Resolve M_split : real.
