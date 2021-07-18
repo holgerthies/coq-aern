@@ -7,7 +7,6 @@ Require Import Nat.
 Require Import PeanoNat.
 Require Import Kleene.
 Require Import Reals.
-Require Import RealCoqReal RealHelpers.
 Set Warnings "parsing".
 (* 
    Multivalued searching from existing searching:
