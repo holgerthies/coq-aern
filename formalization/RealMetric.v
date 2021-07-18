@@ -15,19 +15,9 @@ Require Import PeanoNat.
 
 
 Section RealMetric.
-  Variable T : ComplArchiSemiDecOrderedField.
+  Context {T : ComplArchiSemiDecOrderedField}.
   Notation R := (CarrierField T).
 
-  (* Notation real_0__ := (  (let *)
-  (*  (real, real_0, real_1, real_plus, real_mult, real_opp, real_inv, real_lt, _, _, _, _, _, *)
-  (*   _, _, _, _, _, _, _, _, _, _, _, _) as s *)
-  (*   return *)
-  (*     (let *)
-  (*        (real, real_0, real_1, real_plus, real_mult, real_opp, real_inv, real_lt, _, _, _, *)
-  (*         _, _, _, _, _, _, _, _, _, _, _, _, _, _) := s in *)
-  (*      real) := let (CarrierField, _, _) := T in CarrierField in *)
-  (*                           real_0)). *)
-  
   Ltac IZReal_tac t :=
     match t with
     | @real_0 R => constr:(0%Z)
@@ -46,9 +36,6 @@ Section RealMetric.
   Notation real_0_ := (@real_0 R).
   Notation real_1_ := (@real_1 R).
   Notation prec_ := (@prec R).
-  Opaque real_0.
-  Opaque real_1.
-
 
   Definition abs_prop : forall x : real_, {y : real_ | (x > real_0 -> y = x) /\ (x = real_0 -> y = real_0) /\ (x < real_0 -> y = - x)}.
   Proof.
@@ -79,7 +66,7 @@ Section RealMetric.
     induction (H0 H); apply eq_refl.
 
     intro.
-    pose proof (M_split _ x real_0 (prec (n + 2))).
+    pose proof (M_split x real_0 (prec (n + 2))).
     assert (prec_ n > real_0);
       auto with real.
 
@@ -99,7 +86,7 @@ Section RealMetric.
     assert (x + x > -prec_ (n + 2) + x).
     auto with real.
     
-    pose proof (real_lt_plus_r_lt _ x _ _ r).
+    pose proof (@real_lt_plus_r_lt _ x _ _ r).
     exact H2.
     assert (- prec_ (n + 2) + x > - prec_ (n + 2) + - prec_ (n +2 )).
     apply (real_lt_plus_lt).
@@ -118,7 +105,7 @@ Section RealMetric.
     replace (x - - x) with (x + x) by ring.
     pose proof (@real_lt_lt_plus_lt _ _ _ _ _ H0 H0).
     rewrite real_plus_unit in H1.
-    pose proof (prec_pos T n).
+    pose proof (@prec_pos T n).
     apply (real_lt_lt_lt _ _ _ H1 H2).
 
     exists x.
@@ -131,9 +118,9 @@ Section RealMetric.
     apply real_lt_anti_anti.
     replace (- - prec_ n) with (prec_ n) by ring.
     replace (- (x - x)) with real_0_ by ring.  
-    apply prec_pos.
+    apply @prec_pos.
     replace ( (x - x)) with real_0_ by ring.  
-    apply prec_pos.
+    apply @prec_pos.
 
     exists (-x).
     destruct (real_total_order x real_0).
@@ -144,9 +131,9 @@ Section RealMetric.
     apply real_lt_anti_anti.
     replace (-(- x - - x)) with real_0_ by ring.
     replace (- - prec_ n) with (prec_ n) by ring.
-    apply prec_pos.
+    apply @prec_pos.
     replace (- x - - x) with real_0_ by ring. 
-    apply prec_pos.
+    apply @prec_pos.
     
     exists x.
     repeat split; try intro; try auto with real; try ring.
@@ -168,17 +155,17 @@ Section RealMetric.
     destruct H0.
     rewrite H0.
     replace (- real_0_ - real_0_) with real_0_ by ring.
-    apply prec_pos.
+    apply @prec_pos.
     apply (@real_lt_lt_plus_lt _  _ _ _ _ H0) in H0.
     apply (@real_lt_plus_lt _ (- x - x)) in H0.
     replace ( - x - x + (real_0_ + real_0_)) with (- x - x) in H0 by ring.
     replace (- x - x + (x + x)) with real_0_ in H0 by ring.
     apply (@real_lt_lt_lt _ _ _ _ H0).
-    apply prec_pos.
+    apply @prec_pos.
 
     apply (liftM _ _  H0).
     apply M_split.
-    apply prec_pos.
+    apply @prec_pos.
   Defined.
 
 
@@ -251,7 +238,7 @@ Section RealMetric.
     intro.
     replace (z2 -z1) with (- (z1 - z2)) by ring.
     apply a.
-    pose proof (real_lt_plus_r_lt _ (-z2) _ _ H).
+    pose proof (@real_lt_plus_r_lt _ (-z2) _ _ H).
     replace (z1 - z2) with (z1 + - z2) by ring.
     replace real_0 with (z2 + - z2) by ring.
     exact H0.
@@ -355,7 +342,7 @@ Section RealMetric.
     destruct (abs_prop x).
     destruct (abs_prop y).
     destruct (abs_prop (x + y)).
-    pose proof (real_lt_lt_plus_lt _ _ _  _  _ H H0).
+    pose proof (@real_lt_lt_plus_lt _ _ _  _  _ H H0).
     ring_simplify in H1.
     destruct a as [_ [_ a]].
     destruct a0 as [_ [_ a0]].
@@ -384,22 +371,22 @@ Section RealMetric.
     
     destruct (real_total_order (x + y) real_0).
     destruct a1 as [_ [_ a1]]; rewrite (a1 H1).
-    apply (real_ge_add_r _ (x + y)   (-x + y) (- (x + y))).
+    apply (@real_ge_add_r _ (x + y)   (-x + y) (- (x + y))).
     ring_simplify.
     left.
-    apply (real_lt_mult_r_pos_lt _ _ _ _ (real_2_pos _)) in H0.
+    apply (@real_lt_mult_r_pos_lt _ _ _ _ (real_2_pos )) in H0.
     ring_simplify in H0.
     exact H0.
 
     destruct H1.
     destruct a1 as [_ [a1 _]]; rewrite (a1 H1).
-    apply (real_ge_add_r _ x).
+    apply (@real_ge_add_r _ x).
     ring_simplify.
     left.
     apply (real_lt_lt_lt _ _ _ H H0).
 
     destruct a1 as [a1 [_ _]]; rewrite (a1 H1).
-    apply (real_ge_add_r _ (x-y)).
+    apply (@real_ge_add_r _ (x-y)).
     replace (  - x + y + (x - y)) with real_0_ by ring.
     replace (x + y + (x - y)) with (x + x) by ring.
     apply (@real_lt_lt_plus_lt _ _ _ _ _ H) in H.
@@ -428,17 +415,17 @@ Section RealMetric.
     
     destruct (real_total_order (x + y) real_0).
     destruct a1 as [_ [_ a1]]; rewrite (a1 H1).
-    apply (real_ge_add_r _ (x + y)).
+    apply (@real_ge_add_r _ (x + y)).
     ring_simplify.
     left.
-    apply (real_lt_mult_r_pos_lt _  _ _ _ (real_2_pos _)) in H.
+    apply (@real_lt_mult_r_pos_lt _  _ _ _ (@real_2_pos _)) in H.
     ring_simplify in H.
     exact H.
 
     destruct H1.
     destruct a1 as [_ [a1 _]]; rewrite (a1 H1).
     rewrite<- H1.
-    apply (real_ge_add_r _ ( y - x)).
+    apply (@real_ge_add_r _ ( y - x)).
     replace ( x + - y + (y - x)) with real_0_ by ring.
     replace (x + y + (y - x)) with (y + y) by ring.
     apply (@real_lt_lt_plus_lt _ _ _ _ _ H0) in H0.
@@ -446,7 +433,7 @@ Section RealMetric.
     left; exact H0.
     
     destruct a1 as [a1 [_ _]]; rewrite (a1 H1).
-    apply (real_ge_add_r _ ( y - x)).
+    apply (@real_ge_add_r _ ( y - x)).
     replace (x + - y + (y - x)) with real_0_ by ring.
     replace (x + y + (y - x)) with (y + y) by ring.
     apply (@real_lt_lt_plus_lt _ _ _ _ _ H0) in H0.
@@ -467,7 +454,7 @@ Section RealMetric.
     destruct a0 as [a0 [_ _]].
     rewrite (a H),  (a0 H0).
 
-    pose proof (real_lt_lt_plus_lt _ _ _ _ _ H H0).
+    pose proof (@real_lt_lt_plus_lt _ _ _ _ _ H H0).
     ring_simplify in H1.
     destruct a1 as [a1 _].
     rewrite (a1 H1).
@@ -542,7 +529,7 @@ Section RealMetric.
     destruct p2.
     apply (real_lt_plus_lt (-z2) z2 (z2+z3)) in H.
     ring_simplify in H; left; exact H.
-    apply (real_eq_plus_eq _ z2 (z2+z3) (-z2)) in H.
+    apply (real_eq_plus_eq z2 (z2+z3) (-z2)) in H.
     ring_simplify in H; right; exact H.
 
     rewrite (q1 r3).
@@ -582,12 +569,12 @@ Section RealMetric.
     intros z1 z2.
     destruct (real_total_order z1 z2) as [r1 | [r2 | r3]];
       destruct (dist_prop z1 z2) as [l1 [l2 l3]].
-    right; rewrite (l3 r1); exact (conj eq_refl (real_gt_ge _ z2 z1 r1)).
+    right; rewrite (l3 r1); exact (conj eq_refl (real_gt_ge z2 z1 r1)).
     rewrite r2 at 2.
     left; split; ring_simplify.
     exact (l2 r2).
     right; exact r2.
-    left; rewrite (l1 r3); exact (conj eq_refl (real_gt_ge _ z1 z2 r3)).
+    left; rewrite (l1 r3); exact (conj eq_refl (real_gt_ge  z1 z2 r3)).
   Qed.
   Local Hint Resolve real_metric_Or: real.
 
@@ -652,7 +639,7 @@ Section RealMetric.
   Definition convex (x y w1 w2 : real_) : x < y -> w1 > real_0 -> w2 > real_0 -> real_.
   Proof.
     intros p p1 p2.
-    pose proof (real_lt_lt_plus_lt _ real_0 w1 real_0 w2 p1 p2).
+    pose proof (@real_lt_lt_plus_lt _ real_0 w1 real_0 w2 p1 p2).
     rewrite real_plus_unit in H.
     exact ((x*w1+y*w2)/(real_gt_neq (w1+w2) real_0 H)).
   Defined.
@@ -671,11 +658,11 @@ Section RealMetric.
     intros.
     split.
     + unfold convex.
-      apply (real_lt_mult_r_pos_lt _ x y w2 r) in p.
+      apply (@real_lt_mult_r_pos_lt _ x y w2 r) in p.
       apply (real_lt_plus_lt  (w1*x) (x*w2) (y*w2)) in p.
       assert (w1+w2 <> real_0) as Path by auto with real.
       rewrite <- (irrl  _ Path (real_gt_neq (w1 + w2) real_0
-                                            (eq_ind (real_0 + real_0) (fun t : real_ => t < w1 + w2) (real_lt_lt_plus_lt _ real_0 w1 real_0 w2 q r) real_0
+                                            (eq_ind (real_0 + real_0) (fun t : real_ => t < w1 + w2) (@real_lt_lt_plus_lt _ real_0 w1 real_0 w2 q r) real_0
                                                     (real_plus_unit real_0)))).
       
       apply (real_lt_plus_lt  w2 real_0 w1) in q.
@@ -686,18 +673,18 @@ Section RealMetric.
       assert (/Path > real_0).
       apply real_pos_inv_pos.
       apply H.
-      apply (real_lt_mult_r_pos_lt _ (x*(w1+w2)) (w1*x+y*w2) (/Path) H0) in p.
+      apply (@real_lt_mult_r_pos_lt _ (x*(w1+w2)) (w1*x+y*w2) (/Path) H0) in p.
       rewrite real_mult_assoc, (real_mult_comm (w1+w2) (/Path)) in p.
       rewrite (real_mult_inv (w1 + w2) Path), real_mult_comm, real_mult_unit in p.
       replace (w1*x) with (x*w1) in p by ring.
       exact p.
 
     + unfold convex.
-      apply (real_lt_mult_r_pos_lt _ x y w1 q) in p.
+      apply (@real_lt_mult_r_pos_lt _ x y w1 q) in p.
       apply (real_lt_plus_lt  (w2*y) (x*w1) (y*w1)) in p.
       assert (w1+w2 <> real_0) as Path by auto with real.
       rewrite <- (irrl _ Path (real_gt_neq (w1 + w2) real_0
-                                           (eq_ind (real_0 + real_0) (fun t : real_ => t < w1 + w2) (real_lt_lt_plus_lt _ real_0 w1 real_0 w2 q r) real_0
+                                           (eq_ind (real_0 + real_0) (fun t : real_ => t < w1 + w2) (@real_lt_lt_plus_lt _ real_0 w1 real_0 w2 q r) real_0
                                                    (real_plus_unit real_0)))).
 
 
@@ -708,7 +695,7 @@ Section RealMetric.
       assert (/Path > real_0).
       apply real_pos_inv_pos.
       apply H.
-      apply (real_lt_mult_r_pos_lt  _ (w2*y+x*w1) (y*(w1+w2)) (/Path) H0) in p.
+      apply (@real_lt_mult_r_pos_lt  _ (w2*y+x*w1) (y*(w1+w2)) (/Path) H0) in p.
       rewrite real_mult_assoc in p at 1.
       replace ((w1 + w2) * / Path) with (/Path*(w1+w2)) in p by auto with real.
       rewrite (real_mult_inv (w1 + w2) Path) in p.
@@ -729,8 +716,8 @@ Section RealMetric.
     destruct (real_total_order a b).
     rewrite (H2 H3) in H.
     split; auto.
-    apply (real_le_plus_le _ (a - b - c)) in H; ring_simplify in H; auto.
-    apply (fun a => real_le_le_le _ _ _ _ a H).
+    apply (real_le_plus_le (a - b - c)) in H; ring_simplify in H; auto.
+    apply (fun a => real_le_le_le _ _ _ a H).
     pose proof (real_lt_plus_lt (-a) _ _ H3).
     pose proof (real_lt_plus_lt (-b) _ _ H3).
     ring_simplify in H4; ring_simplify in H5.
@@ -740,7 +727,7 @@ Section RealMetric.
     induction H3.
     rewrite (H1 (eq_refl)) in H.
     split; ring_simplify.
-    apply (real_le_plus_le _ (-c )) in H.
+    apply (real_le_plus_le (-c )) in H.
     ring_simplify in H.
     auto.
     auto.
@@ -758,7 +745,7 @@ Section RealMetric.
     left; apply (@real_lt_lt_lt _  _ _ _ H4 H3).
     rewrite H.
     rewrite H in H3.
-    pose proof (real_lt_lt_plus_lt _ _ _ _ _ H3 H3).
+    pose proof (@real_lt_lt_plus_lt _ _ _ _ _ H3 H3).
     apply (real_lt_plus_lt (-c)) in H4.
     ring_simplify in H4.
     left; auto.
@@ -769,7 +756,7 @@ Section RealMetric.
     destruct (real_total_order a b).
     rewrite (H2 H3).
     destruct H.
-    apply (real_le_plus_le _ (c + b - a)) in H.
+    apply (real_le_plus_le (c + b - a)) in H.
     ring_simplify in H.
     exact H.
     destruct H3.

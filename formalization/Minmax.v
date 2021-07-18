@@ -1,7 +1,7 @@
 Require Import Real.
 
 Section Minmax.
-  Variable T : ComplArchiSemiDecOrderedField.
+  Context {T : ComplArchiSemiDecOrderedField}.
   Notation R := (CarrierField T).
   
   Ltac IZReal_tac t :=
@@ -22,9 +22,6 @@ Section Minmax.
   Notation real_0_ := (@real_0 R).
   Notation real_1_ := (@real_1 R).
   Notation prec_ := (@prec R).
-  Opaque real_0.
-  Opaque real_1.
-
 
   Definition real_is_max (x y z : real_)
     := (x > y -> z = x) /\ (x = y -> z = x) /\ (x < y -> z = y).
@@ -159,18 +156,18 @@ Section Minmax.
            constructor; auto.
            destruct (real_is_max_Or x y x0 H) as [[H1 _]|[H1 H2]].
            ++++ rewrite H1.
-                destruct (dist_zero _ x0 x0) as [o t]; rewrite (t eq_refl).
+                destruct (dist_zero x0 x0) as [o t]; rewrite (t eq_refl).
                 apply prec_pos.
                 
            ++++ rewrite <- H1.
-                pose proof (prec_pos T n) as P.
+                pose proof (@prec_pos T n) as P.
                 apply (real_lt_plus_lt y real_0 (prec n)) in P; ring_simplify in P.
                 apply (real_ge_le) in H2.
-                apply (real_le_lt_lt _ x y (y+prec n) H2) in P.
+                apply (real_le_lt_lt x y (y+prec n) H2) in P.
                 assert (y-prec n < x < y+prec n) by auto.
-                pose proof (prec_pos T n) as Q.
+                pose proof (@prec_pos T n) as Q.
                 rewrite (dist_symm).
-                apply (real_metric_gtgt_sand _ y x (prec n) Q H0).
+                apply (real_metric_gtgt_sand y x (prec n) Q H0).
                 
          +++ (* when x<y-2ⁿ *)
            exists y.
@@ -179,20 +176,20 @@ Section Minmax.
            constructor; auto.
            destruct (real_is_max_Or x y x0 H) as [[H1 H2]|[H1 _]].
            ++++ rewrite <- H1.
-                pose proof (prec_pos T n) as P.
+                pose proof (@prec_pos T n) as P.
                 apply (real_lt_plus_lt x real_0 (prec n)) in P; ring_simplify in P.
                 apply (real_ge_le) in H2.
-                apply (real_le_lt_lt _ y x (x+prec n) H2) in P.
+                apply (real_le_lt_lt y x (x+prec n) H2) in P.
                 assert (x-prec n < y < x+prec n) by auto.
-                pose proof (prec_pos T n) as Q.
+                pose proof (@prec_pos T n) as Q.
                 rewrite (dist_symm).
-                apply (real_metric_gtgt_sand _ x y (prec n) Q H0).
+                apply (real_metric_gtgt_sand x y (prec n) Q H0).
            ++++ rewrite H1.
-                destruct (dist_zero _ x0 x0) as [o t]; rewrite (t eq_refl).
-                apply prec_pos.
+                destruct (dist_zero x0 x0) as [o t]; rewrite (t eq_refl).
+                apply @prec_pos.
                 
       ++ apply M_split.
-         apply prec_pos.       
+         apply @prec_pos.       
   Defined.
 
   Lemma real_min_prop : forall x y, {z | real_is_min x y z}.
@@ -202,15 +199,15 @@ Section Minmax.
     exists (-m).
     destruct rel as [a [b c]].
     split.
-    intro.
-
-    + apply (real_lt_plus_lt (-x-y)) in H.
-      ring_simplify in H.
+    intro
+    + apply (real T_lt_plus_lt (-x-y)) in H.
+    apply (real_lt_plus_lt (- x - y)) in H; 
+    ring_simplify in H.
       apply c in H.
       rewrite H; ring.
 
     + split.
-      ++
+    ++
         intro.
         rewrite H in b at 1.
         rewrite (b eq_refl); ring.
@@ -357,7 +354,7 @@ Section Minmax.
     destruct (real_total_order x y).
     induction (eq_sym (r H0)).
 
-    left; apply (real_lt_le_lt _ _ _ _ H0 H).
+    left; apply (real_lt_le_lt _ _ _ H0 H).
     destruct H0.
     induction H0.
     induction (eq_sym (q eq_refl)).
@@ -388,22 +385,22 @@ Section Minmax.
     intros.
     destruct H, H0.
     induction (real_lt_nlt _ _ H H0).
-    rewrite H0 in H; induction (real_nlt_triv _ _ H).
-    rewrite H in H0 ; induction (real_nlt_triv _ _ H0).
+    rewrite H0 in H; induction (real_nlt_triv _ H).
+    rewrite H in H0 ; induction (real_nlt_triv _ H0).
     exact H.
   Qed.
 
   
 
-  Lemma real_abs_le0_eq0 : forall x : real_, abs _ x <= real_0 -> x = real_0.
+  Lemma real_abs_le0_eq0 : forall x : real_, abs x <= real_0 -> x = real_0.
   Proof.
     intros.
-    pose proof (abs_pos _ x).
+    pose proof (abs_pos x).
     destruct H, H0.
     induction (real_lt_nlt _ _ H H0).
-    rewrite H0 in H; induction (real_nlt_triv _ _ H).
-    rewrite H in H0 ; induction (real_nlt_triv _ _ H0).
-    exact (proj1 (abs_zero _ x) H ). 
+    rewrite H0 in H; induction (real_nlt_triv _ H).
+    rewrite H in H0 ; induction (real_nlt_triv _ H0).
+    exact (proj1 (abs_zero x) H ). 
   Qed.  
 
   Lemma real_max_plus_eq : forall a b c : real_, c + real_max a b = real_max (a + c) (b + c).
@@ -419,14 +416,14 @@ Section Minmax.
     destruct (real_total_order a b).
     rewrite (e4 H).
     rewrite real_plus_comm; apply eq_sym, e1.
-    apply (real_lt_plus_r_lt _ c) in H; exact H.
+    apply (real_lt_plus_r_lt c) in H; exact H.
     destruct H.
     induction H.
     rewrite (e3 eq_refl).
     rewrite (e0 eq_refl); ring.
     rewrite (e2 H).
     rewrite (real_plus_comm); apply eq_sym, e.
-    apply (real_lt_plus_r_lt _ c) in H; exact H.
+    apply (real_lt_plus_r_lt c) in H; exact H.
   Qed.
 
   Lemma real_max_fst_le_le : forall a b c , a <= b -> a <= real_max b c.
@@ -439,7 +436,7 @@ Section Minmax.
     destruct H1.
     destruct (real_total_order b c).
     rewrite (H2 H3).
-    left; apply (real_le_lt_lt _ _ _ _ H H3).
+    left; apply (real_le_lt_lt _ _ _ H H3).
     destruct H3.
     induction H3.
     rewrite (H1 eq_refl); auto.

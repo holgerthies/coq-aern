@@ -10,7 +10,7 @@ Require Export RealLimit1.
 Require Export RealMetric.
 
 Section RealLimit2.
-  Variable T : ComplArchiSemiDecOrderedField.
+  Context {T : ComplArchiSemiDecOrderedField}.
   Notation R := (CarrierField T).
 
   (* Notation real_0__ := (  (let *)
@@ -44,8 +44,8 @@ Section RealLimit2.
   Opaque real_0.
   Opaque real_1.
   
-  Definition is_fast_cauchy (f : nat -> real_) := forall n m, dist _ (f n) (f m) <= prec_ n + prec_ m.
-  Definition is_fast_limit (x : real_) (f : nat -> real_) := forall n, dist _ x (f n) <= prec_ n.
+  Definition is_fast_cauchy (f : nat -> real_) := forall n m, dist (f n) (f m) <= prec_ n + prec_ m.
+  Definition is_fast_limit (x : real_) (f : nat -> real_) := forall n, dist x (f n) <= prec_ n.
 
 
   Lemma is_fast_cauchy_iff_p : forall f, is_fast_cauchy f <-> is_fast_cauchy_p f.
@@ -53,11 +53,11 @@ Section RealLimit2.
     intros.
     split.
     intros H n m.
-    pose proof (proj1 (dist_le_prop _ (f n) (f m) (prec_ n + prec_ m)) (H n m)).
+    pose proof (proj1 (dist_le_prop (f n) (f m) (prec_ n + prec_ m)) (H n m)).
     replace (- prec_ n - prec_ m) with (- (prec_ n + prec_ m)) by ring.
     auto.
     intros H n m .
-    apply (proj2 (dist_le_prop _ (f n) (f m) (prec_ n + prec_ m)) ).
+    apply (proj2 (dist_le_prop (f n) (f m) (prec_ n + prec_ m)) ).
     pose proof (H n m ).
     replace (- prec_ n - prec_ m) with (- (prec_ n + prec_ m)) in H0 by ring.
     auto.
@@ -75,21 +75,21 @@ Section RealLimit2.
     intros.
     assert (is_fast_cauchy_p f).
     intros n k.
-    pose proof (proj1 (dist_le_prop _ (f n) (f k) (prec_ n + prec_ k)) (H n k)).
+    pose proof (proj1 (dist_le_prop (f n) (f k) (prec_ n + prec_ k)) (H n k)).
     replace (-prec_ n - prec_ k ) with (- (prec_ n + prec_ k)) by ring.
     auto.
     destruct (real_limit_p _ _ H0).
     exists x.
     intro n.
-    exact (proj2 (dist_le_prop _ x (f n) (prec_ n)) (i n)).
+    exact (proj2 (dist_le_prop x (f n) (prec_ n)) (i n)).
   Defined.
 
   Definition real_limit_P :
     forall (P : real_ -> Prop), (exists! z, P z) ->
-                               (forall n, {e | (exists a : real_, P a /\ dist _ e a <= prec_ n) }) -> {a : real_ | P a}.
+                               (forall n, {e | (exists a : real_, P a /\ dist e a <= prec_ n) }) -> {a : real_ | P a}.
   Proof.
     intros.
-    apply (real_limit_P_p _ P H).
+    apply (real_limit_P_p P H).
     intro.
     destruct (H0 n).
     exists x.
@@ -97,7 +97,7 @@ Section RealLimit2.
     exists x0.
     destruct H1.
     split; auto.
-    exact (proj1 (dist_le_prop _ x x0 (prec_ n)) H2).
+    exact (proj1 (dist_le_prop x x0 (prec_ n)) H2).
   Defined.
   
 
@@ -105,10 +105,10 @@ Section RealLimit2.
 
   Definition real_limit_P_lt :
     forall (P : real_ -> Prop), (exists! z, P z) ->
-                               (forall n, {e | (exists a : real_, P a /\ dist _ e a < prec_ n) }) -> {a : real_ | P a}.
+                               (forall n, {e | (exists a : real_, P a /\ dist e a < prec_ n) }) -> {a : real_ | P a}.
   Proof.
     intros.
-    apply (real_limit_P_lt_p _ P H).
+    apply (real_limit_P_lt_p P H).
     intro.
     destruct (H0 n).
     exists x.
@@ -117,7 +117,7 @@ Section RealLimit2.
     destruct H1.
     
     split; auto.
-    destruct (dist_prop _ x x0).
+    destruct (dist_prop x x0).
     destruct H4.
     destruct (real_total_order x x0).
     split.
@@ -129,7 +129,7 @@ Section RealLimit2.
     exact H2.
 
     assert (x - x0 < real_0_).
-    apply (real_lt_plus_r_lt _ (-x0) ) in H6.
+    apply (real_lt_plus_r_lt (-x0) ) in H6.
     ring_simplify in H6.
     exact H6.
     assert (prec_ n > real_0_) by (apply prec_pos). 
@@ -140,7 +140,8 @@ Section RealLimit2.
     replace (x0 - x0) with real_0_ by ring.
     split; auto with real.
     apply real_lt_anti_anti.
-    ring_simplify.
+    replace (- real_0) with real_0_ by ring.
+    replace (- - prec_ n) with (prec_ n) by ring.
     apply prec_pos.
     apply prec_pos.
 
@@ -149,10 +150,11 @@ Section RealLimit2.
     split; auto.
     
     ring_simplify in H7.
-    pose proof (dist_pos_t _ x x0).
+    pose proof (dist_pos_t  x x0).
     assert (- prec_ n < real_0_).
     apply real_lt_anti_anti.
-    ring_simplify.
+    replace (- real_0) with real_0_ by ring.
+    replace (- - prec_ n) with (prec_ n) by ring.
     apply prec_pos.
     destruct H8.
     apply (real_lt_lt_lt _ _ _ H9 H8).
@@ -163,7 +165,7 @@ Section RealLimit2.
   Definition real_mslimit_P :
     forall (P : real_ -> Prop),
       (exists! z, P z) ->
-      ((forall n, [e  | (exists a : real_, P a /\ dist _ e a <= prec_ n)]) -> {a : real_ | P a}).
+      ((forall n, [e  | (exists a : real_, P a /\ dist e a <= prec_ n)]) -> {a : real_ | P a}).
   Proof.
     intros.
     apply (countableLiftM)  in X.
@@ -182,7 +184,7 @@ Section RealLimit2.
     exact H.
 
     
-    assert ((forall n : nat, {e : real_ | exists a : real_, P a /\ dist _ e a <= prec_ n}) -> {a : real_ | P a} ).
+    assert ((forall n : nat, {e : real_ | exists a : real_, P a /\ dist e a <= prec_ n}) -> {a : real_ | P a} ).
     intro.
 
     apply  (real_limit_P P H H1).
@@ -194,7 +196,7 @@ Section RealLimit2.
   Definition real_mslimit_P_lt :
     forall (P : real_ -> Prop),
       (exists! z, P z) ->
-      ((forall n, [e  | (exists a : real_, P a /\ dist _ e a < prec_ n)]) -> {a : real_ | P a}).
+      ((forall n, [e  | (exists a : real_, P a /\ dist e a < prec_ n)]) -> {a : real_ | P a}).
   Proof.
     intros.
     apply (countableLiftM)  in X.
@@ -213,7 +215,7 @@ Section RealLimit2.
     exact H.
 
     
-    assert ((forall n : nat, {e : real_ | exists a : real_, P a /\ dist _ e a < prec_ n}) -> {a : real_ | P a} ).
+    assert ((forall n : nat, {e : real_ | exists a : real_, P a /\ dist e a < prec_ n}) -> {a : real_ | P a} ).
     intro.
 
     apply  (real_limit_P_lt P H H1).
