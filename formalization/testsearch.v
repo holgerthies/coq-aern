@@ -73,8 +73,8 @@ Definition epsilon_smallest_PQ_M
        [n | P n /\ (forall k, (k < n)%coq_nat -> Q k)].
 Proof.
   intros.
-  apply countableLiftM in X.
-  apply (liftM (forall n : nat, {P n} + {Q n})).
+  apply M_countable_lift in X.
+  apply (M_lift (forall n : nat, {P n} + {Q n})).
   intro.
   apply (epsilon_smallest_PQ P Q); auto.
   exact X.
@@ -108,7 +108,7 @@ Defined.
 Lemma weaken_orM_r : forall P Q Q': Prop, (Q -> Q') -> M ({P}+{Q}) -> M ({P}+{Q'}).
 Proof.
   intros P Q Q' QQ'.
-  apply liftM.
+  apply M_lift.
   move => [iP|iQ].
   left. by auto.
   right. exact (QQ' iQ).

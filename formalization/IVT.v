@@ -715,10 +715,12 @@ Section IVT.
       unfold IZreal.
       unfold IPreal.
       unfold IPreal_2.
-      ring_simplify.
-      replace ((real_1 + real_1) * ((real_1 + real_1) * (real_1 + real_1))) with
-          (real_0_ + ((real_1 + real_1) * ((real_1 + real_1) * (real_1 + real_1)))) at 2  by ring.
-      apply real_lt_plus_r_lt; exact real_1_gt_0.
+      apply (real_lt_add_r ( - (real_1_ + real_1_) * (real_1_ + real_1_) * (real_1_ + real_1_))).
+      replace ((real_1_ + real_1_) * (real_1_ + real_1_) * (real_1_ + real_1_) +
+               - (real_1_ + real_1_) * (real_1_ + real_1_) * (real_1_ + real_1_)) with real_0_ by ring.
+      replace ((real_1_ + (real_1_ + real_1_)) * (real_1_ + (real_1_ + real_1_)) +
+  - (real_1_ + real_1_) * (real_1_ + real_1_) * (real_1_ + real_1_)) with real_1_ by ring.
+      exact real_1_gt_0.
   Qed.
 
   Lemma inv_unif : forall a b (c : a <> real_0_) (d : b <> real_0_), a = b -> @real_inv _ a c = @real_inv _ b d.
@@ -807,7 +809,6 @@ Section IVT.
              unfold IZreal. 
              unfold IPreal.
              unfold IPreal_2.
-             ring_simplify.
              ring.
 
 
@@ -881,7 +882,6 @@ Section IVT.
              unfold IZreal.
              unfold IPreal.
              unfold IPreal_2.
-             ring_simplify.
              ring.
 
     +
@@ -889,7 +889,8 @@ Section IVT.
       
       ++
         apply (real_lt_plus_lt (a+b) a b) in t1.
-        ring_simplify in t1.
+        replace (a + b + a) with ((real_1 + real_1) * a + b) in t1 by ring.
+        replace (a + b + b) with (a + (real_1 + real_1) * b) in t1 by ring.
         replace (real_1_+real_1) with (@real_2 R) in t1 by auto.
         assert (3>0)%Z by intuition.
         apply (@IZreal_pos T 3) in H0.
@@ -968,12 +969,12 @@ Section IVT.
   Proof.
     intros.
     pose proof (trisect f a b H H0) as one.
-    apply (lift_domM ({a' : real_ & {b' : real_ | uniq f a' b' /\ talve a a' b' b}})); auto.
+    apply (M_lift_dom ({a' : real_ & {b' : real_ | uniq f a' b' /\ talve a a' b' b}})); auto.
     intro Q.
     destruct Q as [x [y [P1 P2]]].
     
     pose proof (trisect f x y H P1) as X.
-    apply (liftM ({a' : real_  & ({ b' | uniq f a' b' /\ talve x a' b' y }) } )); auto.
+    apply (M_lift ({a' : real_  & ({ b' | uniq f a' b' /\ talve x a' b' y }) } )); auto.
     intros [x' [y' [P1' P2']]].
     exists x'.
     exists y'.
@@ -990,7 +991,7 @@ Section IVT.
     : [(a,b)| uniq f a b /\ refining real_0_ a b real_1 n].
   Proof.
     induction n.
-    + apply unitM.
+    + apply M_unit.
       exists real_0_; exists real_1.
       split; auto.
       unfold refining.
@@ -1001,11 +1002,11 @@ Section IVT.
       simpl.
       ring_simplify; right; exact eq_refl.
 
-    + apply (lift_domM {a : real_ & {b : real_ | uniq f a b /\ refining real_0_ a b real_1 n} }); auto.
+    + apply (M_lift_dom {a : real_ & {b : real_ | uniq f a b /\ refining real_0_ a b real_1 n} }); auto.
       intro X.
       destruct X as [x [y [p q]]].
       pose proof (halving f x y cont p).
-      apply (liftM ({ (a', b')| uniq f a' b' /\ halve x a' b' y})); auto.
+      apply (M_lift ({ (a', b')| uniq f a' b' /\ halve x a' b' y})); auto.
       intros [x' [y' [p' q']]].
       exists x'; exists y'.
       split; auto.
@@ -1023,7 +1024,7 @@ Section IVT.
     + (* construct limit *)
       intro n.
       pose proof (root_approx f cont u (S n)).
-      apply (liftM ({(a, b)| uniq f a b /\ refining real_0_ a b real_1 (S n)})); auto.
+      apply (M_lift ({(a, b)| uniq f a b /\ refining real_0_ a b real_1 (S n)})); auto.
       intros [x [y [p q]]].
       exists x.
       unfold uniq in p.

@@ -122,3 +122,7 @@ Proof.
   exact H.
 Defined.
   
+
+
+Definition is_hprop (A : Type) := forall x y : A, x = y.
+Definition is_mono {A B} (f : A -> B) := forall x y, f x = f y -> x = y.

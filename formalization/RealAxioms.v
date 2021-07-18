@@ -1,6 +1,7 @@
 Require Export ZArith_base.
 Require Import Base.
 Require Import Kleene.
+Require Import MultivalueMonad.
 
 
 Declare Scope Real_scope.
@@ -79,13 +80,13 @@ Definition real_ge {T : SemiDecOrderedField} (x y : real T) : Prop := real_gt x 
 Definition real_minus {T : SemiDecOrderedField} (x y : real T) : real T := x + - y.
 
 Definition real_div {T : SemiDecOrderedField} (x : real T) {y : real T} (p:y <> real_0) : real T := x * (/ p).
-Definition real_ltb {T : SemiDecOrderedField} : real T -> real T -> K.
+Definition real_ltb {T : SemiDecOrderedField} : real T -> real T -> kleenean.
 Proof.
   intros x y.
   exact (projP1 _ _ (real_lt_semidec x y)).
 Defined.
 
-Definition real_gtb {T : SemiDecOrderedField} (x y : real T) : K := real_ltb y x.
+Definition real_gtb {T : SemiDecOrderedField} (x y : real T) : kleenean := real_ltb y x.
 
 Infix "-" := (real_minus) : Real_scope.
 Infix "/" := (real_div ): Real_scope.

@@ -592,7 +592,7 @@ Section Euclidean.
       (exists! x, P x) -> (forall m, M {e  | exists a, P a /\ euclidean_max_dist e a <= prec_ m}) -> {a | P a}.
   Proof.
     intros.
-    apply singletonM.
+    apply M_hprop_elim_f.
     intros x y.
     destruct x, y.
     destruct H.
@@ -603,8 +603,8 @@ Section Euclidean.
     assert (p = p0) by apply irrl.
     rewrite H1.
     auto.
-    apply countableLiftM in X.
-    apply (fun f => liftM _ _ f X). 
+    apply M_countable_lift in X.
+    apply (fun f => M_lift _ _ f X). 
     intro.
     apply (euclidean_limit_P P H H0).
   Defined.
@@ -733,7 +733,7 @@ Section Euclidean.
     intros.
     destruct x.
     pose proof (f n x e).
-    apply (liftM {y  | euclidean_w_approx P (S n) y /\ euclidean_max_dist x y <= prec_ (S n)}).
+    apply (M_lift {y  | euclidean_w_approx P (S n) y /\ euclidean_max_dist x y <= prec_ (S n)}).
     intro.
     destruct H.
     destruct a.
@@ -741,11 +741,11 @@ Section Euclidean.
     simpl.
     exact H0.
     exact X0.
-    pose proof (pathsM _ _ X X0).
+    pose proof (M_paths _ _ X X0).
     simpl in X1.
-    apply (lift_domM {x | euclidean_w_approx P 0 x}).
+    apply (M_lift_dom {x | euclidean_w_approx P 0 x}).
     intro.
-    apply (liftM {f : forall n : nat, {x  | euclidean_w_approx P n x}
+    apply (M_lift {f : forall n : nat, {x  | euclidean_w_approx P n x}
                  | forall m : nat,
                      euclidean_max_dist (projP1 _ (fun x  => euclidean_w_approx P m x) (f m))
                                         (projP1 _ (fun y  => euclidean_w_approx P (S m) y) (f (S m))) <= prec_ (S m)}).

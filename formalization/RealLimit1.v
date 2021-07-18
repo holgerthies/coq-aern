@@ -1,5 +1,7 @@
 Require Export Base.
 Require Export Kleene.
+Require Import MultivalueMonad.
+
 Require Export RealAxioms.
 Require Export RealRing. 
 Require Export RealOrder.
@@ -326,8 +328,8 @@ Section RealLimit1.
       ((forall n, [e  | (exists a : real_, P a /\ -prec_ n <= e - a <= prec_ n)]) -> {a : real_ | P a}).
   Proof.
     intros.
-    apply (countableLiftM)  in X.
-    apply singletonM.
+    apply (M_countable_lift)  in X.
+    apply M_hprop_elim_f.
     intros x y.
     destruct H, x, y.
     destruct H.
@@ -344,7 +346,7 @@ Section RealLimit1.
     intro.
 
     apply  (real_limit_P_p P H H1).
-    apply (liftM _ _ H1 X).
+    apply (M_lift _ _ H1 X).
   Defined.
 
 
@@ -354,8 +356,8 @@ Section RealLimit1.
       ((forall n, [e  | (exists a : real_, P a /\ -prec_ n < e - a < prec_ n)]) -> {a : real_ | P a}).
   Proof.
     intros.
-    apply (countableLiftM)  in X.
-    apply singletonM.
+    apply (M_countable_lift)  in X.
+    apply M_hprop_elim_f.
     intros x y.
     destruct H, x, y.
     destruct H.
@@ -372,7 +374,7 @@ Section RealLimit1.
     intro.
 
     apply  (real_limit_P_lt_p P H H1).
-    apply (liftM _ _ H1 X).
+    apply (M_lift _ _ H1 X).
   Defined.
 
 End RealLimit1.

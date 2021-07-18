@@ -149,7 +149,7 @@ Section MultiLimit.
     intros.
     destruct x.
     pose proof (f n x w).
-    apply (liftM {y : real_ | w_approx P (S n) y /\ dist_ x y <= prec_ (S n)}).
+    apply (M_lift {y : real_ | w_approx P (S n) y /\ dist_ x y <= prec_ (S n)}).
     intro.
     destruct H.
     destruct a.
@@ -157,11 +157,11 @@ Section MultiLimit.
     simpl.
     exact H0.
     exact X0.
-    pose proof (pathsM _ _ X X0).
+    pose proof (M_paths _ _ X X0).
     simpl in X1.
-    apply (lift_domM {x | w_approx P 0 x}).
+    apply (M_lift_dom {x | w_approx P 0 x}).
     intro.
-    apply (liftM {f : forall n : nat, {x : real_ | w_approx P n x}
+    apply (M_lift {f : forall n : nat, {x : real_ | w_approx P n x}
                  | forall m : nat,
                      dist_ (projP1 real_ (fun x : real_ => w_approx P m x) (f m))
                            (projP1 real_ (fun y : real_ => w_approx P (S m) y) (f (S m))) <= prec_ (S m)}).

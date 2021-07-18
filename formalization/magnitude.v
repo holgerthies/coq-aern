@@ -63,7 +63,7 @@ Section magnitude.
     unfold is_magnitude1.
     Definition P x n := lt_prec x (n.+1).
     suff g1M : M { n : nat | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)}.
-    apply (liftM ({n : nat | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)})).
+    apply (M_lift ({n : nat | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)})).
     2: { exact g1M. }
     clear g1M. intro g1.
     destruct g1 as [n H].
@@ -88,8 +88,8 @@ Section magnitude.
       apply (weaken_orM_r _ (x < prec n.+1) _).
       intros.
       apply real_lt_nlt. auto.
-
-      apply choose.
+      
+      apply MultivalueMonad.choose.
       auto with real.
       auto with real.
 
@@ -297,13 +297,13 @@ Section magnitude.
         by apply /transport_lt_inv/xle1/IZreal_relator/Ha.
         have magy n : is_magnitude y n -> is_magnitude x (n+2)%Z by apply magnitude_fourth.
         suff : M { z | is_magnitude y z}.
-    - apply liftM.
+    - apply M_lift.
       case => z zprp.
       exists (z+2)%Z.
       exact (magy _ zprp).
       (* y is less than 1/2 => magnitude1 can be used *)
       have := magnitude1 _ yB.
-      apply liftM.
+      apply M_lift.
       case => n nprp.
       exists (- Z.of_nat n)%Z.
       split; last by rewrite Zpow_prec; apply real_ge_le; apply real_nge_le; apply nprp.
@@ -358,12 +358,12 @@ Section magnitude.
   Proof.
     move => xgt0.
     have := dec_x_lt_2 x. 
-    apply lift_domM.
+    apply M_lift_dom.
     case => H; first by apply magnitude2.
     have xneg0 : (x <> real_0_) by apply (real_gt_neq _ _ xgt0).
     suff I : (real_0 < / xneg0 < real_2).
     - have := magnitude2 _ I.
-      apply liftM.
+      apply M_lift.
       case => z zprp.
       exists (-z+2)%Z.
         by apply (magnitude_inv x xneg0).

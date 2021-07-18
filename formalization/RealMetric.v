@@ -1,5 +1,6 @@
 Require Import Base.
 Require Import Kleene.
+Require Import MultivalueMonad.
 Require Import RealAxioms.
 Require Import RealRing.
 Require Import RealOrder.
@@ -163,7 +164,7 @@ Section RealMetric.
     apply (@real_lt_lt_lt _ _ _ _ H0).
     apply @prec_pos.
 
-    apply (liftM _ _  H0).
+    apply (M_lift _ _  H0).
     apply M_split.
     apply @prec_pos.
   Defined.
