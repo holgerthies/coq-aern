@@ -208,11 +208,14 @@ Section Complex.
 
   Add Ring complexRing : complexTheory (constants [IZcomplex_tac]).
 
-  Declare Scope C_scope.
-  Delimit Scope C_scope with C. 
-  Infix "+" := complex_plus : C_scope.
-  Infix "*" := complex_mult : C_scope.
-  Notation "- x" := (complex_opp x) : C_scope.
-  Infix "-" := complex_minus : C_scope.
-
 End Complex.
+
+
+Declare Scope Complex_scope.
+Delimit Scope Complex_scope with Complex.
+Local Open Scope Complex_scope.
+
+Infix "+" := complex_plus : Complex_scope.
+Infix "*" := complex_mult : Complex_scope.
+Notation "- x" := (complex_opp x) : Complex_scope.
+Infix "-" := complex_minus : Complex_scope.
