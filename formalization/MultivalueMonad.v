@@ -80,6 +80,238 @@ Definition lifts_lifted_trace (M : Monad) :=
     {F : (Monad_obj_map M) {f : forall n, (P n) | forall m, R m (f m) (f (S m))} |
      sections_to_fibers _ _ (lifted_projP1 _ _ _ F) = trace_lifts_to_fiber M P R X f}.
 
+
+(* classical non-empty subset monad *)
+Section NonEmptyPowerSet.
+  Definition NEPS_obj_map : Type -> Type := fun A => {P : A ->  Prop | exists x, P x}.
+  Definition NEPS_fun_map : forall A B (f : A -> B), NEPS_obj_map A -> NEPS_obj_map B.
+  Proof.
+    intros.
+    destruct X.
+    
+    exists (fun b => exists a, x a /\ b = f a).
+    
+    destruct e.
+    exists (f x0).
+    exists x0.
+    auto.
+  Defined.
+  Lemma sigma_eqP2 : forall (A : Type) (P : A -> Prop) (x y : A) (a : P x) (b : P y),  x = y ->  exist P x a = exist P y b.
+  Proof.
+    intros.
+    apply (sigma_eqP A P x y a b H).
+    apply irrl.
+  Defined.
+
+  Definition NEPS_functorial_comp : forall A B C (f : A -> B) (g : B -> C),
+      NEPS_fun_map _ _ (fun x => g (f x)) = fun x => (NEPS_fun_map _ _ g) ((NEPS_fun_map _ _ f) x).
+  Proof.
+    intros.
+    apply fun_ext.
+    intro.
+    unfold NEPS_fun_map.
+    destruct x.
+    destruct e.
+    simpl.
+    apply sigma_eqP2.
+    apply fun_ext.
+    intro.
+    apply Prop_ext.
+    intro.
+    destruct H.
+    exists (f x3); auto.
+    split.
+    exists x3.
+    split; auto.
+    destruct H; auto.
+    destruct H; auto.
+    intro.
+    destruct H.
+    destruct H.
+    destruct H.
+    exists x4.
+    destruct H.
+    rewrite H0.
+    rewrite H1.
+    auto.
+  Defined.
+
+  
+
+    Definition NEPS_functorial_id :  forall A, (fun x : NEPS_obj_map A => x) = NEPS_fun_map A A (fun x => x).
+    Proof.
+      intros.
+      apply fun_ext.
+      intro.
+      unfold NEPS_fun_map.
+      destruct x.
+      apply sigma_eqP2.
+      apply fun_ext.
+      intro.
+      apply Prop_ext.
+      intro.
+      destruct e.
+      exists x0; auto.
+      intro.
+      destruct H.
+      destruct H.
+      rewrite H0; auto.
+    Defined.
+    
+      
+
+      
+    (* monad has unit and mult *)
+    Definition NEPS_unit : forall A : Type, A -> NEPS_obj_map A.
+    Proof.
+      intros.
+      exists (fun a => a = X).
+      exists X; auto.
+    Defined.
+      
+    Definition NEPS_mult : forall A : Type, NEPS_obj_map (NEPS_obj_map A) -> NEPS_obj_map A.
+    Proof.
+      intros.
+      destruct X.
+      exists (fun a => exists X, x X /\  projP1 _ _ X a). 
+      destruct e.
+      destruct x0.
+      destruct e.
+      exists x1.
+      exists (exist _ x0 (ex_intro _ x1 x2)).
+      split.
+      assert ((exist (fun P : A -> Prop => exists x : A, P x) x0 (ex_intro (fun x : A => x0 x) x1 x2)) = (exist (ex (A:=A)) x0 (ex_intro x0 x1 x2))).
+      apply sigma_eqP2; auto.
+      rewrite <- H0; auto.
+      simpl; auto.
+    Defined.
+    
+      
+    (* unit and mult are nat. trans.  *)
+    Definition NEPS_unit_ntrans : forall A B (f : A -> B) x, (NEPS_fun_map A B f) (NEPS_unit A x) = NEPS_unit B (f x).
+    Proof.
+      intros.
+      unfold NEPS_unit.
+      unfold NEPS_fun_map.
+      apply sigma_eqP2.
+      apply fun_ext; intro.
+      apply Prop_ext.
+      intro.
+      destruct H.
+      destruct H.
+      rewrite H in H0.
+      exact H0.
+      intro.
+      rewrite H.
+      exists x; auto.
+    Defined.
+   
+    Definition NEPS_mult_ntrans : forall A B (f : A -> B) x, NEPS_mult B ((NEPS_fun_map (NEPS_obj_map A) (NEPS_obj_map B) (NEPS_fun_map A B f)) x) = (NEPS_fun_map A B f) (NEPS_mult A x).
+    Proof.
+      intros.
+      unfold NEPS_mult.
+      unfold NEPS_fun_map.
+      destruct x.
+      apply sigma_eqP2.
+      apply fun_ext.
+      intro.
+      apply Prop_ext.
+      intro.
+      destruct e.
+      destruct x1.
+      destruct e.
+      destruct H.
+      destruct H.
+      destruct H.
+      destruct H.
+      destruct x5.
+      rewrite H2 in H1.
+      simpl in H1.
+      destruct H1.
+      destruct H1.
+      exists x6.
+      split; auto.
+      exists (exist _ x5 (ex_intro _ x6 H1)).
+      simpl.
+      split; auto.
+      assert ((exist (ex (A:=A)) x5 (ex_intro x5 x6 H1)) = (exist (fun P : A -> Prop => exists x : A, P x) x5 e)).
+      apply sigma_eqP2.
+      auto.
+      rewrite H4; auto.
+      intro.
+      destruct H.
+      destruct H.
+      destruct H.
+      destruct H.
+      exists (NEPS_fun_map _ _ f x2).
+      split.
+      exists x2.
+      split; auto.
+      unfold NEPS_fun_map.
+      destruct x2.
+      simpl.
+      exists x1; auto.
+    Defined.
+    
+    (* coherence conditions *)
+    Definition NEPS_coh1 : forall A x, NEPS_mult A (NEPS_unit (NEPS_obj_map A) x) = x.
+    Proof.
+      intros.
+      destruct x.
+      unfold NEPS_mult.
+      unfold NEPS_unit.
+      apply sigma_eqP2.
+      apply fun_ext; intro.
+      apply Prop_ext.
+      intro.
+      destruct H.
+      destruct x1.
+      simpl in H.
+      destruct H.
+      apply sigma_eqP_pr1 in H.
+      rewrite <- H; auto.
+      intro.
+      exists (exist _ x (ex_intro _ x0 H)).
+      simpl.
+      split.
+      apply sigma_eqP2; auto.
+      auto.
+    Defined.
+    
+    Definition NEPS_coh2 : forall A x, NEPS_mult A (NEPS_fun_map A (NEPS_obj_map A) (NEPS_unit A)  x) = x.
+    Proof.
+      intros.
+      unfold NEPS_mult, NEPS_fun_map, NEPS_obj_map, NEPS_unit.
+      destruct x.
+      apply sigma_eqP2.
+      apply fun_ext.
+      intro.
+      apply Prop_ext.
+      intro.
+      destruct H.
+      destruct H.
+      destruct H.
+      destruct H.
+      rewrite H1 in H0.
+      simpl in H0.
+      rewrite H0; auto.
+      intro.
+      
+      destruct e.
+      exists (exist _ (fun b => b = x0) (ex_intro _ x0 eq_refl)).
+      split.
+      exists x0.
+      split; auto.
+      simpl.
+      auto.
+    Defined.
+    
+    Definition NEPS_coh3 : forall A x, NEPS_mult A (NEPS_mult (NEPS_obj_map A) x) = NEPS_mult A (NEPS_fun_map (NEPS_obj_map (NEPS_obj_map A)) (NEPS_obj_map A) (NEPS_mult A) x).
+    Proof.
+    Admitted.
+End NonEmptyPowerSet.
+
+
 Structure MultivalueMonad (K : LazyBool) : Type :=
   {
     base_monad : Monad;
@@ -87,6 +319,10 @@ Structure MultivalueMonad (K : LazyBool) : Type :=
     base_monad_unit_is_mono : forall A, is_mono (Monad_unit base_monad A);
     base_monad_traces_lift : lifts_lifted_trace base_monad;
     multivalued_choice : forall x y : lazy_bool K, x = lazy_bool_true K \/ y = lazy_bool_true K -> Monad_obj_map base_monad ({ x = lazy_bool_true K } + { (y = lazy_bool_true K) });
+    to_subset : forall A, Monad_obj_map base_monad A -> A -> Prop;
+    to_subset_non_empty : forall A (X : Monad_obj_map base_monad A), exists x : A, to_subset A X x;
+    to_subset_unit : forall A (a : A), to_subset A (Monad_unit base_monad A a) = (fun b : A => a = b);
+    
   }.
 
 
@@ -422,29 +658,89 @@ Notation "[ ( a , b ) | P ]" := (M (sigT (fun a => {b | P}))) : type_scope.
 (*   f. *)
   
   
-(* Definition Mand : M Prop -> Prop. *)
-(* Proof. *)
-(*   intro. *)
-(*   exact (X = M_unit _ True). *)
-(* Defined. *)
+Definition Mand : M Prop -> Prop.
+Proof.
+  intro.
+  exact (X = M_unit _ True).
+Defined.
 
-(* Definition Mor : M Prop -> Prop. *)
-(* Proof. *)
-(*   intro. *)
-(*   exact (~ (X = M_unit _ False)). *)
-(* Defined. *)
+Definition Mor : M Prop -> Prop.
+Proof.
+  intro.
+  exact (~ (X = M_unit _ False)).
+Defined.
 
-(* Lemma Mor_is_retract : forall P : Prop, Mor (M_unit _ P) = P. *)
-(* Proof. *)
-(*   intro P. *)
-(*   destruct (lem P). *)
-(*   unfold Mor. *)
-(*   assert (e : P = True) by (apply Prop_ext; auto). *)
-(*   rewrite e. *)
-(*   apply Prop_ext. *)
-(*   intro; auto. *)
-(*   intro. *)
-(*   intro. *)
+Lemma Mor_is_retract : forall P : Prop, Mor (M_unit _ P) = P.
+Proof.
+  intro P.
+  destruct (lem P).
+  unfold Mor.
+  assert (e : P = True) by (apply Prop_ext; auto).
+  rewrite e.
+  apply Prop_ext.
+  intro; auto.
+  intro.
+  intro.
+  apply M_unit_is_mono in H1.
+  rewrite <- H1; auto.
+  apply Prop_ext.
+  intro; auto.
+  unfold Mor in H0.
+  assert (P = False).
+  apply Prop_ext; intro; auto.
+  contradict H1.
+  rewrite H1 in H0.
+  contradict H0; auto.
+  intro.
+  contradict (H H0).
+Defined.
   
+Lemma Mand_is_retract : forall P : Prop, Mand (M_unit _ P) = P.
+Proof.
+  intro P.
+  destruct (lem P).
+  unfold Mand.
+  assert (e : P = True) by (apply Prop_ext; auto).
+  rewrite e.
+  apply Prop_ext; intro; auto; auto.
+  assert (e : P = False); apply Prop_ext; intro ; auto.
+  contradict H0.
+  rewrite e in H0.
+  unfold Mand in H0.
+  pose proof(M_unit_is_mono _ _ _ H0).
+  assert False by (rewrite H1; auto).
+  contradict H2.
+  rewrite e in H0; contradict H0.
+Defined.
+
+Definition M_all {A} (P : A -> Prop) : M A -> Prop := fun X => Mand (M_lift _ _ P X).
+Definition M_some {A} (P : A -> Prop) : M A -> Prop := fun X => Mor (M_lift _ _ P X).
+Definition M_in {A} (a : A) (X : M A) : Prop := M_some (fun b => a = b) X. 
+  
+(* Goal forall A (P : A -> Prop) (X : M A), M_all P X -> forall a, M_in a X -> P a. *)
+(* Proof. *)
+(*   intros. *)
+(*   unfold M_all in H. *)
+(*   unfold Mand in H. *)
+(*   unfold M_in in H0. *)
+(*   unfold M_some in H0. *)
+(*   unfold Mor in H0. *)
+  
+
+(* Lemma M_existence_to_all : forall A (P : A -> Prop), M {x | P x} -> {x : M A | M_all P x}. *)
+(* Proof. *)
+(*   intros. *)
+(*   exists (M_projP1 _ _  X). *)
+(*   unfold M_all. *)
+(*   unfold Mand. *)
+(*   pose proof @M_lift_const_is_const A Prop True. *)
+(*   apply *)
+    
+(*   unfold M_projP1. *)
+
+(*   simpl. *)
   
 (*   simpl. *)
+  
+  
+(*       (*   simpl. *) *)
