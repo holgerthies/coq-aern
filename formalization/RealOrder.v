@@ -5,7 +5,16 @@ Require Import RealAxioms.
 Require Import RealRing.
 
 Require Import Coq.PArith.BinPos.
+Require Import Psatz.
 
+Fixpoint Npow2 n :=
+  match n with
+  | O => 1%nat
+  | S n => ((Npow2 n) * 2)%nat
+  end.
+
+
+  
 Open Scope Real_scope.
 
 Section RealOrder.
@@ -26,6 +35,12 @@ Section RealOrder.
     end.
 
   Add Ring realRing : (realTheory R) (constants [IZReal_tac]).
+  
+  Notation real_ := (real R).
+  Notation real_0_ := (@real_0 R).
+  Notation real_1_ := (@real_1 R).
+  Notation prec_ := (@prec R).
+
   
   Lemma real_ge_triv : forall z : real R, z >= z.
   Proof.
@@ -1142,6 +1157,159 @@ Section RealOrder.
     + apply M_split .
       exact real_1_gt_0.
   Defined.
+
+
+  Lemma Nreal_Npow2_pos : forall n, Nreal (Npow2 n) > real_0_. 
+  Proof.
+    intros.
+    apply Nreal_pos.
+    induction n.
+    simpl; lia.
+    simpl.
+    lia.
+  Qed.
+  
+    
+  Lemma prec_Npow2_unit : forall n, prec_ n * Nreal (Npow2 n) = real_1.
+  Proof.
+    intros.
+    induction n.
+    simpl.
+    ring.
+    simpl.
+    replace ((Npow2 n * 2))%nat with (Npow2 n + Npow2 n)%nat by lia.
+    rewrite Nreal_hom.
+    unfold real_div.
+    replace (prec_ n */ real_2_neq_0 * (Nreal (Npow2 n) + Nreal (Npow2 n))) with
+        (/ real_2_neq_0 * ((prec_ n) * ((Nreal (Npow2 n) + Nreal (Npow2 n))))) by ring.
+    replace (/ real_2_neq_0 * ((prec_ n) * ((Nreal (Npow2 n) + Nreal (Npow2 n))))) with
+        (/ real_2_neq_0 * ((prec_ n) * Nreal (Npow2 n) + (prec_ n) * Nreal (Npow2 n)))
+      by ring.
+    rewrite IHn.
+    auto with real.
+  Qed.
+
+  
+  Lemma prec_inv : forall n (p : prec_ n <> real_0), /p = Nreal (Npow2 n).
+  Proof.
+    intros.
+    pose proof (prec_Npow2_unit n).
+    apply (lp _ _ (fun k => k * / p)) in H.
+    replace (prec_ n * Nreal (Npow2 n) * / p) with (/p * prec_ n * Nreal (Npow2 n)) in H by ring.
+    rewrite real_mult_inv in H.    
+    rewrite real_mult_unit in H.
+    rewrite real_mult_unit in H.
+    exact (eq_sym H).
+  Qed.
+  
+  Lemma nat_bound_above : forall x, x > real_0_ -> exists n, x < Nreal n.
+  Proof.
+    intros.
+    pose proof (dg0  H).
+    pose proof (real_pos_inv_pos _ H H0).
+    pose proof (@real_Archimedean T _ H1).
+    destruct H2.
+    exists (Npow2 x0).
+
+    apply (real_lt_mult_pos_lt _ _ _ (Nreal_Npow2_pos x0)) in H2.
+    rewrite real_mult_comm in H2.
+    rewrite prec_Npow2_unit in H2.
+    apply (real_lt_mult_pos_lt _ _ _ H) in H2.
+    rewrite real_mult_comm, real_mult_unit in H2.
+    replace (x * (Nreal (Npow2 x0) * / H0)) with (/H0 * x * (Nreal (Npow2 x0))) in H2 by ring.
+    rewrite real_mult_inv in H2.
+    rewrite real_mult_unit in H2.
+    exact H2.
+  Qed.
+  
+  
+  
+  Lemma IZreal_Nreal : forall n, @Nreal R  n = IZreal (Z.of_nat n).
+  Proof.
+    intros.
+    induction n.
+    simpl.
+    auto.
+    rewrite Nreal_S.
+    replace (Z.of_nat (S n)) with (Z.of_nat (n) + 1)%Z by lia. 
+    rewrite IZreal_hom.
+    rewrite IHn.
+    ring.
+  Qed.
+    
+  Lemma overlapping : forall a b c d x : real_, a < x < b -> d < c -> a < x < c \/ d < x < b.  
+  Proof.
+    intros.
+    destruct (real_total_order x c).
+    left.
+    split; destruct H; auto.
+    destruct H1.
+    right.
+    induction H1.
+    destruct H.
+    split; auto.
+    right.
+    split; destruct H; auto.
+    apply (real_lt_lt_lt _ _ _ H0 H1).
+  Qed.
+  
+  Lemma IZreal_opp : forall z, - @IZreal R z = IZreal (- z)%Z.
+  Proof.
+    intros.
+    induction z.
+    simpl; ring.
+    replace (- Z.pos p)%Z with (Z.neg p) by lia.
+    apply IZreal_neg.
+    replace (- Z.neg p)%Z with (Z.pos p) by lia.    
+    rewrite IZreal_neg.
+    ring.
+  Qed.
+    
+  Lemma IZreal_strict_monotone : forall a b, (a < b)%Z -> @IZreal R a < @IZreal R b.
+  Proof.
+    intros.
+    apply (real_lt_add_r (-IZreal a)).
+    replace (IZreal a + - IZreal a) with real_0_ by ring.
+    
+    rewrite IZreal_opp. 
+    rewrite <- IZreal_hom. 
+    apply IZreal_pos.
+    lia.
+  Qed.
+   
+  Lemma Nreal_monotone : forall a b, (a <= b)%nat -> @Nreal R a <= Nreal b.
+  Proof.
+    intros.
+    induction H.
+    right; auto.
+    apply (real_le_le_le _ _ _ IHle).
+    simpl.
+    left.
+    pose proof (@real_lt_plus_lt R  (Nreal m) _ _ real_1_gt_0).
+    replace (Nreal m + real_0) with (@Nreal R m) in H0 by ring.
+    rewrite real_plus_comm.
+    exact H0.
+  Defined.
+
+  Lemma Nreal_strict_monotone : forall a b, (a < b)%nat -> @Nreal R a < Nreal b.
+  Proof.
+    intros.
+    induction H.
+    simpl.
+    apply (real_lt_add_r (- Nreal a)).
+    replace (Nreal a + - Nreal a ) with real_0_ by ring.
+    replace (real_1_ + Nreal a + - Nreal a) with real_1_ by ring.
+    apply real_1_gt_0.
+    pose proof (@real_lt_plus_lt R  (Nreal m) _ _ real_1_gt_0).    
+    apply (real_lt_lt_lt _ _ _ IHle).
+    simpl.
+    pose proof (@real_lt_plus_lt R  (Nreal m) _ _ real_1_gt_0).
+    replace (Nreal m + real_0) with (@Nreal R m) in H0 by ring.
+    rewrite real_plus_comm.
+    exact H0.
+  Defined.
+
+  
 End RealOrder.
 
 
@@ -1189,3 +1357,7 @@ Global Hint Resolve real_gt0_gt0_plus_gt0: real.
 Global Hint Resolve d2_pos: real.
 Global Hint Resolve W_split : real.
 Global Hint Resolve M_split : real.
+
+
+
+Global Hint Resolve Nreal_Npow2_pos prec_Npow2_unit prec_inv nat_bound_above IZreal_Nreal overlapping IZreal_opp IZreal_strict_monotone Nreal_monotone Nreal_strict_monotone : real.

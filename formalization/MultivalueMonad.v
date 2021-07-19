@@ -387,6 +387,24 @@ Proof.
   right; apply proj2 in e2; apply e2, H.
 Defined.
 
+Lemma semidec_and P Q : semidec P -> semidec Q -> semidec (P /\ Q).
+Proof.
+  intros.
+  destruct H as [k1 e1].
+  destruct H0 as [k2 e2].
+  exists (kleenean_and k1 k2).
+  split; intro p.
+  rewrite kleenean_and_up in p.
+  destruct p as [H H1].
+  split.
+  apply proj1 in e1; apply e1, H.
+  apply proj1 in e2; apply e2, H1.
+  rewrite kleenean_and_up.
+  destruct p as [H H1].
+  split.
+  apply proj2 in e1; apply e1, H.
+  apply proj2 in e2; apply e2, H1.
+Defined.
 
 Notation "[ x | P ]" := (M {x | P}) : type_scope.
 Notation "[ x : T | P ]" := (M {x : T | P}) : type_scope.
