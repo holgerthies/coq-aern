@@ -671,7 +671,7 @@ Section Euclidean.
     pose proof (@prec_pos T k).
     left.
     pose proof (real_lt_lt_plus_lt _ _ _ _ H0 H1).
-    ring_simplify in H2.
+    rewrite real_plus_unit in H2.
     auto.
     intros n k.
     pose proof (IHd (euclidean_tail_sequence f)).

@@ -58,7 +58,13 @@ Section MultiLimit.
     induction (eq_sym H1).
     assert (- prec_ n + prec_ (n + k) <=  f n - f (k + n)%nat <= prec_ n - prec_ (n + k)). 
     induction k.
-    replace (n + 0)%nat with n by lia; replace (0 + n)%nat with n by lia; split; simpl; ring_simplify; right; auto.
+    replace (n + 0)%nat with n by lia; replace (0 + n)%nat with n by lia; split; simpl.
+    replace (-prec_ n + prec_ n) with real_0_ by ring.
+    replace (f n - f n) with real_0_ by ring.
+    right; auto.
+    replace (prec_ n - prec_ n) with real_0_ by ring.
+    replace (f n - f n) with real_0_ by ring.
+    right; auto.
     assert ( k = (k + n - n)%nat) by lia.
     assert ((k + n)%nat = (k + n)%nat) by apply eq_refl.
     assert (n <= k + n)%nat by lia.

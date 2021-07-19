@@ -114,13 +114,15 @@ Section RealLimit0.
       left.
       apply (fun a => real_lt_le_lt _ _ _ a  H5).
       apply (real_lt_add_r (prec_ n + prec_ m)).
-      ring_simplify.
+      replace (- prec_ n - prec_ m + (prec_ n + prec_ m)) with real_0_ by ring.
+      replace ( - prec_ m + (prec_ n + prec_ m)) with (prec_ n) by ring.
       apply prec_pos.
       destruct H5.
       left.
       apply (real_le_lt_lt _ _ _ H6).
       apply (real_lt_add_r (-prec_ m)).
-      ring_simplify.
+      replace ( prec_ m + - prec_ m) with real_0_ by ring.
+      replace (prec_ n + prec_ m + - prec_ m) with (prec_ n) by ring.
       apply prec_pos.
     +
       apply H0 in H1.

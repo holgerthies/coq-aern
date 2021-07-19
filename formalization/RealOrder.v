@@ -185,7 +185,7 @@ Section RealOrder.
   Proof.
     pose proof (@real_1_gt_0 R).
     pose proof (real_lt_plus_lt real_1 real_0 real_1 H).
-    ring_simplify in H0.
+    rewrite real_plus_comm, real_plus_unit in H0.
     exact H0.
   Qed.
 
@@ -375,7 +375,8 @@ Section RealOrder.
     replace (real_2*(a/d2)) with (real_2*(a*/d2)) in p1 by auto.
     replace (real_2*(a*/d2)) with (a *(/d2 * real_2)) in p1 by ring.
     rewrite (real_mult_inv real_2 d2) in p1.
-    ring_simplify in p1.
+    replace (real_2 * real_0_) with real_0_ in p1 by ring.
+    rewrite real_mult_comm, real_mult_unit in p1.
     contradict p1.
     apply real_lt_nlt, p.
     exact real_2_pos.
@@ -384,7 +385,8 @@ Section RealOrder.
     replace (a/d2*real_2) with (a*/d2*real_2) in H0 by auto.
     replace (a*/d2*real_2) with (a*(/d2*real_2)) in H0 by ring.
     rewrite (real_mult_inv real_2 d2) in H0.
-    ring_simplify in H0.
+    replace (real_0_ * real_2) with real_0_ in H0 by ring.
+    rewrite real_mult_comm, real_mult_unit in H0.
     rewrite H0 in p.
     contradict p; apply real_nlt_triv. 
     exact p3.
@@ -398,14 +400,14 @@ Section RealOrder.
     pose proof (real_half_gt_zero a p).
     apply (real_lt_plus_lt (a/d2) real_0 (a/d2)) in H.
     rewrite (real_div_distr a a real_2 d2) in H.
-    ring_simplify in H.
+    rewrite real_plus_comm, real_plus_unit in H.
     replace (a + a) with (real_1 * a + real_1 * a) in H by ring.
     replace (real_1 * a + real_1 * a) with ((real_1+real_1)*a) in H by ring.
     replace (real_1+real_1) with (@real_2 R) in H by auto.
     replace (real_2*a/d2) with (real_2*a*/d2) in H by auto.
     replace (real_2*a*/d2) with (a*(/d2*real_2)) in H by ring.
     rewrite (real_mult_inv real_2 d2) in H.
-    ring_simplify in H.
+    rewrite real_mult_comm, real_mult_unit in H.
     exact H.
   Qed.
   
@@ -453,7 +455,9 @@ Section RealOrder.
   Proof.
     intros z1 z2 p.
     apply (real_lt_plus_lt (-z1-z2) z1 z2) in p.
-    ring_simplify in p; exact p.
+    replace  (- z1 - z2 + z1) with (-z2) in p by ring.
+    replace (- z1 - z2 + z2) with (-z1) in p by ring.
+    exact p.
   Qed.
 
 
@@ -474,7 +478,9 @@ Section RealOrder.
   Proof.
     intros.
     pose proof (real_lt_plus_lt (-z) _ _ H).
-    ring_simplify in H0.
+    replace (- z + (x + z)) with x in H0 by ring.
+    replace (- z + (y + z)) with y in H0 by ring.
+    
     exact H0.
   Qed.
 
@@ -482,7 +488,8 @@ Section RealOrder.
   Proof.
     intros.
     pose proof (real_lt_plus_lt (-z) _ _ H).
-    ring_simplify in H0.
+    replace (- z + (y + z)) with y in H0 by ring.
+    replace (- z + (x + z)) with x in H0 by ring.
     exact H0.
   Qed.
 
@@ -495,6 +502,7 @@ Section RealOrder.
     right.
     pose proof (lp _ _ (fun k => k - z) _ _ H).
     simpl in H0.
+    
     ring_simplify in H0.
     exact H0.
   Qed.
@@ -531,13 +539,16 @@ Section RealOrder.
     destruct (real_total_order z real_0) as [a|[b|c]].
     assert (z+(-z) < real_0+(-z)).
     apply (real_lt_plus_r_lt); exact a.
-    ring_simplify in H0.
+    rewrite real_plus_unit, real_plus_inv in H0.
+    
     pose proof (real_lt_mult_pos_lt (-z) real_0 (-z) H0 H0).
-    ring_simplify in H1.
-    ring_simplify.
+    replace (- z * real_0) with real_0_ in H1 by ring.
+    replace (- z * - z) with (z * z) in H1 by ring.
     exact H1.
     contradict H; exact b.
-    pose proof (real_lt_mult_pos_lt z real_0 z c c) as q; ring_simplify in q; ring_simplify; exact q.
+    pose proof (real_lt_mult_pos_lt z real_0 z c c) as q.
+    replace (z * real_0) with real_0_ in q by ring.
+    exact q.
   Qed.
 
   Lemma neq_sym : forall A (a b : A), a <> b -> b <> a.
@@ -560,18 +571,21 @@ Section RealOrder.
     pose proof (H1  H12) as H2.
     assert (path : H12 = (real_gt_neq z real_0 p)) by apply irrl.
     rewrite path in H2.
-    rewrite H0 in H2; ring_simplify in H2; contradict H2; apply neq_sym, (@real_1_neq_0 R).
+    rewrite H0 in H2.
+    replace (real_0_ * z) with real_0_ in H2 by ring.
+    contradict H2; apply neq_sym, (@real_1_neq_0 R).
     pose proof (H H10) as H0.
-    pose proof (real_lt_mult_pos_lt (/(real_gt_neq z real_0 p)*/(real_gt_neq z real_0 p)) real_0 z H0 p).
+                                                    pose proof (real_lt_mult_pos_lt (/(real_gt_neq z real_0 p)*/(real_gt_neq z real_0 p)) real_0 z H0 p).
     replace (/(real_gt_neq z real_0 p)*/(real_gt_neq z real_0 p)*z) with (/(real_gt_neq z real_0 p)*(/(real_gt_neq z real_0 p)*z))  in H1 by ring.
+                                                                                                                                                         replace (/(real_gt_neq z real_0 p) *z) with (@real_1 R) in H1.
 
-    replace (/(real_gt_neq z real_0 p) *z) with (@real_1 R) in H1.
-    
-    ring_simplify in H1.
-    exact H1.
-    rewrite (real_mult_inv); auto.
+                                                                                                                                                         replace (/ real_gt_neq z real_0_ p * / real_gt_neq z real_0_ p * real_0_) with real_0_ in H1 by ring.
+                                                                                                                                                         rewrite real_mult_comm, real_mult_unit in H1. 
+                                                                                             
+                                                                                                                                                         exact H1.
+                                                                                                                                                         rewrite (real_mult_inv); auto.
   Qed.
-
+  
   Local Hint Resolve padding: real.
   Local Hint Resolve real_lt_anti: real.
   Local Hint Resolve real_lt_anti_anti: real.
@@ -655,7 +669,8 @@ Section RealOrder.
     assert (a <> real_0).
     intro e; clear q H; rewrite e in p; apply (real_nlt_triv _ p).
     replace (/(dg0 p)*a) with (@real_1 R) in q. 
-    ring_simplify in q.
+    rewrite (real_mult_comm b), real_mult_unit in q.
+    
     auto with real.
     rewrite (real_mult_inv); auto.
   Qed.
@@ -719,11 +734,14 @@ Section RealOrder.
     rewrite (Nreal_hom 1%nat n).
     pose proof (@real_1_gt_0 R) as gtg.
     destruct n.
-    simpl; ring_simplify; auto with real.
+    simpl.
+    rewrite real_plus_comm, real_plus_unit, real_plus_comm,  real_plus_unit.
+    auto with real.
 
     pose proof (IHn (gt_Sn_O n)).
-    pose proof (real_lt_lt_plus_lt real_0 real_1 real_0 (Nreal (S n)) gtg H) as H1; ring_simplify in H1.
-    replace (Nreal (S n) + real_1) with (@real_1 R + Nreal (S n)) in H1 by ring.
+    pose proof (real_lt_lt_plus_lt real_0 real_1 real_0 (Nreal (S n)) gtg H) as H1.
+    rewrite real_plus_unit in H1.
+    
     assert (@Nreal R 1 = real_1). simpl. ring.
     rewrite H0; exact H1.
   Qed.
@@ -806,7 +824,9 @@ Section RealOrder.
           ((((@real_1 R + (real_1 + real_0))) * (real_2 * Nreal (Pos.to_nat p)))) by ring.
       rewrite IHp.
       ring.
-    + simpl; ring_simplify; auto.
+    + simpl.
+      rewrite real_plus_comm, real_plus_unit,  real_mult_comm,  real_mult_unit.
+      auto.
   Qed.
 
   Lemma IPreal_Nreal : forall p, @Nreal R (Pos.to_nat p) = IPreal p.
@@ -830,7 +850,9 @@ Section RealOrder.
       unfold real_2.
       unfold Nreal.
       ring.
-    + simpl; ring_simplify; auto.
+    + simpl.
+      rewrite real_plus_comm, real_plus_unit.
+      auto.
   Qed.
 
   Lemma IZ_Nreal : forall p, @Nreal R (Pos.to_nat p) = IZreal (Z.pos p).
@@ -989,7 +1011,8 @@ Section RealOrder.
   Proof.
     intros.
     pose proof (real_lt_lt_plus_lt real_0 z1 real_0 z2 H H0).
-    ring_simplify in H1; exact H1.
+    rewrite real_plus_unit in H1.
+    exact H1.
   Qed.
 
 
@@ -1010,7 +1033,8 @@ Section RealOrder.
     replace z2 with (real_0 + z2) at 3 by ring.
     apply real_lt_plus_r_lt.
     pose proof (real_lt_mult_pos_lt epsilon real_0 z2 c1 q).
-    ring_simplify in H; exact H.
+    replace (epsilon * real_0_) with real_0_ in H by ring.
+    exact H.
   Qed.
 
 

@@ -244,12 +244,16 @@ Section IVT.
     rewrite <- p1 in H3.
     destruct H3.
     apply (real_lt_plus_lt (-u) (u+δ/d2) u) in H3.
-    ring_simplify in H3.
+    replace (-u + u) with real_0_ in H3 by ring.
+    replace ( - u + (u + δ / d2)) with (  δ / d2) in H3 by ring.
+    
     pose proof (@real_half_gt_zero _  δ o3).
     contradict H4.
     exact (real_lt_nlt (δ/d2) real_0_ H3).
     apply (real_eq_plus_eq (u+δ/d2) u (-u)) in H3.
-    ring_simplify in H3.
+    replace (u + - u) with real_0_ in H3 by ring.
+    replace ( u + δ / d2 + - u) with (δ / d2) in H3 by ring.
+    
     pose proof (@real_half_gt_zero _  δ o3).
     rewrite H3 in H4.
     contradict H4.
@@ -694,7 +698,7 @@ Section IVT.
 
     + rewrite (lt_metric a f QQ).
       apply (real_lt_plus_lt (-a) a f) in QQ.
-      ring_simplify in QQ.
+      replace (-a + a) with real_0_ in QQ by ring.
       replace (f-a) with (-a+f) by ring; exact QQ.
 
     + assert (3 > 0)%Z as Q1 by intuition.

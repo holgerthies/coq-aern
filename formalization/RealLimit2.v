@@ -131,7 +131,7 @@ Section RealLimit2.
 
     assert (x - x0 < real_0_).
     apply (real_lt_plus_r_lt (-x0) ) in H6.
-    ring_simplify in H6.
+    replace (x0 +- x0) with real_0_ in H6 by ring.
     exact H6.
     assert (prec_ n > real_0_) by (apply prec_pos). 
     exact (real_lt_lt_lt  _ _ _  H7 H8).
