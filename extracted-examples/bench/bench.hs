@@ -63,7 +63,7 @@ magnitude1 :: _ => t -> Integer
 magnitude1 x = 
   integer $ fromJust $ List.findIndex id $ map test [0..]
   where
-  test n = select (0.5^^(n+2) < x) (x < 0.5^^(n::Int))
+  test n = select (0.5^^(n+2) < x) (x < 0.5^^(n+1::Int))
 
 magnitude2 :: _ => t -> Integer
 magnitude2 x = 2 - (magnitude1 (x/4))
