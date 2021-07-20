@@ -1,5 +1,7 @@
 -R . Lib
 Base.v
+Monad.v
+ClassicalMonads.v
 Nabla.v
 Kleene.v
 MultivalueMonad.v

@@ -126,3 +126,9 @@ Defined.
 
 Definition is_hprop (A : Type) := forall x y : A, x = y.
 Definition is_mono {A B} (f : A -> B) := forall x y, f x = f y -> x = y.
+Lemma sigma_eqP2 : forall (A : Type) (P : A -> Prop) (x y : A) (a : P x) (b : P y),  x = y ->  exist P x a = exist P y b.
+Proof.
+  intros.
+  apply (sigma_eqP A P x y a b H).
+  apply irrl.
+Defined.

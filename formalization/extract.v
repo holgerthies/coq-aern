@@ -6,6 +6,30 @@ Extraction Language Haskell.
 
 Require Import Real.
 
+(* interpreting kleenean *)
+Extract Inlined Constant kleenean => "AERN2.CKleenean".
+Extract Inlined Constant kleenean_true => "(AERN2.ckleenean Prelude.True)".
+Extract Inlined Constant kleenean_false => "(AERN2.ckleenean Prelude.False)".
+Extract Inlined Constant kleenean_neg => "OGB.not".
+Extract Inlined Constant kleenean_and => "(OGB.&&)".
+Extract Inlined Constant kleenean_or => "(OGB.||)".
+
+(* interpreting multivaluemonad *)
+Extract Constant M "a" => " a ".
+Extract Inlined Constant M_unit => "Prelude.id".
+Extract Inlined Constant M_mult => "Prelude.id".
+Extract Inlined Constant M_lift => "Prelude.id".
+Extract Inlined Constant M_hprop_elim_f => "Prelude.id".
+Extract Inlined Constant M_paths => "(\ x0 f n -> Prelude.foldl (Prelude.flip f) x0 [0 .. (n Prelude.- 1)])".
+Extract Inlined Constant M_countable_lift => "Prelude.id". 
+
+(* Assume that there is Real*)
+Axiom R : ComplArchiSemiDecOrderedField.
+
+Require Import Minmax.
+Definition extract_max := @real_max R.
+Extraction "Max" R.
+
 (* Real is Real, K is LazyBoolean, and M T is T *)
 Extract Inlined Constant Real => "AERN2.CReal".
 Extract Inlined Constant K => "AERN2.CKleenean".
