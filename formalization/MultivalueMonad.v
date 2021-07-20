@@ -113,7 +113,110 @@ Definition M_description_is_equiv := MultivalueMonad_description_is_equiv _ M_st
 
 Opaque M M_lift M_functorial_comp M_functorial_id M_unit M_mult M_unit_ntrans M_mult_ntrans M_coh1 M_coh2 M_coh3 M_hprop_elim M_traces_lift M_choice M_description M_description_is_mono M_description_is_equiv.
 
+
+Lemma NPset_unit_is_mono : forall A, is_mono (Monad_unit NPset A).
+Proof.
+  intros.
+  intros x y H.
+  apply sigma_eqP_pr1 in H.
+  apply (lp _ _ (fun g => g x)) in H.
+  rewrite <- H; auto.
+Defined.
+
+Lemma Nabla_unit_is_mono : forall A, is_mono (Monad_unit Nabla A).
+Proof.
+  intros.
+  intros x y H.
+  apply sigma_eqP_pr1 in H.
+  apply (lp _ _ (fun g => g x)) in H.
+  rewrite <- H; auto.
+Defined.
+
+Lemma M_unit_is_mono : forall A, is_mono (M_unit A).
+Proof.
+  intros A x y H.
+  pose proof M_description_is_mono.
+  unfold Monoid_hom_is_mono in H0.
+  pose proof (Monoid_hom_unit _ _ M_description A ).
+  apply (lp _ _ (fun g => g x)) in H1.
+  pose proof (Monoid_hom_unit _ _ M_description A ).
+  apply (lp _ _ (fun g => g y)) in H2.
+  assert (M_unit A x = (Monad_unit (MultivalueMonad_base_monad kleenean_structure M_structure) A x)) by auto.
+  rewrite<- H3, H in H1.
+  assert (M_unit A y = (Monad_unit (MultivalueMonad_base_monad kleenean_structure M_structure) A y)) by auto.
+  rewrite <- H4 in H2.
+  rewrite H1 in H2.
+  apply NPset_unit_is_mono in H2.
+  exact H2.
+Defined.  
+
+Notation NP := (Monad_obj_map NPset).
+
+Definition M_picture : forall {A}, M A -> NP A.
+Proof.
+  intros A X.
+  exact ((Monoid_hom_nat_trans _ _  M_description A X)).
+Defined.
+
+Definition M_picture_1 : forall {A}, M A -> A -> Prop.
+Proof.
+  intros A X.
+  exact (projP1 _ _ (Monoid_hom_nat_trans _ _  M_description A X)).
+Defined.
+
+Lemma M_fun_picture : forall {A B} (f : A -> B), NP A -> NP B.
+Proof.
+  intros A B f.
+  exact (Monad_fun_map NPset _ _ f).
+Defined.
+
+Lemma M_fun_cont : forall {A B} (f : A -> B), forall X x, M_picture_1 X x -> M_picture_1 (M_lift _ _ f X) (f x).
+Proof.
+  intros.
+  pose proof ((Monoid_hom_nat_trans_prop _ _  M_description A B f)).
+  apply (lp _ _ (fun g => g X)) in H0.
+  unfold M_picture_1.
+  assert ((Monad_fun_map (MultivalueMonad_base_monad kleenean_structure M_structure) A B f X) = (M_lift A B f X)) by auto.
+  rewrite <- H1.
+  rewrite H0.
+  unfold M_picture_1 in H.
+  pose (j :=  (Monoid_hom_nat_trans (MultivalueMonad_base_monad kleenean_structure M_structure) NPset M_description A X)).
+  fold j.
+  fold j in H.
+  destruct j.
+  clear H0 H1.
+  simpl in H.
+  simpl.
+  exists x; auto.
+Defined.
+
+Lemma M_fun_cont_inv : forall {A B} (f : A -> B), forall X y, M_picture_1 (M_lift _ _ f X) y -> exists x, M_picture_1 X x /\ y = f x.
+Proof.
+
+ 
+  intros.
+  pose proof ((Monoid_hom_nat_trans_prop _ _  M_description A B f)).
+  apply (lp _ _ (fun g => g X)) in H0.
+  assert ((Monad_fun_map (MultivalueMonad_base_monad kleenean_structure M_structure) A B f X) = (M_lift A B f X)) by auto.
+  rewrite  H1 in H0.
+  unfold M_picture_1 in H.
+  rewrite H0 in H.
+  clear H0 H1.
+  unfold M_picture_1.
   
+  
+  pose (XP :=  (Monoid_hom_nat_trans (MultivalueMonad_base_monad kleenean_structure M_structure) NPset M_description A X)).
+  fold XP.
+  fold XP in H.
+  destruct XP.
+  simpl in H.
+  destruct H.
+  exists x0.
+  simpl; auto.
+Defined.
+
+
+
 Definition M_hprop_elim_f : forall A, is_hprop A -> M A -> A.
 Proof.
   intros.
@@ -421,48 +524,48 @@ Proof.
   exact (~ (X = M_unit _ False)).
 Defined.
 
-(* Lemma Mor_is_retract : forall P : Prop, Mor (M_unit _ P) = P. *)
-(* Proof. *)
-(*   intro P. *)
-(*   destruct (lem P). *)
-(*   unfold Mor. *)
-(*   assert (e : P = True) by (apply Prop_ext; auto). *)
-(*   rewrite e. *)
-(*   apply Prop_ext. *)
-(*   intro; auto. *)
-(*   intro. *)
-(*   intro. *)
-(*   apply M_unit_is_mono in H1. *)
-(*   rewrite <- H1; auto. *)
-(*   apply Prop_ext. *)
-(*   intro; auto. *)
-(*   unfold Mor in H0. *)
-(*   assert (P = False). *)
-(*   apply Prop_ext; intro; auto. *)
-(*   contradict H1. *)
-(*   rewrite H1 in H0. *)
-(*   contradict H0; auto. *)
-(*   intro. *)
-(*   contradict (H H0). *)
-(* Defined. *)
+Lemma Mor_is_retract : forall P : Prop, Mor (M_unit _ P) = P.
+Proof.
+  intro P.
+  destruct (lem P).
+  unfold Mor.
+  assert (e : P = True) by (apply Prop_ext; auto).
+  rewrite e.
+  apply Prop_ext.
+  intro; auto.
+  intro.
+  intro.
+  apply M_unit_is_mono in H1.
+  rewrite <- H1; auto.
+  apply Prop_ext.
+  intro; auto.
+  unfold Mor in H0.
+  assert (P = False).
+  apply Prop_ext; intro; auto.
+  contradict H1.
+  rewrite H1 in H0.
+  contradict H0; auto.
+  intro.
+  contradict (H H0).
+Defined.
   
-(* Lemma Mand_is_retract : forall P : Prop, Mand (M_unit _ P) = P. *)
-(* Proof. *)
-(*   intro P. *)
-(*   destruct (lem P). *)
-(*   unfold Mand. *)
-(*   assert (e : P = True) by (apply Prop_ext; auto). *)
-(*   rewrite e. *)
-(*   apply Prop_ext; intro; auto; auto. *)
-(*   assert (e : P = False); apply Prop_ext; intro ; auto. *)
-(*   contradict H0. *)
-(*   rewrite e in H0. *)
-(*   unfold Mand in H0. *)
-(*   pose proof(M_unit_is_mono _ _ _ H0). *)
-(*   assert False by (rewrite H1; auto). *)
-(*   contradict H2. *)
-(*   rewrite e in H0; contradict H0. *)
-(* Defined. *)
+Lemma Mand_is_retract : forall P : Prop, Mand (M_unit _ P) = P.
+Proof.
+  intro P.
+  destruct (lem P).
+  unfold Mand.
+  assert (e : P = True) by (apply Prop_ext; auto).
+  rewrite e.
+  apply Prop_ext; intro; auto; auto.
+  assert (e : P = False); apply Prop_ext; intro ; auto.
+  contradict H0.
+  rewrite e in H0.
+  unfold Mand in H0.
+  pose proof(M_unit_is_mono _ _ _ H0).
+  assert False by (rewrite H1; auto).
+  contradict H2.
+  rewrite e in H0; contradict H0.
+Defined.
 
 Definition M_all {A} (P : A -> Prop) : M A -> Prop := fun X => Mand (M_lift _ _ P X).
 Definition M_some {A} (P : A -> Prop) : M A -> Prop := fun X => Mor (M_lift _ _ P X).
@@ -476,6 +579,7 @@ Definition M_in {A} (a : A) (X : M A) : Prop := M_some (fun b => a = b) X.
 (*   unfold M_in in H0. *)
 (*   unfold M_some in H0. *)
 (*   unfold Mor in H0. *)
+  
   
 
 (* Lemma M_existence_to_all : forall A (P : A -> Prop), M {x | P x} -> {x : M A | M_all P x}. *)
