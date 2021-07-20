@@ -40,8 +40,11 @@ Structure Monoid_hom (F G : Monad) :=
   }.
 
 (* note that this can be stronger than mono in nat. trans. in general setting *)
-Definition Monoid_mono (F G : Monad) :=
-  {f : Monoid_hom F G | forall A, is_mono (Monoid_hom_nat_trans F G f A)}.
+Definition Monoid_hom_is_mono {F G : Monad} (m : Monoid_hom F G) :=
+  forall A, is_mono (Monoid_hom_nat_trans F G m A).
+
+Definition Monoid_hom_is_equiv {F G : Monad} (m : Monoid_hom F G) :=
+  forall A, is_equiv (Monoid_hom_nat_trans F G m A).
 
 (* Definition Monoid_equiv (F G : Monad) := *)
 (*   {f : Monoid_hom F G | forall A, is_mono (Monoid_hom_nat_trans F G f A)}. *)

@@ -63,49 +63,55 @@ Definition lifts_lifted_trace (M : Monad) :=
 
 Structure MultivalueMonad (K : LazyBool) : Type :=
   {
-    base_monad : Monad;    
-    base_monad_hprop_elim : forall A, is_hprop A -> is_equiv (Monad_unit base_monad A);
-    base_monad_traces_lift : lifts_lifted_trace base_monad;
-    multivalued_choice : forall x y : lazy_bool K, x = lazy_bool_true K \/ y = lazy_bool_true K -> Monad_obj_map base_monad ({ x = lazy_bool_true K } + { (y = lazy_bool_true K) });
-    
+    MultivalueMonad_base_monad : Monad;    
+    MultivalueMonad_base_monad_hprop_elim : forall A, is_hprop A -> is_equiv (Monad_unit MultivalueMonad_base_monad A);
+    MultivalueMonad_base_monad_traces_lift : lifts_lifted_trace MultivalueMonad_base_monad;
+    multivalued_choice : forall x y : lazy_bool K, x = lazy_bool_true K \/ y = lazy_bool_true K -> Monad_obj_map MultivalueMonad_base_monad ({ x = lazy_bool_true K } + { (y = lazy_bool_true K) });
+
+    MultivalueMonad_description : Monoid_hom MultivalueMonad_base_monad NPset;
+    MultivalueMonad_description_is_mono : Monoid_hom_is_mono MultivalueMonad_description;
+    MultivalueMonad_description_is_equiv : forall A, is_equiv (Monad_fun_map MultivalueMonad_base_monad _ _ (Monoid_hom_nat_trans _ _ MultivalueMonad_description A));
   }.
 
 
 Parameter M_structure : MultivalueMonad kleenean_structure.
 
-Definition M : Type -> Type := Monad_obj_map (base_monad _ M_structure).
-Definition M_lift : forall A B, (A -> B) -> M A -> M B := Monad_fun_map (base_monad _ M_structure).
+Definition M : Type -> Type := Monad_obj_map (MultivalueMonad_base_monad _ M_structure).
+Definition M_lift : forall A B, (A -> B) -> M A -> M B := Monad_fun_map (MultivalueMonad_base_monad _ M_structure).
 Definition M_functorial_comp : forall A B C (f : A -> B) (g : B -> C),
     M_lift _ _ (fun x => g (f x)) = fun x => (M_lift _ _ g) ((M_lift _ _ f) x)
-  := Monad_functorial_comp (base_monad _ M_structure).
+  := Monad_functorial_comp (MultivalueMonad_base_monad _ M_structure).
 Definition M_functorial_id : forall A, (fun x : M A => x) = M_lift A A (fun x => x)
-:= Monad_functorial_id (base_monad _ M_structure).
+:= Monad_functorial_id (MultivalueMonad_base_monad _ M_structure).
 
 (* Monadic structure: *)
 Definition M_unit : forall T : Type, T -> M T
-  := Monad_unit (base_monad _ M_structure).
+  := Monad_unit (MultivalueMonad_base_monad _ M_structure).
 Definition M_mult : forall T : Type, M (M T) -> M T
-  := Monad_mult (base_monad _ M_structure). 
+  := Monad_mult (MultivalueMonad_base_monad _ M_structure). 
 Definition M_lift_dom : forall A B, (A -> M B) -> M A -> M B :=
   fun A B f => fun x => M_mult B ((M_lift A (M B) f) x).
 Definition M_unit_ntrans : forall A B (f : A -> B) x, (M_lift A B f) (M_unit A x) = M_unit B (f x)
-  := Monad_unit_ntrans (base_monad _ M_structure).
+  := Monad_unit_ntrans (MultivalueMonad_base_monad _ M_structure).
 Definition M_mult_ntrans : forall A B (f : A -> B) x, M_mult B ((M_lift (M A) (M B) (M_lift A B f)) x) = (M_lift A B f) (M_mult A x)
-  := Monad_mult_ntrans (base_monad _ M_structure).  
+  := Monad_mult_ntrans (MultivalueMonad_base_monad _ M_structure).  
 
 (* coherence conditions for the monadic structure: *)
-Definition M_coh1 : forall A x, M_mult A (M_unit (M A) x) = x := Monad_coh1 (base_monad _ M_structure).
-Definition M_coh2 : forall A x, M_mult A (M_lift A (M A) (M_unit A)  x) = x := Monad_coh2 (base_monad _ M_structure).
-Definition M_coh3 : forall A x, M_mult A (M_mult (M A) x) = M_mult A (M_lift (M (M A)) (M A) (M_mult A) x) := Monad_coh3 (base_monad _ M_structure). 
+Definition M_coh1 : forall A x, M_mult A (M_unit (M A) x) = x := Monad_coh1 (MultivalueMonad_base_monad _ M_structure).
+Definition M_coh2 : forall A x, M_mult A (M_lift A (M A) (M_unit A)  x) = x := Monad_coh2 (MultivalueMonad_base_monad _ M_structure).
+Definition M_coh3 : forall A x, M_mult A (M_mult (M A) x) = M_mult A (M_lift (M (M A)) (M A) (M_mult A) x) := Monad_coh3 (MultivalueMonad_base_monad _ M_structure). 
 
 
-Definition M_hprop_elim : forall A, is_hprop A -> is_equiv (M_unit A) :=  base_monad_hprop_elim _ M_structure.
-(* Definition M_unit_is_mono : forall A, is_mono (M_unit A) := base_monad_unit_is_mono _ M_structure. *)
-Definition M_traces_lift := base_monad_traces_lift _ M_structure.
+Definition M_hprop_elim : forall A, is_hprop A -> is_equiv (M_unit A) :=  MultivalueMonad_base_monad_hprop_elim _ M_structure.
+(* Definition M_unit_is_mono : forall A, is_mono (M_unit A) := MultivalueMonad_base_monad_unit_is_mono _ M_structure. *)
+Definition M_traces_lift := MultivalueMonad_base_monad_traces_lift _ M_structure.
 Definition M_choice : forall x y, (kleenean_up x \/ kleenean_up y) -> M ({kleenean_up x} + {kleenean_up y}) := (multivalued_choice _ M_structure).
 
+Definition M_description := MultivalueMonad_description _ M_structure.
+Definition M_description_is_mono := MultivalueMonad_description_is_mono _ M_structure.
+Definition M_description_is_equiv := MultivalueMonad_description_is_equiv _ M_structure.
 
-Opaque M M_lift M_functorial_comp M_functorial_id M_unit M_mult M_unit_ntrans M_mult_ntrans M_coh1 M_coh2 M_coh3 M_hprop_elim M_traces_lift M_choice.
+Opaque M M_lift M_functorial_comp M_functorial_id M_unit M_mult M_unit_ntrans M_mult_ntrans M_coh1 M_coh2 M_coh3 M_hprop_elim M_traces_lift M_choice M_description M_description_is_mono M_description_is_equiv.
 
   
 Definition M_hprop_elim_f : forall A, is_hprop A -> M A -> A.
@@ -163,7 +169,7 @@ Proof.
 Defined.
 
   
-  (* := lifted_projP1 (base_monad _ M_structure). *)
+  (* := lifted_projP1 (MultivalueMonad_base_monad _ M_structure). *)
   
 (* Proof. *)
 (*   intros. *)
