@@ -5,11 +5,11 @@ From Coquelicot Require Import Coquelicot.
 Require Import Psatz.
  Import testsearch.
 Require Import Interval.Tactic.
+Require Import Complex Euclidean.
 Open Scope Real_scope.
 Set Warnings "parsing".
 
-
-Section RealLimit1.
+Section sqrt.
   Context {T : ComplArchiSemiDecOrderedField}.
   Notation CR := (CarrierField T).
   
@@ -353,8 +353,6 @@ Proof.
     by rewrite -prec_twice.
 Defined. 
 
-Require Import Complex Euclidean.
-
 Lemma complex_nonzero_cases  a b : Complex a b <> complex0 -> M ({real_0_ < a} + {a < real_0_} + {real_0_ < b} + {b < real_0_}).
 Proof.
   move => H.
@@ -565,3 +563,5 @@ Proof.
     by exists y.
   move => n x.
 Admitted.
+
+End sqrt.
