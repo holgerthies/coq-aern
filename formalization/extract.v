@@ -4,10 +4,16 @@ Require ExtrHaskellNatInteger.
 Require ExtrHaskellZInteger.
 Extraction Language Haskell.
 
-Require Import Real.
+(* Require Import Real. *)
+Require Import Kleene.
+
+Section K.
+  Generalizable Variable K.
+  Context `(klb : LazyBool K).
+  Definition lb_test := lazy_bool_and lazy_bool_true lazy_bool_false.
+End K.
 
 (* interpreting kleenean *)
-Extract Inlined Constant lazy_bool => "AERN2.CKleenean".
 Extract Inlined Constant lazy_bool_true => "(const (AERN2.ckleenean Prelude.True))".
 Extract Inlined Constant lazy_bool_false => "(const (AERN2.ckleenean Prelude.False))".
 Extract Inlined Constant lazy_bool_neg => "(const OGB.not)".
@@ -15,11 +21,15 @@ Extract Inlined Constant lazy_bool_and => "(const (OGB.&&))".
 Extract Inlined Constant lazy_bool_or => "(const (OGB.||))".
 
 (* Test extraction of Kleeneans *)
-(* 
-Extract Inlined Constant kleenean => "()".
-Definition k_test := kleenean_and kleenean_true kleenean_false.
-Extraction "K" k_test. 
-*)
+Parameter K : Set.
+Axiom K_LazyBool : LazyBool K.
+
+Extract Inlined Constant K => "AERN2.CKleenean".
+Definition k_test := @lb_test K K_LazyBool.
+
+Extraction "K_Test" k_test.
+
+(* TODO: update the rest of the file *)
 
 (* interpreting multivaluemonad *)
 Extract Constant M "a" => " a ".

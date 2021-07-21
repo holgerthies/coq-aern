@@ -1,13 +1,10 @@
 Require Import Base.
 Require Import Monad.
 
-
-
-
 (* classical non-empty subset monad *)
 Section NonemptyPowersetMonad.
-  Definition NPset_obj_map : Type -> Type := fun A => {P : A ->  Prop | exists x, P x}.
-  Definition NPset_fun_map : forall A B (f : A -> B), NPset_obj_map A -> NPset_obj_map B.
+  Definition NPset : Type -> Type := fun A => {P : A ->  Prop | exists x, P x}.
+  Definition NPset_fun_map : forall A B (f : A -> B), NPset A -> NPset B.
   Proof.
     intros A B f [x e].
     exists (fun b => exists a, x a /\ b = f a).
@@ -52,7 +49,7 @@ Section NonemptyPowersetMonad.
 
   
 
-    Definition NPset_functorial_id :  forall A, (fun x : NPset_obj_map A => x) = NPset_fun_map A A (fun x => x).
+    Definition NPset_functorial_id :  forall A, (fun x : NPset A => x) = NPset_fun_map A A (fun x => x).
     Proof.
       intros.
       apply fun_ext.
@@ -76,14 +73,14 @@ Section NonemptyPowersetMonad.
 
       
     (* monad has unit and mult *)
-    Definition NPset_unit : forall A : Type, A -> NPset_obj_map A.
+    Definition NPset_unit : forall A : Type, A -> NPset A.
     Proof.
       intros.
       exists (fun a => a = X).
       exists X; auto.
     Defined.
       
-    Definition NPset_mult : forall A : Type, NPset_obj_map (NPset_obj_map A) -> NPset_obj_map A.
+    Definition NPset_mult : forall A : Type, NPset (NPset A) -> NPset A.
     Proof.
       intros.
       destruct X.
@@ -120,7 +117,7 @@ Section NonemptyPowersetMonad.
       exists x; auto.
     Defined.
    
-    Definition NPset_mult_ntrans : forall A B (f : A -> B) x, NPset_mult B ((NPset_fun_map (NPset_obj_map A) (NPset_obj_map B) (NPset_fun_map A B f)) x) = (NPset_fun_map A B f) (NPset_mult A x).
+    Definition NPset_mult_ntrans : forall A B (f : A -> B) x, NPset_mult B ((NPset_fun_map (NPset A) (NPset B) (NPset_fun_map A B f)) x) = (NPset_fun_map A B f) (NPset_mult A x).
     Proof.
       intros.
       unfold NPset_mult.
@@ -168,7 +165,7 @@ Section NonemptyPowersetMonad.
     Defined.
     
     (* coherence conditions *)
-    Definition NPset_coh1 : forall A x, NPset_mult A (NPset_unit (NPset_obj_map A) x) = x.
+    Definition NPset_coh1 : forall A x, NPset_mult A (NPset_unit (NPset A) x) = x.
     Proof.
       intros.
       destruct x.
@@ -192,10 +189,10 @@ Section NonemptyPowersetMonad.
       auto.
     Defined.
     
-    Definition NPset_coh2 : forall A x, NPset_mult A (NPset_fun_map A (NPset_obj_map A) (NPset_unit A)  x) = x.
+    Definition NPset_coh2 : forall A x, NPset_mult A (NPset_fun_map A (NPset A) (NPset_unit A)  x) = x.
     Proof.
       intros.
-      unfold NPset_mult, NPset_fun_map, NPset_obj_map, NPset_unit.
+      unfold NPset_mult, NPset_fun_map, NPset, NPset_unit.
       destruct x.
       apply sigma_eqP2.
       apply fun_ext.
@@ -220,9 +217,9 @@ Section NonemptyPowersetMonad.
       auto.
     Defined.
     
-    Definition NPset_coh3 : forall A x, NPset_mult A (NPset_mult (NPset_obj_map A) x) = NPset_mult A (NPset_fun_map (NPset_obj_map (NPset_obj_map A)) (NPset_obj_map A) (NPset_mult A) x).
+    Definition NPset_coh3 : forall A x, NPset_mult A (NPset_mult (NPset A) x) = NPset_mult A (NPset_fun_map (NPset (NPset A)) (NPset A) (NPset_mult A) x).
     Proof.
-      unfold NPset_mult, NPset_mult, NPset_obj_map, NPset_fun_map.
+      unfold NPset_mult, NPset_mult, NPset, NPset_fun_map.
       intros.
       destruct x.
       apply sigma_eqP2.
@@ -280,15 +277,26 @@ Section NonemptyPowersetMonad.
     Defined.
 
     (* classical nonempty powerest monad *)
-    Definition NPset : Monad := Build_Monad NPset_obj_map NPset_fun_map NPset_functorial_comp NPset_functorial_id NPset_unit NPset_mult NPset_unit_ntrans NPset_mult_ntrans NPset_coh1 NPset_coh2 NPset_coh3.
 
+  #[global] Instance NPset_Monad : Monad NPset := {
+    Monad_fun_map := NPset_fun_map;
+    Monad_functorial_comp := NPset_functorial_comp;
+    Monad_functorial_id := NPset_functorial_id;
+    Monad_unit := NPset_unit;
+    Monad_mult := NPset_mult;
+    Monad_unit_ntrans := NPset_unit_ntrans;
+    Monad_mult_ntrans := NPset_mult_ntrans;
+    Monad_coh1 := NPset_coh1;
+    Monad_coh2 := NPset_coh2;
+    Monad_coh3 := NPset_coh3;
+  }.
 
 End NonemptyPowersetMonad.
 
 
 Section NablaMonad.
-  Definition Nabla_obj_map : Type -> Type := fun A => {P : A -> Prop | exists! a, P a}.
-  Definition Nabla_fun_map : forall A B (f : A -> B), Nabla_obj_map A -> Nabla_obj_map B.
+  Definition Nabla : Type -> Type := fun A => {P : A -> Prop | exists! a, P a}.
+  Definition Nabla_fun_map : forall A B (f : A -> B), Nabla A -> Nabla B.
   Proof.
     intros.
     destruct X.
@@ -341,7 +349,7 @@ Section NablaMonad.
     auto.
   Defined.
   
-  Definition Nabla_functorial_id :  forall A, (fun x : Nabla_obj_map A => x) = Nabla_fun_map A A (fun x => x).
+  Definition Nabla_functorial_id :  forall A, (fun x : Nabla A => x) = Nabla_fun_map A A (fun x => x).
   Proof.
     intros.
     apply fun_ext.
@@ -361,7 +369,7 @@ Section NablaMonad.
     rewrite H0; auto.
   Defined.
     
-  Definition Nabla_unit : forall A : Type, A -> Nabla_obj_map A.
+  Definition Nabla_unit : forall A : Type, A -> Nabla A.
   Proof.
     intros.
     exists (fun a => a = X).
@@ -373,7 +381,7 @@ Section NablaMonad.
     exact (eq_refl _).
   Defined.
 
-  Definition Nabla_mult : forall A : Type, Nabla_obj_map (Nabla_obj_map A) -> Nabla_obj_map A.
+  Definition Nabla_mult : forall A : Type, Nabla (Nabla A) -> Nabla A.
   Proof.
     intros.
     destruct X.
@@ -458,7 +466,7 @@ Section NablaMonad.
     apply irrl.
   Qed.
   
-  Definition Nabla_mult_ntrans : forall A B (f : A -> B) x, Nabla_mult B ((Nabla_fun_map (Nabla_obj_map A) (Nabla_obj_map B) (Nabla_fun_map A B f)) x) = (Nabla_fun_map A B f) (Nabla_mult A x).
+  Definition Nabla_mult_ntrans : forall A B (f : A -> B) x, Nabla_mult B ((Nabla_fun_map (Nabla A) (Nabla B) (Nabla_fun_map A B f)) x) = (Nabla_fun_map A B f) (Nabla_mult A x).
   Proof.
       intros.
       unfold Nabla_mult.
@@ -533,7 +541,7 @@ Section NablaMonad.
   
 
   (* coherence conditions *)
-  Definition Nabla_coh1 : forall A x, Nabla_mult A (Nabla_unit (Nabla_obj_map A) x) = x.
+  Definition Nabla_coh1 : forall A x, Nabla_mult A (Nabla_unit (Nabla A) x) = x.
   Proof.
     intros.
     destruct x.
@@ -561,7 +569,7 @@ Section NablaMonad.
 
 
   
-  Definition Nabla_coh2 : forall A x, Nabla_mult A (Nabla_fun_map A (Nabla_obj_map A) (Nabla_unit A)  x) = x.
+  Definition Nabla_coh2 : forall A x, Nabla_mult A (Nabla_fun_map A (Nabla A) (Nabla_unit A)  x) = x.
   Proof.
     intros.
     destruct x.
@@ -581,7 +589,7 @@ Section NablaMonad.
     split; auto.
   Defined.
 
-  Lemma nabla_eq_at : forall A (a b : Nabla_obj_map A), projP1 _  _ a = projP1 _ _ b -> a = b.
+  Lemma nabla_eq_at : forall A (a b : Nabla A), projP1 _  _ a = projP1 _ _ b -> a = b.
   Proof.
     intros.
     destruct a, b.
@@ -590,8 +598,8 @@ Section NablaMonad.
     apply irrl.
   Qed.
 
-  Definition Nabla_unit_mult_inverse : forall A, (forall x : Nabla_obj_map A, Nabla_mult _ (Nabla_unit _ x) = x) /\
-                                                 (forall x : Nabla_obj_map (Nabla_obj_map A), Nabla_unit _ (Nabla_mult _ x) = x).
+  Definition Nabla_unit_mult_inverse : forall A, (forall x : Nabla A, Nabla_mult _ (Nabla_unit _ x) = x) /\
+                                                 (forall x : Nabla (Nabla A), Nabla_unit _ (Nabla_mult _ x) = x).
   Proof.
     intro.
     split.
@@ -638,8 +646,8 @@ Section NablaMonad.
     destruct e.
     destruct u.
     assert (x1 = (Nabla_mult A
-                             (exist (fun P : Nabla_obj_map A -> Prop => exists ! a : Nabla_obj_map A, P a) x
-                                    (ex_intro (unique (fun a : Nabla_obj_map A => x a)) x1 (conj x2 e))))).
+                             (exist (fun P : Nabla A -> Prop => exists ! a : Nabla A, P a) x
+                                    (ex_intro (unique (fun a : Nabla A => x a)) x1 (conj x2 e))))).
     simpl.
     apply nabla_eq_at.
     simpl.
@@ -768,7 +776,7 @@ Section NablaMonad.
     auto.
   Defined.
 
-  Definition Nabla_coh3 : forall A x, Nabla_mult A (Nabla_mult (Nabla_obj_map A) x) = Nabla_mult A (Nabla_fun_map (Nabla_obj_map (Nabla_obj_map A)) (Nabla_obj_map A) (Nabla_mult A) x).
+  Definition Nabla_coh3 : forall A x, Nabla_mult A (Nabla_mult (Nabla A) x) = Nabla_mult A (Nabla_fun_map (Nabla (Nabla A)) (Nabla A) (Nabla_mult A) x).
   Proof.
     intros.
     destruct x.
@@ -793,13 +801,13 @@ Section NablaMonad.
     destruct H.
     destruct H.
     rewrite H0.
-    assert ((Nabla_unit (Nabla_obj_map A) (Nabla_mult A x1)) = x1).
+    assert ((Nabla_unit (Nabla A) (Nabla_mult A x1)) = x1).
     apply (proj2   (Nabla_unit_mult_inverse A)).
     rewrite H1; auto.
   Defined.
   
 
-  Lemma test : forall P : Prop, Nabla_obj_map P -> P.
+  Lemma test : forall P : Prop, Nabla P -> P.
   Proof.
     intros.
     destruct X.
@@ -830,13 +838,18 @@ Section NablaMonad.
     induction (H1 _ H); auto.
   Defined.
 
-    
-    (* classical nonempty powerest monad *)
-    Definition Nabla : Monad := Build_Monad Nabla_obj_map Nabla_fun_map Nabla_functorial_comp Nabla_functorial_id Nabla_unit Nabla_mult Nabla_unit_ntrans Nabla_mult_ntrans Nabla_coh1 Nabla_coh2 Nabla_coh3.
 
-
+  #[global] Instance Nabla_Monad : Monad Nabla := {
+    Monad_fun_map := Nabla_fun_map;
+    Monad_functorial_comp := Nabla_functorial_comp;
+    Monad_functorial_id := Nabla_functorial_id;
+    Monad_unit := Nabla_unit;
+    Monad_mult := Nabla_mult;
+    Monad_unit_ntrans := Nabla_unit_ntrans;
+    Monad_mult_ntrans := Nabla_mult_ntrans;
+    Monad_coh1 := Nabla_coh1;
+    Monad_coh2 := Nabla_coh2;
+    Monad_coh3 := Nabla_coh3;
+  }.
 
 End NablaMonad.
-
-  
-     
