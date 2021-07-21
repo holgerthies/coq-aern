@@ -5,7 +5,7 @@ Require Import Base.
 Structure Monad : Type :=
   {
     (* monad is a functor *)
-    Monad_obj_map : Type -> Type; 
+    Monad_obj_map :> Type -> Type; 
     Monad_fun_map : forall A B, (A -> B) -> Monad_obj_map A -> Monad_obj_map B;
     Monad_functorial_comp : forall A B C (f : A -> B) (g : B -> C),
         Monad_fun_map _ _ (fun x => g (f x)) = fun x => (Monad_fun_map _ _ g) ((Monad_fun_map _ _ f) x);
@@ -30,13 +30,13 @@ Structure Monad : Type :=
 (* monad morphism as a monoidal morhism *)
 Structure Monoid_hom (F G : Monad) :=
   {
-    Monoid_hom_nat_trans : forall A, Monad_obj_map F A -> Monad_obj_map G A;
+    Monoid_hom_nat_trans : forall A, F A -> G A;
     Monoid_hom_nat_trans_prop : forall A B (f : A -> B),
         (fun x => Monoid_hom_nat_trans B (Monad_fun_map F _ _ f x)) =
                         (fun x => (Monad_fun_map G _ _ f) (Monoid_hom_nat_trans A x));
     Monoid_hom_unit : forall A, (fun x => Monoid_hom_nat_trans A (Monad_unit F A x)) = Monad_unit G A; 
     Monoid_hom_mult : forall A, (fun x => Monoid_hom_nat_trans A (Monad_mult F A x)) =
-                                (fun x => Monad_mult G A (Monoid_hom_nat_trans (Monad_obj_map G A) (Monad_fun_map F _ _ (Monoid_hom_nat_trans A) x)));
+                                (fun x => Monad_mult G A (Monoid_hom_nat_trans (G A) (Monad_fun_map F _ _ (Monoid_hom_nat_trans A) x)));
   }.
 
 (* note that this can be stronger than mono in nat. trans. in general setting *)
