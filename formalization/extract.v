@@ -7,12 +7,19 @@ Extraction Language Haskell.
 Require Import Real.
 
 (* interpreting kleenean *)
-Extract Inlined Constant kleenean => "AERN2.CKleenean".
-Extract Inlined Constant kleenean_true => "(AERN2.ckleenean Prelude.True)".
-Extract Inlined Constant kleenean_false => "(AERN2.ckleenean Prelude.False)".
-Extract Inlined Constant kleenean_neg => "OGB.not".
-Extract Inlined Constant kleenean_and => "(OGB.&&)".
-Extract Inlined Constant kleenean_or => "(OGB.||)".
+Extract Inlined Constant lazy_bool => "AERN2.CKleenean".
+Extract Inlined Constant lazy_bool_true => "(const (AERN2.ckleenean Prelude.True))".
+Extract Inlined Constant lazy_bool_false => "(const (AERN2.ckleenean Prelude.False))".
+Extract Inlined Constant lazy_bool_neg => "(const OGB.not)".
+Extract Inlined Constant lazy_bool_and => "(const (OGB.&&))".
+Extract Inlined Constant lazy_bool_or => "(const (OGB.||))".
+
+(* Test extraction of Kleeneans *)
+(* 
+Extract Inlined Constant kleenean => "()".
+Definition k_test := kleenean_and kleenean_true kleenean_false.
+Extraction "K" k_test. 
+*)
 
 (* interpreting multivaluemonad *)
 Extract Constant M "a" => " a ".

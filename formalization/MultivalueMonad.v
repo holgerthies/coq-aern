@@ -74,7 +74,7 @@ Structure MultivalueMonad (K : LazyBool) : Type :=
   }.
 
 
-Parameter M_structure : MultivalueMonad kleenean_structure.
+Parameter M_structure : MultivalueMonad kleenean.
 
 Definition M : Type -> Type := Monad_obj_map (MultivalueMonad_base_monad _ M_structure).
 Definition M_lift : forall A B, (A -> B) -> M A -> M B := Monad_fun_map (MultivalueMonad_base_monad _ M_structure).
@@ -141,9 +141,9 @@ Proof.
   apply (lp _ _ (fun g => g x)) in H1.
   pose proof (Monoid_hom_unit _ _ M_description A ).
   apply (lp _ _ (fun g => g y)) in H2.
-  assert (M_unit A x = (Monad_unit (MultivalueMonad_base_monad kleenean_structure M_structure) A x)) by auto.
+  assert (M_unit A x = (Monad_unit (MultivalueMonad_base_monad kleenean M_structure) A x)) by auto.
   rewrite<- H3, H in H1.
-  assert (M_unit A y = (Monad_unit (MultivalueMonad_base_monad kleenean_structure M_structure) A y)) by auto.
+  assert (M_unit A y = (Monad_unit (MultivalueMonad_base_monad kleenean M_structure) A y)) by auto.
   rewrite <- H4 in H2.
   rewrite H1 in H2.
   apply NPset_unit_is_mono in H2.
@@ -176,11 +176,11 @@ Proof.
   pose proof ((Monoid_hom_nat_trans_prop _ _  M_description A B f)).
   apply (lp _ _ (fun g => g X)) in H0.
   unfold M_picture_1.
-  assert ((Monad_fun_map (MultivalueMonad_base_monad kleenean_structure M_structure) A B f X) = (M_lift A B f X)) by auto.
+  assert ((Monad_fun_map (MultivalueMonad_base_monad kleenean M_structure) A B f X) = (M_lift A B f X)) by auto.
   rewrite <- H1.
   rewrite H0.
   unfold M_picture_1 in H.
-  pose (j :=  (Monoid_hom_nat_trans (MultivalueMonad_base_monad kleenean_structure M_structure) NPset M_description A X)).
+  pose (j :=  (Monoid_hom_nat_trans (MultivalueMonad_base_monad kleenean M_structure) NPset M_description A X)).
   fold j.
   fold j in H.
   destruct j.
@@ -197,7 +197,7 @@ Proof.
   intros.
   pose proof ((Monoid_hom_nat_trans_prop _ _  M_description A B f)).
   apply (lp _ _ (fun g => g X)) in H0.
-  assert ((Monad_fun_map (MultivalueMonad_base_monad kleenean_structure M_structure) A B f X) = (M_lift A B f X)) by auto.
+  assert ((Monad_fun_map (MultivalueMonad_base_monad kleenean M_structure) A B f X) = (M_lift A B f X)) by auto.
   rewrite  H1 in H0.
   unfold M_picture_1 in H.
   rewrite H0 in H.
@@ -205,7 +205,7 @@ Proof.
   unfold M_picture_1.
   
   
-  pose (XP :=  (Monoid_hom_nat_trans (MultivalueMonad_base_monad kleenean_structure M_structure) NPset M_description A X)).
+  pose (XP :=  (Monoid_hom_nat_trans (MultivalueMonad_base_monad kleenean M_structure) NPset M_description A X)).
   fold XP.
   fold XP in H.
   destruct XP.
@@ -398,7 +398,7 @@ Proof.
   exact eq_refl.
 Defined.
 
-(* when we have two kleenean_structures that at least one of are True classically, 
+(* when we have two kleeneans that at least one of are True classically, 
    we can nondeterministically decide which holds. *)
 Definition select : forall x y : kleenean, kleenean_up x \/ kleenean_up y -> M ({ (kleenean_up x) } + { (kleenean_up y) }).
 Proof.
