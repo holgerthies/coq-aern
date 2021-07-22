@@ -127,6 +127,14 @@ Defined.
 
 Definition M_destruct : forall {A} (X : M A), M {x : A | M_picture_1 X x} := MultivalueMonad_destruct _ M.
 
+Definition M_W_destruct : forall {A} (X : M A), exists x : A, M_picture_1 X x.
+Proof.
+  intros.
+  unfold M_picture_1.
+  destruct (M_description A X).
+  exact e.
+Defined.
+
 
 Opaque M_lift M_functorial_comp M_functorial_id M_unit M_mult M_unit_ntrans M_mult_ntrans M_coh1 M_coh2 M_coh3 M_hprop_elim M_traces_lift M_choice M_description M_description_is_mono M_description_is_equiv M_destruct.
 
@@ -774,46 +782,160 @@ Proof.
   apply Prop_ext; intro; auto.
 Defined.
 
+Lemma classical_tautology_neg_and : forall P Q, (~(P /\ Q)) = ((~ P) \/ (~ Q)).
+Proof.
+  intros.
+  apply Prop_ext.
+  intro.
+  destruct (lem P).
+  destruct (lem Q).
+  contradict H; auto.
+  right; auto.
+  left; auto.
+  intro.
+  destruct H.
+  contradict H.
+  destruct H; auto.
+  contradict H.
+  destruct H; auto.
+Defined.
 
-(* Lemma M_some_picture_1 : forall A (P : A -> Prop) (X : M A), M_some P X = exists a, M_picture_1 X a /\ P a. *)
-(* Proof. *)
-(*   intros. *)
-(*   unfold M_some, Mor. *)
-(*   apply Prop_ext; intros. *)
-  
-(*   pose proof (M_fun_cont_r P X ). *)
-(*   rewrite H in H1. *)
-(*   apply M_picture_1_destruct in H1. *)
-(*   rewrite<- H1; auto. *)
+Lemma classical_tautology_neg_or : forall P Q, (~(P \/ Q)) = ((~ P) /\ (~ Q)).
+Proof.
+  intros.
+  apply Prop_ext.
+  intro.
+  destruct (lem P).
+  contradict H; auto.
+  destruct (lem Q).
+  contradict H; auto.
+  auto.
+  intro.
+  destruct H.
+  intro.
+  destruct H1.
+  contradiction (H H1).
+  contradiction (H0 H1).
+Defined.
 
-(*   apply M_ext. *)
-(*   apply fun_ext. *)
-(*   intro; apply Prop_ext; intro. *)
-(*   apply M_picture_1_intro. *)
-(*   pose proof (M_fun_cont P X x). *)
-(*   rewrite H1 in H0. *)
-(*   destruct H0. *)
-(*   destruct H0. *)
-(*   pose proof (H _ H0). *)
-(*   assert (P x0 = True). *)
-(*   apply Prop_ext; intro; auto. *)
-(*   rewrite H4 in H2. *)
-(*   auto. *)
-(*   apply M_picture_1_destruct in H0. *)
-(*   rewrite <- H0. *)
+Lemma classical_tautology_dneg : forall P : Prop, (~ ~ P) = P.
+Proof.
+  intros.
+  apply Prop_ext.
+  intro.
+  destruct (lem (P)); auto.
+  contradiction (H H0).
+  intro.
+  auto.
+Defined.
+
+Lemma classical_tautology_contra : forall P Q : Prop, (P -> Q) = ((~ Q) -> (~ P)).
+Proof.
+  intros.
+  apply Prop_ext.
+  intros.
+  destruct (lem (P)); auto.
+  intros.
+  destruct (lem (Q)); auto.
+  contradiction (H H1 H0).
+Defined.
+
+
+Lemma classical_tautology_neg_all : forall A (P : A -> Prop), (~ (forall x : A, P x)) = (exists x : A, ~ P x).
+Proof.
+  intros.
+  apply Prop_ext.
+  rewrite classical_tautology_contra.
+  rewrite classical_tautology_dneg.
+  intros.
+  destruct (lem (P x)); auto.
+  contradict H.
+  exists x; auto.
+  intros.
+  destruct H.
+  intro.
+  contradiction (H (H0 x)).  
+Defined.
+
+Lemma classical_tautology_neg_some : forall A (P : A -> Prop), (~ (exists x : A, P x)) = (forall x : A, ~ P x).
+Proof.
+  intros.
+  apply Prop_ext.
+  (* rewrite classical_tautology_contra. *)
+  (* rewrite classical_tautology_dneg. *)
+  intros.
+  destruct (lem (P x)); auto.
+  contradict H.
+  exists x; auto.
+  intros.
+  intro.
+  destruct H0.  
+  contradiction ((H x) H0).  
+Defined.
+
+Lemma classical_tautology_False : forall P : Prop, (~ P) -> P = False.
+Proof.
+  intros.
+  apply Prop_ext; intro; auto.
+  contradiction H0.
+Defined.
+
+Lemma classical_tautology_True : forall P : Prop, P -> P = True.
+Proof.
+  intros.
+  apply Prop_ext; intro; auto.
+Defined.  
   
-(*   pose proof (M_fun_cont P X True). *)
-(*   rewrite H1. *)
-(*   apply M_hprop_elim_f. *)
-(*   intros y z; apply irrl. *)
-(*   apply (fun j => M_lift _ _ j (M_destruct  X)). *)
-(*   intro. *)
-(*   destruct X0. *)
-(*   exists x0; auto. *)
-(*   split; auto. *)
-(*   pose proof (H _ m). *)
-(*   apply Prop_ext; intro; auto. *)
-(* Defined. *)
+Lemma M_some_picture_1 : forall A (P : A -> Prop) (X : M A), M_some P X = exists a, M_picture_1 X a /\ P a.
+Proof.
+  intros.
+  unfold M_some, Mor.
+  apply Prop_ext.
+  rewrite classical_tautology_contra.
+  intros.
+  rewrite classical_tautology_neg_some in H.
+  intro.
+  contradict H0.
+  apply M_ext.
+  apply fun_ext; intro.
+  apply Prop_ext; intro.
+  rewrite (M_fun_cont P X x) in H0.
+  destruct H0.
+  destruct H0.
+  pose proof (H x0).
+  rewrite (classical_tautology_neg_and) in H2.
+  destruct H2.
+  contradiction (H2 H0).
+  rewrite (classical_tautology_False _ H2) in H1.
+  rewrite H1.
+  apply  (M_picture_1_intro); auto.
+  
+  apply (M_picture_1_destruct) in H0.
+  rewrite <- H0.
+  rewrite (M_fun_cont P X False).
+  destruct (M_W_destruct X).
+  pose proof (H x0).
+  exists x0.
+  split; auto.
+  rewrite (classical_tautology_neg_and) in H2.
+  destruct H2.
+  contradiction (H2 H1).
+  apply eq_sym, classical_tautology_False; auto.
+
+  intro.
+  intro.
+  apply (lp _ _ M_picture_1) in H0.
+  pose proof (M_fun_cont P X True).
+  rewrite H0 in H1.
+  assert ((exists a : A, M_picture_1 X a /\ True = P a)).
+  destruct H.
+  exists x.
+  destruct H ; split; auto.
+  apply eq_sym, classical_tautology_True; auto.
+  rewrite <- H1 in H2.
+  apply M_picture_1_destruct in H2.
+  rewrite H2; auto.
+Defined.
 
 
     
@@ -860,6 +982,30 @@ Proof.
   rewrite <- H; auto.
 Defined.
 
+Definition M_all_destruct : forall {A} {P : A -> Prop} {X x}, M_all P X -> M_in x X -> P x.
+Proof.
+  intros.
+  rewrite (M_all_picture_1 A P X) in H.
+  rewrite M_in_picture_1 in H0.
+  exact (H _ H0).
+Defined.
+
+Definition M_all_destruct_2 : forall {A B} {P : A -> B -> Prop} {X Y x y},
+    M_all (fun a => M_all (fun b => P a b) Y) X -> M_in x X -> M_in y Y -> P x y.
+Proof.
+  intros.
+  rewrite (M_all_picture_1 A _ X) in H.
+  rewrite M_in_picture_1 in H0.
+  pose proof (H _ H0).
+  rewrite (M_all_picture_1 B _ Y) in H2.
+  rewrite M_in_picture_1 in H1.
+  pose proof (H2 _ H1).
+  exact H3.
+Defined.
+
+  
+  
+  
 
 Definition countable_selection (P : nat -> Type) (f : forall n, M (P n)) : M {s : forall n, P n | forall n, M_in (s n) (f n)}.
 Proof.

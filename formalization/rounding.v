@@ -320,6 +320,14 @@ Section rounding.
 
   Definition dyadic_sequence : (nat -> Z) -> (nat -> real_) := fun f n => prec n * IZreal (f n).
 
+  Definition dyadic_M_sequence : (nat -> M Z) -> (nat -> M real_).
+  Proof.
+    intros f n.
+    apply (fun g => M_lift _ _ g (f n)).
+    intro z.
+    exact (prec n * IZreal z).
+  Defined.
+  
   Lemma approx_dyadic_sequence : forall x : real_, M {f : nat -> Z | is_fast_limit x (dyadic_sequence f)}.
   Proof.
     intros.
@@ -335,5 +343,80 @@ Section rounding.
     exact r.
   Defined.
 
+  Definition converging_dyadic_M_sequence : forall x : real_, {f : nat -> M Z | M_is_fast_cauchy (dyadic_M_sequence f) /\ M_is_fast_limit_all x (dyadic_M_sequence f)}. 
+  Proof.
+    intros.
+    exists (fun n => projP1 _ _ (M_existence_to_all _ _  (M_approx_seq x n))). 
+    split.
+    simpl.
+       
+    unfold M_is_fast_cauchy.
+    intros.
+    
+    rewrite M_all_picture_1.
+    intro.
+    rewrite M_all_picture_1.
+    intros.
+    unfold dyadic_M_sequence in H, H0.
+    pose proof (@M_fun_cont Z real_ (fun z : Z => prec_ n * IZreal z) (M_projP1 Z (fun z : Z => dist (prec_ n * IZreal z) x <= prec_ n) (M_approx_seq x n)) a).
+    rewrite H1 in H; clear H1.
+
+    pose proof (@M_fun_cont Z real_ (fun z : Z => prec_ m * IZreal z) (M_projP1 Z (fun z : Z => dist (prec_ m * IZreal z) x <= prec_ m) (M_approx_seq x m)) a0).
+    rewrite H1 in H0; clear H1.
+    destruct H, H0.
+    destruct H.
+    destruct H0.
+    rewrite H1, H2.
+    unfold M_projP1 in H.
+    pose proof (M_fun_cont  (fun X0 : {x0 : Z | dist (prec_ n * IZreal x0) x <= prec_ n} => let (x0, _) := X0 in x0) (M_approx_seq x n) x0).
+    rewrite H3 in H; clear H3.
+    destruct H.
+    destruct x2.
+
+    destruct H.
+    
+
+    pose proof (M_fun_cont  (fun X0 : {x0 : Z | dist (prec_ m * IZreal x0) x <= prec_ m} => let (x0, _) := X0 in x0) (M_approx_seq x m) x1).
+    unfold M_projP1 in H0.
+    rewrite H4 in H0; clear H4.
+    destruct H0.
+    destruct x3.
+    destruct H0.
+    induction H3.
+    induction H4.
+    clear H0 H.
+    rewrite <- H2; rewrite<- H2 in r0.
+    rewrite <- H1; rewrite<- H1 in r.
+    rewrite dist_symm in r0.
+    pose proof (real_le_le_plus_le _ _ _ _  r r0).
+    exact (real_le_le_le _ _ _ (real_ge_le _ _ (dist_tri a x a0)) H). 
+
+
+    intro.
+    rewrite M_all_picture_1.
+    intro.
+    intros.
+    unfold dyadic_M_sequence in H.
+    rewrite (M_fun_cont (fun z : Z => prec_ n * IZreal z)) in H.
+    destruct H.
+    destruct H.
+    unfold projP1 in H.
+    unfold M_existence_to_all in H.
+    unfold M_projP1 in H.
+    rewrite M_fun_cont in H.
+    destruct H.
+    destruct H.
+    destruct x1.
+    induction H1.
+    clear H.
+    rewrite <- H0 in r.
+    rewrite dist_symm.
+    exact r.
+    
+  Defined.
+  
+
+
+    
 End rounding.
   
