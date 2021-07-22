@@ -30,7 +30,7 @@ Structure Monad : Type :=
 (* monad morphism as a monoidal morhism *)
 Structure Monoid_hom (F G : Monad) :=
   {
-    Monoid_hom_nat_trans : forall A, F A -> G A;
+    Monoid_hom_nat_trans :> forall A, F A -> G A;
     Monoid_hom_nat_trans_prop : forall A B (f : A -> B),
         (fun x => Monoid_hom_nat_trans B (Monad_fun_map F _ _ f x)) =
                         (fun x => (Monad_fun_map G _ _ f) (Monoid_hom_nat_trans A x));
