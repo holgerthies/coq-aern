@@ -78,18 +78,18 @@ function runForAllMethods
     method="N"; bparamss="$method_N_bparamss" method_N_bparamss=""
     runForBenchParamss
   fi
-  if [ "$method_MBE_bparamss" != "" ]; then
-    method="MBE"; bparamss="$method_MBE_bparamss" method_MBE_bparamss=""
-    runForBenchParamss
-  fi
-  if [ "$method_MBH_bparamss" != "" ]; then
-    method="MBH"; bparamss="$method_MBH_bparamss" method_MBH_bparamss=""
-    runForBenchParamss
-  fi
-  if [ "$method_MBN_bparamss" != "" ]; then
-    method="MBN"; bparamss="$method_MBN_bparamss" method_MBN_bparamss=""
-    runForBenchParamss
-  fi
+  # if [ "$method_MBE_bparamss" != "" ]; then
+  #   method="MBE"; bparamss="$method_MBE_bparamss" method_MBE_bparamss=""
+  #   runForBenchParamss
+  # fi
+  # if [ "$method_MBH_bparamss" != "" ]; then
+  #   method="MBH"; bparamss="$method_MBH_bparamss" method_MBH_bparamss=""
+  #   runForBenchParamss
+  # fi
+  # if [ "$method_MBN_bparamss" != "" ]; then
+  #   method="MBN"; bparamss="$method_MBN_bparamss" method_MBN_bparamss=""
+  #   runForBenchParamss
+  # fi
 }
 
 #################
@@ -106,9 +106,9 @@ function realmaxAllMethods
     method_E_bparamss="$steps";
     method_H_bparamss="$steps";
     method_N_bparamss="$steps";
-  method_MBE_bparamss="$stepsMB";
-  method_MBH_bparamss="$stepsMB";
-  method_MBN_bparamss="$stepsMB";
+  # method_MBE_bparamss="$stepsMB";
+  # method_MBH_bparamss="$stepsMB";
+  # method_MBN_bparamss="$stepsMB";
 
   bench="realmax"; dir="$bench";
   params="";
@@ -129,9 +129,9 @@ function sqrt1AllMethods
     method_E_bparamss="$steps";
     method_H_bparamss="$steps";
     method_N_bparamss="$stepsN";
-  method_MBE_bparamss="$stepsMB";
-  method_MBH_bparamss="$stepsMB";
-  method_MBN_bparamss="$stepsMBN";
+  # method_MBE_bparamss="$stepsMB";
+  # method_MBH_bparamss="$stepsMB";
+  # method_MBN_bparamss="$stepsMBN";
 
   bench="sqrt1"; dir="$bench";
   params="";
@@ -152,9 +152,9 @@ function sqrt2AllMethods
     method_E_bparamss="$steps";
     method_H_bparamss="$steps";
     method_N_bparamss="$stepsN";
-  method_MBE_bparamss="$stepsMB";
-  method_MBH_bparamss="$stepsMB";
-  method_MBN_bparamss="$stepsMBN";
+  # method_MBE_bparamss="$stepsMB";
+  # method_MBH_bparamss="$stepsMB";
+  # method_MBN_bparamss="$stepsMBN";
 
   bench="sqrt2"; dir="$bench";
   params="";
@@ -173,8 +173,8 @@ function civt1AllMethods
 
     method_E_bparamss="$steps";
     method_H_bparamss="$steps";
-  method_MBE_bparamss="$stepsMB";
-  method_MBH_bparamss="$stepsMB";
+  # method_MBE_bparamss="$stepsMB";
+  # method_MBH_bparamss="$stepsMB";
 
   bench="civt1"; dir="$bench";
   params="";
@@ -193,8 +193,8 @@ function civt2AllMethods
 
     method_E_bparamss="$steps";
     method_H_bparamss="$steps";
-  method_MBE_bparamss="$stepsMB";
-  method_MBH_bparamss="$stepsMB";
+  # method_MBE_bparamss="$stepsMB";
+  # method_MBH_bparamss="$stepsMB";
 
   bench="civt2"; dir="$bench";
   params="";
@@ -208,23 +208,20 @@ function civt3AllMethods
     steps=`printf "$step %.0s" {1..10}`
   stepsMB=`printf "$stepMB %.0s" {1..10}`
 
-  #   steps="100 140 200 280 400 560 800 1120"
-  # stepsMB="140 200 280 400 560 800 1120 1600"
-
     method_E_bparamss="$steps";
     method_H_bparamss="$steps";
-  method_MBE_bparamss="$stepsMB";
-  method_MBH_bparamss="$stepsMB";
+  # method_MBE_bparamss="$stepsMB";
+  # method_MBH_bparamss="$stepsMB";
 
   bench="civt3"; dir="$bench";
   params="";
   runForAllMethods
 }
 
-realmaxAllMethods
-sqrt1AllMethods
-sqrt2AllMethods
-civt1AllMethods
+# realmaxAllMethods
+# sqrt1AllMethods
+# sqrt2AllMethods
+# civt1AllMethods
 civt2AllMethods
 civt3AllMethods
 
