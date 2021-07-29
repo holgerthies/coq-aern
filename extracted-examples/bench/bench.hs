@@ -10,9 +10,7 @@ module Main where
   
 import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),abs,max,min,not,(&&),(||))
 import Numeric.OrdGenericBool
-import MixedTypesNumPrelude (ifThenElse, CN, integer)
-import qualified Data.List as List
-import Data.Maybe (fromJust)
+import MixedTypesNumPrelude (ifThenElse, CN)
 
 import System.Environment
 
