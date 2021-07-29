@@ -1,0 +1,10 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "coq-aern-extracted:lib"
+
+    - path: "./bench/bench.hs"
+      component: "coq-aern-extracted:exe:coq-aern-extracted-bench"
+
+    - path: "./bench/Paths_coq_aern_extracted.hs"
+      component: "coq-aern-extracted:exe:coq-aern-extracted-bench"
