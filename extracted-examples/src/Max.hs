@@ -1,39 +1,40 @@
 module Max where
 
 import qualified Prelude
-import Prelude hiding (pi, pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
-import Numeric.OrdGenericBool
-import MixedTypesNumPrelude (ifThenElse, integer)
-import Math.NumberTheory.Logarithms (integerLog2)
-import AERN2.Real
+import qualified Numeric.OrdGenericBool as OGB
+import MixedTypesNumPrelude (ifThenElse)
+import qualified MixedTypesNumPrelude as MNP
+import qualified Math.NumberTheory.Logarithms as Logs
+import qualified AERN2.Real as AERN2
 
 type Sig a = a
   -- singleton inductive, whose constructor was exist
   
 type M a =  a 
 
-mjoin :: (Bool -> a1) -> (M Bool) -> M a1
-mjoin =
-  id
+type Semidec = AERN2.CKleenean
 
-type Semidec = CKleenean
+choose :: Semidec -> Semidec -> M Prelude.Bool
+choose h h0 =
+  Prelude.id (\h4 -> h4) (AERN2.select h h0)
 
-m_split :: CReal -> CReal -> CReal -> M Bool
+m_split :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> M Prelude.Bool
 m_split x y _UU03b5_ =
-  select ((>) x ((-) y _UU03b5_)) ((>) y ((-) x _UU03b5_))
+  choose ((OGB.>) x ((Prelude.-) y _UU03b5_))
+    ((OGB.>) y ((Prelude.-) x _UU03b5_))
 
-slimit :: (Prelude.Integer -> CReal) -> CReal
+slimit :: (Prelude.Integer -> AERN2.CReal) -> AERN2.CReal
 slimit =
-  limit
+  AERN2.limit
 
-mslimit :: (Prelude.Integer -> M CReal) -> CReal
+mslimit :: (Prelude.Integer -> M AERN2.CReal) -> AERN2.CReal
 mslimit x =
-  let {x0 = id x} in id (id slimit x0)
+  let {x0 = Prelude.id x} in Prelude.id (Prelude.id slimit x0)
 
-realmax :: CReal -> CReal -> CReal
+realmax :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal
 realmax x y =
   mslimit (\n ->
-    mjoin (\h -> case h of {
-                  True -> x;
-                  False -> y}) (m_split x y ((0.5^) n)))
+    Prelude.id (\h -> case h of {
+                       Prelude.True -> x;
+                       Prelude.False -> y}) (m_split x y ((0.5 Prelude.^) n)))
 
