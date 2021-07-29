@@ -9,8 +9,7 @@ Coq formalization of constructive reals for exact real computation and code extr
   - [2.1. Post-processing](#21-post-processing)
 - [3. Executing extracted code](#3-executing-extracted-code)
   - [3.1. Executing interactively (Mode `Extract.v`)](#31-executing-interactively-mode-extractv)
-  - [3.2. Executing interactively (Mode `ExtractMB.v`)](#32-executing-interactively-mode-extractmbv)
-  - [3.3. Compiling benchmark executable](#33-compiling-benchmark-executable)
+  - [3.2. Compiling benchmark executable](#32-compiling-benchmark-executable)
 - [4. Benchmark measurements](#4-benchmark-measurements)
 
 ## 1. Installation instructions
@@ -34,54 +33,24 @@ These libraries can be installed e.g. using `opam install`.
 
 ## 2. Code extraction to Haskell/AERN
 
-Code extraction is available in two modes, as defined in the following files, respectively:
+Code extraction is defined in the following file:
 
 - `Extract.v`
-- `ExtractMB.v`
 
-After processing these files, coq produces Haskell files, one for each example and mode.  The files need minor mechanical post-processing described below.  The extracted post-processed compilable code is also available in folder [extracted-examples/src](extracted-examples/src).
-For example, the executable versions of `realmax` are in files `Max.hs` and `MaxMB.hs`.
+After processing this file, Coq produces Haskell files, one for each example.  The files need minor mechanical post-processing described below.  The extracted post-processed compilable code is also readily available in folder [extracted-examples/src](extracted-examples/src).
+For example, the extracted version of `realmax` is in file `Max.hs`.
 
 ### 2.1. Post-processing
 
-- `Extract.v`
-  1. Add the following import statements
+1. Add the following import statements
 
-      ```Haskell
-      import Prelude hiding (pi, pred, succ, (==),(/=),(<),(<=),(>),(>=),not,(&&),(||))
-      import Numeric.OrdGenericBool
-      import MixedTypesNumPrelude (ifThenElse, integer)
-      import Math.NumberTheory.Logarithms (integerLog2)
-      import AERN2.Real
-      ```
-
-- `ExtractMB.v`
-  1. Add the following import statements:
-
-      ```Haskell
-      import Prelude hiding (pi, pred, succ, (==),(/=),(<), (<=),(>),(>=),not,(&&),(||))
-      import Numeric.OrdGenericBool
-      import MixedTypesNumPrelude (ifThenElse, integer,   Kleenean(..), kleenean)
-      import Math.NumberTheory.Logarithms (integerLog2)
-      import Numeric.CollectErrors (CN,cn,liftTakeErrors)
-      import AERN2.MP
-      import AERN2.MP.Dyadic ()
-      import AERN2.MP.WithCurrentPrec
-      import AERN2.Real
-      ```
-
-  2. Add the following LANGUAGE options:
-
-      ```Haskell
-      {-# LANGUAGE DataKinds #-}
-      {-# LANGUAGE PolyKinds #-}
-      ```
-
-  3. Add the following type constraint to all functions whose type signature contains the type variable `p`:
-
-      ```Haskell
-      (HasCurrentPrecision p) => 
-      ```
+    ```Haskell
+    import qualified Numeric.OrdGenericBool as OGB
+    import MixedTypesNumPrelude (ifThenElse)
+    import qualified MixedTypesNumPrelude as MNP
+    import qualified Math.NumberTheory.Logarithms as Logs
+    import qualified AERN2.Real as AERN2
+    ```
 
 ## 3. Executing extracted code
 
@@ -104,22 +73,7 @@ For example, the executable versions of `realmax` are in files `Max.hs` and `Max
   [0 ± ~0.0000 ~2^(-1228)]
   ```
 
-### 3.2. Executing interactively (Mode `ExtractMB.v`)
-
-  ```Text
-  $ stack repl src/MaxMB.hs --ghci-options "-Wno-type-defaults -Wno-unused-imports"
-
-  *MaxMB> runWithPrec (prec 1000) $ realmax (pi-pi) 0
-  [0 ± ~2.6269e-287 ~2^(-951)]
-
-  *MaxMB> creal $ WithAnyPrec $ realmax (pi-pi) 0
-  {?(prec 36): [0 ± ~8.7311e-11 ~2^(-33)]}
-
-  *MaxMB> (creal $ WithAnyPrec $ realmax (pi-pi) 0) ? (bits 1000)
-  [0 ± ~0.0000 ~2^(-1170)]
-  ```
-
-### 3.3. Compiling benchmark executable
+### 3.2. Compiling benchmark executable
 
 - Run `stack install` in the `extracted-examples` folder.
   
