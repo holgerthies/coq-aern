@@ -989,7 +989,7 @@ Section IVT.
 
 
 
-  Local Hint Resolve @real_1_gt_0 : real.
+  Local Hint Resolve real_1_gt_0 : real.
   Lemma root_approx  (f : real_ -> real_)
         (cont : continuous f) (uni : uniq f real_0_ real_1)  (n : nat)
     : [(a,b)| uniq f a b /\ refining real_0_ a b real_1 n].
@@ -1068,4 +1068,4 @@ Section IVT.
   Defined.
 End IVT.
 
-Global Hint Resolve @real_1_gt_0: real.
+Global Hint Resolve real_1_gt_0: real.

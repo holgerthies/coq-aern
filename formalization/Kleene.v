@@ -21,3 +21,14 @@ Class LazyBool (LB : Type) :=
     lazy_bool_or_up : forall a b, (lazy_bool_or a b = lazy_bool_true) = (a = lazy_bool_true \/ b = lazy_bool_true);
     lazy_bool_or_down : forall a b, (lazy_bool_or a b = lazy_bool_false) = (a = lazy_bool_false /\ b = lazy_bool_false);
   }.
+
+Section K_Defs.
+
+  Generalizable Variable K.
+
+  Context `(klb : LazyBool K).
+
+  Definition lazy_bool_up : K -> Prop := fun b : K => b = lazy_bool_true.
+  Definition lazy_bool_down : K -> Prop := fun b : K => b = lazy_bool_false.
+
+End K_Defs.

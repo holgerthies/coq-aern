@@ -39,7 +39,6 @@ Section RealEquivalent.
 
   Add Ring realRing : (realTheory TR) (constants [T_IZReal_tac]).
 
-
   
   (* Notation real_ := (real SR). *)
   (* Notation real_0_ := (@real_0 SR). *)

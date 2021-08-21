@@ -223,6 +223,42 @@ Section RealLimit2.
     apply (M_lift _ _ H1 X).
   Defined.
 
+
+
+
+  Definition M_is_fast_cauchy (f : nat -> M real_) := forall n m, M_all (fun x => M_all (fun y => dist x y <= prec_ n + prec_ m) (f n)) (f m).
+
+
+  
+  (* Definition M_is_fast_cauchy_section : forall (f : nat -> M real_), M_is_fast_cauchy -> M {f : nat -> real_ *)
+
+  (*                                              n m, (M_all (fun x => M_all (fun y => dist x y <= prec_ n + prec_ m) (f n)) (f m)) *)
+
+  
+  Definition M_is_fast_limit (x : real_) (f : nat -> M real_) := forall n, M_all (fun y => dist x y <= prec_ n) (f n).
+
+  Definition real_mslimit :
+    forall f : nat -> M real_, M_is_fast_cauchy f -> {x | M_is_fast_limit x f}.
+  Proof.
+    intros.
+    pose proof (countable_selection _ f).
+    apply M_hprop_elim_f.
+    admit.
+    apply (fun g => M_lift _ _ g X).
+    intro.
+    destruct H0.
+    assert (is_fast_cauchy x).
+    admit.
+    destruct (real_limit x H0).
+    exists x0.
+    intros j.
+    pose proof (m j).
+    pose proof (i j).
+  Admitted.
+  
+    
+  (* Goal forall f: nat -> M real_,  *)
+  
 End RealLimit2.
 
 

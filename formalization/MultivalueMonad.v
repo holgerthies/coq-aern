@@ -78,11 +78,13 @@ Proof.
   rewrite <- H; auto.
 Defined.
 
-Section M.
+Section M_Defs.
 
 Generalizable Variables K M.
 
 Context `(klb : LazyBool K) `(M_Monad : Monad M) (MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad).
+
+Definition M_description A := @Monoid_hom_nat_trans _ _ _ _ MultivalueMonad_description A.
 
 Class MultivalueMonad :=
   {
@@ -91,7 +93,9 @@ Class MultivalueMonad :=
     multivalued_choice : forall x y : K, x = lazy_bool_true \/ y = lazy_bool_true -> M ({ x = lazy_bool_true } + { (y = lazy_bool_true) });
 
     MultivalueMonad_description_is_mono : Monoid_hom_is_mono _ _ MultivalueMonad_description;
-    MultivalueMonad_description_is_equiv : forall A, is_equiv (Monad_fun_map _ _ (@Monoid_hom_nat_trans _ _ _ _ MultivalueMonad_description A));
+    MultivalueMonad_description_is_equiv : forall A, is_equiv (Monad_fun_map _ _ (M_description A));
+
+    MultivalueMonad_destruct : forall A (X : M A), M  {x : A | projP1 _ _ (M_description A X) x};
   }.
 
 Context (M_MultivalueMonad : MultivalueMonad).
@@ -111,17 +115,6 @@ Proof.
   exact H2.
 Defined.  
 
-Definition M_picture : forall {A}, M A -> NPset A.
-Proof.
-  intros A X.
-  exact ((Monoid_hom_nat_trans _ _  A X)).
-Defined.
-
-Definition M_picture_1 : forall {A}, M A -> A -> Prop.
-Proof.
-  intros A X.
-  exact (projP1 _ _ (Monoid_hom_nat_trans _ _  A X)).
-Defined.
 
 Lemma M_fun_picture : forall {A B} (f : A -> B), NPset A -> NPset B.
 Proof.
@@ -129,16 +122,51 @@ Proof.
   exact (Monad_fun_map _ _ f).
 Defined.
 
-Lemma M_fun_cont : forall {A B} (f : A -> B), forall X x, M_picture_1 X x -> M_picture_1 (Monad_fun_map _ _ f X) (f x).
+Definition M_picture_1 : forall {A}, M A -> A -> Prop.
+Proof.
+  intros A X.
+  exact (projP1 _ _ (M_description A X)).
+Defined.
+
+Lemma M_fun_cont : forall {A B} (f : A -> B) X b , M_picture_1 (Monad_fun_map _ _ f X) b = exists a, (M_picture_1 X) a /\ b = f a  .
+Proof.
+  intros.
+  unfold M_picture_1.
+  pose proof ((Monoid_hom_nat_trans_prop _ _ _ _ f)).
+  apply (lp _ _ (fun g => g X)) in H.
+  fold (M_description A) in H.
+  fold (M_description B) in H.
+  rewrite H.
+  clear H.
+  apply Prop_ext.
+  intro.
+  destruct (M_description A X).
+  destruct e.
+  simpl in H.
+  destruct H.
+  exists x2; auto.
+  intro.
+  destruct H.
+  destruct (M_description A X).
+  simpl.
+  destruct e.
+  exists x.
+  simpl in H.
+  auto.
+Defined.
+
+Lemma M_fun_cont_r : forall {A B} (f : A -> B), forall X x, M_picture_1 X x -> M_picture_1 (Monad_fun_map _ _ f X) (f x).
 Proof.
   intros.
   pose proof ((Monoid_hom_nat_trans_prop _ _  A B f)).
   apply (lp _ _ (fun g => g X)) in H0.
   unfold M_picture_1.
+  fold (M_description B) in H0.
   rewrite H0.
   unfold M_picture_1 in H.
   pose (j :=  (Monoid_hom_nat_trans _ _ A X)).
   fold j.
+  unfold M_description in H.
   fold j in H.
   destruct j.
   simpl in H.
@@ -146,17 +174,16 @@ Proof.
   exists x; auto.
 Defined.
 
-Lemma M_fun_cont_inv : forall {A B} (f : A -> B), forall X y, M_picture_1 (Monad_fun_map _ _ f X) y -> exists x, M_picture_1 X x /\ y = f x.
+Lemma M_fun_cont_r_inv : forall {A B} (f : A -> B), forall X y, M_picture_1 (Monad_fun_map _ _ f X) y -> exists x, M_picture_1 X x /\ y = f x.
 Proof.
-
  
   intros.
   pose proof ((Monoid_hom_nat_trans_prop _ _  A B f)).
   apply (lp _ _ (fun g => g X)) in H0.
-  unfold M_picture_1 in H.
+  unfold M_picture_1, M_description in H.
   rewrite H0 in H.
   clear H0.
-  unfold M_picture_1.
+  unfold M_picture_1, M_description.
   
   
   pose (XP :=  (Monoid_hom_nat_trans _ _ A X)).
@@ -168,8 +195,6 @@ Proof.
   exists x0.
   simpl; auto.
 Defined.
-
-
 
 Definition M_hprop_elim_f : forall A, is_hprop A -> M A -> A.
 Proof.
@@ -354,9 +379,9 @@ Defined.
 
 (* when we have two kleeneans that at least one of are True classically, 
    we can nondeterministically decide which holds. *)
-Definition select : forall x y : kleenean, kleenean_up x \/ kleenean_up y -> M ({ (kleenean_up x) } + { (kleenean_up y) }).
+Definition select : forall x y : K, lazy_bool_up _ x \/ lazy_bool_up _ y -> M ({ (lazy_bool_up _ x) } + { (lazy_bool_up _ y) }).
 Proof.
-  apply M_choice.
+  apply multivalued_choice.
 Defined.
 
 
@@ -368,20 +393,20 @@ Proof.
 Defined.
 
 (* semideciability so that we can work on Prop directly, without mentioning K *)
-Definition semidec := fun P : Prop => {x : kleenean | kleenean_up x <-> P}.
+Definition semidec := fun P : Prop => {x : K | lazy_bool_up _ x <-> P}.
 
 Definition choose : forall p q, semidec p -> semidec q -> p \/ q -> M ({p}+{q}).
 Proof.
   intros.
-  destruct H.
-  destruct H0.
+  destruct X.
+  destruct X0.
   destruct i.
   destruct i0.
-  apply (Monad_fun_map ({kleenean_up x} + {kleenean_up x0})).
+  apply (Monad_fun_map ({lazy_bool_up _ x} + {lazy_bool_up _ x0})).
   intro.
   destruct H4; auto.
   apply select.
-  destruct H1; auto.
+  destruct H; auto.
 Defined.
 
 Definition dec := fun P : Prop =>  {P} + {~ P}.
@@ -404,7 +429,7 @@ Defined.
 Definition M_extension : forall A B, M (A -> B) -> (M A -> M B).
 Proof.
   intros.
-  apply (Monad_fun_map_dom A).
+  apply (Monad_fun_map_dom _ A).
   intro.
   apply (Monad_fun_map (A ->B)).
   auto.
@@ -417,15 +442,17 @@ Defined.
 Lemma semidec_or P Q : semidec P -> semidec Q -> semidec (P \/ Q).
 Proof.
   intros.
-  destruct H as [k1 e1].
-  destruct H0 as [k2 e2].
-  exists (kleenean_or k1 k2).
+  destruct X as [k1 e1].
+  destruct X0 as [k2 e2].
+  exists (lazy_bool_or k1 k2).
   split; intro p.
-  rewrite kleenean_or_up in p.
+  unfold lazy_bool_up in p.
+  rewrite lazy_bool_or_up in p.
   destruct p as [H | H].
   left; apply proj1 in e1; apply e1, H.
   right; apply proj1 in e2; apply e2, H.
-  rewrite kleenean_or_up.
+  unfold lazy_bool_up.
+  rewrite lazy_bool_or_up.
   destruct p as [H | H].
   left; apply proj2 in e1; apply e1, H.
   right; apply proj2 in e2; apply e2, H.
@@ -434,16 +461,18 @@ Defined.
 Lemma semidec_and P Q : semidec P -> semidec Q -> semidec (P /\ Q).
 Proof.
   intros.
-  destruct H as [k1 e1].
-  destruct H0 as [k2 e2].
-  exists (kleenean_and k1 k2).
+  destruct X as [k1 e1].
+  destruct X0 as [k2 e2].
+  exists (lazy_bool_and k1 k2).
   split; intro p.
-  rewrite kleenean_and_up in p.
+  unfold lazy_bool_up in p.
+  rewrite lazy_bool_and_up in p.
   destruct p as [H H1].
   split.
   apply proj1 in e1; apply e1, H.
   apply proj1 in e2; apply e2, H1.
-  rewrite kleenean_and_up.
+  unfold lazy_bool_up.
+  rewrite lazy_bool_and_up.
   destruct p as [H H1].
   split.
   apply proj2 in e1; apply e1, H.
@@ -524,33 +553,291 @@ Defined.
 Definition M_all {A} (P : A -> Prop) : M A -> Prop := fun X => Mand (Monad_fun_map _ _ P X).
 Definition M_some {A} (P : A -> Prop) : M A -> Prop := fun X => Mor (Monad_fun_map _ _ P X).
 Definition M_in {A} (a : A) (X : M A) : Prop := M_some (fun b => a = b) X. 
-  
-(* Goal forall A (P : A -> Prop) (X : M A), M_all P X -> forall a, M_in a X -> P a. *)
-(* Proof. *)
-(*   intros. *)
-(*   unfold M_all in H. *)
-(*   unfold Mand in H. *)
-(*   unfold M_in in H0. *)
-(*   unfold M_some in H0. *)
-(*   unfold Mor in H0. *)
-  
-  
 
-(* Lemma M_existence_to_all : forall A (P : A -> Prop), M {x | P x} -> {x : M A | M_all P x}. *)
-(* Proof. *)
-(*   intros. *)
-(*   exists (M_projP1 _ _  X). *)
-(*   unfold M_all. *)
-(*   unfold Mand. *)
-(*   pose proof @Monad_fun_map_const_is_const A Prop True. *)
-(*   apply *)
+Lemma sigma_eqP2_2 : forall (A : Type) (P : A -> Prop) (X Y : {a : A | P a}),  projP1 _ _ X = projP1 _ _  Y -> X = Y.
+Proof.
+  intros.
+  destruct X, Y.
+  apply (sigma_eqP A P _ _ _ _  H).
+  apply irrl.
+Defined.
+
+Definition M_ext : forall A (X Y : M A), (M_picture_1 X = M_picture_1 Y) -> X = Y.
+Proof.
+  intros.
+  apply (MultivalueMonad_description_is_mono A X Y).
+  unfold M_picture_1 in H.
+  apply sigma_eqP2_2.
+  auto.
+Defined.
+
+
+Definition M_in_destruct : forall A, forall X : M A, M {x : A | M_in x X}.
+  intros.
+  unfold M_in.
+  unfold M_some.
+  unfold Mor.
+  pose proof (MultivalueMonad_destruct _ X).
+  fold (M_picture_1 X) in X0.
+  apply (fun f => Monad_fun_map _ _ f X0). 
+  intro.
+  destruct X1.
+  exists x.
+  intro.
+  pose proof (M_fun_cont_r (fun b : A => x = b) X x m).
+  rewrite H in H0.
+  pose proof (@Monoid_hom_unit _ _ _ _ (MultivalueMonad_description) Prop).
+  apply (lp _ _ (fun g => g False)) in H1.
+  apply (lp _ _ (projP1 _ _ )) in H1.
+  unfold M_picture_1, M_description in H0.
+  rewrite H1 in H0.
+  simpl in H0.
+  rewrite <- H0; auto.
+Defined.
+
+
+Lemma M_picture_1_destruct : forall A a b, M_picture_1 (Monad_unit A a) b -> a = b.
+Proof.
+  intros.
+  pose proof (@Monoid_hom_unit _ _ _ _ (MultivalueMonad_description) A).
+  apply (lp _ _ (fun g => g a)) in H0.
+  apply (lp _ _ (projP1 _ _ )) in H0.
+  unfold M_picture_1, M_description in H.
+  rewrite H0 in H.
+  simpl in H.
+  rewrite H; auto.
+Defined.
+
+Lemma M_picture_1_intro : forall A a b, a = b -> M_picture_1 (Monad_unit A a) b.
+Proof.
+  intros.
+  rewrite H.
+  pose proof (@Monoid_hom_unit _ _ _ _ (MultivalueMonad_description) A).
+  apply (lp _ _ (fun g => g b)) in H0.
+  apply (lp _ _ (projP1 _ _ )) in H0.
+  unfold M_picture_1, M_description.
+  rewrite H0.
+  simpl.
+  auto.
+Defined.
+
+Lemma M_in_picture_1 : forall {A} (a : A) (X : M A), M_in a X = M_picture_1 X a.
+Proof.
+  intros.
+  apply Prop_ext; intro.
+  unfold M_in, M_some, Mor in H.
+  destruct (lem ( M_picture_1 X a)); auto.
+  contradict H.
+  apply M_ext.
+  apply fun_ext; intro.
+  destruct (lem x).
+  assert (x = True) by (apply Prop_ext; intro; auto).
+  induction (eq_sym H1).
+  pose proof (M_fun_cont (fun b : A => a = b) X True).
+  rewrite H2.
+  apply Prop_ext; intro.
+  destruct H3.
+  destruct H3.
+  contradict H0.
+  assert (j : a = x) by (rewrite <- H4; auto); rewrite j; auto.
+  apply M_picture_1_destruct in H3.
+  contradict H3; intro j; rewrite j; auto.
+  assert (x = False).
+  (apply Prop_ext; intro; auto).
+  contradict H1.
+  induction (eq_sym H1).
+  clear H H1.
+  pose proof (M_fun_cont (fun b : A => a = b) X False).
+  rewrite H.
+  apply Prop_ext; intro.
+  apply M_picture_1_intro; auto.
+  unfold M_picture_1 in H0.
+  unfold M_picture_1.
+  destruct (M_description A X).
+  destruct e.
+
+  exists x0.
+  split; auto.
+  simpl in H0.
+  assert (a <> x0).
+  intro.
+  induction H2.
+  exact (H0 x1).
+  apply Prop_ext; intro; auto.
+  contradict H3.
+
+  unfold M_in, M_some, Mor.
+  intro.
+  pose proof (M_fun_cont (fun b : A => a = b) X True).
+  rewrite H0 in H1.
+  assert ( (exists a0 : A, M_picture_1 X a0 /\ True = (a = a0))).
+  exists a; split; auto.
+  apply Prop_ext; intro; auto.
+  rewrite <- H1 in H2.
+  apply M_picture_1_destruct in H2.
+  rewrite H2; auto.
+Defined.
+
     
-(*   unfold M_projP1. *)
+Lemma M_all_picture_1 : forall A (P : A -> Prop) (X : M A), M_all P X = forall a, M_picture_1 X a -> P a.
+Proof.
+  intros.
+  unfold M_all, Mand.
+  apply Prop_ext; intros.
+  pose proof (M_fun_cont_r P X a H0).
+  rewrite H in H1.
+  apply M_picture_1_destruct in H1.
+  rewrite<- H1; auto.
 
-(*   simpl. *)
+  apply M_ext.
+  apply fun_ext.
+  intro; apply Prop_ext; intro.
+  apply M_picture_1_intro.
+  pose proof (M_fun_cont P X x).
+  rewrite H1 in H0.
+  destruct H0.
+  destruct H0.
+  pose proof (H _ H0).
+  assert (P x0 = True).
+  apply Prop_ext; intro; auto.
+  rewrite H4 in H2.
+  auto.
+  apply M_picture_1_destruct in H0.
+  rewrite <- H0.
   
-(*   simpl. *)
-  
-  
-(*       (*   simpl. *) *)
+  pose proof (M_fun_cont P X True).
+  rewrite H1.
+  apply M_hprop_elim_f.
+  intros y z; apply irrl.
+  apply (fun j => Monad_fun_map _ _ j (MultivalueMonad_destruct _ X)).
+  fold (M_picture_1 X).
+  intro.
+  destruct X0.
+  exists x0; auto.
+  split; auto.
+  pose proof (H _ m).
+  apply Prop_ext; intro; auto.
+Defined.
 
+
+(* Lemma M_some_picture_1 : forall A (P : A -> Prop) (X : M A), M_some P X = exists a, M_picture_1 X a /\ P a. *)
+(* Proof. *)
+(*   intros. *)
+(*   unfold M_some, Mor. *)
+(*   apply Prop_ext; intros. *)
+  
+(*   pose proof (M_fun_cont_r P X ). *)
+(*   rewrite H in H1. *)
+(*   apply M_picture_1_destruct in H1. *)
+(*   rewrite<- H1; auto. *)
+
+(*   apply M_ext. *)
+(*   apply fun_ext. *)
+(*   intro; apply Prop_ext; intro. *)
+(*   apply M_picture_1_intro. *)
+(*   pose proof (M_fun_cont P X x). *)
+(*   rewrite H1 in H0. *)
+(*   destruct H0. *)
+(*   destruct H0. *)
+(*   pose proof (H _ H0). *)
+(*   assert (P x0 = True). *)
+(*   apply Prop_ext; intro; auto. *)
+(*   rewrite H4 in H2. *)
+(*   auto. *)
+(*   apply M_picture_1_destruct in H0. *)
+(*   rewrite <- H0. *)
+  
+(*   pose proof (M_fun_cont P X True). *)
+(*   rewrite H1. *)
+(*   apply M_hprop_elim_f. *)
+(*   intros y z; apply irrl. *)
+(*   apply (fun j => M_lift _ _ j (M_destruct  X)). *)
+(*   intro. *)
+(*   destruct X0. *)
+(*   exists x0; auto. *)
+(*   split; auto. *)
+(*   pose proof (H _ m). *)
+(*   apply Prop_ext; intro; auto. *)
+(* Defined. *)
+
+
+    
+Definition M_retraction_T : forall A (P : A -> Type),
+    M (forall n, P n) -> (forall n, M (P n)).
+Proof.
+  intros A P X n.
+  apply (Monad_fun_map _ _ (fun f => f n) X).
+Defined.
+
+Lemma M_existence_to_all : forall A (P : A -> Prop), M {x | P x} -> {x : M A | M_all P x}.
+Proof.
+  intros.
+  exists (M_projP1 _ _  X).
+  unfold M_all.
+  unfold Mand.
+  unfold M_projP1.
+  pose proof (Monad_functorial_comp _ _ _ ((fun X0 : {x : A | P x} => let (x, _) := X0 in x)) P ).
+  apply (lp _ _ (fun g => g X)) in H.
+  rewrite <- H.
+  assert ((fun x : {x : A | P x} => P (let (x0, _) := x in x0)) = fun _ : {x : A | P x} => True).
+  apply fun_ext; intro x; destruct x;  simpl; auto.
+  apply Prop_ext; intro; auto.
+  rewrite H0.
+  rewrite (@Monad_fun_map_const_is_const ).
+  auto.
+Defined.
+
+
+Lemma M_all_to_existence : forall A (P : A -> Prop), {x : M A | M_all P x} ->  M {x | P x}.
+Proof.
+  intros.
+  destruct X.
+  unfold M_all in m.
+  unfold Mand in m.
+  pose proof (MultivalueMonad_destruct _ x).
+  fold (M_picture_1 x) in X.
+  apply (fun f => Monad_fun_map _ _ f X).
+  intro.
+  destruct X0.
+  exists x0.
+  pose proof (M_fun_cont_r P x _ m0).
+  rewrite m in H.
+  apply M_picture_1_destruct in H.
+  rewrite <- H; auto.
+Defined.
+
+
+Definition countable_selection (P : nat -> Type) (f : forall n, M (P n)) : M {s : forall n, P n | forall n, M_in (s n) (f n)}.
+Proof.
+
+  pose proof (M_paths P (fun n _ y => M_in y (f (S n))) (f 0)).
+  simpl in X.
+  assert ((forall n : nat, P n -> M {y : P (S n) | M_in y (f (S n))}) ).
+  intros.
+  pose proof (MultivalueMonad_destruct _(f (S n))).
+  fold (M_picture_1 (f (S (n)))) in X1.
+  apply (fun j => Monad_fun_map _ _ j X1).
+  intro.
+  destruct X2.
+  exists x.
+  rewrite M_in_picture_1.
+  exact m.
+  apply X in X0.
+  
+  pose proof (MultivalueMonad_destruct _ (f O)).
+  fold (M_picture_1 (f 0)) in X1.
+  apply (fun j => Monad_fun_map_dom _ _ _ j X0).
+  intro.
+  apply (fun j => Monad_fun_map _ _ j X1).
+  intro.
+  destruct X2, X3.
+  
+  
+  exists (fun n => match n with O => x0 | S m => x (S m) end).
+  intro.
+  destruct n.
+  rewrite M_in_picture_1; auto.
+  exact (m n).
+Defined.
+
+End M_Defs.
