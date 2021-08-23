@@ -786,6 +786,173 @@ Section RealMetric.
     rewrite (H0 H3).
     exact H4.
   Defined.
+
+
+  Lemma real_lt_pos_mult_neg_neg : forall z1 z2 : real R, z1 > real_0 -> z2 < real_0 -> z1 * z2 < real_0.
+  Proof.
+    intros.
+    apply (real_lt_mult_pos_lt _ _ _  H) in  H0.
+    replace (z1 * real_0_) with real_0_ in H0 by ring.
+    auto.
+  Qed.
+
+  Lemma real_lt_neg_mult_pos_neg : forall z1 z2 : real R, z1 < real_0 -> z2 > real_0 -> z1 * z2 < real_0.
+  Proof.
+    intros.
+    apply (real_lt_mult_pos_lt _ _ _  H0) in  H.
+    replace (z2 * real_0_) with real_0_ in H by ring.
+    rewrite real_mult_comm in H.
+    auto.
+  Qed.
+
+  Lemma real_lt_neg_mult_neg_pos : forall z1 z2 : real R, z1 < real_0 -> z2 < real_0 -> z1 * z2 > real_0.
+  Proof.
+    intros.
+    apply (real_lt_plus_lt (-z1)) in H.
+    apply (real_lt_plus_lt (-z2)) in H0.
+    replace (- z2 + z2) with real_0_ in H0 by ring.
+    replace (- z1 + z1) with real_0_ in H by ring.
+    rewrite real_plus_comm, real_plus_unit in H.
+    rewrite real_plus_comm, real_plus_unit in H0.
+    apply (real_lt_mult_pos_lt _ _ _  H0) in  H.
+    replace (- z2 *real_0_) with real_0_ in H by ring.
+    replace (-z2*-z1) with (z1 * z2) in H by ring.
+    auto.
+  Qed.
+
+  Lemma abs_mult : forall x y : real_, abs (x * y) = (abs x) * (abs y).
+  Proof.
+    intros.
+    unfold abs.
+    destruct (abs_prop (x * y)).
+    destruct (abs_prop (x)).
+    destruct (abs_prop (y)).
+    destruct (real_total_order x real_0_).
+    destruct (real_total_order y real_0_).
+    assert (x * y > real_0_).
+    apply real_lt_neg_mult_neg_pos; auto.
+    destruct a as [a [_ _]].
+    destruct a0 as [_ [_ a0]].
+    destruct a1 as [_ [_ a1]].
+    rewrite (a H1).
+    rewrite (a0 H).
+    rewrite (a1 H0).
+    ring.
+    destruct H0.
+    assert (x * y = real_0_) by (rewrite H0; ring).
+    destruct a as [_ [a _]].
+    destruct a0 as [_ [_ a0]].
+    destruct a1 as [_ [a1 _]].
+    rewrite (a H1).
+    rewrite (a1 H0).
+    ring.
+
+    assert (x * y < real_0_).
+    apply real_lt_neg_mult_pos_neg; auto.
+    destruct a as [_ [_ a]].
+    destruct a0 as [_ [_ a0]].
+    destruct a1 as [a1 [_ _]].
+    rewrite (a H1), (a0 H), (a1 H0).
+    ring.
+    destruct H.
+    assert (x * y = real_0_) by (rewrite H; ring).
+    destruct a as [_ [a _]].
+    destruct a0 as [_ [a0 _]].
+    destruct a1 as [a1 [_ _]].
+    rewrite (a H0), (a0 H).
+    ring.
+    destruct (real_total_order y real_0_).
+    assert (x * y < real_0_).
+    apply real_lt_pos_mult_neg_neg; auto.
+    destruct a as [_ [_ a]].
+    destruct a0 as [a0 [_ _]].
+    destruct a1 as [_ [_ a1]].
+    rewrite (a H1).
+    rewrite (a0 H).
+    rewrite (a1 H0).
+    ring.
+    destruct H0.
+    assert (x * y = real_0_) by (rewrite H0; ring).
+    destruct a as [_ [a _]].
+    destruct a0 as [_ [_ a0]].
+    destruct a1 as [_ [a1 _]].
+    rewrite (a H1).
+    rewrite (a1 H0).
+    ring.
+
+    assert (x * y > real_0_).
+    apply real_lt_pos_mult_pos_pos; auto.
+    destruct a as [a [_ _]].
+    destruct a0 as [a0 [_ _]].
+    destruct a1 as [a1 [_ _]].
+    rewrite (a H1), (a0 H), (a1 H0).
+    ring.
+  Defined.
+
+  Lemma abs_pos_id : forall x : real_, real_0 <= x -> abs x = x.
+  Proof.
+    intros.
+    unfold abs.
+    destruct (abs_prop (x)).
+    destruct a as [a [b _]].
+    destruct H.
+    exact (a H).
+    induction H.
+    rewrite (b eq_refl).
+    auto.
+  Defined.
+  
+  Lemma abs_neg_id_neg : forall x : real_, real_0 > x -> abs x = - x.
+  Proof.
+    intros.
+    unfold abs.
+    destruct (abs_prop (x)).
+    destruct a as [_ [_ a]].
+    exact (a H).
+  Defined.
+  
+  Lemma dist_scale : forall x y s : real_, s > real_0 -> s * dist x y = dist (s * x) (s * y).
+  Proof.
+    intros.
+    unfold dist.
+    replace (s * x - s * y) with (s * (x - y)) by ring.
+    rewrite abs_mult.
+    rewrite (abs_pos_id s).
+    auto.
+    left; auto.
+  Defined.
+    
+  Lemma IZreal_dist : forall z1 z2 : Z, dist (IZreal z1) (IZreal z2) = IZreal (Z.abs (z1 - z2)%Z).
+  Proof.
+    intros.
+    unfold dist.
+    unfold real_minus.
+    rewrite <- (IZ_asym z2).
+    rewrite <- IZreal_hom.
+    replace (z1 + - z2)%Z with (z1 - z2)%Z by auto.
+    pose (z := (z1 - z2)%Z).
+    fold z.
+    assert (0 <= z \/ z < 0)%Z by lia.
+    destruct H.
+    assert (Z.abs z = z) by lia.
+    rewrite H0.
+    apply abs_pos_id.
+    replace real_0_ with (@IZreal R 0) by ring.
+    rewrite IZreal_le.
+    auto.
+    assert (Z.abs z = - z)%Z by lia.
+    rewrite H0.
+    rewrite IZ_asym.
+    rewrite abs_neg_id_neg.
+    auto.
+    replace (real_0_) with (@IZreal R 0) by ring.
+    apply IZreal_lt_aux.
+    auto.
+  Defined.
+  
+
+
+  
 End RealMetric.
 
   

@@ -226,7 +226,7 @@ Section RealLimit2.
 
 
 
-  Definition M_is_fast_cauchy (f : nat -> M real_) := forall n m, M_all (fun x => M_all (fun y => dist x y <= prec_ n + prec_ m) (f n)) (f m).
+  Definition M_is_fast_cauchy (f : nat -> M real_) := forall n m, M_all (fun x => M_all (fun y => dist x y <= prec_ n + prec_ m) (f m)) (f n).
 
 
   
@@ -235,26 +235,118 @@ Section RealLimit2.
   (*                                              n m, (M_all (fun x => M_all (fun y => dist x y <= prec_ n + prec_ m) (f n)) (f m)) *)
 
   
-  Definition M_is_fast_limit (x : real_) (f : nat -> M real_) := forall n, M_all (fun y => dist x y <= prec_ n) (f n).
+  Definition M_is_fast_limit_all (x : real_) (f : nat -> M real_) : Prop
+    := forall n, M_all (fun y => dist x y <= prec_ n) (f n).
+
+  Definition M_is_fast_limit_some (x : real_) (f : nat -> M real_) : Prop
+    := forall n, M_some (fun y => dist x y <= prec_ n) (f n).
+
 
   Definition real_mslimit :
-    forall f : nat -> M real_, M_is_fast_cauchy f -> {x | M_is_fast_limit x f}.
+    forall f : nat -> M real_, M_is_fast_cauchy f -> M {x | M_is_fast_limit_some x f}.
+  Proof.
+    intros.
+    pose proof (countable_selection _ f).
+    apply (fun g => M_lift _ _ g X).
+    intro; clear X.
+    destruct H0.
+    assert (is_fast_cauchy x).
+    intros i j.
+    pose proof (m i).
+    pose proof (m j).
+    pose proof (H i j).
+    pose proof (M_all_destruct_2 H2 H0 H1).
+    simpl in H3.
+    exact H3.
+    destruct (real_limit x H0) as [y l].
+    exists y.
+    intro n.
+    rewrite M_some_picture_1.
+    exists (x n).
+    pose proof (m n).
+    rewrite M_in_picture_1 in H1.
+    split; auto.
+  Defined.
+  
+
+  
+  Definition real_mslimit_all :
+    forall f : nat -> M real_, M_is_fast_cauchy f -> {x | M_is_fast_limit_all x f}.
   Proof.
     intros.
     pose proof (countable_selection _ f).
     apply M_hprop_elim_f.
-    admit.
+    intros x y.
+    destruct x, y.
+    apply sigma_eqP2.
+    apply (proj1 (dist_zero x x0)).
+    destruct (dist_pos x x0); auto.
+    pose proof (padding _ _ H0) as [e [i j]].
+    
+    pose proof (real_Archimedean _ _ i).
+    destruct H1 as [k].
+    ring_simplify in j.
+    pose proof (M_W_destruct (f (k + 1)%nat)).
+    destruct H2.
+    rewrite <- M_in_picture_1 in H2.
+    pose proof (M_all_destruct (m (k+1)%nat) H2).
+    pose proof (M_all_destruct (m0 (k+1)%nat) H2).
+    simpl in H3, H4.
+    rewrite dist_symm in H4.
+    pose proof (real_le_le_plus_le _ _ _ _ H3 H4).
+    rewrite prec_twice in H5.
+    pose proof (real_le_le_le _ _ _ (real_ge_le _ _ (dist_tri _ _ _ )) H5).
+    rewrite j in H6.
+    contradiction (real_gt_nle _ _ H1 H6).
     apply (fun g => M_lift _ _ g X).
-    intro.
+    intro; clear X.
     destruct H0.
     assert (is_fast_cauchy x).
-    admit.
-    destruct (real_limit x H0).
-    exists x0.
+    intros i j.
+    pose proof (m i).
+    pose proof (m j).
+    pose proof (H i j).
+    pose proof (M_all_destruct_2 H2 H0 H1).
+    simpl in H3.
+    exact H3.
+
+    destruct (real_limit x H0) as [y l].
+    exists y.
+    
+    
     intros j.
     pose proof (m j).
-    pose proof (i j).
-  Admitted.
+    pose proof (l j).
+    rewrite M_all_picture_1.
+    intros.
+    destruct (real_total_order (dist y a) (prec_ j)).
+    left; auto.
+    destruct H4.
+    right; auto.
+    (* going for contradiction *)
+    pose proof (padding _ _ H4).
+    destruct H5.
+    destruct a0.
+    pose proof (real_Archimedean _ _ H5).
+    destruct H7.
+    pose proof (l (x1 + 1)%nat).
+    pose proof (H j (x1 + 1)%nat).
+    rewrite <- M_in_picture_1 in H3.
+    pose proof (M_all_destruct_2 H9  H3 (m (x1 + 1)%nat)).
+    simpl in H10.
+    pose proof (dist_tri y (x (x1 + 1)%nat) a).
+    rewrite dist_symm in H10.
+    pose proof (real_le_le_plus_le _ _ _ _ H8 H10).
+    apply real_ge_le in H11.
+    pose proof (real_le_le_le _ _ _ H11 H12).
+    replace (prec_ (x1 + 1) + (prec_ j + prec_ (x1 + 1))) with (prec_ x1 + prec_ j) in H13.
+    rewrite H6 in H13.
+    apply (real_le_plus_le (- prec_ j)) in H13.
+    ring_simplify in H13.
+    contradiction (real_gt_nle _ _ H7 H13).
+    replace (prec_ (x1 + 1) + (prec_ j + prec_ (x1 + 1))) with (prec_ (x1 + 1) + prec_ (x1 + 1) +  prec_ j) by ring.
+    rewrite prec_twice; auto.
+  Defined.
   
     
   (* Goal forall f: nat -> M real_,  *)

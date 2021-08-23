@@ -29,7 +29,7 @@ Relator.v
 RealCoqReal.v
 RealHelpers.v
 
-
+RealEquivalent.v
 
 magnitude.v
 sqrt.v

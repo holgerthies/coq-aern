@@ -1334,6 +1334,123 @@ Section RealOrder.
     exact H0.
   Defined.
 
+
+
+  Lemma real_le_mult_pos_le : forall (r r1 r2 : real_), real_0 < r -> r1 <= r2 -> r * r1 <= r * r2.
+  Proof.
+    intros.
+    destruct H0.
+    left; exact (real_lt_mult_pos_lt _ _ _ H H0).
+    rewrite H0.
+    right; auto.
+  Defined.
+  
+  Lemma IZreal_mult_hom_pos : forall z1 z2 : Z, (0 <= z2)%Z ->  @IZreal R (z1 * z2) = IZreal z1 * IZreal z2.
+  Proof.
+    intro.
+    apply natlike_ind.
+    replace (z1 * 0)%Z with 0%Z by lia.
+    simpl; ring.
+    intros.
+    replace (z1 * Z.succ x)%Z with (z1 * x + z1)%Z by lia.
+    replace (Z.succ x) with (x + 1)%Z by lia.
+    rewrite IZreal_hom.
+    rewrite IZreal_hom.
+    rewrite H0.
+    ring.
+  Defined.
+  
+
+  Lemma IZreal_mult_hom : forall z1 z2 : Z, @IZreal R (z1 * z2) = IZreal z1 * IZreal z2.
+  Proof.
+    intros.
+    assert (0 <= z2 \/ z2 <= 0)%Z by lia.
+    destruct H.
+    apply IZreal_mult_hom_pos; auto.
+    pose (z := (- z2)%Z).
+    assert (z2 = - z)%Z by lia.
+    rewrite H0.
+    replace (z1 * - z)%Z with (- (z1 * z))%Z by lia.
+    rewrite IZ_asym.
+    rewrite IZ_asym.
+    assert (@IZreal R (z1 * z) = IZreal z1 * IZreal z).
+    apply IZreal_mult_hom_pos; auto.
+    lia.
+    rewrite H1; ring.    
+  Defined.
+
+  Lemma IZreal_le_0 : forall z : Z, (0 <= z)%Z -> real_0_ <= (@IZreal R z).
+  Proof.
+    apply natlike_ind.
+    right; simpl; ring.
+    intros.
+    replace (Z.succ x) with (x + 1)%Z by lia.
+    rewrite IZreal_hom.
+    destruct H0.
+    pose proof (real_lt_lt_plus_lt _ _ _ _ H0 real_1_gt_0).
+    rewrite real_plus_unit in H1.
+    left; exact H1.
+    rewrite <- H0; left.
+    replace (real_0_ + IZreal 1) with real_1_ by ring.
+    apply real_1_gt_0.
+  Defined.
+  
+  
+  Lemma IZreal_le_aux : forall z1 z2 : Z, (z1 <= z2)%Z -> (@IZreal R z1) <= (IZreal z2).
+  Proof.
+    intros.
+    pose (z := (z2 - z1)%Z).
+    apply (real_le_add_r (- IZreal z1)).
+    replace (IZreal z1 + - IZreal z1) with real_0_ by ring.
+    rewrite <- IZ_asym.
+    rewrite <- IZreal_hom.
+    replace (z2 + - z1)%Z with (z2 - z1)%Z by lia.
+    fold z.
+    assert (0 <= z)%Z by lia.
+    apply IZreal_le_0.
+    auto.
+  Defined.
+    
+  
+  Lemma IZreal_lt_aux : forall z1 z2 : Z, (z1 < z2)%Z -> (@IZreal R z1) < (IZreal z2).
+  Proof.
+    intros.
+    pose (z := (z2 - z1 - 1)%Z).
+    apply (real_lt_add_r (- IZreal (z1 + 1))).
+    (* replace (IZreal z1 + - IZreal (z1 + 1)) with (- real_1_) by ring. *)
+    rewrite <- IZ_asym.
+    rewrite <- IZreal_hom.
+    rewrite <- IZreal_hom.
+
+    replace (z2 + - (z1 + 1))%Z with z by lia.
+    replace ((z1 + - (z1 + 1)))%Z with ((-1))%Z by lia.
+    unfold IZreal at 1.
+    unfold IPreal.
+    assert (0 <= z)%Z by lia.
+    pose proof (IZreal_le_0 z H0).
+    apply (real_lt_add_r (real_1_)).
+    replace (- real_1_ + real_1_) with real_0_ by ring.
+    destruct H1.
+    pose proof (real_lt_lt_plus_lt _ _ _ _ H1 real_1_gt_0).
+    rewrite real_plus_unit in H2.
+    exact H2.
+    rewrite <- H1.
+    rewrite real_plus_unit.
+    apply real_1_gt_0.
+  Defined.
+  
+
+  Lemma IZreal_le : forall z1 z2 : Z, (@IZreal R z1) <= (IZreal z2) =  (z1 <= z2)%Z.
+  Proof.
+    intros.
+    apply Prop_ext; intro.
+    assert (z1 <= z2 \/ z2 < z1)%Z by lia.
+    destruct H0; auto.
+    pose proof (IZreal_lt_aux _ _ H0).
+    contradiction (real_gt_nle _ _ H1 H).
+    apply IZreal_le_aux.
+    auto.
+  Defined.
   
 End RealOrder.
 
