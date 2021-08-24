@@ -82,7 +82,7 @@ Section M_Defs.
 
 Generalizable Variables K M.
 
-Context `(klb : LazyBool K) `(M_Monad : Monad M) (MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad).
+Context `{klb : LazyBool K} `{M_Monad : Monad M} {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad}.
 
 Definition M_description A := @Monoid_hom_nat_trans _ _ _ _ MultivalueMonad_description A.
 
@@ -98,7 +98,7 @@ Class MultivalueMonad :=
     MultivalueMonad_destruct : forall A (X : M A), M  {x : A | projP1 _ _ (M_description A X) x};
   }.
 
-Context (M_MultivalueMonad : MultivalueMonad).
+Context {M_MultivalueMonad : MultivalueMonad}.
 
 (* Definition M : Type -> Type := M. *)
 Definition M_lift : forall A B, (A -> B) -> M A -> M B := Monad_fun_map.
