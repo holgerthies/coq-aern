@@ -7,29 +7,37 @@ Extraction Language Haskell.
 (* Require Import Real. *)
 Require Import Kleene.
 
-Section K.
-  Generalizable Variable K.
-  Context `(klb : LazyBool K).
-  Definition lb_test := lazy_bool_and lazy_bool_true lazy_bool_false.
-End K.
-
-(* interpreting kleenean *)
-Extract Inlined Constant lazy_bool_true => "(const (AERN2.ckleenean Prelude.True))".
-Extract Inlined Constant lazy_bool_false => "(const (AERN2.ckleenean Prelude.False))".
-Extract Inlined Constant lazy_bool_neg => "(const OGB.not)".
-Extract Inlined Constant lazy_bool_and => "(const (OGB.&&))".
-Extract Inlined Constant lazy_bool_or => "(const (OGB.||))".
-
-(* Test extraction of Kleeneans *)
+(* Declare the existence of Kleeneans *)
 Parameter K : Set.
 Axiom K_LazyBool : LazyBool K.
 
+(* interpreting Kleeneans *)
 Extract Inlined Constant K => "AERN2.CKleenean".
-Definition k_test := @lb_test K K_LazyBool.
 
-Extraction "K_Test" k_test.
+Extract Inlined Constant lazy_bool_true => "(\ _ -> (AERN2.ckleenean Prelude.True))".
+Extract Inlined Constant lazy_bool_false => "(\ _ -> (AERN2.ckleenean Prelude.False))".
+Extract Inlined Constant lazy_bool_neg => "(\ _ -> OGB.not)".
+Extract Inlined Constant lazy_bool_and => "(\ _ -> (OGB.&&))".
+Extract Inlined Constant lazy_bool_or => "(\ _ -> (OGB.||))".
 
-(* TODO: update the rest of the file *)
+(* Test extraction of Kleeneans *)
+Section K_Dummy_Defs.
+  Generalizable Variable K.
+  Context `(klb : LazyBool K).
+  Definition lb_test := lazy_bool_and lazy_bool_true lazy_bool_false.
+End K_Dummy_Defs.
+Definition k_test := @lb_test K_LazyBool.
+(* Extraction "K_Test" k_test. *)
+
+Require Import Monad.
+Require Import ClassicalMonads.
+Require Import MultivalueMonad.
+
+(* Declare the existence of multivaluemonad *)
+Parameter M : Type -> Type.
+Axiom M_Monad : Monad M.
+Axiom MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad.
+Axiom M_MultivalueMonad : @MultivalueMonad _ K_LazyBool _ _ MultivalueMonad_description.
 
 (* interpreting multivaluemonad *)
 Extract Constant M "a" => " a ".
@@ -39,6 +47,12 @@ Extract Inlined Constant M_lift => "Prelude.id".
 Extract Inlined Constant M_hprop_elim_f => "Prelude.id".
 Extract Inlined Constant M_paths => "(\ x0 f n -> Prelude.foldl (Prelude.flip f) x0 [0 .. (n Prelude.- 1)])".
 Extract Inlined Constant M_countable_lift => "Prelude.id". 
+
+(* Test extraction of multivaluemonad *)
+Definition m_test := @select _ _ _ _ _ M_MultivalueMonad.
+Extraction "M_Test" m_test.
+
+(* TODO: update the rest of the file *)
 
 (* Assume that there is Real*)
 Axiom R : ComplArchiSemiDecOrderedField.
