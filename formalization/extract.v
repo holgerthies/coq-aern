@@ -47,51 +47,27 @@ Extract Inlined Constant M_countable_lift => "Prelude.id".  *)
 (* Definition m_test := @select _ _ _ _ _ M_MultivalueMonad.
 Extraction "M_Test" m_test. *)
 
-(* TODO: update the rest of the file *)
+Require Import RealAxioms.
 
 (* Assume that there is Real*)
-Axiom R : ComplArchiSemiDecOrderedField.
+Parameter Real : Set.
+Axiom Real_SemiDecOrderedField : @SemiDecOrderedField  _ K_LazyBool Real.
+Axiom Real_ComplArchiSemiDecOrderedField : @ComplArchiSemiDecOrderedField _ _ _ Real_SemiDecOrderedField.
 
-Require Import Minmax.
-Definition extract_max := @real_max R.
-Extraction "Max" R.
-
-(* Real is Real, K is LazyBoolean, and M T is T *)
 Extract Inlined Constant Real => "AERN2.CReal".
-Extract Inlined Constant K => "AERN2.CKleenean".
 
-(* Axioms for Kleenean *)
-Extract Inlined Constant trueK => "(AERN2.ckleenean Prelude.True)".
-Extract Inlined Constant falseK => "(AERN2.ckleenean Prelude.False)".
-                                   
-Extract Inlined Constant kneg => "OGB.not".
-Extract Inlined Constant kland => "(OGB.&&)".
-Extract Inlined Constant klor => "(OGB.||)".
+Extract Constant Real_SemiDecOrderedField => "Build_SemiDecOrderedField 0 1 (Prelude.+) (Prelude.*) Prelude.negate (\ x _ -> Prelude.recip x) (OGB.<)".
 
-Extract Inlined Constant select => "AERN2.select".
+Extract Constant Real_ComplArchiSemiDecOrderedField => "(\ f _ -> AERN2.limit f)".
 
-(* Axioms for Multivalueness *)
-Extract Constant M "a" => " a ".
-Extract Inlined Constant unitM => "Prelude.id".
-Extract Inlined Constant multM => "Prelude.id".
-Extract Inlined Constant liftM => "Prelude.id".
+(* Test extraction of Real *)
+Definition Real_test1 := @real_2 _ _ _ Real_SemiDecOrderedField.
+Extraction "Real_Test1" Real_test1.
 
-Extract Inlined Constant elimM => "Prelude.id".
-Extract Inlined Constant pathsM => "(\ x0 f n -> Prelude.foldl (Prelude.flip f) x0 [0 .. (n Prelude.- 1)])".
-(* Extracted countableLiftM is too slow. *)
-Extract Inlined Constant countableLiftM => "Prelude.id". 
+Definition Real_test2 := @real_limit_p _ _ _ _ Real_ComplArchiSemiDecOrderedField.
+Extraction "Real_Test2" Real_test2.
 
-(* Exact Real Number Operations *)
-Extract Inlined Constant Real0 => "0".
-Extract Inlined Constant Real1 => "1".
-
-Extract Inlined Constant Realplus => "(Prelude.+)".
-Extract Inlined Constant Realmult => "(Prelude.*)".
-Extract Inlined Constant Realopp => "Prelude.negate".
-Extract Inlined Constant Realinv => "Prelude.recip".
-Extract Inlined Constant Reallt_semidec => "(OGB.<)".
-Extract Inlined Constant Realgt_semidec => "(OGB.>)".
-Extract Inlined Constant Real_limit_p => "AERN2.limit".
+(* TODO: update the rest of the file *)
 
 Extract Inductive bool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
 Extract Inductive sumbool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
