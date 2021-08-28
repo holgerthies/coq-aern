@@ -13,21 +13,18 @@ Axiom K_LazyBool : LazyBool K.
 
 (* interpreting Kleeneans *)
 Extract Inlined Constant K => "AERN2.CKleenean".
-
-Extract Inlined Constant lazy_bool_true => "(\ _ -> (AERN2.ckleenean Prelude.True))".
-Extract Inlined Constant lazy_bool_false => "(\ _ -> (AERN2.ckleenean Prelude.False))".
-Extract Inlined Constant lazy_bool_neg => "(\ _ -> OGB.not)".
-Extract Inlined Constant lazy_bool_and => "(\ _ -> (OGB.&&))".
-Extract Inlined Constant lazy_bool_or => "(\ _ -> (OGB.||))".
+Extract Constant K_LazyBool => "Build_LazyBool (AERN2.ckleenean Prelude.True) (AERN2.ckleenean Prelude.False) OGB.not (OGB.||) (OGB.&&) (\k _ -> Prelude.error ""UNREALIZED lazy_bool_defined_is_bool"")".
 
 (* Test extraction of Kleeneans *)
+(* 
 Section K_Dummy_Defs.
   Generalizable Variable K.
   Context `(klb : LazyBool K).
   Definition lb_test := lazy_bool_and lazy_bool_true lazy_bool_false.
 End K_Dummy_Defs.
 Definition k_test := @lb_test K_LazyBool.
-(* Extraction "K_Test" k_test. *)
+Extraction "K_Test" k_test. 
+*)
 
 Require Import Monad.
 Require Import ClassicalMonads.
@@ -40,17 +37,15 @@ Axiom MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad.
 Axiom M_MultivalueMonad : @MultivalueMonad _ K_LazyBool _ _ MultivalueMonad_description.
 
 (* interpreting multivaluemonad *)
-Extract Constant M "a" => " a ".
-Extract Inlined Constant M_unit => "Prelude.id".
-Extract Inlined Constant M_mult => "Prelude.id".
-Extract Inlined Constant M_lift => "Prelude.id".
-Extract Inlined Constant M_hprop_elim_f => "Prelude.id".
-Extract Inlined Constant M_paths => "(\ x0 f n -> Prelude.foldl (Prelude.flip f) x0 [0 .. (n Prelude.- 1)])".
-Extract Inlined Constant M_countable_lift => "Prelude.id". 
+Extract Constant M "a" => "a".
+Extract Constant M_Monad => "Build_Monad (\ _ _ _ m -> m) (\_ a -> unsafeCoerce a) (\ _ m -> m)".
+Extract Constant M_MultivalueMonad => "Build_MultivalueMonad (Prelude.error ""UNREALIZED MultivalueMonad_base_monad_hprop_elim"") (Prelude.error ""UNREALIZED MultivalueMonad_base_monad_traces_lift"") (\k1 k2 _ -> unsafeCoerce (AERN2.select k1 k2)) (Prelude.error ""UNREALIZED MultivalueMonad_description_is_equiv"") (\ _ m -> m)".
+(* Extract Inlined Constant M_paths => "(\ x0 f n -> Prelude.foldl (Prelude.flip f) x0 [0 .. (n Prelude.- 1)])".
+Extract Inlined Constant M_countable_lift => "Prelude.id".  *)
 
 (* Test extraction of multivaluemonad *)
-Definition m_test := @select _ _ _ _ _ M_MultivalueMonad.
-Extraction "M_Test" m_test.
+(* Definition m_test := @select _ _ _ _ _ M_MultivalueMonad.
+Extraction "M_Test" m_test. *)
 
 (* TODO: update the rest of the file *)
 
@@ -149,8 +144,10 @@ The Haskell module will require the following packages:
 
 In the generated Haskell files, add the following imports:
 
-import qualified Numeric.OrdGenericBool as OGB
 import MixedTypesNumPrelude (ifThenElse)
+import qualified Numeric.OrdGenericBool as OGB
+import qualified Control.Monad
+import qualified Data.Functor
 import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
