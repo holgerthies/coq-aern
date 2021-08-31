@@ -4,6 +4,9 @@ Require ExtrHaskellNatInteger.
 Require ExtrHaskellZInteger.
 Extraction Language Haskell.
 
+Require Import ZArith_base.
+
+
 (* Require Import Real. *)
 Require Import Kleene.
 
@@ -16,15 +19,14 @@ Extract Inlined Constant K => "AERN2.CKleenean".
 Extract Constant K_LazyBool => "Build_LazyBool (AERN2.ckleenean Prelude.True) (AERN2.ckleenean Prelude.False) OGB.not (OGB.||) (OGB.&&) (\k _ -> Prelude.error ""UNREALIZED lazy_bool_defined_is_bool"")".
 
 (* Test extraction of Kleeneans *)
-(* 
+
 Section K_Dummy_Defs.
   Generalizable Variable K.
   Context `(klb : LazyBool K).
   Definition lb_test := lazy_bool_and lazy_bool_true lazy_bool_false.
 End K_Dummy_Defs.
 Definition k_test := @lb_test K_LazyBool.
-Extraction "K_Test" k_test. 
-*)
+(* Extraction "K_Test" k_test.  *)
 
 Require Import Monad.
 Require Import ClassicalMonads.
@@ -60,23 +62,35 @@ Extract Constant Real_SemiDecOrderedField => "Build_SemiDecOrderedField 0 1 (Pre
 
 Extract Constant Real_ComplArchiSemiDecOrderedField => "(\ f _ -> AERN2.limit f)".
 
+(* Some shortcuts for efficiency. Not necessary. *)
+Extract Constant IZreal => "(\_ _ z -> __uc (AERN2.creal z))".
+Extract Constant real_minus => "(\_ _ x y -> __uc (((__R x) Prelude.- (__R y))))".
+Extract Constant real_div => "(\_ _ x y -> __uc (((__R x) Prelude./ (__R y))))".
+Extract Constant prec => "(\_ _ n -> __uc ((0.5 :: AERN2.CReal) Prelude.^ n))".
+
 (* Test extraction of Real *)
-Definition Real_test1 := @real_2 _ _ _ Real_SemiDecOrderedField.
-Extraction "Real_Test1" Real_test1.
+Section Real_tests.
+  Local Open Scope Real_scope.
 
-Definition Real_test2 := @real_limit_p _ _ _ _ Real_ComplArchiSemiDecOrderedField.
-Extraction "Real_Test2" Real_test2.
+  Generalizable Variables K M R.
 
-(* TODO: update the rest of the file *)
+  Context `{klb : LazyBool K} `{M_Monad : Monad M}
+    {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+    {M_MultivalueMonad : MultivalueMonad}
+    {R : Type}
+    {SemiDecOrderedField_Real : SemiDecOrderedField R}.
+  
+  Definition real_test1 := (IZreal 2) - (prec 2).
+End Real_tests.
+
+Definition R_test1 := @real_test1 _ _ Real_SemiDecOrderedField.
+(* Extraction "R_Test1" R_test1. *)
+
+Definition R_test2 := @real_limit_p _ _ _ _ Real_ComplArchiSemiDecOrderedField.
+(* Extraction "R_Test2" R_test2. *)
 
 Extract Inductive bool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
 Extract Inductive sumbool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
-
-(* some shortcuts for efficiency. Not necessary *)
-Extract Inlined Constant  Real2 => "2".
-Extract Inlined Constant Realminus => "(Prelude.-)".
-Extract Inlined Constant Realdiv => "(Prelude./)".
-Extract Inlined Constant prec => "(0.5 Prelude.^)".
 
 Extract Inductive sigT => "(,)" ["(,)"].
 Extract Inductive prod => "(,)"  [ "(,)" ].
@@ -85,6 +99,8 @@ Extract Inlined Constant Nat.log2 => "(MNP.integer Prelude.<<< Logs.integerLog2)
 
 (* Sewon's lab seminar talk material*)
 (* Maximum *)
+
+(* TODO: update the rest of the file *)
 
 (* root finding function *)
 Require Import IVT.
@@ -118,14 +134,22 @@ The Haskell module will require the following packages:
 - aern2-real >= 0.2.1
 - integer-logarithms
 
-In the generated Haskell files, add the following imports:
+In the generated Haskell files, add the following imports and definitions:
 
 import MixedTypesNumPrelude (ifThenElse)
 import qualified Numeric.OrdGenericBool as OGB
+import qualified Unsafe.Coerce as UC
 import qualified Control.Monad
 import qualified Data.Functor
 import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
+
+__uc :: a -> b
+__uc = UC.unsafeCoerce
+__K :: a -> AERN2.CKleenean
+__K = UC.unsafeCoerce
+__R :: a -> AERN2.CReal
+__R = UC.unsafeCoerce
 
 *)
