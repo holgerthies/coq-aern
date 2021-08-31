@@ -1,14 +1,21 @@
 Require Import Real.
 
 Section Minmax.
-  Context {T : ComplArchiSemiDecOrderedField}.
-  Notation R := (CarrierField T).
-  
+  Generalizable Variables K M Real.
+
+  Context `{klb : LazyBool K} `{M_Monad : Monad M}
+          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+          {M_MultivalueMonad : MultivalueMonad}
+          {Real : Type}
+          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
+          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+
+  (* ring structure on Real *)
   Ltac IZReal_tac t :=
     match t with
-    | @real_0 R => constr:(0%Z)
-    | @real_1 R => constr:(1%Z)
-    | @IZreal R ?u =>
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
       match isZcst u with
       | true => u
       | _ => constr:(InitialRing.NotConstant)
@@ -16,14 +23,11 @@ Section Minmax.
     | _ => constr:(InitialRing.NotConstant)
     end.
 
-  Add Ring realRing : (realTheory R) (constants [IZReal_tac]).
-  
-  Notation real_ := (real R).
-  Notation real_0_ := (@real_0 R).
-  Notation real_1_ := (@real_1 R).
-  Notation prec_ := (@prec R).
+  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
-  Definition real_is_max (x y z : real_)
+
+  
+  Definition real_is_max (x y z : Real)
     := (x > y -> z = x) /\ (x = y -> z = x) /\ (x < y -> z = y).
 
   Lemma real_is_max_or : forall x y z, real_is_max x y z -> (x = z) \/ (y = z).
@@ -68,7 +72,7 @@ Section Minmax.
   (***************************************************************)
   (** ** min                                                     *)
   (***************************************************************)
-  Definition real_is_min (x y z : real_)
+  Definition real_is_min (x y z : Real)
     := (x > y -> z = y) /\ (x = y -> z = x) /\ (x < y -> z = x).
 
   Lemma real_is_min_or : forall x y z, real_is_min x y z -> (x = z) \/ (y = z).
@@ -144,7 +148,9 @@ Section Minmax.
       intros m' H'.
       destruct (real_is_max_Or x y m H) as [[H11 H12]|[H11 H12]];
         destruct (real_is_max_Or x y m' H') as [[H11' H12']|[H11' H12']];
-        try rewrite <- H11; try rewrite <- H11'; auto with real.   
+        try rewrite <- H11; try rewrite <- H11'; auto with real.
+      apply real_ge_ge_eq; auto.
+      apply real_ge_ge_eq; auto.
     + (* construct limit *)
       intros.
       apply (mjoin (x>y - prec n) (y > x - prec n)).
@@ -160,12 +166,12 @@ Section Minmax.
                 apply prec_pos.
                 
            ++++ rewrite <- H1.
-                pose proof (@prec_pos T n) as P.
+                pose proof (prec_pos n) as P.
                 apply (real_lt_plus_lt y real_0 (prec n)) in P; ring_simplify in P.
                 apply (real_ge_le) in H2.
                 apply (real_le_lt_lt x y (y+prec n) H2) in P.
                 assert (y-prec n < x < y+prec n) by auto.
-                pose proof (@prec_pos T n) as Q.
+                pose proof (prec_pos n) as Q.
                 rewrite (dist_symm).
                 apply (real_metric_gtgt_sand y x (prec n) Q H0).
                 
@@ -176,12 +182,12 @@ Section Minmax.
            constructor; auto.
            destruct (real_is_max_Or x y x0 H) as [[H1 H2]|[H1 _]].
            ++++ rewrite <- H1.
-                pose proof (@prec_pos T n) as P.
+                pose proof (prec_pos n) as P.
                 apply (real_lt_plus_lt x real_0 (prec n)) in P; ring_simplify in P.
                 apply (real_ge_le) in H2.
                 apply (real_le_lt_lt y x (x+prec n) H2) in P.
                 assert (x-prec n < y < x+prec n) by auto.
-                pose proof (@prec_pos T n) as Q.
+                pose proof (prec_pos n) as Q.
                 rewrite (dist_symm).
                 apply (real_metric_gtgt_sand x y (prec n) Q H0).
            ++++ rewrite H1.
@@ -220,7 +226,7 @@ Section Minmax.
         rewrite H; ring.
   Defined.
 
-  Definition real_max (x y : real_) := projP1 _ _ (real_max_prop x y).
+  Definition real_max (x y : Real) := projP1 _ _ (real_max_prop x y).
 
 
   (* properties of max function *)
@@ -380,7 +386,7 @@ Section Minmax.
   Qed.
 
 
-  Lemma real_le_ge_eq : forall x y  : real_, x <= y -> x >= y -> x = y.
+  Lemma real_le_ge_eq : forall x y  : Real, x <= y -> x >= y -> x = y.
   Proof.
     intros.
     destruct H, H0.
@@ -392,7 +398,7 @@ Section Minmax.
 
   
 
-  Lemma real_abs_le0_eq0 : forall x : real_, abs x <= real_0 -> x = real_0.
+  Lemma real_abs_le0_eq0 : forall x : Real, abs x <= real_0 -> x = real_0.
   Proof.
     intros.
     pose proof (abs_pos x).
@@ -403,7 +409,7 @@ Section Minmax.
     exact (proj1 (abs_zero x) H ). 
   Qed.  
 
-  Lemma real_max_plus_eq : forall a b c : real_, c + real_max a b = real_max (a + c) (b + c).
+  Lemma real_max_plus_eq : forall a b c : Real, c + real_max a b = real_max (a + c) (b + c).
   Proof.
     intros.
     unfold real_max.

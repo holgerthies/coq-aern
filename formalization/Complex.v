@@ -8,14 +8,21 @@ Require Export Ring Field.
 
 
 Section Complex.
-  Context {T : ComplArchiSemiDecOrderedField}.
-  Notation R := (CarrierField T).
-  
+  Generalizable Variables K M Real.
+
+  Context `{klb : LazyBool K} `{M_Monad : Monad M}
+          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+          {M_MultivalueMonad : MultivalueMonad}
+          {Real : Type}
+          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
+          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+
+  (* ring structure on Real *)
   Ltac IZReal_tac t :=
     match t with
-    | @real_0 R => constr:(0%Z)
-    | @real_1 R => constr:(1%Z)
-    | @IZreal R ?u =>
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
       match isZcst u with
       | true => u
       | _ => constr:(InitialRing.NotConstant)
@@ -23,30 +30,26 @@ Section Complex.
     | _ => constr:(InitialRing.NotConstant)
     end.
 
-  Add Ring realRing : (realTheory R) (constants [IZReal_tac]).
-  
-  Notation real_ := (real R).
-  Notation real_0_ := (@real_0 R).
-  Notation real_1_ := (@real_1 R).
-  Notation prec_ := (@prec R).
+  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
-
-  Definition complex := @euclidean T 2.
   
 
-  Definition real_to_complex : real_ -> complex.
+  Definition complex := @euclidean Real 2.
+  
+
+  Definition real_to_complex : Real -> complex.
   Proof.
     intro x.
     exact (cons x (cons real_0 nil)).
   Defined.
 
-  Definition Imag_to_complex : real_ -> complex.
+  Definition Imag_to_complex : Real -> complex.
   Proof.
     intro x.
     exact (cons real_0 (cons x nil)).
   Defined.
 
-  Definition Complex : real_ -> real_ -> complex.
+  Definition Complex : Real -> Real -> complex.
   Proof.
     intros r i.
     exact (cons r (cons i nil)).
@@ -68,11 +71,11 @@ Section Complex.
     auto.
   Defined.
 
-  Definition complex0 := @euclidean_zero T 2.
+  Definition complex0 := euclidean_zero 2.
   Definition complex1 := Complex real_1 real_0.
-  Definition complex_plus := @euclidean_plus T 2.
-  Definition complex_opp := @euclidean_opp T 2.
-  Definition complex_minus := @euclidean_minus T 2.
+  Definition complex_opp : complex -> complex := euclidean_opp.
+  Definition complex_plus : complex -> complex -> complex := euclidean_plus.
+  Definition complex_minus : complex -> complex -> complex := euclidean_minus.
   Definition complex_mult : complex -> complex -> complex.
   Proof.
     intros x y.
