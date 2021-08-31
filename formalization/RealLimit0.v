@@ -1,9 +1,12 @@
-Require Export Base.
-Require Export Kleene.
+Require Import Base.
+Require Import Monad.
+Require Import ClassicalMonads.
+Require Import Nabla.
+Require Import Kleene.
 Require Import MultivalueMonad.
-Require Export RealAxioms.
-Require Export RealRing. 
-Require Export RealOrder.
+Require Import RealAxioms.
+Require Import RealRing.
+Require Import RealOrder.
 Require Export RealOrderTactic.
 
 Require Import Psatz.
@@ -11,14 +14,21 @@ Require Import Psatz.
 (* This file proves that Real is order complete in classical sense *)
 
 Section RealLimit0.
-  Context {T : ComplArchiSemiDecOrderedField}.
-  Notation R := (CarrierField T).
-  
+  Generalizable Variables K M Real.
+
+  Context `{klb : LazyBool K} `{M_Monad : Monad M}
+          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+          {M_MultivalueMonad : MultivalueMonad}
+          {Real : Type}
+          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
+          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+
+  (* ring structure on Real *)
   Ltac IZReal_tac t :=
     match t with
-    | @real_0 R => constr:(0%Z)
-    | @real_1 R => constr:(1%Z)
-    | @IZreal R ?u =>
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
       match isZcst u with
       | true => u
       | _ => constr:(InitialRing.NotConstant)
@@ -26,18 +36,12 @@ Section RealLimit0.
     | _ => constr:(InitialRing.NotConstant)
     end.
 
-  
-  Notation real_ := (real R).
-  Notation real_0_ := (@real_0 R).
-  Notation real_1_ := (@real_1 R).
-  Notation prec_ := (@prec R).
-  
+  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
-  Add Ring realRing : (realTheory R) (constants [IZReal_tac]).
 
 
   
-  Lemma limit_only_if_fast_cauchy : forall f (x : real_), is_fast_limit_p x f -> is_fast_cauchy_p f.
+  Lemma limit_only_if_fast_cauchy : forall f (x : Real), is_fast_limit_p x f -> is_fast_cauchy_p f.
   Proof.
     intros f x H n m.
     pose proof (H n).
@@ -55,14 +59,14 @@ Section RealLimit0.
   Qed.
     
   (*  *)
-  Definition is_W_limit_p (x : real_) (f : nat -> real_) :=
+  Definition is_W_limit_p (x : Real) (f : nat -> Real) :=
     forall n, exists N, forall m, (N <= m)%nat ->  - prec n <= x - f m <= prec n.
 
-  Definition is_W_cauchy_p (f : nat -> real_) :=
+  Definition is_W_cauchy_p (f : nat -> Real) :=
     forall n, exists N, forall m k, (N <= m)%nat -> (N <= k)%nat -> - prec n <= f m - f k <= prec n.
 
   Lemma W_limit_p_aux_1 :
-    forall (f : nat -> real_),
+    forall (f : nat -> Real),
       is_W_cauchy_p f ->
       exists h : nat -> nat, 
         forall n m k,  (h n <= m)%nat -> (h n <= k)%nat -> -prec n <= f m - f k <= prec n. 
@@ -74,15 +78,16 @@ Section RealLimit0.
   Defined.
     
   Lemma W_limit_p :
-    forall (f : nat -> real_), is_W_cauchy_p f -> exists x, is_W_limit_p x f.
+    forall (f : nat -> Real), is_W_cauchy_p f -> exists x, is_W_limit_p x f.
   Proof.
     intros.
     destruct (W_limit_p_aux_1 f H) as [g p].
 
-    pose proof (real_limit_p _ (fun n => f ( g n))).
+    pose proof (real_limit_p (fun n => f ( g n))).
 
     assert ( is_fast_cauchy_p (fun n : nat => f ( g n))).
     + intros n m .
+      assert True by auto.
       assert (g n < g m \/ g m <= g n)%nat by lia.
       destruct H1.    
     ++
@@ -93,17 +98,17 @@ Section RealLimit0.
       destruct H5.
       left.
       apply (fun a => real_lt_le_lt _ _ _ a  H5).
-      apply (real_lt_add_r (prec_ n + prec_ m)).
-      replace ( - prec_ n - prec_ m + (prec_ n + prec_ m)) with real_0_ by ring.
-      replace (- prec_ n + (prec_ n + prec_ m)) with (prec_ m) by ring.
+      apply (real_lt_add_r (prec n + prec m)).
+      replace ( - prec n - prec m + (prec n + prec m)) with real_0 by ring.
+      replace (- prec n + (prec n + prec m)) with (prec m) by ring.
       apply prec_pos.
       destruct H5.
       left.
       apply (real_le_lt_lt _ _ _ H6).
-      apply (real_lt_add_r (-prec_ n)).
+      apply (real_lt_add_r (-prec n)).
       replace
-        (prec_ n + - prec_ n) with real_0_ by ring.
-      replace (prec_ n + prec_ m + - prec_ n) with (prec_ m) by ring.
+        (prec n + - prec n) with real_0 by ring.
+      replace (prec n + prec m + - prec n) with (prec m) by ring.
       apply prec_pos.
     ++
       pose proof (p m ( g n) ( g m)).
@@ -113,18 +118,20 @@ Section RealLimit0.
       destruct H5.
       left.
       apply (fun a => real_lt_le_lt _ _ _ a  H5).
-      apply (real_lt_add_r (prec_ n + prec_ m)).
-      replace (- prec_ n - prec_ m + (prec_ n + prec_ m)) with real_0_ by ring.
-      replace ( - prec_ m + (prec_ n + prec_ m)) with (prec_ n) by ring.
+      apply (real_lt_add_r (prec n + prec m)).
+      replace (- prec n - prec m + (prec n + prec m)) with real_0 by ring.
+      replace ( - prec m + (prec n + prec m)) with (prec n) by ring.
       apply prec_pos.
       destruct H5.
       left.
       apply (real_le_lt_lt _ _ _ H6).
-      apply (real_lt_add_r (-prec_ m)).
-      replace ( prec_ m + - prec_ m) with real_0_ by ring.
-      replace (prec_ n + prec_ m + - prec_ m) with (prec_ n) by ring.
+      apply (real_lt_add_r (-prec m)).
+      replace ( prec m + - prec m) with real_0 by ring.
+      replace (prec n + prec m + - prec m) with (prec n) by ring.
       apply prec_pos.
     +
+      rename H0 into H1.
+      rename X into H0.
       apply H0 in H1.
       clear H0.
 
@@ -142,7 +149,7 @@ Section RealLimit0.
       destruct H2, H6.
       split.
       pose proof (real_le_le_plus_le _ _ _ _ H2 H4).
-      replace ( - prec_ (n + 1) + - prec_ (n + 1)) with (- (prec_ (n + 1) + prec_ (n+1))) in H6 by ring.
+      replace ( - prec (n + 1) + - prec (n + 1)) with (- (prec (n + 1) + prec (n+1))) in H6 by ring.
       rewrite prec_twice in H6.
       replace (x - f (g (n + 1)%nat) + (f (g (n + 1)%nat) - f m)) with (x - f m) in H6 by ring.
       exact H6.
@@ -156,20 +163,20 @@ Section RealLimit0.
 
 
   
-  Definition W_is_non_empty (P : real_ -> Prop) := exists z, P z.
-  Definition W_is_upper_bound  (P : real_ -> Prop) (u : real_ ) := forall z : real_, P z -> z <= u.
-  Definition W_is_strict_upper_bound  (P : real_ -> Prop) (u : real_ ) := forall z : real_, P z -> z < u.
-  Definition W_is_bounded_above (P : real_ -> Prop) := exists u, W_is_upper_bound P u.
-  Definition W_is_strictly_bounded_above (P : real_ -> Prop) := exists u, W_is_strict_upper_bound P u.
+  Definition W_is_non_empty (P : Real -> Prop) := exists z, P z.
+  Definition W_is_upper_bound  (P : Real -> Prop) (u : Real ) := forall z : Real, P z -> z <= u.
+  Definition W_is_strict_upper_bound  (P : Real -> Prop) (u : Real ) := forall z : Real, P z -> z < u.
+  Definition W_is_bounded_above (P : Real -> Prop) := exists u, W_is_upper_bound P u.
+  Definition W_is_strictly_bounded_above (P : Real -> Prop) := exists u, W_is_strict_upper_bound P u.
   
-  (* Definition W_upbd (P : real_ -> Prop) := exists u, W_upb P u. *)
-  Definition W_is_sup  (P : real_-> Prop) (s : real_) := W_is_upper_bound P s /\ (forall s', W_is_upper_bound P s' -> s <= s').
+  (* Definition W_upbd (P : Real -> Prop) := exists u, W_upb P u. *)
+  Definition W_is_sup  (P : Real-> Prop) (s : Real) := W_is_upper_bound P s /\ (forall s', W_is_upper_bound P s' -> s <= s').
    
   Lemma W_complete_aux :
-    forall P : real_ -> Prop,
+    forall P : Real -> Prop,
       W_is_non_empty P ->  W_is_strictly_bounded_above P ->
-      exists w, w > real_0_ /\ exists f : nat -> real_,
-          (forall n, ~ W_is_strict_upper_bound P (f n) /\ W_is_strict_upper_bound P (f n + w * prec_ n)). 
+      exists w, w > real_0 /\ exists f : nat -> Real,
+          (forall n, ~ W_is_strict_upper_bound P (f n) /\ W_is_strict_upper_bound P (f n + w * prec n)). 
   Proof.
     intros.
     destruct H.
@@ -178,10 +185,10 @@ Section RealLimit0.
     split.
     pose proof (H0  _ H).
     apply (real_lt_plus_lt (-x)) in H1.
-    replace (-x + x) with real_0_ in H1 by ring.
+    replace (-x + x) with real_0 in H1 by ring.
     replace (-x + x0) with (x0 - x) in H1 by ring.
     exact H1.
-    apply (countable_choice real_ (fun n y => ~ W_is_strict_upper_bound P y /\ W_is_strict_upper_bound P (y + (x0 - x) * prec_ n))).
+    apply (countable_choice Real (fun n y => ~ W_is_strict_upper_bound P y /\ W_is_strict_upper_bound P (y + (x0 - x) * prec n))).
     intro.
     induction n.
     exists x.
@@ -189,13 +196,13 @@ Section RealLimit0.
     intro.
     exact (real_nlt_triv  _ (H1 _ H)).
     
-    simpl prec_.
-    replace ((x + (x0 - x) * real_1_)) with x0 by ring.
+    simpl prec.
+    replace ((x + (x0 - x) * real_1)) with x0 by ring.
     exact H0.
 
     destruct IHn.
     destruct H1.
-    pose (m := (x1 + (x0 - x) * prec_ (S n))).
+    pose (m := (x1 + (x0 - x) * prec (S n))).
     destruct (lem (W_is_strict_upper_bound P m)).
     
     exists x1.
@@ -203,10 +210,10 @@ Section RealLimit0.
 
     exists m.
     split; auto.    
-    assert ( (m + (x0 - x) * prec_ (S n)) = (x1 + (x0 - x) * prec_ n)).
+    assert ( (m + (x0 - x) * prec (S n)) = (x1 + (x0 - x) * prec n)).
     unfold m.
-    replace ( x1 + (x0 - x) * prec_ (S n) + (x0 - x) * prec_ (S n))
-      with  ( x1 + (x0 - x) * (prec_ (S n) +  prec_ (S n))) by ring.
+    replace ( x1 + (x0 - x) * prec (S n) + (x0 - x) * prec (S n))
+      with  ( x1 + (x0 - x) * (prec (S n) +  prec (S n))) by ring.
     replace (S n) with (n + 1)%nat by lia.
     rewrite (prec_twice n).
     ring.
@@ -214,36 +221,36 @@ Section RealLimit0.
     exact H2.
   Defined.
 
-  Lemma W_log : forall x : real_, x > real_0_ -> exists n, x * prec n < real_1.
+  Lemma W_log : forall x : Real, x > real_0 -> exists n, x * prec n < real_1.
   Proof.
     intros.
-    pose proof (real_Archimedean _ (/ (dg0  H))).
-    pose proof (@real_pos_inv_pos2 _ _ H).
+    pose proof (real_Archimedean  (/ (dg0  H))).
+    pose proof (real_pos_inv_pos2  _ H).
     apply H0 in H1.
     destruct H1.
     exists x0.
-    apply (@real_lt_mult_pos_lt _ x _ _ H) in H1.
+    apply (real_lt_mult_pos_lt x _ _ H) in H1.
     replace ( x * /dg0 H) with (/dg0 H * x) in H1 by ring.
     rewrite (real_mult_inv) in H1.
     exact H1.
   Qed.
   
   
-  Lemma prec_monotone : forall n m, (n < m)%nat -> prec_ m < prec_ n.
+  Lemma prec_monotone : forall n m, (n < m)%nat -> prec m < prec n.
   Proof.
     intros.
     induction H.
     apply prec_S.
-    pose proof (@prec_S T m).
-    apply (@real_lt_lt_lt _ _ _ _ H0 IHle).
+    pose proof (prec_S m).
+    apply (real_lt_lt_lt _ _ _ H0 IHle).
   Qed.
    
-  Lemma W_complete_aux_2 : forall (P : real_ -> Prop) x,
+  Lemma W_complete_aux_2 : forall (P : Real -> Prop) x,
       ~ W_is_strict_upper_bound P x -> exists y, x <= y /\ P y.
   Proof.
     intros.
     unfold W_is_strict_upper_bound in H.
-    destruct (lem (exists y : real_, x <= y /\ P y)); auto.
+    destruct (lem (exists y : Real, x <= y /\ P y)); auto.
     contradict H.
     intros.
     destruct (lem (z < x)); auto.
@@ -257,18 +264,18 @@ Section RealLimit0.
     contradict (H1 H0).
   Qed.
 
-  Lemma real_le_lt_plus_lt : forall a b c d : real_, a <= b -> c < d -> a + c < b + d.
+  Lemma real_le_lt_plus_lt : forall a b c d : Real, a <= b -> c < d -> a + c < b + d.
   Proof.
     intros.
     destruct H.
-    apply (@real_lt_lt_plus_lt _ _ _ _ _ H H0).
+    apply (real_lt_lt_plus_lt _ _ _ _ H H0).
     rewrite H.
-    apply (@real_lt_plus_lt _ b  _ _ H0).
+    apply (real_lt_plus_lt b  _ _ H0).
   Qed.
   
   
     
-  Theorem W_complete : forall P : real_ -> Prop,
+  Theorem W_complete : forall P : Real -> Prop,
       W_is_non_empty P ->  W_is_bounded_above P ->
        exists z, W_is_sup P z.
   Proof.
@@ -285,7 +292,7 @@ Section RealLimit0.
     destruct (W_log _ pw) as [i j].
     exists (i + n + 1)%nat.
     intros.
-    (* destruct (lem (f m - f n > prec_ n \/ f n - f m > prec_ n)). *)
+    (* destruct (lem (f m - f n > prec n \/ f n - f m > prec n)). *)
     (* destruct H6. *)
     pose proof (h m) as [pm nm].
     pose proof (h k) as [pk nk].
@@ -296,30 +303,30 @@ Section RealLimit0.
     pose proof (nm _ ppp).
     pose proof (@real_le_lt_plus_lt _ _ _ _ qq H6). 
     pose proof (@real_le_lt_plus_lt _ _ _ _ pp H7). 
-    apply (@real_lt_plus_lt _ (- q - f k)) in H8.
-    apply (@real_lt_plus_lt _ (- p - f k - w * prec_ m)) in H9.
+    apply (real_lt_plus_lt (- q - f k)) in H8.
+    apply (real_lt_plus_lt (- p - f k - w * prec m)) in H9.
     ring_simplify in H8.
     ring_simplify in H9.
     replace (f m - f k) with (- f k + f m) by ring.
     split; left.
-    apply (fun a => @real_lt_lt_lt _ _ _ _ a H9).
-    apply (real_lt_add_r (prec_ n + w * prec_ m)). 
+    apply (fun a => real_lt_lt_lt _ _ _ a H9).
+    apply (real_lt_add_r (prec n + w * prec m)). 
     ring_simplify.
-    apply (@real_lt_mult_pos_lt _ (prec_ n) _ _ (prec_pos _)) in j.
+    apply (real_lt_mult_pos_lt (prec n) _ _ (prec_pos _)) in j.
     ring_simplify in j.
-    apply (fun a => @real_lt_lt_lt _ _ _ _ a j).
-    replace (prec_ n * w * prec_ i) with (w * (prec_ n  * prec_ i)) by ring.
-    apply ( @real_lt_mult_pos_lt _ w _ _ pw).
+    apply (fun a => real_lt_lt_lt _ _ _ a j).
+    replace (prec n * w * prec i) with (w * (prec n  * prec i)) by ring.
+    apply (real_lt_mult_pos_lt w _ _ pw).
     rewrite <- prec_hom.
     apply prec_monotone.
     lia.
 
-    apply (@real_lt_lt_lt _ _ _ _ H8).
-    apply (@real_lt_mult_pos_lt _ (prec_ n) _ _ (prec_pos _)) in j.
+    apply (real_lt_lt_lt _ _ _ H8).
+    apply (real_lt_mult_pos_lt (prec n) _ _ (prec_pos _)) in j.
     ring_simplify in j.
-    apply (fun a => @real_lt_lt_lt _ _ _ _ a j).
-    replace (prec_ n * w * prec_ i) with (w * (prec_ n  * prec_ i)) by ring.
-    apply ( @real_lt_mult_pos_lt _ w _ _ pw).
+    apply (fun a => real_lt_lt_lt _ _ _ a j).
+    replace (prec n * w * prec i) with (w * (prec n  * prec i)) by ring.
+    apply (real_lt_mult_pos_lt w _ _ pw).
     rewrite <- prec_hom.
     apply prec_monotone.
     lia.
@@ -334,7 +341,7 @@ Section RealLimit0.
     destruct H6.
     right; auto.
     destruct (padding _ _ H6) as [eps [pos e]].
-    destruct (real_Archimedean _ _ pos) as [k pk].
+    destruct (real_Archimedean _ pos) as [k pk].
 
     destruct (W_log _ pw) as [i j].
     
@@ -346,36 +353,36 @@ Section RealLimit0.
     apply H7 in H8.
     clear H7.
     pose proof (h (N + k  + 2 + i)%nat) as [_ hh].
-    assert (f (N + k  + 2 + i)%nat + w * prec_ (N + k  + 2 + i) < z).
+    assert (f (N + k  + 2 + i)%nat + w * prec (N + k  + 2 + i) < z).
     rewrite e.
     rewrite prec_hom.
-    pose proof (@real_lt_mult_pos_lt _  (prec_ (N + k + 2 )) _ _ (prec_pos (N + k + 2 )) j ).
-    apply (@real_lt_plus_lt _ (f (N + k  + 2 + i)%nat)) in H7.
-    replace ( f (N + k  + 2 + i)%nat + prec_ (N  + k + 2 ) * (w * prec_ i)) with ( f (N + k  + 2 + i)%nat + w * (prec_ (N + k + 2 ) * prec_ i)) in H7 by ring.
-    apply (@real_lt_lt_lt _  _ _ _ H7).
+    pose proof (real_lt_mult_pos_lt (prec (N + k + 2 )) _ _ (prec_pos (N + k + 2 )) j ).
+    apply (real_lt_plus_lt (f (N + k  + 2 + i)%nat)) in H7.
+    replace ( f (N + k  + 2 + i)%nat + prec (N  + k + 2 ) * (w * prec i)) with ( f (N + k  + 2 + i)%nat + w * (prec (N + k + 2 ) * prec i)) in H7 by ring.
+    apply (real_lt_lt_lt _ _ _ H7).
     
     destruct H8 as [H8 _].
-    apply (real_le_plus_le (f (N + k  + 2 + i)%nat + prec_ (k + 1) + prec_ (N + k + 2 ))) in H8.
+    apply (real_le_plus_le (f (N + k  + 2 + i)%nat + prec (k + 1) + prec (N + k + 2 ))) in H8.
     ring_simplify in H8.
-    replace (prec_ (N +  k + 2 ) * real_1_) with (prec_ (N + k + 2 )) by ring.
+    replace (prec (N +  k + 2 ) * real_1) with (prec (N + k + 2 )) by ring.
     apply (real_le_lt_lt _ _ _ H8).
     apply (real_lt_add_r (-x0)).
     ring_simplify.
-    apply (fun a => @real_lt_lt_lt _ _ _ _ a pk).
+    apply (fun a => real_lt_lt_lt _ _ _ a pk).
     rewrite <- (prec_twice k).
-    apply (real_lt_add_r (-prec_ (k + 1))).
+    apply (real_lt_add_r (-prec (k + 1))).
     ring_simplify.
     apply prec_monotone.
     lia.
     pose proof (hh _ p).
-    contradict (real_nlt_triv _ (@real_lt_lt_lt _ _ _ _ H7 H9)).
+    contradict (real_nlt_triv _ (real_lt_lt_lt _ _ _ H7 H9)).
 
 
 
     intros z qp.
     destruct (real_total_order z x0).    
     destruct (padding _ _ H6) as [eps [pos e]].
-    destruct (real_Archimedean _ _ pos) as [k pk].
+    destruct (real_Archimedean _ pos) as [k pk].
 
     destruct (W_log _ pw) as [i j].
     
@@ -393,16 +400,16 @@ Section RealLimit0.
     ring_simplify in e.
     rewrite <- e.
     destruct H8 as [_ H8].
-    assert (x0 - f N + prec_ k < prec_ (k + 1) + eps).
+    assert (x0 - f N + prec k < prec (k + 1) + eps).
     destruct H8.
     apply (real_lt_lt_plus_lt _ _ _ _ H7 pk).
     rewrite H7.
-    apply (@real_lt_plus_lt _ (prec_ (k + 1))  _ _   pk).
-    apply (@real_lt_plus_lt _ (-eps + f N - prec_ k)) in H7.
+    apply (real_lt_plus_lt (prec (k + 1))  _ _   pk).
+    apply (real_lt_plus_lt (-eps + f N - prec k)) in H7.
     ring_simplify in H7.
     replace (- eps + x0) with (x0 - eps) in H7 by ring.
-    apply (@real_lt_lt_lt _ _ _ _ H7).
-    apply (real_lt_add_r (- f N + prec_ k)).
+    apply (real_lt_lt_lt _ _ _ H7).
+    apply (real_lt_add_r (- f N + prec k)).
     ring_simplify.
     apply prec_monotone.
     lia.

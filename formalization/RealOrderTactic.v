@@ -51,33 +51,33 @@ Ltac Tac_Real_order s t :=
   match (type of s) with
   |  (?A < ?B) =>
      match (type of t) with
-     | real _ =>
-       ((apply (@real_lt_plus_lt _ t _ _) in s);
+     | _  =>
+       ((apply (real_lt_plus_lt t _ _) in s);
         ring_simplify in s)
      | ltac_No_arg =>
-       ((apply (@real_lt_plus_lt _ (- B) _ _) in s);
+       ((apply (real_lt_plus_lt (- B) _ _) in s);
         ring_simplify in s)
      | _ => fail "has to be Real"
      end
        
   | (?A <= ?B) =>
     match (type of t) with
-    | real _ =>
-      ((apply (@real_le_plus_le _ t _ _) in s);
+    | _  =>
+      ((apply (real_le_plus_le t _ _) in s);
        ring_simplify in s)
     | ltac_No_arg =>
-      ((apply (@real_le_plus_le _ (- B) _ _) in s);
+      ((apply (real_le_plus_le (- B) _ _) in s);
        ring_simplify in s)
     | _ => fail "has to be Real"
     end
       
   |  (?A >= ?B) =>
      match (type of t) with
-     | real _ =>
-       ((apply (@real_ge_plus_ge _ t _ _) in s);
+     | _  =>
+       ((apply (real_ge_plus_ge t _ _) in s);
         ring_simplify in s)
      | ltac_No_arg =>
-       ((apply (@real_ge_plus_ge _ (- B) _ _) in s);
+       ((apply (real_ge_plus_ge (- B) _ _) in s);
         ring_simplify in s)
      end
        
@@ -85,33 +85,33 @@ Ltac Tac_Real_order s t :=
     match goal with
     | |- (?A < ?B) =>
       match (type of s) with
-      | real _ =>
-        (apply (@real_lt_add_r s _ _);
+      | _  =>
+        (apply (real_lt_add_r s _ _);
          ring_simplify )
       | ltac_No_arg =>
-        ((apply (@real_lt_add_r _ (- B) _ _));
+        ((apply (real_lt_add_r (- B) _ _));
          ring_simplify)
       | _ => fail "has to be Real"
       end
         
     |  |- (?A <= ?B) =>
        match (type of s) with
-       | real _ =>
-         (apply (@real_le_add_r _ s _ _);
+       | _  =>
+         (apply (real_le_add_r s _ _);
           ring_simplify)
        | ltac_No_arg =>
-         ((apply (@real_le_add_r _ (- B) _ _));
+         ((apply (real_le_add_r (- B) _ _));
           ring_simplify)
        | _ => fail "has to be Real"
        end         
     |  |- (?A >= ?B) =>
        
        match (type of s) with
-       | real _ =>
-         (apply (@real_ge_add_r _ s _ _);
+       | _  =>
+         (apply (real_ge_add_r s _ _);
           ring_simplify)
        | ltac_No_arg =>
-         ((apply (@real_ge_add_r _ (- B) _ _));
+         ((apply (real_ge_add_r (- B) _ _));
           ring_simplify)
        | _ => fail "has to be Real"
        end
