@@ -89,14 +89,21 @@ Defined.
 (** relator *)
 
 Section Relator.
-  Context {T : ComplArchiSemiDecOrderedField}.
-  Notation R := (CarrierField T).
-  
+  Generalizable Variables K M Real.
+
+  Context `{klb : LazyBool K} `{M_Monad : Monad M}
+          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+          {M_MultivalueMonad : MultivalueMonad}
+          {Real : Type}
+          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
+          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+
+  (* ring structure on Real *)
   Ltac IZReal_tac t :=
     match t with
-    | @real_0 R => constr:(0%Z)
-    | @real_1 R => constr:(1%Z)
-    | @IZreal R ?u =>
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
       match isZcst u with
       | true => u
       | _ => constr:(InitialRing.NotConstant)
@@ -104,16 +111,10 @@ Section Relator.
     | _ => constr:(InitialRing.NotConstant)
     end.
 
-  Add Ring realRing : (realTheory R) (constants [IZReal_tac]).
-  
-  Notation real_ := (real R).
-  Notation real_0_ := (@real_0 R).
-  Notation real_1_ := (@real_1 R).
-  Notation prec_ := (@prec R).
-
+  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   
-  Parameter relator : real_ -> Nabla.nabla totalR.
+  Parameter relator : Real -> Nabla.nabla totalR.
   Axiom relator_mono : forall x y, relator x = relator y -> x = y.
   Axiom relator_epi : forall y, exists x, y = relator x. 
   Lemma relator_mono_neg : forall x y, x <> y -> relator x <> relator y.
@@ -127,13 +128,13 @@ Section Relator.
 
 
   (* axioms for characterizing relator *)
-  Axiom relator_constant0 : relator real_0_ = Nabla.nabla_unit _ totalR0.
-  Axiom relator_constant1 : relator real_1_ = Nabla.nabla_unit _ totalR1.
+  Axiom relator_constant0 : relator real_0 = Nabla.nabla_unit _ totalR0.
+  Axiom relator_constant1 : relator real_1 = Nabla.nabla_unit _ totalR1.
   Axiom relator_addition : forall x y, relator (x + y) = (Nabla.lift_binary _ _ _ totalRadd) (relator x) (relator y).
   Axiom relator_multiplication : forall x y, relator (x * y) = (Nabla.lift_binary _ _ _ totalRmult) (relator x) (relator y).
   Axiom relator_subtraction : forall x, relator (-x) = (Nabla.lift_unary _ _ totalRsub) (relator x).
 
-  Definition relator_div_tmp : forall x (p : x <> real_0_), Nabla.nabla totalR.
+  Definition relator_div_tmp : forall x (p : x <> real_0), Nabla.nabla totalR.
   Proof.
     intros.
     assert (Nabla.nabla ({x : totalR | x <> totalR0})).
@@ -159,7 +160,7 @@ Section Relator.
     exact X.
   Defined.
 
-  Axiom relator_division : forall x (p : x <> real_0_), relator (/ p) = relator_div_tmp x p.
+  Axiom relator_division : forall x (p : x <> real_0), relator (/ p) = relator_div_tmp x p.
 
   Axiom relator_lt : forall x y, x < y = Nabla.lift_domain_binary _ _ _ totalRlt Nabla.Prop_is_nabla_modal (relator x) (relator y). 
 
@@ -170,22 +171,22 @@ Section Relator.
 
   Section transfer.
 
-    Definition transfer_fiberT : (real_ -> Type) -> (Nabla.nabla totalR -> Type).
+    Definition transfer_fiberT : (Real -> Type) -> (Nabla.nabla totalR -> Type).
     Proof.
       intros P x.
       exact (forall y, x = relator y -> P y).
     Defined.
     
 
-    Definition transfer_fiberP : (real_ -> Prop) -> (Nabla.nabla totalR -> Prop).
+    Definition transfer_fiberP : (Real -> Prop) -> (Nabla.nabla totalR -> Prop).
     Proof.
       intros P x.
       exact (forall y, x = relator y -> P y).
     Defined.
 
     
-    Definition transfer_forallP : forall (P : real_ -> Prop),
-        (forall x : Nabla.nabla totalR,(transfer_fiberP P x)) -> (forall x : real_, P x).
+    Definition transfer_forallP : forall (P : Real -> Prop),
+        (forall x : Nabla.nabla totalR,(transfer_fiberP P x)) -> (forall x : Real, P x).
     Proof.
       unfold transfer_fiberP.    
       intros.
@@ -194,7 +195,7 @@ Section Relator.
     Defined.
 
     
-    Definition transfer_existsP : forall (P : real_ -> Prop), (exists x : Nabla.nabla totalR, (transfer_fiberP P x)) -> (exists x : real_, P x).
+    Definition transfer_existsP : forall (P : Real -> Prop), (exists x : Nabla.nabla totalR, (transfer_fiberP P x)) -> (exists x : Real, P x).
     Proof.
       unfold transfer_fiberP.    
       intros.

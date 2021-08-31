@@ -6,14 +6,21 @@ Require Export Relator.
 
 
 Section RealCoqReal.
-  Context {T : ComplArchiSemiDecOrderedField}.
-  Notation CR := (CarrierField T).
-  
+  Generalizable Variables K M Real.
+
+  Context `{klb : LazyBool K} `{M_Monad : Monad M}
+          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+          {M_MultivalueMonad : MultivalueMonad}
+          {Real : Type}
+          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
+          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+
+  (* ring structure on Real *)
   Ltac IZReal_tac t :=
     match t with
-    | @real_0 CR => constr:(0%Z)
-    | @real_1 CR => constr:(1%Z)
-    | @IZreal CR ?u =>
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
       match isZcst u with
       | true => u
       | _ => constr:(InitialRing.NotConstant)
@@ -21,16 +28,9 @@ Section RealCoqReal.
     | _ => constr:(InitialRing.NotConstant)
     end.
 
-  Add Ring realRing : (realTheory CR) (constants [IZReal_tac]).
+  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   
-  Notation real_ := (real CR).
-  Notation real_0_ := (@real_0 CR).
-  Notation real_1_ := (@real_1 CR).
-  Notation prec_ := (@prec CR).
-  Notation relator_constant0_ := (@relator_constant0 T).
-  Notation relator_constant1_ := (@relator_constant1 T).
-  
-  Definition relate : real_ -> R -> Prop.
+  Definition relate : Real -> R -> Prop.
   Proof.
     intros x y.
     destruct (relator x).
@@ -50,7 +50,7 @@ Section RealCoqReal.
   (* relator homomorphism *)
   Lemma relate_constant0 : relate real_0 R0.
   Proof.
-    pose proof relator_constant0_.
+    pose proof relator_constant0.
     unfold relate.
     rewrite H.
     exists is_total_constant0.
@@ -60,7 +60,7 @@ Section RealCoqReal.
   
   Lemma relate_constant1 : relate real_1 R1.
   Proof.
-    pose proof relator_constant1_.
+    pose proof relator_constant1.
     unfold relate.
     rewrite H.
     exists is_total_constant1.
@@ -270,7 +270,7 @@ Section RealCoqReal.
     contradict H1.
     apply Nabla.nabla_eq_at.
     simpl.
-    pose proof (relator_constant0_).
+    pose proof (relator_constant0).
     rewrite H1.
     simpl.
     apply fun_ext.
@@ -408,7 +408,7 @@ Section RealCoqReal.
 
   (* relator is an anafunction *)
 
-  Lemma ana1 : forall x : real_, exists! y : R, relate x y.
+  Lemma ana1 : forall x : Real, exists! y : R, relate x y.
   Proof.
     intros.
     unfold relate.  
@@ -429,11 +429,11 @@ Section RealCoqReal.
     exact H3.
   Defined.
 
-  Lemma ana2 : forall x : R, is_total x -> exists! y : real_, relate y x.
+  Lemma ana2 : forall x : R, is_total x -> exists! y : Real, relate y x.
   Proof.
     intros.
     unfold relate.
-    pose proof (@relator_epi T (Nabla.nabla_unit _ (exist _ x H))). 
+    pose proof (@relator_epi Real (Nabla.nabla_unit _ (exist _ x H))). 
     destruct H0.
     exists x0.
     split; auto.
@@ -497,7 +497,7 @@ Section RealCoqReal.
     exact (eq_refl _).
   Qed.
 
-  Lemma relate_unique_real_ : forall x y a b, relate x a -> relate y b -> a = b -> x = y.
+  Lemma relate_unique_Real : forall x y a b, relate x a -> relate y b -> a = b -> x = y.
   Proof.
     intros.
     rewrite H1 in H.
@@ -526,7 +526,7 @@ Section RealCoqReal.
 
   
 
-  Lemma transport_eq : forall a b : real_, (forall x y, relate a x -> relate b y -> x = y) -> a = b.
+  Lemma transport_eq : forall a b : Real, (forall x y, relate a x -> relate b y -> x = y) -> a = b.
   Proof.
     intros.
     pose proof (relator_mono a b).
@@ -585,7 +585,7 @@ Section RealCoqReal.
     exact H4.
   Defined.
 
-  Lemma transport_lt : forall a b : real_, (forall x y, relate a x -> relate b y -> (x < y)%R) -> a < b.
+  Lemma transport_lt : forall a b : Real, (forall x y, relate a x -> relate b y -> (x < y)%R) -> a < b.
   Proof.
     intros.
     pose proof (relator_lt a b).
@@ -783,7 +783,7 @@ Section RealCoqReal.
 
   Lemma transport_eq2 : forall a b x y, relate a x -> relate b y -> x = y -> a = b.
   Proof.
-    apply relate_unique_real_.
+    apply relate_unique_Real.
   Defined.
 
 
@@ -800,14 +800,14 @@ Section RealCoqReal.
   Defined.
   
 
-  Definition transport_fiber : (real_ -> Prop) -> (R -> Prop).
+  Definition transport_fiber : (Real -> Prop) -> (R -> Prop).
   Proof.
     intros.
-    exact (forall x : real_, relate x H -> X x).
+    exact (forall x, relate x H -> X x).
   Defined.
 
 
-  Definition transport_leq : forall a b : real_, (forall x y, relate a x -> relate b y -> (x <= y)%R) -> a <= b.
+  Definition transport_leq : forall a b : Real, (forall x y, relate a x -> relate b y -> (x <= y)%R) -> a <= b.
   Proof.
     intros.
     destruct (ana1 a) as [aa [hh _]].
@@ -820,7 +820,7 @@ Section RealCoqReal.
   Qed.
 
 
-  Definition transport_geq : forall a b : real_, (forall x y, relate a x -> relate b y -> (x >= y)%R) -> a >= b.
+  Definition transport_geq : forall a b : Real, (forall x y, relate a x -> relate b y -> (x >= y)%R) -> a >= b.
   Proof.
     intros.
     destruct (ana1 a) as [aa [hh _]].
@@ -832,7 +832,7 @@ Section RealCoqReal.
     right; apply (transport_eq2 _ _ _ _ hh jj H0).
   Qed.
 
-  Definition transport_neq : forall a b : real_, (forall x y, relate a x -> relate b y -> (x <> y)%R) -> a <> b.
+  Definition transport_neq : forall a b : Real, (forall x y, relate a x -> relate b y -> (x <> y)%R) -> a <> b.
   Proof.
     intros.
     destruct (ana1 a) as [aa [hh _]].
@@ -847,7 +847,7 @@ Section RealCoqReal.
   Qed.
 
 
-  Definition transport_forall : forall P : real_ -> Prop, (forall x : R, (transport_fiber P) x) -> (forall x : real_, P x).
+  Definition transport_forall : forall P : Real -> Prop, (forall x : R, (transport_fiber P) x) -> (forall x : Real, P x).
     intros.
     unfold transport_fiber in H.
     destruct (ana1 x).
@@ -856,7 +856,7 @@ Section RealCoqReal.
   Defined.
   
 
-  (* Definition transport_exists : forall P : real_ -> Prop, (exists x : R, (transport_fiber P) x) -> (exists x : real_, P x). *)
+  (* Definition transport_exists : forall P : Real -> Prop, (exists x : R, (transport_fiber P) x) -> (exists x : Real, P x). *)
   (* Proof. *)
   (*   intros. *)
   (*   destruct H. *)
@@ -898,7 +898,7 @@ Section RealCoqReal.
     intros.
     intro.
     induction H2.
-    exact (H1 (relate_unique_real_ _ _ _ _ H H0 (eq_refl _))).
+    exact (H1 (relate_unique_Real _ _ _ _ H H0 (eq_refl _))).
   Defined.
 
 
@@ -1068,15 +1068,15 @@ Ltac Holger s :=
 
 Ltac classical :=
   match goal with
-  | |- @eq (real _) ?x ?y => apply transport_eq;   intro; intro; intro; intro; classical (* (fail "not implemented yet") *)
+  | |- eq ?x ?y => apply transport_eq;   intro; intro; intro; intro; classical (* (fail "not implemented yet") *)
   | |- ?x < ?y => apply transport_lt; intro; intro; intro; intro; classical
   | |- ?x > ?y => apply transport_lt; intro; intro; intro; intro; classical
   | |- ?x >= ?y => apply transport_geq; intro; intro; intro; intro; classical
   | |- ?x <= ?y => apply transport_leq; intro; intro; intro; intro; classical
   | |- ?x <> ?y => apply transport_neq; intro; intro; intro; intro; classical     
-  (* | |- exists x : real_, ?A => apply transport_exists;  intro; intro; intro; classical *)
-  | |- forall x : real _ , ?A => apply (transport_forall (fun x => A));   intro; intro; intro; classical
-  (* | |- forall x : real_, ?A => apply (transport_forall (fun x => A));   intro; intro; intro; classical *)
+  (* | |- exists x : Real, ?A => apply transport_exists;  intro; intro; intro; classical *)
+  | |- forall x , ?A => apply (transport_forall (fun x => A));   intro; intro; intro; classical
+  (* | |- forall x : Real, ?A => apply (transport_forall (fun x => A));   intro; intro; intro; classical *)
 
   | |- ?A => apply skip
                    (* | |- ?A => match A with *)
@@ -1215,7 +1215,7 @@ Ltac relate :=
       
   | H1 : (relate (?x) (?z)), H2 : (relate (?y) (?z))  |- _ =>
     (
-      induction (relate_unique_real_ _ _ _ _ H1 H2 (eq_refl _));
+      induction (relate_unique_Real _ _ _ _ H1 H2 (eq_refl _));
       clear H1;
       relate
     )
