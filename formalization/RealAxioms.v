@@ -10,7 +10,7 @@ Delimit Scope Real_scope with Real.
 (* Bind Scope Real_scope with Real. *)
 Local Open Scope Real_scope.
 
-Section Real_Defs.
+Section Real_Defs1.
 
 Generalizable Variables K M.
 
@@ -18,7 +18,7 @@ Context `{klb : LazyBool K} `{M_Monad : Monad M}
   {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
   {M_MultivalueMonad : MultivalueMonad}.
 
-Class SemiDecOrderedField (Real : Set) :=
+Class SemiDecOrderedField (Real : Type) :=
   {
     real_0 : Real;
     real_1 : Real;
@@ -49,15 +49,51 @@ Class SemiDecOrderedField (Real : Set) :=
     real_lt_mult_pos_lt : forall r r1 r2 : Real, real_lt real_0 r -> real_lt r1 r2 -> real_lt (real_mult r r1) (real_mult r r2);
   }.
 
-Generalizable Variable Real.
-
-Context `{SemiDecOrderedField Real}.
+  Arguments real_0 {_}.
+  Arguments real_1 {_}.
+  Arguments real_plus {_}.
+  Arguments real_mult {_}.
+  Arguments real_opp {_}.
+  Arguments real_inv {_}.
+  Arguments real_lt {_}.
+  Arguments real_lt_semidec {_}.
+  
+  Arguments real_plus_comm {_}.
+  Arguments real_plus_assoc {_}.
+  Arguments real_plus_inv {_} {_}.
+  Arguments real_plus_unit {_}.
+  Arguments real_mult_comm {_}.
+  Arguments real_mult_assoc {_}.
+  Arguments real_mult_inv {_}.
+  Arguments real_mult_unit {_}.
+  Arguments real_mult_plus_distr {_}.
+  Arguments real_1_neq_0 {_}.
+  Arguments real_1_gt_0 {_}.
+  
+  Arguments real_total_order {_}.
+  Arguments real_lt_nlt {_}.
+  Arguments real_lt_lt_lt {_}.
+  Arguments real_lt_plus_lt {_}.
+  Arguments real_lt_mult_pos_lt {_}.
+  
+End Real_Defs1.
 
 Infix "+" := (real_plus ) : Real_scope.
 Infix "*" := (real_mult ) : Real_scope.
 Notation "- x" := (real_opp  x) : Real_scope.
-Notation "/ p" := (@real_inv _ _ _ p ) : Real_scope.
+Notation "/ p" := (@real_inv _ _ _ _ _ p ) : Real_scope.
 Infix "<" := (real_lt ) : Real_scope.
+
+Section Real_Defs2.
+
+Generalizable Variables K M Real.
+
+Context `{klb : LazyBool K} `{M_Monad : Monad M}
+  {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+  {M_MultivalueMonad : MultivalueMonad}
+  {Real : Type}
+  {SemiDecOrderedField_Real : SemiDecOrderedField Real}.
+
 Definition real_gt (x y : Real) : Prop := y < x.
 Definition real_le (x y : Real) : Prop := x < y \/ x = y.
 Definition real_ge (x y : Real) : Prop := real_gt x y \/ x = y.
@@ -68,9 +104,11 @@ Definition real_ltb : Real -> Real -> K.
 Proof.
   intros x y.
   exact (projP1 _ _ (real_lt_semidec x y)).
-Defined.
+Defined.  
 
 Definition real_gtb (x y : Real) : K := real_ltb y x.
+
+End Real_Defs2.
 
 Infix "-" := (real_minus) : Real_scope.
 Infix "/" := (real_div ): Real_scope.
@@ -84,6 +122,15 @@ Notation "x <= y < z"  := (x <= y /\ y <  z): Real_scope.
 Notation "x < y < z"   := (x <  y /\ y <  z): Real_scope.
 Notation "x < y <= z"  := (x <  y /\ y <= z): Real_scope.
 
+Section Real_Defs3.
+
+Generalizable Variables K M Real.
+
+Context `{klb : LazyBool K} `{M_Monad : Monad M}
+  {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+  {M_MultivalueMonad : MultivalueMonad}
+  {Real : Type}
+  {SemiDecOrderedField_Real : SemiDecOrderedField Real}.
 
 (* Definition W_nemp (c : Real -> Prop) := exists z, c z. *)
 (* Definition W_upb (c : Real -> Prop) (u : Real) := forall z : Real, c z -> z <= u. *)
@@ -174,8 +221,8 @@ Lemma real_ngt_triv : forall (x  : Real), ~ x > x.
 Proof.
   intros x.
   intuition.
-  pose proof (real_lt_nlt x x H0) as H1.
-  contradict H0.
+  pose proof (real_lt_nlt x x H) as H1.
+  contradict H.
   intuition.
 Qed.
 
@@ -214,6 +261,6 @@ Class ComplArchiSemiDecOrderedField :=
 (* add to hint db *)
 Create HintDb Real.
 
-End Real_Defs.
+End Real_Defs3.
 
 Global Hint Resolve real_lt_semidec  real_plus_comm  real_plus_assoc  real_plus_inv real_plus_unit  real_mult_comm  real_mult_assoc  real_mult_inv  real_mult_unit  real_mult_plus_distr  real_1_neq_0  real_1_gt_0 real_total_order  real_lt_nlt  real_lt_lt_lt  real_lt_plus_lt  real_lt_mult_pos_lt real_lt_n_Sn real_lt_0_2 real_ngt_triv real_gt_neq real_2_neq_0 : Real.
