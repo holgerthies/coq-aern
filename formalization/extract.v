@@ -40,10 +40,11 @@ Axiom M_MultivalueMonad : @MultivalueMonad _ K_LazyBool _ _ MultivalueMonad_desc
 
 (* interpreting multivaluemonad *)
 Extract Constant M "a" => "a".
-Extract Constant M_Monad => "Build_Monad (\ _ _ _ m -> m) (\_ a -> unsafeCoerce a) (\ _ m -> m)".
-Extract Constant M_MultivalueMonad => "Build_MultivalueMonad (Prelude.error ""UNREALIZED MultivalueMonad_base_monad_hprop_elim"") (Prelude.error ""UNREALIZED MultivalueMonad_base_monad_traces_lift"") (\k1 k2 _ -> unsafeCoerce (AERN2.select k1 k2)) (Prelude.error ""UNREALIZED MultivalueMonad_description_is_equiv"") (\ _ m -> m)".
-(* Extract Inlined Constant M_paths => "(\ x0 f n -> Prelude.foldl (Prelude.flip f) x0 [0 .. (n Prelude.- 1)])".
-Extract Inlined Constant M_countable_lift => "Prelude.id".  *)
+Extract Constant M_Monad => "Build_Monad (\ _ _ f -> __uc f) (\_ a -> __uc a) (\ _ m -> m)".
+Extract Constant M_MultivalueMonad => "Build_MultivalueMonad (\ _ _ x -> __uc x) (\ _ _ x0 f -> __uc (\n -> Prelude.foldl (Prelude.flip (__uc f)) (x0) [0 .. ((n :: Prelude.Integer) Prelude.- 1)])) (\k1 k2 _ -> __uc (AERN2.select k1 k2)) (\ _ m -> m) (\ _ m -> m)".
+
+(* Some shortcuts for efficiency. Not necessary. *)
+Extract Constant M_countable_lift => "(\_ _ _ _ f -> (__uc f))". 
 
 (* Test extraction of multivaluemonad *)
 (* Definition m_test := @select _ _ _ _ _ M_MultivalueMonad.
@@ -100,11 +101,12 @@ Extract Inlined Constant Nat.log2 => "(MNP.integer Prelude.<<< Logs.integerLog2)
 (* Sewon's lab seminar talk material*)
 (* Maximum *)
 
-(* TODO: update the rest of the file *)
-
 (* root finding function *)
 Require Import IVT.
-Extraction "IVT" CIVT.
+Definition run_CIVT := @CIVT _ _ _ _ _ M_MultivalueMonad _ _ Real_ComplArchiSemiDecOrderedField.
+Extraction "IVT" run_CIVT.
+
+(* TODO: update the rest of the file *)
 
 (* maximum *)
 Require Import Minmax.
