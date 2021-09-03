@@ -16,17 +16,33 @@ Proof.
 Defined.
 
   
+Check M_is_fast_cauchy.
+Check dyadic_M_sequence.
+Check dist.
+Check prec.
+Check real_0.
+Check realTheory.
+Check @dyadic_M_sequence.
 Section RealEquivalent.
-  
-  Context (S T : ComplArchiSemiDecOrderedField).
-  Notation SR := (CarrierField S).
-  Notation TR := (CarrierField T).
-  
-  Ltac S_IZReal_tac t :=
+
+  Generalizable Variables K M Real_S Real_T.
+
+  Context `{klb : LazyBool K} `{M_Monad : Monad M}
+          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+          {M_MultivalueMonad : MultivalueMonad}
+          {Real_S : Type}
+          {SemiDecOrderedField_Real_S : SemiDecOrderedField Real_S}
+          {ComplArchiSemiDecOrderedField_Real_S : @ComplArchiSemiDecOrderedField _ _ _ SemiDecOrderedField_Real_S}
+          {Real_T : Type}
+          {SemiDecOrderedField_Real_T : SemiDecOrderedField Real_T}
+          {ComplArchiSemiDecOrderedField_Real_T : @ComplArchiSemiDecOrderedField _ _ _ SemiDecOrderedField_Real_T}.
+
+  (* ring structure on Real *)
+  Ltac IZReal_tac t :=
     match t with
-    | @real_0 SR => constr:(0%Z)
-    | @real_1 SR => constr:(1%Z)
-    | @IZreal SR ?u =>
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
       match isZcst u with
       | true => u
       | _ => constr:(InitialRing.NotConstant)
@@ -34,37 +50,50 @@ Section RealEquivalent.
     | _ => constr:(InitialRing.NotConstant)
     end.
 
-  Add Ring realRing : (realTheory SR) (constants [S_IZReal_tac]).
-
-  Ltac T_IZReal_tac t :=
-    match t with
-    | @real_0 TR => constr:(0%Z)
-    | @real_1 TR => constr:(1%Z)
-    | @IZreal TR ?u =>
-      match isZcst u with
-      | true => u
-      | _ => constr:(InitialRing.NotConstant)
-      end
-    | _ => constr:(InitialRing.NotConstant)
-    end.
-
-  Add Ring realRing : (realTheory TR) (constants [T_IZReal_tac]).
-
-
-  
-  (* Notation real_ := (real SR). *)
-  (* Notation real_0_ := (@real_0 SR). *)
-  (* Notation real_1_ := (@real_1 SR). *)
-  (* Notation prec_ := (@prec SR). *)
-  (* Search (nat -> Z). *)
-
+  Add Ring realRing : (@realTheory _ _ Real_S _ ) (constants [IZReal_tac]).
+  Add Ring realRing : (@realTheory _ _ Real_T _ ) (constants [IZReal_tac]).
 
 
   
   
+  (* Context (S T : ComplArchiSemiDecOrderedField). *)
+  (* Notation SR := (CarrierField S). *)
+  (* Notation TR := (CarrierField T). *)
   
+  (* Ltac S_IZReal_tac t := *)
+  (*   match t with *)
+  (*   | @real_0 SR => constr:(0%Z) *)
+  (*   | @real_1 SR => constr:(1%Z) *)
+  (*   | @IZreal SR ?u => *)
+  (*     match isZcst u with *)
+  (*     | true => u *)
+  (*     | _ => constr:(InitialRing.NotConstant) *)
+  (*     end *)
+  (*   | _ => constr:(InitialRing.NotConstant) *)
+  (*   end. *)
+
+  (* Add Ring realRing : (realTheory SR) (constants [S_IZReal_tac]). *)
+
+  (* Ltac T_IZReal_tac t := *)
+  (*   match t with *)
+  (*   | @real_0 TR => constr:(0%Z) *)
+  (*   | @real_1 TR => constr:(1%Z) *)
+  (*   | @IZreal TR ?u => *)
+  (*     match isZcst u with *)
+  (*     | true => u *)
+  (*     | _ => constr:(InitialRing.NotConstant) *)
+  (*     end *)
+  (*   | _ => constr:(InitialRing.NotConstant) *)
+  (*   end. *)
+
+  (* Add Ring realRing : (realTheory TR) (constants [T_IZReal_tac]). *)
+
+
+ 
+  
+  Check M_is_fast_cauchy.
   Lemma converging_dyadic_sequence_converging :
-    forall f : nat -> M Z, @M_is_fast_cauchy S (@dyadic_M_sequence S f) -> @M_is_fast_cauchy T (@dyadic_M_sequence T f).
+    forall f : nat -> M Z, @M_is_fast_cauchy _ _ _ _ _ _ Real_S _ _ (@dyadic_M_sequence _ _ _ _ _ _ f) -> @M_is_fast_cauchy _ _ _ _ _ _ Real_T _ _ (@dyadic_M_sequence _ _ _ _ _  _ f).
   Proof. 
     intros.
     intros n m.
@@ -85,11 +114,11 @@ Section RealEquivalent.
     induction (eq_sym H3).
     induction (eq_sym H4).
     clear H3 H4.
-    assert ( @dist S (prec n * IZreal x) (prec m * IZreal x0) <= prec n + prec m).
+    assert (@dist _ _ _ _ _ _  Real_S _ _ (prec n * IZreal x) (prec m * IZreal x0) <= (@prec _ _ Real_S _   n) + (@prec _ _ Real_S _ m)).
     pose proof (H2 (prec n * IZreal x)).
     unfold dyadic_M_sequence in H3.
     rewrite M_fun_cont in H3.
-    assert (exists a : Z, M_picture_1 (f n) a /\ @prec SR n * IZreal x = prec n * IZreal a).
+    assert (exists a : Z, M_picture_1 (f n) a /\ @prec _ _ Real_S _ n * IZreal x = prec n * IZreal a).
     exists x.
     split; auto.
     pose proof (H3 H4).
@@ -100,18 +129,17 @@ Section RealEquivalent.
     exists x0.
     auto.
 
-    apply (real_le_mult_pos_le (@Nreal SR (Npow2 (n + m)%nat)) _ _ (Nreal_Npow2_pos _ )) in H3.
-    rewrite (@dist_scale S (prec n * IZreal x) (prec m * IZreal x0) (Nreal (Npow2 (n + m)%nat)) (Nreal_Npow2_pos _)) in H3.
+    apply (real_le_mult_pos_le (@Nreal _ _ Real_S _ (Npow2 (n + m)%nat)) _ _ (Nreal_Npow2_pos _ )) in H3.
+    rewrite (@dist_scale _ _ _ _ _ _ Real_S _ _ (prec n * IZreal x) (prec m * IZreal x0) (Nreal (Npow2 (n + m)%nat)) (Nreal_Npow2_pos _)) in H3.
     rewrite Npow2_hom in H3.
     rewrite Nreal_mult in H3.
     replace (Nreal (Npow2 n) * Nreal (Npow2 m) * (prec n * IZreal x)) with
-        (prec n * @Nreal SR (Npow2 n) * (Nreal (Npow2 m) * IZreal x)) in H3 by ring.
-
+        (prec n * @Nreal _ _ Real_S _ (Npow2 n) * (Nreal (Npow2 m) * IZreal x)) in H3 by ring. 
     replace (Nreal (Npow2 n) * Nreal (Npow2 m) * (prec m * IZreal x0)) with
-        (prec m * @Nreal SR (Npow2 m)  * (Nreal (Npow2 n) * IZreal x0)) in H3 by ring.
+        (prec m * @Nreal _ _ Real_S _ (Npow2 m)  * (Nreal (Npow2 n) * IZreal x0)) in H3 by ring.
     
     replace (  Nreal (Npow2 n) * Nreal (Npow2 m) * (prec n + prec m)) with
-        ((@prec SR n * Nreal (Npow2 n)) * Nreal (Npow2 m) + (prec m * Nreal (Npow2 m) * Nreal (Npow2 n))) in H3 by ring.
+        ((@prec _ _ Real_S _ n * Nreal (Npow2 n)) * Nreal (Npow2 m) + (prec m * Nreal (Npow2 m) * Nreal (Npow2 n))) in H3 by ring.
 
     rewrite prec_Npow2_unit in H3.
     rewrite prec_Npow2_unit in H3.
@@ -128,7 +156,7 @@ Section RealEquivalent.
     rewrite IZreal_dist in H3.
     rewrite IZreal_le in H3.
 
-    rewrite <- (@IZreal_le T) in H3.
+    rewrite <- (@IZreal_le _ _ Real_T _) in H3.
     rewrite <- IZreal_dist in H3.
     rewrite  IZreal_mult_hom in H3.
     rewrite  IZreal_mult_hom in H3.
@@ -139,11 +167,11 @@ Section RealEquivalent.
     rewrite dist_scale in H3.
     rewrite prec_hom in H3.
     replace  (prec n * prec m * (Nreal (Npow2 m) * IZreal x))  with
-         (@prec TR m * Nreal (Npow2 m) * prec n * IZreal x) in H3 by ring.
+         (@prec _ _ Real_T _ m * Nreal (Npow2 m) * prec n * IZreal x) in H3 by ring.
     replace  (prec n * prec m * (Nreal (Npow2 n) * IZreal x0))  with
-         (@prec TR n * Nreal (Npow2 n) * prec m * IZreal x0) in H3 by ring.
+         (@prec _ _ Real_T _ n * Nreal (Npow2 n) * prec m * IZreal x0) in H3 by ring.
     replace (prec n * prec m * (Nreal (Npow2 m) + Nreal (Npow2 n))) with
-        (@prec TR m * Nreal (Npow2 m) * prec n + prec n * Nreal (Npow2 n) * prec m) in H3 by ring.
+        (@prec _ _ Real_T _ m * Nreal (Npow2 m) * prec n + prec n * Nreal (Npow2 n) * prec m) in H3 by ring.
     rewrite prec_Npow2_unit in H3.
     rewrite prec_Npow2_unit in H3.
     rewrite real_mult_unit in H3.
@@ -155,17 +183,17 @@ Section RealEquivalent.
   
   Definition translate_inj :
     forall a b f g x y,
-      M_is_fast_limit_all a (@dyadic_M_sequence S f) -> 
-      M_is_fast_limit_all b (@dyadic_M_sequence S g) ->
-      M_is_fast_limit_all x (@dyadic_M_sequence T f) -> 
-      M_is_fast_limit_all y (@dyadic_M_sequence T g) ->
+      M_is_fast_limit_all a (@dyadic_M_sequence _ _ _ _ Real_S _ f) -> 
+      M_is_fast_limit_all b (@dyadic_M_sequence _ _ _ _ Real_S _ g) ->
+      M_is_fast_limit_all x (@dyadic_M_sequence _ _ _ _ Real_T _ f) -> 
+      M_is_fast_limit_all y (@dyadic_M_sequence _ _ _ _ Real_T _ g) ->
       a = b -> x = y.
   Proof.
     intros.
     induction H3.
     apply (proj1  (dist_zero x y)).
     destruct (dist_pos x y); auto.
-    pose proof (real_Archimedean _ _ H3).
+    pose proof (real_Archimedean _ H3).
     destruct H4 as [p].
     pose proof (M_W_destruct (f (p + 2)%nat)).
     destruct H5.
@@ -211,33 +239,33 @@ Section RealEquivalent.
 
     (* transporting *)
     assert (
-        @dist T (prec (p + 2) * IZreal x1) (prec (p + 2) * IZreal x0) <= prec (p + 2) + prec (p + 2)
+        @dist _ _ _ _ _ _ Real_T _ _  (prec (p + 2) * IZreal x1) (prec (p + 2) * IZreal x0) <= prec (p + 2) + prec (p + 2)
       ).
     clear H5 H6 H9 H10.
-    apply (real_le_mult_pos_le (@Nreal SR (Npow2 (p + 2)%nat)) _ _ (Nreal_Npow2_pos _ )) in H8.
+    apply (real_le_mult_pos_le (@Nreal _ _ Real_S _ (Npow2 (p + 2)%nat)) _ _ (Nreal_Npow2_pos _ )) in H8.
     rewrite (dist_scale) in H8.
     replace  (Nreal (Npow2 (p + 2)) * (prec (p + 2) * IZreal x1)) with
-         (@prec SR (p + 2) * Nreal (Npow2 (p + 2)) * IZreal x1) in H8 by ring.
+         (@prec _ _ Real_S _ (p + 2) * Nreal (Npow2 (p + 2)) * IZreal x1) in H8 by ring.
     replace  (Nreal (Npow2 (p + 2)) * (prec (p + 2) * IZreal x0)) with
-         (@prec SR (p + 2) * Nreal (Npow2 (p + 2)) * IZreal x0) in H8 by ring.
+         (@prec _ _ Real_S _ (p + 2) * Nreal (Npow2 (p + 2)) * IZreal x0) in H8 by ring.
     replace (Nreal (Npow2 (p + 2)) * (prec (p + 2) + prec (p + 2))) with
-        (@prec SR (p + 2) * Nreal (Npow2 (p + 2)) + prec (p + 2) * Nreal (Npow2 (p + 2))) in H8 by ring.
+        (@prec _ _ Real_S _ (p + 2) * Nreal (Npow2 (p + 2)) + prec (p + 2) * Nreal (Npow2 (p + 2))) in H8 by ring.
     
     rewrite prec_Npow2_unit in H8.
     rewrite real_mult_unit in H8.
     rewrite real_mult_unit in H8.
-    replace (real_1 + real_1) with (@IZreal SR 2) in H8 by ring.
+    replace (real_1 + real_1) with (@IZreal _ _ Real_S _ 2) in H8 by ring.
     rewrite IZreal_dist in H8.
     rewrite IZreal_le in H8.
  
-    rewrite <- (@IZreal_le T) in H8.
+    rewrite <- (@IZreal_le _ _ Real_T _ ) in H8.
     rewrite <- IZreal_dist in H8.
     (* replace (IZreal x1) with (@real_1 TR * IZreal x1) in H8 by ring. *)
     (* replace (IZreal x0) with (@real_1 TR * IZreal x0) in H8 by ring. *)
-    replace (IZreal 2) with (@real_1 TR + real_1) in H8 by ring.
+    replace (IZreal 2) with (@real_1 _ _ Real_T _ + real_1) in H8 by ring.
     apply (real_le_mult_pos_le ((prec (p + 2)%nat)) _ _ (prec_pos _ )) in H8.
     rewrite dist_scale in H8.
-    replace (prec (p + 2) * (real_1 + real_1)) with (@prec TR (p + 2) + prec (p + 2)) in H8 by ring. 
+    replace (prec (p + 2) * (real_1 + real_1)) with (@prec _ _ Real_T _ (p + 2) + prec (p + 2)) in H8 by ring. 
     exact H8.
     apply prec_pos.
     apply Nreal_Npow2_pos.
@@ -262,16 +290,25 @@ Section RealEquivalent.
 End RealEquivalent.
 
 Section RealEquivalent2.
-  
-  Context (S T : ComplArchiSemiDecOrderedField).
-  Notation SR := (CarrierField S).
-  Notation TR := (CarrierField T).
-  
-  Ltac S_IZReal_tac t :=
+
+  Generalizable Variables K M Real_S Real_T.
+
+  Context `{klb : LazyBool K} `{M_Monad : Monad M}
+          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+          {M_MultivalueMonad : MultivalueMonad}
+          {Real_S : Type}
+          {SemiDecOrderedField_Real_S : SemiDecOrderedField Real_S}
+          {ComplArchiSemiDecOrderedField_Real_S : @ComplArchiSemiDecOrderedField _ _ _ SemiDecOrderedField_Real_S}
+          {Real_T : Type}
+          {SemiDecOrderedField_Real_T : SemiDecOrderedField Real_T}
+          {ComplArchiSemiDecOrderedField_Real_T : @ComplArchiSemiDecOrderedField _ _ _ SemiDecOrderedField_Real_T}.
+
+  (* ring structure on Real *)
+  Ltac IZReal_tac t :=
     match t with
-    | @real_0 SR => constr:(0%Z)
-    | @real_1 SR => constr:(1%Z)
-    | @IZreal SR ?u =>
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
       match isZcst u with
       | true => u
       | _ => constr:(InitialRing.NotConstant)
@@ -279,46 +316,34 @@ Section RealEquivalent2.
     | _ => constr:(InitialRing.NotConstant)
     end.
 
-  Add Ring realRing : (realTheory SR) (constants [S_IZReal_tac]).
-
-  Ltac T_IZReal_tac t :=
-    match t with
-    | @real_0 TR => constr:(0%Z)
-    | @real_1 TR => constr:(1%Z)
-    | @IZreal TR ?u =>
-      match isZcst u with
-      | true => u
-      | _ => constr:(InitialRing.NotConstant)
-      end
-    | _ => constr:(InitialRing.NotConstant)
-    end.
-
-  Add Ring realRing : (realTheory TR) (constants [T_IZReal_tac]).
+  Add Ring realRing : (@realTheory _ _ Real_S _ ) (constants [IZReal_tac]).
+  Add Ring realRing : (@realTheory _ _ Real_T _ ) (constants [IZReal_tac]).
 
 
-  
 
-  Definition translation : real SR -> real TR.
+
+  Definition translation : Real_S -> Real_T.
   Proof.
     intros x.
     pose proof (converging_dyadic_M_sequence x).
     destruct X.
     destruct a.
-    pose proof (@converging_dyadic_sequence_converging S T x0 H).
-    pose proof (real_mslimit_all (@dyadic_M_sequence T x0) H1).
-    destruct H2.
+
+    pose proof (@converging_dyadic_sequence_converging _ _ _ _ _ _ Real_S _ _ Real_T _ _ x0 H).
+    pose proof (real_mslimit_all (@dyadic_M_sequence _ _ _ _ Real_T _ x0) H1).
+    destruct X.
     exact x1.
   Defined.
 
-  Definition translation_inv : real TR -> real SR.
+  Definition translation_inv : Real_T -> Real_S.
   Proof.
     intros x.
     pose proof (converging_dyadic_M_sequence x).
     destruct X.
     destruct a.
-    pose proof (@converging_dyadic_sequence_converging T S x0 H).
-    pose proof (real_mslimit_all (@dyadic_M_sequence S x0) H1).
-    destruct H2.
+    pose proof (@converging_dyadic_sequence_converging _ _ _ _ _ _  Real_T _ _ Real_S _ _ x0 H).
+    pose proof (real_mslimit_all (@dyadic_M_sequence _ _ _ _ Real_S _ x0) H1).
+    destruct X.
     exact x1.
   Defined.
 
@@ -334,11 +359,11 @@ Section RealEquivalent2.
     apply fun_ext; intro.
     destruct (converging_dyadic_M_sequence x).
     destruct a.
-    destruct ( real_mslimit_all (dyadic_M_sequence x0) (converging_dyadic_sequence_converging S T x0 m)).
+    destruct ( real_mslimit_all (dyadic_M_sequence x0) (@converging_dyadic_sequence_converging _ _ _ _ _ _  Real_S _ _ Real_T _ _ x0 m)).
     destruct ( converging_dyadic_M_sequence x1).
     destruct a.
-    destruct (real_mslimit_all (dyadic_M_sequence x2) (converging_dyadic_sequence_converging T S x2 m2)).
-    apply eq_sym, (translate_inj T S x1 x1 x0 x2 x x3 m1 m3 ); auto.
+    destruct (real_mslimit_all (dyadic_M_sequence x2) (@converging_dyadic_sequence_converging _ _ _ _ _ _ Real_T _ _ Real_S _ _ x2 m2)).
+    apply eq_sym, (translate_inj x1 x1 x0 x2 x x3 m1 m3 ); auto.
 
     unfold translation.
     unfold translation_inv.
@@ -347,12 +372,12 @@ Section RealEquivalent2.
     apply fun_ext; intro.
     destruct (converging_dyadic_M_sequence x).
     destruct a.
-    destruct ( @real_mslimit_all S (@dyadic_M_sequence S x0) (converging_dyadic_sequence_converging T S x0 m)).
-    destruct (@converging_dyadic_M_sequence S x1 ).
+    destruct ( @real_mslimit_all _ _ _ _ _ _ _ _ _ (@dyadic_M_sequence _ _ _ _ Real_S _ x0) (@converging_dyadic_sequence_converging _ _ _ _ _ _ Real_T _ _  Real_S _ _  x0 m)).
+    destruct (@converging_dyadic_M_sequence _ _ _ _ _ _ Real_S _ _  x1 ).
     destruct a.
-    destruct (@real_mslimit_all T (@dyadic_M_sequence T x2) (converging_dyadic_sequence_converging S T x2 m2)).
+    destruct (@real_mslimit_all _ _ _ _ _ _ _ _ _  (@dyadic_M_sequence _ _ _ _ Real_T _ x2) (@converging_dyadic_sequence_converging _ _ _ _ _ _ Real_S _ _  Real_T _ _ x2 m2)).
     
-    apply eq_sym, (translate_inj S T x1 x1 x0 x2 x x3 m1 m3 ); auto.
+    apply eq_sym, (translate_inj x1 x1 x0 x2 x x3 m1 m3 ); auto.
   Defined.
   
     
