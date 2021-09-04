@@ -41,6 +41,7 @@ Axiom M_MultivalueMonad : @MultivalueMonad _ K_LazyBool _ _ MultivalueMonad_desc
 (* interpreting multivaluemonad *)
 Extract Constant M "a" => "a".
 Extract Constant M_Monad => "Build_Monad (\ _ _ f -> __uc f) (\_ a -> __uc a) (\ _ m -> m)".
+Extract Constant MultivalueMonad_description => "(Prelude.error ""UNREALIZED MultivalueMonad_description"")".
 Extract Constant M_MultivalueMonad => "Build_MultivalueMonad (\ _ _ x -> __uc x) (\ _ _ x0 f -> __uc (\n -> Prelude.foldl (Prelude.flip (__uc f)) (x0) [0 .. ((n :: Prelude.Integer) Prelude.- 1)])) (\k1 k2 _ -> __uc (AERN2.select k1 k2)) (\ _ m -> m) (\ _ m -> m)".
 
 (* Some shortcuts for efficiency. Not necessary. *)
@@ -106,11 +107,12 @@ Require Import IVT.
 Definition run_CIVT := @CIVT _ _ _ _ _ M_MultivalueMonad _ _ Real_ComplArchiSemiDecOrderedField.
 Extraction "IVT" run_CIVT.
 
-(* TODO: update the rest of the file *)
-
 (* maximum *)
 Require Import Minmax.
-Extraction "Max" Realmax.
+Definition run_real_max := @real_max _ _ _ _ _ M_MultivalueMonad _ _ Real_ComplArchiSemiDecOrderedField.
+Extraction "Max" run_real_max.
+
+(* TODO: update the rest of the file *)
 
 (* magnitude *)
 Require Import magnitude.
