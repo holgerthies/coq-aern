@@ -9,14 +9,23 @@ Require Import Psatz.
 
 
 Section RealHelpers.
-  Context {T : ComplArchiSemiDecOrderedField}.
-  Notation CR := (CarrierField T).
-  
+
+
+  Generalizable Variables K M Real.
+
+  Context `{klb : LazyBool K} `{M_Monad : Monad M}
+          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+          {M_MultivalueMonad : MultivalueMonad}
+          {Real : Type}
+          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
+          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+
+  (* ring structure on Real *)
   Ltac IZReal_tac t :=
     match t with
-    | @real_0 CR => constr:(0%Z)
-    | @real_1 CR => constr:(1%Z)
-    | @IZreal CR ?u =>
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
       match isZcst u with
       | true => u
       | _ => constr:(InitialRing.NotConstant)
@@ -24,19 +33,12 @@ Section RealHelpers.
     | _ => constr:(InitialRing.NotConstant)
     end.
 
-  Add Ring realRing : (realTheory CR) (constants [IZReal_tac]).
-  
-  Notation real_ := (real CR).
-  Notation real_0_ := (@real_0 CR).
-  Notation real_1_ := (@real_1 CR).
-  Notation prec_ := (@prec CR).
-  Notation relator_constant0_ := (@relator_constant0 T).
-  Notation relator_constant1_ := (@relator_constant1 T).
-  Notation relate_ := (@relate T).
-  
-  Lemma IZreal_relator z : relate_ (IZreal z) (IZR z).
+  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
+
+
+  Lemma IZreal_relator z : relate (IZreal z) (IZR z).
   Proof.
-    suff H : forall z', (0 <= z')%Z -> relate_ (IZreal z') (IZR z').
+    suff H : forall z', (0 <= z')%Z -> @relate Real  (@IZreal K klb Real SemiDecOrderedField_Real  z') (IZR z').
     - case z => [| p |p]; try by apply H;lia.
       rewrite IZreal_neg IZR_NEG.
       apply relate_subtraction.
@@ -47,25 +49,26 @@ Section RealHelpers.
         have -> : (Z.succ (Z.of_nat n')) = ((Z.of_nat n') +1)%Z by lia.
         rewrite IZreal_hom plus_IZR.
         apply relate_addition =>//.
-        suff -> : (IZreal 1) = real_1 by apply relate_constant1.
-        by auto.
+        suff -> : (@IZreal _ _ _ SemiDecOrderedField_Real 1) = (@real_1 _ _ _ SemiDecOrderedField_Real) by apply relate_constant1.
+        intros.
+        simpl; auto.
   Qed.
 
-  Lemma relate_IZreal z x : relate_ (IZreal z) x -> x = (IZR z).
+  Lemma relate_IZreal z x : relate (IZreal z) x -> x = (IZR z).
   Proof.
-    suff H: relate_ (IZreal z) (IZR z).
+    suff H: relate (@IZreal _ _ _ SemiDecOrderedField_Real z) (IZR z).
     - move => R.
         by relate.
           by apply IZreal_relator.
   Qed.
 
-  Lemma relate_prec n : relate_ (prec n) (/ 2 ^ n)%R.
+  Lemma relate_prec n : relate (prec n) (/ 2 ^ n)%R.
   Proof.
     elim n =>  [ /=  | n' IH ]; first by rewrite Rinv_1; apply relate_constant1.
-    have -> : (prec_ n'.+1) = (prec n') * (prec 1).
+    have -> : (prec n'.+1) = (prec n') * (prec 1).
     - have -> : n'.+1 = (n'+1)%coq_nat by lia.
         apply (prec_hom n' 1).
-        have -> : (prec_ 1) = (real_1 / real_2_neq_0) by [].
+        have -> : (prec 1) = (real_1 / real_2_neq_0) by [].
         rewrite  /= Rinv_mult_distr; [| by lra| by apply pow_nonzero].
         rewrite Rmult_comm.
         apply relate_multiplication => //.
@@ -76,12 +79,46 @@ Section RealHelpers.
           by apply IZreal_relator.
   Qed.
 
-  Lemma IZreal4neq0 : @IZreal CR 4 <> real_0.
+  
+
+(* Ltac classical := *)
+(*   match goal with *)
+(*   | |- eq ?x ?y => apply transport_eq;   intro; intro; intro; intro; classical (* (fail "not implemented yet") *) *)
+(*   | |- ?x < ?y => apply transport_lt; intro; intro; intro; intro; classical *)
+(*   | |- ?x > ?y => apply transport_lt; intro; intro; intro; intro; classical *)
+(*   | |- ?x >= ?y => apply transport_geq; intro; intro; intro; intro; classical *)
+(*   | |- ?x <= ?y => apply transport_leq; intro; intro; intro; intro; classical *)
+(*   | |- ?x <> ?y => apply transport_neq; intro; intro; intro; intro; classical      *)
+(*   (* | |- exists x : Real, ?A => apply transport_exists;  intro; intro; intro; classical *) *)
+(*   | |- forall x , ?A => apply (transport_forall (fun x => A));   intro; intro; intro; classical *)
+(*   (* | |- forall x : Real, ?A => apply (transport_forall (fun x => A));   intro; intro; intro; classical *) *)
+
+(*   | |- ?A => apply skip *)
+(*                    (* | |- ?A => match A with *) *)
+(*                    (*          | ?a = ?b => fail "haha" *) *)
+(*                    (*          | _ => fail "FAIL" A *) *)
+(*                    (*          end  *) *)
+
+
+(*   end. *)
+
+  
+  Lemma IZreal4neq0 : IZreal 4 <> real_0.
   Proof.
-    classical.
+    apply transport_neq.
+    intro.
+    intro.
+    intro.
+    intro.
     relate.
     rewrite (relate_IZreal _ _ H).
       by lra.
+    
+
+    (* classical. *)
+    (* relate. *)
+    (* rewrite (relate_IZreal _ _ H). *)
+    (*   by lra. *)
   Qed.
 
   (* results about (/ 2 ^ n) adapted  from incone *)

@@ -16,13 +16,6 @@ Proof.
 Defined.
 
   
-Check M_is_fast_cauchy.
-Check dyadic_M_sequence.
-Check dist.
-Check prec.
-Check real_0.
-Check realTheory.
-Check @dyadic_M_sequence.
 Section RealEquivalent.
 
   Generalizable Variables K M Real_S Real_T.
@@ -91,7 +84,6 @@ Section RealEquivalent.
 
  
   
-  Check M_is_fast_cauchy.
   Lemma converging_dyadic_sequence_converging :
     forall f : nat -> M Z, @M_is_fast_cauchy _ _ _ _ _ _ Real_S _ _ (@dyadic_M_sequence _ _ _ _ _ _ f) -> @M_is_fast_cauchy _ _ _ _ _ _ Real_T _ _ (@dyadic_M_sequence _ _ _ _ _  _ f).
   Proof. 
