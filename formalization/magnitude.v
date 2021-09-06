@@ -13,14 +13,22 @@ Set Warnings "parsing".
 
 
 Section magnitude.
-  Context {T : ComplArchiSemiDecOrderedField}.
-  Notation CR := (CarrierField T).
-  
+
+  Generalizable Variables K M Real.
+
+  Context `{klb : LazyBool K} `{M_Monad : Monad M}
+          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+          {M_MultivalueMonad : MultivalueMonad}
+          {Real : Type}
+          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
+          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+
+  (* ring structure on Real *)
   Ltac IZReal_tac t :=
     match t with
-    | @real_0 CR => constr:(0%Z)
-    | @real_1 CR => constr:(1%Z)
-    | @IZreal CR ?u =>
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
       match isZcst u with
       | true => u
       | _ => constr:(InitialRing.NotConstant)
@@ -28,37 +36,33 @@ Section magnitude.
     | _ => constr:(InitialRing.NotConstant)
     end.
 
-  Add Ring realRing : (realTheory CR) (constants [IZReal_tac]).
+  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
+
   
-  Notation real_ := (real CR).
-  Notation real_0_ := (@real_0 CR).
-  Notation real_1_ := (@real_1 CR).
-  Notation prec_ := (@prec CR).
 
-
-  Lemma half_lt_one : real_1_ / real_2_neq_0 < real_1_.
+  Lemma half_lt_one : real_1 / real_2_neq_0 < real_1.
   Proof.
     classical.
     relate.
     suff -> : (y = 2)%R by lra.
-      by apply (@relate_IZreal T) .
+      by apply (relate_IZreal) .
   Qed.
 
-  Definition lt_prec x n := prec_ n < x.
+  Definition lt_prec x n := prec n < x.
 
   Definition is_magnitude1 x n := 
     lt_prec x n.+2 /\ not (lt_prec x n)
   .
   (* prec n.+2 < x < prec n. *)
-  Definition magnitude1 x : (real_0 < x < real_1_ / real_2_neq_0) 
+  Definition magnitude1 x : (real_0 < x < real_1 / real_2_neq_0) 
                             -> M { n | is_magnitude1 x n }.
   Proof.
     move => [pos lt2].
 
     (* x < real_1_ *)
-    have lt1 : x < real_1_.
+    have lt1 : x < real_1.
     have h := half_lt_one.
-    apply (real_lt_lt_lt _ (real_1_ / real_2_neq_0) _); auto.
+    apply (real_lt_lt_lt _  (real_1 / real_2_neq_0) _); auto.
 
     unfold is_magnitude1.
     Definition P x n := lt_prec x (n.+1).
@@ -105,9 +109,10 @@ Section magnitude.
       suff : exists n,  (/ 2 ^ n.+1 < xr)%R.
     - case => n nprp.
       exists n.
-      have P := (@relate_prec T n.+1).
+      have P := (@relate_prec _ _ _   SemiDecOrderedField_Real n.+1).
       classical.
-      relate; by trivial.
+      relate.
+      trivial.
       have xrpos : (0 < xr)%R.
       apply /transport_lt_inv/pos/R1/relate_constant0.
       have xrlt1 : (xr < 1)%R.
@@ -123,28 +128,38 @@ Section magnitude.
       exists n. auto.
   Defined.
 
-  Definition Zpow (x : real_) (xne0 : x <> real_0) z := match z with
-                                                      | 0%Z => real_1_
-                                                      | Z.pos p => RealRing.pow _ x (Pos.to_nat p)
-                                                      | Z.neg p => RealRing.pow _ (/ xne0) (Pos.to_nat p)
+  Definition Zpow (x : Real) (xne0 : x <> real_0) z := match z with
+                                                      | 0%Z => real_1
+                                                      | Z.pos p => RealRing.pow x (Pos.to_nat p)
+                                                      | Z.neg p => RealRing.pow (/ xne0) (Pos.to_nat p)
                                                       end.
 
-  Lemma dec_x_lt_2 x : M ({x < real_2} + {real_1_ < x}).
+  Lemma dec_x_lt_2 x : M ({x < real_2} + {real_1 < x}).
   Proof.
-    have := (M_split x (IZreal 3 / real_2_neq_0) (/ real_2_neq_0) d2_pos).
-    apply mjoin.
-    case => H.
+
+    pose proof ( M_split x (@IZreal K klb Real  SemiDecOrderedField_Real 3 / real_2_neq_0) (/ real_2_neq_0) d2_pos) as H.
+    apply (fun p => mjoin _ _ _ p H).
+    intro.
+    clear H.
+    destruct H0.
     right.
+    
     - classical.
       relate.
       suff : ((3 / 2) - (/ 2) < y)%R by lra.
+      rename r into H.
+      rename H0 into H1.
       apply /transport_lt_inv/H/H1.
         by apply /relate_addition/relate_subtraction/relate_divison/IZreal_relator/relate_multiplication/relate_divison/IZreal_relator/IZreal_relator.
         left.
         classical.
         relate.
-        have -> : (y = 2)%R by apply (@relate_IZreal T) .
+        have -> : (y = 2)%R by apply (relate_IZreal) .
         suff : (x0 - ( / 2) < (3 / 2))%R by lra.
+        rename H0 into H1.
+        rename H into H0.
+        rename r into H.
+
           by apply /transport_lt_inv/H/relate_multiplication/relate_divison/IZreal_relator/IZreal_relator/relate_addition/relate_subtraction/relate_divison/IZreal_relator.
   Qed.
 
@@ -163,28 +178,32 @@ Section magnitude.
 
   Definition is_magnitude x z := Zpow _ real_2_neq_0 (z - 2) <= x <= Zpow _ real_2_neq_0 z. 
 
-  Lemma inv_neq0 (x : real_) (xneq0 : x <> real_0) : (/ xneq0) <> real_0. 
+  Lemma inv_neq0 (x : Real) (xneq0 : x <> real_0) : (/ xneq0) <> real_0. 
   Proof.
-    classical.
+    apply transport_neq.
+    intro.
+    intro.
+    intro.
+    intro.
     relate.
     apply Rinv_neq_0_compat.
       by apply /transport_neq_inv/xneq0/relate_constant0/Ha.
   Qed.
 
 
-  Lemma Zpow_pos x xneq0 z : (0 <= z)%Z -> Zpow x xneq0 z = RealRing.pow CR x (Z.to_nat z).
+  Lemma Zpow_pos x xneq0 z : (0 <= z)%Z -> Zpow x xneq0 z = RealRing.pow x (Z.to_nat z).
   Proof.
     move => H.
       by case e : z => //; lia.
   Qed.
 
-  Lemma Zpow_neg x xneq0 z : (z <= 0)%Z -> Zpow x xneq0 z = RealRing.pow CR (/ xneq0) (Z.to_nat (-z)).
+  Lemma Zpow_neg x xneq0 z : (z <= 0)%Z -> Zpow x xneq0 z = RealRing.pow (/ xneq0) (Z.to_nat (-z)).
   Proof.
     move => H.
       by case e : z => // /=; try lia.
   Qed.
 
-  Lemma pow_plus x n1 n2 : RealRing.pow CR x (n1+n2) = RealRing.pow _ x n1 * RealRing.pow _ x n2.
+  Lemma pow_plus x n1 n2 : RealRing.pow x (n1+n2) = RealRing.pow x n1 * RealRing.pow x n2.
   Proof.
     elim n2 => [| n' IH ]; first by rewrite /= Nat.add_0_r real_mult_comm real_mult_unit.
     have ->  : ((n1 + n'.+1) = ((n1+n').+1))%coq_nat by lia.
@@ -200,7 +219,13 @@ Section magnitude.
     - rewrite Zpow_pos; try by lia.
       rewrite Zpow_neg; try by lia.
       suff -> : (/ inv_neq0 x xneq0) = x by trivial. 
-      classical.
+      apply transport_eq.
+      intro.
+      intro.
+      intro.
+      intro.
+
+
       relate.
       apply Rinv_involutive.
         by apply /transport_neq_inv/xneq0/relate_constant0/Ha0.
@@ -217,9 +242,12 @@ Section magnitude.
       rewrite Z2Nat.inj_add; try by lia.
       have -> : (Z.to_nat (- Z.succ z) + Z.to_nat 1 = (Z.to_nat (- Z.succ z)).+1)%coq_nat by lia.
       rewrite /= -real_mult_assoc.
-      suff -> : x * / xneq0 = real_1_ by rewrite real_mult_unit.
+      assert (x * / xneq0 = real_1).
       rewrite real_mult_comm.
         by apply real_mult_inv.
+
+      by rewrite H0 real_mult_unit.
+
     - have -> : (z = -1)%Z by lia.
       rewrite /=.
         by rewrite  /= -real_mult_assoc real_mult_comm real_mult_unit real_mult_comm real_mult_inv.
@@ -236,7 +264,11 @@ Section magnitude.
     - have -> : (z1 + Z.succ z = Z.succ (z1+z) )%Z by lia.
       rewrite !Zpow_succ.
         by rewrite -real_mult_assoc (real_mult_comm _ x) H real_mult_assoc.
-        have TT y u1 u2 : x * y = u1 * (x * u2) -> y = u1 * u2 by clear H;intros;Holger H;Holger xneq0;classical;relate;nra. 
+        have TT y u1 u2 : x * y = u1 * (x * u2) -> y = u1 * u2.
+        clear H;intros;Holger H; Holger xneq0.
+        apply transport_eq.
+        intros.
+        relate;nra. 
         apply TT.
         rewrite -!Zpow_succ.
         have -> : (Z.succ (z1+z) = z1 + Z.succ z)%Z by lia.
@@ -252,7 +284,7 @@ Section magnitude.
       rewrite !Zpow_plus /= => H1.
       classical; relate.
 
-      have -> : (x2 = 2)%R by apply (@relate_IZreal T).
+      have -> : (x2 = 2)%R by apply (relate_IZreal).
 
       suff : (x1 * (/ 2 * (/ 2 * 1) ) <= y / 2)%R by lra.
       apply /transport_leq_inv/H1/relate_multiplication/relate_divison/IZreal_relator/H0.
@@ -260,7 +292,7 @@ Section magnitude.
       apply Ha.
       rewrite Zpow_plus /=.
       classical;relate.
-      have -> : (x2 = 2)%R by apply (@relate_IZreal T).
+      have -> : (x2 = 2)%R by apply (relate_IZreal).
       suff : (x0 / 2 <= x1)%R by lra.
         by apply /transport_leq_inv/H2/Ha/relate_multiplication/relate_divison/IZreal_relator/H.
   Qed.
@@ -269,16 +301,18 @@ Section magnitude.
 
   Lemma magnitude_fourth x z : is_magnitude (x /IZreal4neq0) z -> is_magnitude x (z+2).
   Proof.
-    suff -> : (x / IZreal4neq0) = (x / real_2_neq_0 / real_2_neq_0).
+    assert (X :(x / IZreal4neq0) = (x / real_2_neq_0 / real_2_neq_0)).
+    apply transport_eq.
+    intros.
+    relate.
+    rewrite (relate_IZreal _ _ Hb1).
+    rewrite (relate_IZreal _ _ Hb0).
+      by lra.
+    rewrite X.
     - move => H.
       have H' := (magnitude_half _ _ (magnitude_half _ _ H)).
       have -> : (z + 2 = z + 1 + 1)%Z by lia.
       exact H'.
-      classical.
-      relate.
-      rewrite (relate_IZreal _ _ Hb1).
-      rewrite (relate_IZreal _ _ Hb0).
-        by lra.
   Qed.
 
 
@@ -286,8 +320,8 @@ Section magnitude.
   Definition magnitude2 x : (real_0 < x < real_2) -> M { z | is_magnitude x z }.
   Proof.
     move => [xgt0 xle1].
-    pose y := (x / IZreal4neq0).
-    have yB : (real_0 < y < real_1_ / real_2_neq_0).
+    pose (y := (x / IZreal4neq0)).
+    have yB : (real_0 < y < real_1 / real_2_neq_0).
     - unfold real_div; rewrite real_mult_unit/y.
       split;classical;relate;rewrite (relate_IZreal _ _ Hb).
       suff : (0 < x0)%R by lra.
@@ -326,12 +360,13 @@ Section magnitude.
         rewrite Zpow_succ powerRZ_add /= => //.
         have ->: forall p, (p * (xr * 1) = xr * p)%R by intros;lra. 
         move => H.
-        have := relate_multiplication _ _ _ _ (relate_divison _ xneq0 _ R) H.
+        pose proof (relate_multiplication _ _ _ _ (relate_divison _ xneq0 _ R) H).
+        move : H0.
         rewrite -real_mult_assoc -Rmult_assoc real_mult_inv real_mult_unit Rinv_l => //.
           by rewrite Rmult_1_l.
   Qed.
 
-  Lemma magnitude_inv x (xneq0 : x<> real_0_) z : is_magnitude (/ xneq0) z -> is_magnitude x (-z+2).
+  Lemma magnitude_inv x (xneq0 : x<> real_0) z : is_magnitude (/ xneq0) z -> is_magnitude x (-z+2).
   Proof.
     move => [H1 H2].
     have R1 := Zpow_relate real_2 real_2_neq_0 (z-2) _ (IZreal_relator 2).
@@ -354,21 +389,17 @@ Section magnitude.
   Qed.
 
 
-  Definition magnitude x : real_0_ < x -> M {z | is_magnitude x z}.
+  Definition magnitude x : real_0 < x -> M {z | is_magnitude x z}.
   Proof.
     move => xgt0.
     have := dec_x_lt_2 x. 
     apply M_lift_dom.
     case => H; first by apply magnitude2.
-    have xneg0 : (x <> real_0_) by apply (real_gt_neq _ _ xgt0).
-    suff I : (real_0 < / xneg0 < real_2).
-    - have := magnitude2 _ I.
-      apply M_lift.
-      case => z zprp.
-      exists (-z+2)%Z.
-        by apply (magnitude_inv x xneg0).
-        split; classical; relate.
-    - apply Rinv_0_lt_compat.
+    have xneg0 : (x <> real_0) by apply (real_gt_neq _ _ xgt0).
+    assert (I : (real_0 < / xneg0 < real_2)).
+    -
+      split; classical; relate.
+      apply Rinv_0_lt_compat.
         by apply /transport_lt_inv/xgt0/Ha/relate_constant0.
         rewrite (relate_IZreal _ _ H1).
         have -> : (2 = / / 2)%R by lra.
@@ -376,7 +407,12 @@ Section magnitude.
         suff : (0 < x1)%R by lra.
         apply /transport_lt_inv/xgt0/Ha/relate_constant0.
         suff : (1 < x1)%R by lra.
-        apply /transport_lt_inv/H/Ha/relate_constant1.
-  Defined.
+        apply /transport_lt_inv/H/Ha/relate_constant1.    
+    - have := magnitude2 _ I.
+      apply M_lift.
+      case => z zprp.
+      exists (-z+2)%Z.
+        by apply (magnitude_inv x xneg0).
+      Defined.
 
 End magnitude.

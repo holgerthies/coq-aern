@@ -10,14 +10,21 @@ Open Scope Real_scope.
 Set Warnings "parsing".
 
 Section sqrt.
-  Context {T : ComplArchiSemiDecOrderedField}.
-  Notation CR := (CarrierField T).
-  
+  Generalizable Variables K M Real.
+
+  Context `{klb : LazyBool K} `{M_Monad : Monad M}
+          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+          {M_MultivalueMonad : MultivalueMonad}
+          {Real : Type}
+          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
+          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+
+  (* ring structure on Real *)
   Ltac IZReal_tac t :=
     match t with
-    | @real_0 CR => constr:(0%Z)
-    | @real_1 CR => constr:(1%Z)
-    | @IZreal CR ?u =>
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
       match isZcst u with
       | true => u
       | _ => constr:(InitialRing.NotConstant)
@@ -25,14 +32,12 @@ Section sqrt.
     | _ => constr:(InitialRing.NotConstant)
     end.
 
-  Add Ring realRing : (realTheory CR) (constants [IZReal_tac]).
-  
-  Notation real_ := (real CR).
-  Notation real_0_ := (@real_0 CR).
-  Notation real_1_ := (@real_1 CR).
-  Notation prec_ := (@prec CR).
+  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
-Lemma sqrt_bound_helper x :  (/ IZreal4neq0) <= x -> (x <= real_2) -> forall rx, @relate T x rx -> ((/ 4) <= rx <= 2)%R.
+  
+
+  
+Lemma sqrt_bound_helper x :  (/ IZreal4neq0) <= x -> (x <= real_2) -> forall rx, relate x rx -> ((/ 4) <= rx <= 2)%R.
 Proof.
   move => Bl Bu rx RX.
   split.
@@ -42,7 +47,7 @@ Proof.
   by apply IZreal_relator.
 Qed.
 
-Lemma sqrt_bounds x :  (/ IZreal4neq0) <= x -> (x <= real_2) -> forall rx, @relate T x rx -> ((/ 2) <= (sqrt rx) <= (sqrt 2))%R.
+Lemma sqrt_bounds x :  (/ IZreal4neq0) <= x -> (x <= real_2) -> forall rx, relate x rx -> ((/ 2) <= (sqrt rx) <= (sqrt 2))%R.
 Proof.
   move => Bl Bu rx RX.
   have [B1 B2] := sqrt_bound_helper x Bl Bu rx RX.
@@ -61,10 +66,10 @@ Proof.
   by apply sqrt_lt_R0.
 Qed.
 
-Definition sqrt_approx x n : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | forall rx ry, @relate T x rx -> @relate T y ry -> (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R}.
+Definition sqrt_approx x n : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | forall rx ry, relate x rx -> @relate Real y ry -> (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R}.
 Proof.
   move => B1 B2.
-  suff [y P] : {y | (real_0_ < y) /\ forall rx ry, relate x rx -> relate y ry -> (ry = 1 \/ sqrt rx <= ry)%R /\ (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R} by exists y; apply P.
+  assert (yP : {y | (real_0 < y) /\ forall rx ry, relate x rx -> relate y ry -> (ry = 1 \/ sqrt rx <= ry)%R /\ (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R}).
   elim n =>[| n' [y [ygt0 IH]]].
   - exists real_1; split => [| rx ry RX RY]; first by apply real_1_gt_0.
     split; first by relate; auto.
@@ -77,7 +82,7 @@ Proof.
     rewrite <-inv_sqrt; last by lra.
     have -> : (4 = 2 * 2)%R by lra.
     by rewrite sqrt_square; lra.
-  have yneq0 : y <> real_0_ by apply real_gt_neq.
+  have yneq0 : y <> real_0 by apply real_gt_neq.
   exists (/ RealOrder.d2 * (y + x / yneq0)).
   split.
   - classical. 
@@ -137,8 +142,10 @@ Proof.
   suff -> : ((/ 2) = (sqrt (/ 4)))%R by apply sqrt_le_1;lra.
   have -> : ((/ 4) = (/ 2) ^ 2)%R by lra.
   rewrite sqrt_pow2;lra.
+  destruct yP as [y P].
+  exists y; apply P.
 Defined.
-Definition sqrt_approx_fast x n : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | forall rx ry, @relate T x rx -> @relate T y ry -> (Rabs (ry - sqrt rx) < (/ 2 ^ n))%R}.
+Definition sqrt_approx_fast x n : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | forall rx ry, relate x rx -> @relate Real y ry -> (Rabs (ry - sqrt rx) < (/ 2 ^ n))%R}.
 Proof.
   move => B1 B2.
   have [y P] := sqrt_approx x (Nat.log2 n.+1).+1 B1 B2.
@@ -154,7 +161,7 @@ Defined.
 Lemma sqrt_approx_coq_real x : is_total x -> (/ 4 <= x <= 2)%R ->  forall n, exists y, is_total y /\ (Rabs (y - sqrt x) < (/ 2 ^ n))%R.
 Proof.
   move => H1 H2.
-  have [x' [P1 P2]] := (@ana2 T _ H1) .
+  have [x' [P1 P2]] := (@ana2 Real _ H1) .
   have [H2' H2''] : (/ IZreal4neq0) <= x' /\ x' <= real_2.
   - split; classical; relate; first by rewrite (relate_IZreal _ _ Ha);lra.
     by rewrite (relate_IZreal _ _ H0);lra.
@@ -166,20 +173,21 @@ Proof.
 Qed.
 
 
-Lemma sqrt_unique x :  forall z z', real_0_ <= z /\ z * z = x -> real_0_ <= z' /\ z' * z' = x -> z = z'.
+Lemma sqrt_unique x :  forall z z', real_0 <= z /\ z * z = x -> real_0 <= z' /\ z' * z' = x -> z = z'.
 Proof.
   move => z z' [P1 P2] [P1' P2'].
   Holger P1.
   Holger P2.
   Holger P1'.
   Holger P2'.
-  classical.
+  apply transport_eq.
+  intros.
   relate.
   have B : (0 <= y0)%R by rewrite <- H2;apply Rmult_le_pos.
   by rewrite <-(sqrt_lem_1 y0 y1), <- (sqrt_lem_1 y0 y) => //.
 Qed.  
 
-Definition restr_sqrt x : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | real_0_ <= y /\ y * y = x}.
+Definition restr_sqrt x : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | real_0 <= y /\ y * y = x}.
 Proof.
   move => B1 B2.
   have TT xr : is_total xr ->  (/ 4 <= xr <= 2)%R -> is_total (sqrt xr).
@@ -192,13 +200,22 @@ Proof.
     Holger B2.
     relate.
     have L : (/ 4 <= xr <= 2)%R by rewrite <- (relate_IZreal _ _ Ha), <- (relate_IZreal _ _ Hy0); lra.
-    have [y [S1 S2]] := (@ana2 T _ (TT _ (relate_total _ _ Hx0) L)).
+    have [y [S1 S2]] := (@ana2 Real _ (TT _ (relate_total _ _ Hx0) L)).
     exists y.
-    split => [ | x' [P1 P2]]; first by split;classical;relate;[apply sqrt_pos | apply sqrt_sqrt; lra].
+    split => [ | x' [P1 P2]].
+    split.
+    apply transport_leq.
+    intros.
+    relate.
+    apply sqrt_pos.
+    apply transport_eq.
+    intros.
+    relate.
+    apply sqrt_sqrt.
+    lra.
     Holger P1.
     Holger P2.
-    classical.
-    relate.
+    apply transport_eq; intros; relate.
     by apply sqrt_lem_1;lra.
   move => n.
   have [y P] := (sqrt_approx_fast x n B1 B2).
@@ -207,27 +224,31 @@ Proof.
   Holger B2.
   relate.
   have L : (/ 4 <= y0 <= 2)%R by rewrite <- (relate_IZreal _ _ Ha), <- (relate_IZreal _ _ Hy0); lra.
-  have [sx [S1 S2]] := (@ana2 T _ (TT _ (relate_total _ _ Hx0) L)).
-  have Rp := (@relate_prec T n).
+  have [sx [S1 S2]] := (@ana2 Real _ (TT _ (relate_total _ _ Hx0) L)).
+  pose proof(relate_prec n) as Rp.
   exists sx.
   split.
-  - split; classical; relate; first by apply sqrt_pos.
-    by apply sqrt_def;lra.
+  - split.
+    apply transport_leq; intros; relate.
+    apply sqrt_pos.
+    apply transport_eq; intros; relate.
+    apply sqrt_def; lra.
   split; classical; relate.
-  - have -> : (x0 = - (/ 2 ^ n))%R by apply (@Holber4 T (/ 2 ^ n) (prec n)) => //.
+  - have -> : (x0 = - (/ 2 ^ n))%R by apply (Holber4 (/ 2 ^ n) (prec n)) => //.
     suff: (sqrt y0 - x1 < (/ 2 ^ n))%R by lra.
     apply Rabs_lt_between.
     rewrite Rabs_minus_sym.
     by apply (P _ _ Hx0 Ha0).
   apply Rabs_lt_between.
-  by apply (P _ _ Hx0 Ha0).
+  apply P; auto.
 Qed.
 
 
-Definition scale x : (real_0_ < x) -> M { zy | (Zpow real_2 RealOrder.d2 (2*zy.1)) * zy.2 = x /\ (/ IZreal4neq0) <= zy.2 <= real_2 }.
+Definition scale x : (real_0 < x) -> M { zy | (Zpow real_2 RealOrder.d2 (2*zy.1)) * zy.2 = x /\ (/ IZreal4neq0) <= zy.2 <= real_2 }.
 Proof.
   move => H.
-  have := (magnitude x H).
+  pose proof (magnitude x H).
+  move : X.
   apply M_lift.
   case => z [zprp1 zprp2].
   have :  {z' | (z-1 <= 2*z')%Z /\ (2*z' <= z)%Z }.
@@ -243,14 +264,14 @@ Proof.
     have -> : (2*z' + (-2*z') = 0)%Z by lia.
     by rewrite real_mult_unit.
   Holger H.
-  have R1 := @Zpow_relate T real_2 RealOrder.d2 (z-2) _ (IZreal_relator 2).
-  have R2 := @Zpow_relate T real_2 RealOrder.d2 z _ (IZreal_relator 2). 
-  have R3 := @Zpow_relate T real_2 RealOrder.d2 (-2*z') _ (IZreal_relator 2). 
+  pose proof (Zpow_relate real_2 RealOrder.d2 (z-2) _ (IZreal_relator 2)) as R1.
+  pose proof (Zpow_relate real_2 RealOrder.d2 z _ (IZreal_relator 2)) as R2. 
+  pose proof (Zpow_relate real_2 RealOrder.d2 (-2*z') _ (IZreal_relator 2)) as R3. 
   Holger zprp1.
   Holger zprp2.
   relate.
   split => /=; classical; relate.
-  - rewrite (@relate_IZreal T _ _ Ha0).
+  - rewrite (relate_IZreal _ _ Ha0).
     apply /Rle_trans/Rmult_le_compat_l/H/powerRZ_le; last by lra.
     rewrite -powerRZ_add; last by lra.
     rewrite powerRZ_Rpower; last by lra.
@@ -268,7 +289,7 @@ Proof.
   by rewrite Rpower_1; lra.
 Defined.
 
-Lemma sqrt_scale x y z sqy: (Zpow real_2 RealOrder.d2 (2*z))*y = x -> sqy * sqy = y ->  ((Zpow real_2 RealOrder.d2 z)*sqy) * ((@Zpow T real_2 RealOrder.d2 z)*sqy) = x.
+Lemma sqrt_scale x y z sqy: (Zpow real_2 RealOrder.d2 (2*z))*y = x -> sqy * sqy = y ->  ((Zpow real_2 RealOrder.d2 z)*sqy) * ((Zpow real_2 RealOrder.d2 z)*sqy) = x.
 Proof.
   move => H1 H2.
   rewrite real_mult_comm -real_mult_assoc -(real_mult_comm sqy) -real_mult_assoc H2.
@@ -276,7 +297,7 @@ Proof.
 Qed.
 
 
-Definition sqrt_pos x : real_0_ < x -> {y | real_0_ <= y /\ y * y = x}.
+Definition sqrt_pos x : real_0 < x -> {y | real_0 <= y /\ y * y = x}.
 Proof.
   move => H.
   apply M_hprop_elim_f => [E1 E2 | ].
@@ -290,7 +311,7 @@ Proof.
   exists ((Zpow real_2 RealOrder.d2 z)*sqy).
   split; last by apply /sqrt_scale/S2.
   classical.
-  have R := @Zpow_relate T real_2 RealOrder.d2 z _ (IZreal_relator 2).
+  pose proof (Zpow_relate real_2 RealOrder.d2 z _ (IZreal_relator 2)) as R.
   Holger S1.
   relate.
   apply Rmult_le_pos => //.
@@ -298,22 +319,22 @@ Proof.
 Defined.
 
 
-Lemma sqrt_unique_existence x : (real_0_ <= x) -> exists ! y, real_0_ <= y /\ y*y = x.
+Lemma sqrt_unique_existence x : (real_0 <= x) -> exists ! y, real_0 <= y /\ y*y = x.
 Proof.
-  case (real_total_order x real_0_) => [p | [-> | p]];  [by pose (real_gt_nle _ _ p) |  |].
-  - exists real_0_; by split => [| y]; [ |  apply sqrt_unique]; split; ring_simplify; try apply Realle_triv.
+  case (real_total_order x real_0) => [p | [-> | p]];  [by pose (real_gt_nle _ _ p) |  |].
+  - exists real_0; by split => [| y]; [ |  apply sqrt_unique]; split; ring_simplify; try apply Realle_triv.
   case (sqrt_pos _ p) => y prp.
   exists y.
   split => // y'.
   by apply sqrt_unique.
 Qed.
 
-Definition sqrt x : real_0_ <= x -> {y | real_0_ <= y /\ y * y = x}.
+Definition sqrt x : real_0 <= x -> {y | real_0 <= y /\ y * y = x}.
 Proof.
   move => H.
   apply real_mslimit_P_p; first by apply sqrt_unique_existence.
   move => n.
-  have := M_split x (prec (2*n+1)) (prec (2*n+1)) (prec_pos (2*n+1)).
+  pose proof ( M_split x (prec (2*n+1)) (prec (2*n+1)) (prec_pos (2*n+1))) as X; move : X.
   rewrite /real_minus real_plus_inv.
   apply M_lift.
   case => P.
@@ -326,8 +347,8 @@ Proof.
     apply (real_lt_add_r (prec n)).
     rewrite real_plus_unit;ring_simplify.
     by apply prec_pos.
-  exists real_0_.
-  case (real_total_order x real_0_) => [p | [-> | p]];  [by pose (real_gt_nle _ _ p) | exists real_0_ |].
+  exists real_0.
+  case (real_total_order x real_0) => [p | [-> | p]];  [by pose (real_gt_nle _ _ p) | exists real_0 |].
   - split;[by split; ring_simplify;[apply real_le_triv|] |].
     rewrite real_plus_inv; split; apply real_lt_le; [| by apply prec_pos].
     apply (real_lt_add_r (prec n)).
@@ -341,11 +362,14 @@ Proof.
     apply real_lt_le.
     apply real_lt_anti.
     apply real_pos_square_gt_gt; [by apply prec_pos | |].
-    - apply real_nle_ge => /real_le_ge H'.
+  -
+    apply real_nle_ge.
+    intro H'.
+    apply real_le_ge in H'.
       rewrite <-(real_le_ge_eq _ _  prp1 H') in prp2.
       ring_simplify in prp2.   
       move : p.
-      ring_simplify real_0_.
+      ring_simplify real_0.
       rewrite prp2.
       by apply real_ngt_triv.
     rewrite prp2 -prec_hom.
@@ -353,21 +377,21 @@ Proof.
     by rewrite -prec_twice.
 Defined. 
 
-Lemma complex_nonzero_cases  a b : Complex a b <> complex0 -> M ({real_0_ < a} + {a < real_0_} + {real_0_ < b} + {b < real_0_}).
+Lemma complex_nonzero_cases  a b : Complex a b <> complex0 -> M ({real_0 < a} + {a < real_0} + {real_0 < b} + {b < real_0}).
 Proof.
   move => H.
-  have neq0_cases : ~(a = real_0_ /\ b  = real_0_) by move => [C1 C2];rewrite C1 C2 in H.
-  have neq0_cases' : (real_0_ < a \/ a < real_0_ \/  real_0_ < b \/ b < real_0_).
-  - case (real_total_order real_0_ a) => [p | [p | p]]; try by auto.
-    case (real_total_order real_0_ b) => [p' | [p' | p']]; try by auto.
+  have neq0_cases : ~(a = real_0 /\ b  = real_0) by move => [C1 C2];rewrite C1 C2 in H.
+  have neq0_cases' : (real_0 < a \/ a < real_0 \/  real_0 < b \/ b < real_0).
+  - case (real_total_order real_0 a) => [p | [p | p]]; try by auto.
+    case (real_total_order real_0 b) => [p' | [p' | p']]; try by auto.
     move : neq0_cases.
     rewrite -p -p'.
     by case.
-  apply (M_lift_dom ({real_0_ < a} + {a < real_0_ \/ real_0_ < b \/ b < real_0_})).
+  apply (M_lift_dom ({real_0 < a} + {a < real_0 \/ real_0 < b \/ b < real_0})).
   - case => P; first by apply M_unit; auto.
-    apply (M_lift_dom ({a < real_0_} + {real_0_ < b \/ b < real_0_})).
+    apply (M_lift_dom ({a < real_0} + {real_0 < b \/ b < real_0})).
     case => P'; first by apply M_unit; auto.
-    apply (M_lift_dom ({real_0_ < b} + {b < real_0_})).
+    apply (M_lift_dom ({real_0 < b} + {b < real_0})).
     case => P'';  by apply M_unit; auto.
   - apply choose => //; try by apply real_lt_semidec.
   - apply choose => //; try by apply real_lt_semidec.
@@ -376,37 +400,36 @@ Proof.
   apply semidec_or; try apply semidec_or; try by apply real_lt_semidec.
 Qed.
 
-Lemma square_nonneg : forall z, real_0_ <= (z * z)%Real.
+Lemma square_nonneg : forall z, real_0 <= (z * z)%Real.
 Proof.
   intros.
-  destruct (real_total_order z real_0_) as [a|[b|c]].
+  destruct (real_total_order z real_0) as [a|[b|c]].
   - by apply real_lt_le;apply square_pos;apply real_lt_neq.
   - rewrite b; right; ring.
   by apply real_lt_le;apply square_pos;apply real_gt_neq.
 Qed.
 
-Definition csqrt_neq0 (z : complex) : z <> complex0  -> M {sqz | @complex_mult T sqz sqz = z}.
+Definition csqrt_neq0 (z : complex) : z <> complex0  -> M {sqz | complex_mult sqz sqz = z}.
 Proof.
   destruct (complex_destruct z) as [a [b ->]] => H.
   have := complex_nonzero_cases _ _ H.
-  have gt0 : real_0_ <= (a*a + b*b)%Real by rewrite -(real_plus_unit real_0_);apply real_le_le_plus_le; apply square_nonneg.
+  have gt0 : real_0 <= (a*a + b*b)%Real by rewrite -(real_plus_unit real_0);apply real_le_le_plus_le; apply square_nonneg.
   case (sqrt _ gt0) => absz [absp1 absp2].
   have [absz_prp1 absz_prp2] : (- absz <= a <= absz)%Real.
   - Holger absp2;Holger gt0;Holger absp1.
     by split; classical;relate; try pose (Holber4 _ _ _ Hb3 H3);nra.
-  have absz_prp' : b <> real_0_ -> (- absz < a < absz)%Real.
+  have absz_prp' : b <> real_0 -> (- absz < a < absz)%Real.
   - move => H0.
     Holger H0;Holger absp2;Holger gt0;Holger absp1.
     split; by classical;relate; try pose (Holber4 _ _ _ Hb3 H4);nra.
-  have [absgt1 absgt2] : real_0_ <= (absz + a) / RealOrder.d2 /\ real_0_ <= (absz - a) / RealOrder.d2 by split;Holger absz_prp1; Holger absz_prp2; classical; relate; rewrite (relate_IZreal _ _ Hb); pose (Holber4 _ _ _ Ha0 Hx); lra.
+  have [absgt1 absgt2] : real_0 <= (absz + a) / RealOrder.d2 /\ real_0 <= (absz - a) / RealOrder.d2 by split;Holger absz_prp1; Holger absz_prp2; classical; relate; rewrite (relate_IZreal _ _ Hb); pose (Holber4 _ _ _ Ha0 Hx); lra.
   case (sqrt _ absgt1) => c [cprp1 cprp2].
   case (sqrt _ absgt2) => d [dprp1 dprp2].
   have P0 : (b*b - (real_2*d)*(real_2 * d)*d*d = (real_2*d)*(real_2*d)*a)%Real.
   - Holger absp2.
     Holger cprp2.
     Holger dprp2.
-    classical.
-    relate.
+    apply transport_eq; intros; relate.
     move : H1 H2.
     rewrite (relate_IZreal _ _ Ha8) => H1 H2.
     ring_simplify.
@@ -415,54 +438,74 @@ Proof.
     by rewrite H2; lra.
   have P1 : (c*c - d*d = a)%Real.
   - rewrite cprp2 dprp2.
-    by classical;relate;rewrite (relate_IZreal _ _ Hb1);lra.
-  have simpl1 x y (yneq0 : (real_2*y <> real_0_)%Real)  : (x / yneq0 * y = x / RealOrder.d2)%Real by classical;relate;Holger yneq0;relate;field; apply Rmult_neq_0_reg.
-  have simpl2 x : (x / RealOrder.d2 + x / RealOrder.d2 = x)%Real by  classical; relate;rewrite (relate_IZreal _ _ Hb);lra.
+    by apply transport_eq; intros; relate;rewrite (relate_IZreal _ _ Hb1);lra.
+  have simpl1 x y (yneq0 : (real_2*y <> real_0)%Real)  : (x / yneq0 * y = x / RealOrder.d2)%Real by classical2;relate;Holger yneq0;relate;field; apply Rmult_neq_0_reg.
+  have simpl2 x : (x / RealOrder.d2 + x / RealOrder.d2 = x)%Real by  classical2; relate;rewrite (relate_IZreal _ _ Hb);lra.
   apply M_lift => [[[[]|]| ]] P.
-  - have cneq0 : (real_2*c)%Real <> real_0_ by Holger P;Holger cprp2;Holger absp1;classical;relate; rewrite (relate_IZreal _ _ Ha); rewrite (relate_IZreal _ _ Ha) in H1; nra.
+  - have cneq0 : (real_2*c)%Real <> real_0 by Holger P;Holger cprp2;Holger absp1;classical2;relate; rewrite (relate_IZreal _ _ Ha); rewrite (relate_IZreal _ _ Ha) in H1; nra.
     exists (Complex c (b / cneq0)).
     rewrite /complex_mult /=.
     rewrite (real_mult_comm c).
-    suff -> : (c*c - b / cneq0 * (b / cneq0) = a)%Real by rewrite simpl1 simpl2.
+    assert (c*c - b / cneq0 * (b / cneq0) = a)%Real.
+
     rewrite -P1.
     rewrite -P1 in P0.
     Holger P0.
-    classical.
+    classical2.
     relate.   
     Holger cneq0.
     relate.
     move : H0 H1.
     rewrite (relate_IZreal _ _ Ha) => H1 H0.
     by field_simplify_eq; lra.
-  - have dneq0 : (real_2*d)%Real <> real_0_ by Holger P;Holger dprp2;Holger absp1;classical;relate;rewrite (relate_IZreal _ _ Ha); rewrite (relate_IZreal _ _ Ha) in H1;nra.
+
+  -
+    rewrite simpl1.
+    rewrite simpl2.
+    rewrite H0.
+    auto.
+
+
+  - have dneq0 : (real_2*d)%Real <> real_0 by Holger P;Holger dprp2;Holger absp1;classical2;relate;rewrite (relate_IZreal _ _ Ha); rewrite (relate_IZreal _ _ Ha) in H1;nra.
     exists (Complex (b / dneq0) d).
     rewrite /complex_mult /=.
     rewrite (real_mult_comm d).
-    suff -> : (b / dneq0 * (b / dneq0) - d*d = a)%Real by rewrite simpl1 simpl2.
-    Holger P0;Holger dprp2;classical;relate;Holger dneq0;relate.
+    assert (b / dneq0 * (b / dneq0) - d*d = a)%Real.
+    Holger P0;Holger dprp2;classical2;relate;Holger dneq0;relate.
     field_simplify_eq; last by apply Rmult_neq_0_reg; lra.
     by lra.
-  - have cneq0 : (real_2*c)%Real <> real_0_.
+
+  --
+    rewrite simpl1 simpl2 H0; auto.
+    
+  - have cneq0 : (real_2*c)%Real <> real_0.
     have [absz_prp3 absz_prp4] := (absz_prp' (real_gt_neq _ _ P)).
-    + Holger absz_prp3; Holger absz_prp4; Holger cprp2; classical; relate.
+    + Holger absz_prp3; Holger absz_prp4; Holger cprp2; classical2; relate.
       by move : H0 H1 H2;rewrite (relate_IZreal _ _ Ha); rewrite (Holber4 _ _ _ Ha0 Hx); intros; nra.
     exists (Complex c (b / cneq0)).
     rewrite /complex_mult /=.
     rewrite (real_mult_comm c).
-    suff -> : (c*c - b / cneq0 * (b / cneq0) = a)%Real by rewrite simpl1 simpl2.
+    assert (c*c - b / cneq0 * (b / cneq0) = a)%Real.
     rewrite -P1.
     rewrite -P1 in P0.
-    Holger P0;classical;relate;Holger cneq0;relate.
+    Holger P0;classical2;relate;Holger cneq0;relate.
     move : H0 H1.
     rewrite (relate_IZreal _ _ Ha) => H1 H0.
     by field_simplify_eq; lra.
-  exists (Complex c (-d)%Real).
-  rewrite /complex_mult /=.
-  have -> : (c*c - - d * -d = c*c - d*d)%Real by classical;relate;rewrite (Holber4 _ _ _ Hb2 Hb1);lra.
-  suff H0 : (c* -d = b / RealOrder.d2)%Real by rewrite P1 (real_mult_comm (-d)) H0 simpl2.
-  suff H1 : (c*d = - b / RealOrder.d2)%Real by Holger H1; Holger P; classical; relate;move : H0;rewrite (Holber4 _ _ _ Ha Ha0) (Holber4 _ _ _ Hb2 Hb1);lra.
+
+  --
+    rewrite simpl1 simpl2 H0; auto.
+  -
+    exists (Complex c (-d)%Real).
+    rewrite /complex_mult /=.
+  have -> : (c*c - - d * -d = c*c - d*d)%Real by classical2;relate;rewrite (Holber4 _ _ _ Hb2 Hb1);lra.
+  assert (H0 : (c* -d = b / RealOrder.d2)%Real).
+  
+  assert (H1 : (c*d = - b / RealOrder.d2)%Real).
+
+    
   ring_simplify.
-  apply (sqrt_unique (b / RealOrder.d2 * b / RealOrder.d2)%Real); Holger absp2; Holger cprp1; Holger cprp2; Holger dprp1; Holger dprp2; Holger P; split; classical;relate; [by apply Rmult_le_pos | | |  ].
+  apply (sqrt_unique (b / RealOrder.d2 * b / RealOrder.d2)%Real); Holger absp2; Holger cprp1; Holger cprp2; Holger dprp1; Holger dprp2; Holger P; split; classical2;relate; [by apply Rmult_le_pos | | |  ].
   - rewrite (relate_IZreal _ _ Hb6).
     move : H2 H4.
     rewrite (relate_IZreal _ _ Hb6) => H2 H4.
@@ -473,9 +516,13 @@ Proof.
     by lra.
   - by rewrite (relate_IZreal _ _ Hb3) (Holber4 _ _ _ Hb5 Ha0);lra.
   by rewrite (relate_IZreal _ _ Hb8) (Holber4 _ _ _ Hb7 Ha6);lra.
-Defined.
 
-Lemma prec_lt m n: (m <= n)%coq_nat -> prec_ n <= prec m. 
+  by Holger H1; Holger P; classical2; relate;move : H0;rewrite (Holber4 _ _ _ Ha Ha0) (Holber4 _ _ _ Hb2 Hb1);lra.
+  
+  by rewrite P1 (real_mult_comm (-d)) H0 simpl2.
+  Defined.
+
+Lemma prec_lt m n: (m <= n)%coq_nat -> prec n <= prec m. 
 Proof.
   move => H.
   have -> : (n = m + (n - m)%coq_nat)%coq_nat by lia. 
@@ -486,7 +533,7 @@ Proof.
   by apply prec_S.
 Qed.
 
-Lemma two_point_set_closed n (P : @euclidean T n -> Prop): (forall x1 x2 x3, P x1 -> P x2 -> P x3 -> x1 = x2 \/ x1 = x3 \/ x2 = x3) -> euclidean_is_closed P.
+Lemma two_point_set_closed n (P : euclidean n -> Prop): (forall x1 x2 x3, P x1 -> P x2 -> P x3 -> x1 = x2 \/ x1 = x3 \/ x2 = x3) -> euclidean_is_closed P.
 Proof.
    move => H.
    move => x.
@@ -509,33 +556,63 @@ Proof.
      contradict H'.
      case;by auto.
   case Pprp => [prp | [[x1 [x1prp x1prp']] | [x1 [x2 [Px1 [Px2 [neq prp] ] ]]] ]]; first by exists (0%nat); intros;apply prp.
-  - have dp := (euclidean_max_dist_pos x x1).
+  - pose proof (euclidean_max_dist_pos x x1) as dp.
     move : Cx.
-    case (real_total_order (euclidean_max_dist x x1) real_0_) => [/real_gt_nge | [/euclidean_max_dist_id ->| dx Cx] ] //.
-    case (@real_Archimedean T _ dx) => m mprp.
+    elim (real_total_order (euclidean_max_dist x x1) real_0); intros dx Cx.
+    apply real_gt_nge in dx.
+    contradiction (dx dp).
+    destruct dx as [dx | dx].
+    apply euclidean_max_dist_id in dx.
+    induction dx.
+    contradiction (Cx x1prp).
+    (* => [/real_gt_nge | [/euclidean_max_dist_id ->| dx Cx] ] //. *)
+    case (real_Archimedean _ dx) => m mprp.
     exists m => y yprp.
     move => H0.
     move : mprp yprp.
-    have -> := (x1prp' y H0) => /real_lt_nlt.
-    by auto.
-  have dp1 := (euclidean_max_dist_pos x x1).
-  have dp2 := (euclidean_max_dist_pos x x2).
+    pose proof (x1prp' y H0).
+    intros.
+    induction H1.
+    apply real_lt_nlt in yprp.
+    exact (yprp mprp).
+
+  pose proof (euclidean_max_dist_pos x x1) as dp1.
+  pose proof (euclidean_max_dist_pos x x2) as dp2.
   move : Cx.
-  case (real_total_order (euclidean_max_dist x x1) real_0_) => [/real_gt_nge | [/euclidean_max_dist_id ->| dx1  ] ] //.
-  case (real_total_order (euclidean_max_dist x x2) real_0_) => [/real_gt_nge | [/euclidean_max_dist_id ->| dx2 Cx] ] //.
-  case (@real_Archimedean T _ dx1) => m1 m1prp.
-  case (@real_Archimedean T _ dx2) => m2 m2prp.
+  destruct dp1, dp2; intro Cx.
+  rename H0 into dx1.
+  rename H1 into dx2.
+  case (real_Archimedean _ dx1) => m1 m1prp.
+  case (real_Archimedean _ dx2) => m2 m2prp.
   exists (max m1 m2) => y yprp.
   suff [H1 H2]: (x1 <> y) /\ (x2 <> y) by move => H0;case (prp y H0).
   have [P1' P2'] : prec (max m1 m2) < euclidean_max_dist x x1 /\ prec (max m1 m2) < euclidean_max_dist x x2.
   - split;first by apply /real_le_lt_lt/m1prp/prec_lt/Nat.le_max_l.
     apply /real_le_lt_lt/m2prp/prec_lt/Nat.le_max_r.
-  split => eq; [move : P1' | move: P2']; by rewrite eq => /real_lt_nlt.
+    split => eq; [move : P1' | move: P2'].
+    induction eq.
+    intro.
+    apply real_lt_nlt in P1'.
+    exact (P1' yprp).
+    intro.
+    induction eq.
+    apply real_lt_nlt in P2'.
+    exact (P2' yprp).
+
+  apply euclidean_max_dist_id in H1.
+  induction H1.
+  contradiction (Cx Px2).
+  apply euclidean_max_dist_id in H0.
+  induction H0.
+  contradiction (Cx Px1).
+  apply euclidean_max_dist_id in H0.
+  induction H0.
+  contradiction (Cx Px1).
 Qed.
 
 Open Scope C_scope.
 
-Lemma csqrt_solutions (x y z : @complex T) : (x * x)%Complex = z -> (y * y)%Complex = z -> (x=y \/ x=-y)%Complex.
+Lemma csqrt_solutions (x y z : complex ) : (x * x)%Complex = z -> (y * y)%Complex = z -> (x=y \/ x=-y)%Complex.
 Proof.
   case (complex_destruct x) => [xr [xi ->]].
   case (complex_destruct y) => [yr [yi ->]].
@@ -547,21 +624,22 @@ Proof.
 Admitted.
   
 (* approximates  square root by either returning zero for small numbers or computing the actual square root *)
-Definition csqrt_approx (z : @complex T) n: M {sqapprox | exists x, (x*x)%Complex = z /\ euclidean_max_dist sqapprox x <= prec n}.
+Definition csqrt_approx (z : complex) n: M {sqapprox | exists x, (x*x)%Complex = z /\ euclidean_max_dist sqapprox x <= prec n}.
 Admitted.
 
-Definition csqrt (z: @complex T) : M {sqz | (sqz * sqz)%Complex = z}.
+Definition csqrt (z: complex) : M {sqz | (sqz * sqz)%Complex = z}.
 Proof.
   apply euclidean_mlimit_P.
   - apply euclidean_is_closed_is_seq_complete.
     apply two_point_set_closed => x1 x2 x3 x1p x2p x3p.
     case (csqrt_solutions _ _ _ x1p x3p) => P; try by auto.
     case (csqrt_solutions _ _ _ x2p x3p) => ->; try by auto.
-  - apply /M_lift/(csqrt_approx z 0) => [[x0 x0prp]].
-    exists x0.
-    case x0prp => y yprp.
-    by exists y.
-  move => n x.
-Admitted.
+    Admitted.
+
+  (* - apply /M_lift/(csqrt_approx z 0) => [[x0 x0prp]]. *)
+  (*   exists x0. *)
+  (*   case x0prp => y yprp. *)
+  (*   by exists y. *)
+  (* move => n x. *)
 
 End sqrt.
