@@ -1087,6 +1087,26 @@ Ltac classical :=
 
   end.
 
+Ltac classical2 :=
+  match goal with
+  | |- eq ?x ?y => apply transport_eq;   intros  (* (fail "not implemented yet") *)
+  | |- ?x < ?y => apply transport_lt; intros
+  | |- ?x > ?y => apply transport_lt; intros
+  | |- ?x >= ?y => apply transport_geq; intros
+  | |- ?x <= ?y => apply transport_leq; intros
+  | |- ?x <> ?y => apply transport_neq; intros     
+  (* | |- exists x : Real, ?A => apply transport_exists;  intro; intro; intro; classical *)
+  | |- forall x , ?A => apply (transport_forall (fun x => A));   intros
+  (* | |- forall x : Real, ?A => apply (transport_forall (fun x => A));   intro; intro; intro; classical *)
+
+  | |- ?A => apply skip
+                   (* | |- ?A => match A with *)
+                   (*          | ?a = ?b => fail "haha" *)
+                   (*          | _ => fail "FAIL" A *)
+                   (*          end  *)
+
+
+  end.
 
 Ltac relate :=
   
