@@ -222,9 +222,9 @@ function civt3AllMethods
 }
 
 realmaxAllMethods
-# sqrt1AllMethods
-# sqrt2AllMethods
+sqrt1AllMethods
+sqrt2AllMethods
 civt1AllMethods
 civt2AllMethods
-# civt3AllMethods
+civt3AllMethods
 

@@ -25,11 +25,11 @@ import Math.NumberTheory.Logarithms (integerLog2)
 
 import qualified Max
 import qualified IVT
--- import qualified Sqrt
--- import qualified Magnitude
+import qualified Sqrt
+import qualified Magnitude
 
-realmax :: _ => t -> t -> t
-realmax x y = 
+real_max :: _ => t -> t -> t
+real_max x y = 
   limit $ \(n :: Integer) -> 
     let e = 0.5^n in
     if select (x > y - e) (y > x - e)
@@ -106,9 +106,9 @@ main =
   putStrLn $ bench benchName (read pS)
   where
   bench "realmaxE" p =
-    showR $ (realmax_bench Max.run_real_max :: CReal) ? (prec p)
+    showR $ (realmax_bench Max.r_real_max :: CReal) ? (prec p)
   bench "realmaxH" p =
-    showR $ (realmax_bench realmax :: CReal) ? (prec p)
+    showR $ (realmax_bench real_max :: CReal) ? (prec p)
   bench "realmaxN" p =
     showR $ (realmax_bench max :: CReal) ? (prec p)
   -- bench "realmaxMBE" p =
@@ -118,51 +118,51 @@ main =
   -- bench "realmaxMBN" p =
   --   showR $ ((runWithPrec (prec p) $ realmax_bench max) :: CN MPBall)
 
-  -- bench "magnitude1E" _p =
-  --   show $ (magnitude_bench1 (Magnitude.magnitude :: CReal -> Integer))
-  -- bench "magnitude1H" _p =
-  --   show $ (magnitude_bench1 (magnitude :: CReal -> Integer))
-  -- -- bench "magnitude1N" p =
-  -- --   showR $ (magnitude_bench1 sqrt :: CReal) ? (prec p)
+  bench "magnitude1E" _p =
+    show $ (magnitude_bench1 (Magnitude.r_magnitude :: CReal -> Integer))
+  bench "magnitude1H" _p =
+    show $ (magnitude_bench1 (magnitude :: CReal -> Integer))
+  -- bench "magnitude1N" p =
+  --   showR $ (magnitude_bench1 sqrt :: CReal) ? (prec p)
 
-  -- bench "sqrt1E" p =
-  --   showR $ (sqrt_bench1 Sqrt.restr_sqrt :: CReal) ? (prec p)
-  -- bench "sqrt1H" p =
-  --   showR $ (sqrt_bench1 restr_sqrt :: CReal) ? (prec p)
-  -- bench "sqrt1N" p =
-  --   showR $ (sqrt_bench1 sqrt :: CReal) ? (prec p)
-  -- -- bench "sqrt1MBE" p =
-  -- --   showR $ (runWithPrec (prec p) $ sqrt_bench1 SqrtMB.restr_sqrt)
-  -- -- bench "sqrt1MBH" p =
-  -- --   showR $ (runWithPrec (prec p) $ sqrt_bench1 restr_sqrt)
-  -- -- bench "sqrt1MBN" p =
-  -- --   showR $ ((runWithPrec (prec p) $ sqrt_bench1 sqrt) :: CN MPBall)
+  bench "sqrt1E" p =
+    showR $ (sqrt_bench1 Sqrt.r_sqrt2 :: CReal) ? (prec p)
+  bench "sqrt1H" p =
+    showR $ (sqrt_bench1 restr_sqrt :: CReal) ? (prec p)
+  bench "sqrt1N" p =
+    showR $ (sqrt_bench1 sqrt :: CReal) ? (prec p)
+  -- bench "sqrt1MBE" p =
+  --   showR $ (runWithPrec (prec p) $ sqrt_bench1 SqrtMB.restr_sqrt)
+  -- bench "sqrt1MBH" p =
+  --   showR $ (runWithPrec (prec p) $ sqrt_bench1 restr_sqrt)
+  -- bench "sqrt1MBN" p =
+  --   showR $ ((runWithPrec (prec p) $ sqrt_bench1 sqrt) :: CN MPBall)
 
-  -- bench "sqrt2E" p =
-  --   showR $ (sqrt_bench2 Sqrt.restr_sqrt :: CReal) ? (prec p)
-  -- bench "sqrt2H" p =
-  --   showR $ (sqrt_bench2 restr_sqrt :: CReal) ? (prec p)
-  -- bench "sqrt2N" p =
-  --   showR $ (sqrt_bench2 sqrt :: CReal) ? (prec p)
-  -- -- bench "sqrt2MBE" p =
-  -- --   showR $ (runWithPrec (prec p) $ sqrt_bench2 SqrtMB.restr_sqrt)
-  -- -- bench "sqrt2MBH" p =
-  -- --   showR $ (runWithPrec (prec p) $ sqrt_bench2 restr_sqrt)
-  -- -- bench "sqrt2MBN" p =
-  -- --   showR $ ((runWithPrec (prec p) $ sqrt_bench2 sqrt) :: CN MPBall)
+  bench "sqrt2E" p =
+    showR $ (sqrt_bench2 Sqrt.r_sqrt2 :: CReal) ? (prec p)
+  bench "sqrt2H" p =
+    showR $ (sqrt_bench2 restr_sqrt :: CReal) ? (prec p)
+  bench "sqrt2N" p =
+    showR $ (sqrt_bench2 sqrt :: CReal) ? (prec p)
+  -- bench "sqrt2MBE" p =
+  --   showR $ (runWithPrec (prec p) $ sqrt_bench2 SqrtMB.restr_sqrt)
+  -- bench "sqrt2MBH" p =
+  --   showR $ (runWithPrec (prec p) $ sqrt_bench2 restr_sqrt)
+  -- bench "sqrt2MBN" p =
+  --   showR $ ((runWithPrec (prec p) $ sqrt_bench2 sqrt) :: CN MPBall)
 
   bench "civt1E" p =
-    showR $ (civt_bench1 IVT.run_CIVT :: CReal) ? (prec p)
+    showR $ (civt_bench1 IVT.r_CIVT :: CReal) ? (prec p)
   bench "civt2E" p =
-    showR $ (civt_bench2 IVT.run_CIVT :: CReal) ? (prec p)
-  -- bench "civt3E" p =
-  --   showR $ (civt_bench3 IVT.run_CIVT Sqrt.restr_sqrt :: CReal) ? (prec p)
+    showR $ (civt_bench2 IVT.r_CIVT :: CReal) ? (prec p)
+  bench "civt3E" p =
+    showR $ (civt_bench3 IVT.r_CIVT Sqrt.r_sqrt2 :: CReal) ? (prec p)
   bench "civt1H" p =
     showR $ (civt_bench1 cIVT :: CReal) ? (prec p)
   bench "civt2H" p =
     showR $ (civt_bench2 cIVT :: CReal) ? (prec p)
-  -- bench "civt3H" p =
-  --   showR $ (civt_bench3 cIVT Sqrt.restr_sqrt :: CReal) ? (prec p)
+  bench "civt3H" p =
+    showR $ (civt_bench3 cIVT Sqrt.r_sqrt2 :: CReal) ? (prec p)
   -- bench "civt1MBE" p =
   --   showR $ (runWithPrec (prec p) $ civt_bench1 IVTMB.cIVT)
   -- bench "civt2MBE" p =

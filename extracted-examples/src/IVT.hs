@@ -358,21 +358,20 @@ m_Monad :: Monad (M Any)
 m_Monad = Build_Monad (\ _ _ f -> __uc f) (\_ a -> __uc a) (\ _ m -> m)
 
 multivalueMonad_description :: Monoid_hom (M Any) (NPset Any)
-multivalueMonad_description =
-  Prelude.error "AXIOM TO BE REALIZED"
+multivalueMonad_description = (Prelude.error "UNREALIZED MultivalueMonad_description")
 
 m_MultivalueMonad :: MultivalueMonad AERN2.CKleenean (M Any)
 m_MultivalueMonad = Build_MultivalueMonad (\ _ _ x -> __uc x) (\ _ _ x0 f -> __uc (\n -> Prelude.foldl (Prelude.flip (__uc f)) (x0) [0 .. ((n :: Prelude.Integer) Prelude.- 1)])) (\k1 k2 _ -> __uc (AERN2.select k1 k2)) (\ _ m -> m) (\ _ m -> m)
 
-real_SemiDecOrderedField :: SemiDecOrderedField AERN2.CKleenean AERN2.CReal
-real_SemiDecOrderedField = Build_SemiDecOrderedField 0 1 (Prelude.+) (Prelude.*) Prelude.negate (\ x _ -> Prelude.recip x) (OGB.<)
+r_SemiDecOrderedField :: SemiDecOrderedField AERN2.CKleenean AERN2.CReal
+r_SemiDecOrderedField = Build_SemiDecOrderedField 0 1 (Prelude.+) (Prelude.*) Prelude.negate (\ x _ -> Prelude.recip x) (OGB.<)
 
-real_ComplArchiSemiDecOrderedField :: ComplArchiSemiDecOrderedField
-                                      AERN2.CKleenean AERN2.CReal
-real_ComplArchiSemiDecOrderedField = (\ f _ -> AERN2.limit f)
+r_ComplArchiSemiDecOrderedField :: ComplArchiSemiDecOrderedField
+                                   AERN2.CKleenean AERN2.CReal
+r_ComplArchiSemiDecOrderedField = (\ f _ -> AERN2.limit f)
 
-run_CIVT :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal
-run_CIVT f =
+r_CIVT :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal
+r_CIVT f =
   cIVT k_LazyBool m_Monad multivalueMonad_description m_MultivalueMonad
-    real_SemiDecOrderedField real_ComplArchiSemiDecOrderedField f
+    r_SemiDecOrderedField r_ComplArchiSemiDecOrderedField f
 

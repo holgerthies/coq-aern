@@ -7,7 +7,7 @@ Extraction Language Haskell.
 Require Import ZArith_base.
 
 
-(* Require Import Real. *)
+(* Require Import R. *)
 Require Import Kleene.
 
 (* Declare the existence of Kleeneans *)
@@ -53,16 +53,16 @@ Extraction "M_Test" m_test. *)
 
 Require Import RealAxioms.
 
-(* Assume that there is Real*)
-Parameter Real : Set.
-Axiom Real_SemiDecOrderedField : @SemiDecOrderedField  _ K_LazyBool Real.
-Axiom Real_ComplArchiSemiDecOrderedField : @ComplArchiSemiDecOrderedField _ _ _ Real_SemiDecOrderedField.
+(* Assume that there is R*)
+Parameter R : Set.
+Axiom R_SemiDecOrderedField : @SemiDecOrderedField  _ K_LazyBool R.
+Axiom R_ComplArchiSemiDecOrderedField : @ComplArchiSemiDecOrderedField _ _ _ R_SemiDecOrderedField.
 
-Extract Inlined Constant Real => "AERN2.CReal".
+Extract Inlined Constant R => "AERN2.CReal".
 
-Extract Constant Real_SemiDecOrderedField => "Build_SemiDecOrderedField 0 1 (Prelude.+) (Prelude.*) Prelude.negate (\ x _ -> Prelude.recip x) (OGB.<)".
+Extract Constant R_SemiDecOrderedField => "Build_SemiDecOrderedField 0 1 (Prelude.+) (Prelude.*) Prelude.negate (\ x _ -> Prelude.recip x) (OGB.<)".
 
-Extract Constant Real_ComplArchiSemiDecOrderedField => "(\ f _ -> AERN2.limit f)".
+Extract Constant R_ComplArchiSemiDecOrderedField => "(\ f _ -> AERN2.limit f)".
 
 (* Some shortcuts for efficiency. Not necessary. *)
 Extract Constant IZreal => "(\_ _ z -> __uc (AERN2.creal z))".
@@ -70,7 +70,7 @@ Extract Constant real_minus => "(\_ _ x y -> __uc (((__R x) Prelude.- (__R y))))
 Extract Constant real_div => "(\_ _ x y -> __uc (((__R x) Prelude./ (__R y))))".
 Extract Constant prec => "(\_ _ n -> __uc ((0.5 :: AERN2.CReal) Prelude.^ n))".
 
-(* Test extraction of Real *)
+(* Test extraction of R *)
 Section Real_tests.
   Local Open Scope Real_scope.
 
@@ -85,10 +85,10 @@ Section Real_tests.
   Definition real_test1 := (IZreal 2) - (prec 2).
 End Real_tests.
 
-Definition R_test1 := @real_test1 _ _ Real_SemiDecOrderedField.
+Definition R_test1 := @real_test1 _ _ R_SemiDecOrderedField.
 (* Extraction "R_Test1" R_test1. *)
 
-Definition R_test2 := @real_limit_p _ _ _ _ Real_ComplArchiSemiDecOrderedField.
+Definition R_test2 := @real_limit_p _ _ _ _ R_ComplArchiSemiDecOrderedField.
 (* Extraction "R_Test2" R_test2. *)
 
 Extract Inductive bool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
@@ -97,30 +97,30 @@ Extract Inductive sumbool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
 Extract Inductive sigT => "(,)" ["(,)"].
 Extract Inductive prod => "(,)"  [ "(,)" ].
 
-Extract Inlined Constant Nat.log2 => "(MNP.integer Prelude.<<< Logs.integerLog2)".
+Extract Inlined Constant Nat.log2 => "(MNP.integer Prelude.. Logs.integerLog2)".
 
 (* Sewon's lab seminar talk material*)
 (* Maximum *)
 
 (* root finding function *)
 Require Import IVT.
-Definition run_CIVT := @CIVT _ _ _ _ _ M_MultivalueMonad _ _ Real_ComplArchiSemiDecOrderedField.
-Extraction "IVT" run_CIVT.
+Definition R_CIVT := @CIVT _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
+Extraction "IVT" R_CIVT.
 
 (* maximum *)
 Require Import Minmax.
-Definition run_real_max := @real_max _ _ _ _ _ M_MultivalueMonad _ _ Real_ComplArchiSemiDecOrderedField.
-Extraction "Max" run_real_max.
-
-(* TODO: update the rest of the file *)
+Definition R_real_max := @real_max _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
+Extraction "Max" R_real_max.
 
 (* magnitude *)
 Require Import magnitude.
-Extraction "Magnitude" magnitude.magnitude.
+Definition R_magnitude := @magnitude _ _ _ _ _ M_MultivalueMonad _ R_SemiDecOrderedField.
+Extraction "Magnitude" R_magnitude.
 
 (* sqrt *)
 Require Import sqrt.
-Extraction "Sqrt" restr_sqrt.
+Definition R_sqrt2 := @sqrt _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
+Extraction "Sqrt" R_sqrt2.
 
 (* Require Import Nabla. *)
 
