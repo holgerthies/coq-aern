@@ -4,77 +4,123 @@ Require ExtrHaskellNatInteger.
 Require ExtrHaskellZInteger.
 Extraction Language Haskell.
 
-Require Import Real.
+Require Import ZArith_base.
 
-(* Real is Real, K is LazyBoolean, and M T is T *)
-Extract Inlined Constant Real => "AERN2.CReal".
+
+(* Require Import R. *)
+Require Import Kleene.
+
+(* Declare the existence of Kleeneans *)
+Parameter K : Set.
+Axiom K_LazyBool : LazyBool K.
+
+(* interpreting Kleeneans *)
 Extract Inlined Constant K => "AERN2.CKleenean".
+Extract Constant K_LazyBool => "Build_LazyBool (AERN2.ckleenean Prelude.True) (AERN2.ckleenean Prelude.False) OGB.not (OGB.||) (OGB.&&) (\k _ -> Prelude.error ""UNREALIZED lazy_bool_defined_is_bool"")".
 
-(* Axioms for Kleenean *)
-Extract Inlined Constant trueK => "(AERN2.ckleenean Prelude.True)".
-Extract Inlined Constant falseK => "(AERN2.ckleenean Prelude.False)".
-                                   
-Extract Inlined Constant kneg => "OGB.not".
-Extract Inlined Constant kland => "(OGB.&&)".
-Extract Inlined Constant klor => "(OGB.||)".
+(* Test extraction of Kleeneans *)
 
-Extract Inlined Constant select => "AERN2.select".
+Section K_Dummy_Defs.
+  Generalizable Variable K.
+  Context `(klb : LazyBool K).
+  Definition lb_test := lazy_bool_and lazy_bool_true lazy_bool_false.
+End K_Dummy_Defs.
+Definition k_test := @lb_test K_LazyBool.
+(* Extraction "K_Test" k_test.  *)
 
-(* Axioms for Multivalueness *)
-Extract Constant M "a" => " a ".
-Extract Inlined Constant unitM => "Prelude.id".
-Extract Inlined Constant multM => "Prelude.id".
-Extract Inlined Constant liftM => "Prelude.id".
+Require Import Monad.
+Require Import ClassicalMonads.
+Require Import MultivalueMonad.
 
-Extract Inlined Constant elimM => "Prelude.id".
-Extract Inlined Constant pathsM => "(\ x0 f n -> Prelude.foldl (Prelude.flip f) x0 [0 .. (n Prelude.- 1)])".
-(* Extracted countableLiftM is too slow. *)
-Extract Inlined Constant countableLiftM => "Prelude.id". 
+(* Declare the existence of multivaluemonad *)
+Parameter M : Type -> Type.
+Axiom M_Monad : Monad M.
+Axiom MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad.
+Axiom M_MultivalueMonad : @MultivalueMonad _ K_LazyBool _ _ MultivalueMonad_description.
 
-(* Exact Real Number Operations *)
-Extract Inlined Constant Real0 => "0".
-Extract Inlined Constant Real1 => "1".
+(* interpreting multivaluemonad *)
+Extract Constant M "a" => "a".
+Extract Constant M_Monad => "Build_Monad (\ _ _ f -> __uc f) (\_ a -> __uc a) (\ _ m -> m)".
+Extract Constant MultivalueMonad_description => "(Prelude.error ""UNREALIZED MultivalueMonad_description"")".
+Extract Constant M_MultivalueMonad => "Build_MultivalueMonad (\ _ _ x -> __uc x) (\ _ _ x0 f -> __uc (\n -> Prelude.foldl (Prelude.flip (__uc f)) (x0) [0 .. ((n :: Prelude.Integer) Prelude.- 1)])) (\k1 k2 _ -> __uc (AERN2.select k1 k2)) (\ _ m -> m) (\ _ m -> m)".
 
-Extract Inlined Constant Realplus => "(Prelude.+)".
-Extract Inlined Constant Realmult => "(Prelude.*)".
-Extract Inlined Constant Realopp => "Prelude.negate".
-Extract Inlined Constant Realinv => "Prelude.recip".
-Extract Inlined Constant Reallt_semidec => "(OGB.<)".
-Extract Inlined Constant Realgt_semidec => "(OGB.>)".
-Extract Inlined Constant Real_limit_p => "AERN2.limit".
+(* Some shortcuts for efficiency. Not necessary. *)
+Extract Constant M_countable_lift => "(\_ _ _ _ f -> (__uc f))". 
+
+(* Test extraction of multivaluemonad *)
+(* Definition m_test := @select _ _ _ _ _ M_MultivalueMonad.
+Extraction "M_Test" m_test. *)
+
+Require Import RealAxioms.
+
+(* Assume that there is R*)
+Parameter R : Set.
+Axiom R_SemiDecOrderedField : @SemiDecOrderedField  _ K_LazyBool R.
+Axiom R_ComplArchiSemiDecOrderedField : @ComplArchiSemiDecOrderedField _ _ _ R_SemiDecOrderedField.
+
+Extract Inlined Constant R => "AERN2.CReal".
+
+Extract Constant R_SemiDecOrderedField => "Build_SemiDecOrderedField 0 1 (Prelude.+) (Prelude.*) Prelude.negate (\ x _ -> Prelude.recip x) (OGB.<)".
+
+Extract Constant R_ComplArchiSemiDecOrderedField => "(\ f _ -> AERN2.limit f)".
+
+(* Some shortcuts for efficiency. Not necessary. *)
+Extract Constant IZreal => "(\_ _ z -> __uc (AERN2.creal z))".
+Extract Constant real_minus => "(\_ _ x y -> __uc (((__R x) Prelude.- (__R y))))".
+Extract Constant real_div => "(\_ _ x y -> __uc (((__R x) Prelude./ (__R y))))".
+Extract Constant prec => "(\_ _ n -> __uc ((0.5 :: AERN2.CReal) Prelude.^ n))".
+
+(* Test extraction of R *)
+Section Real_tests.
+  Local Open Scope Real_scope.
+
+  Generalizable Variables K M R.
+
+  Context `{klb : LazyBool K} `{M_Monad : Monad M}
+    {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+    {M_MultivalueMonad : MultivalueMonad}
+    {R : Type}
+    {SemiDecOrderedField_Real : SemiDecOrderedField R}.
+  
+  Definition real_test1 := (IZreal 2) - (prec 2).
+End Real_tests.
+
+Definition R_test1 := @real_test1 _ _ R_SemiDecOrderedField.
+(* Extraction "R_Test1" R_test1. *)
+
+Definition R_test2 := @real_limit_p _ _ _ _ R_ComplArchiSemiDecOrderedField.
+(* Extraction "R_Test2" R_test2. *)
 
 Extract Inductive bool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
 Extract Inductive sumbool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
 
-(* some shortcuts for efficiency. Not necessary *)
-Extract Inlined Constant  Real2 => "2".
-Extract Inlined Constant Realminus => "(Prelude.-)".
-Extract Inlined Constant Realdiv => "(Prelude./)".
-Extract Inlined Constant prec => "(0.5 Prelude.^)".
-
 Extract Inductive sigT => "(,)" ["(,)"].
 Extract Inductive prod => "(,)"  [ "(,)" ].
 
-Extract Inlined Constant Nat.log2 => "(MNP.integer Prelude.<<< Logs.integerLog2)".
+Extract Inlined Constant Nat.log2 => "(MNP.integer Prelude.. Logs.integerLog2)".
 
 (* Sewon's lab seminar talk material*)
 (* Maximum *)
 
 (* root finding function *)
 Require Import IVT.
-Extraction "IVT" CIVT.
+Definition R_CIVT := @CIVT _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
+Extraction "IVT" R_CIVT.
 
 (* maximum *)
 Require Import Minmax.
-Extraction "Max" Realmax.
+Definition R_real_max := @real_max _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
+Extraction "Max" R_real_max.
 
 (* magnitude *)
 Require Import magnitude.
-Extraction "Magnitude" magnitude.magnitude.
+Definition R_magnitude := @magnitude _ _ _ _ _ M_MultivalueMonad _ R_SemiDecOrderedField.
+Extraction "Magnitude" R_magnitude.
 
 (* sqrt *)
 Require Import sqrt.
-Extraction "Sqrt" restr_sqrt.
+Definition R_sqrt2 := @sqrt _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
+Extraction "Sqrt" R_sqrt2.
 
 (* Require Import Nabla. *)
 
@@ -92,12 +138,22 @@ The Haskell module will require the following packages:
 - aern2-real >= 0.2.1
 - integer-logarithms
 
-In the generated Haskell files, add the following imports:
+In the generated Haskell files, add the following imports and definitions:
 
-import qualified Numeric.OrdGenericBool as OGB
 import MixedTypesNumPrelude (ifThenElse)
+import qualified Numeric.OrdGenericBool as OGB
+import qualified Unsafe.Coerce as UC
+import qualified Control.Monad
+import qualified Data.Functor
 import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
+
+__uc :: a -> b
+__uc = UC.unsafeCoerce
+__K :: a -> AERN2.CKleenean
+__K = UC.unsafeCoerce
+__R :: a -> AERN2.CReal
+__R = UC.unsafeCoerce
 
 *)

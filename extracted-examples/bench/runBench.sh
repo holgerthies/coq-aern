@@ -78,18 +78,18 @@ function runForAllMethods
     method="N"; bparamss="$method_N_bparamss" method_N_bparamss=""
     runForBenchParamss
   fi
-  if [ "$method_MBE_bparamss" != "" ]; then
-    method="MBE"; bparamss="$method_MBE_bparamss" method_MBE_bparamss=""
-    runForBenchParamss
-  fi
-  if [ "$method_MBH_bparamss" != "" ]; then
-    method="MBH"; bparamss="$method_MBH_bparamss" method_MBH_bparamss=""
-    runForBenchParamss
-  fi
-  if [ "$method_MBN_bparamss" != "" ]; then
-    method="MBN"; bparamss="$method_MBN_bparamss" method_MBN_bparamss=""
-    runForBenchParamss
-  fi
+  # if [ "$method_MBE_bparamss" != "" ]; then
+  #   method="MBE"; bparamss="$method_MBE_bparamss" method_MBE_bparamss=""
+  #   runForBenchParamss
+  # fi
+  # if [ "$method_MBH_bparamss" != "" ]; then
+  #   method="MBH"; bparamss="$method_MBH_bparamss" method_MBH_bparamss=""
+  #   runForBenchParamss
+  # fi
+  # if [ "$method_MBN_bparamss" != "" ]; then
+  #   method="MBN"; bparamss="$method_MBN_bparamss" method_MBN_bparamss=""
+  #   runForBenchParamss
+  # fi
 }
 
 #################

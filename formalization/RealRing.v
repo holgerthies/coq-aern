@@ -1,45 +1,56 @@
 Require Import Nnat.
 Require Import ArithRing.
 Require Export Ring Field.
-Require Import RealAxioms.
+Require Import Kleene Monad ClassicalMonads MultivalueMonad RealAxioms.
 
 Local Open Scope Real_scope.
 
-Fixpoint pow (r : Real) (n : nat) : Real :=
-  match n with
-  | O => Real1
-  | S m => r * pow r m
-  end.
+Section RealRing.
 
+Generalizable Variables K M R.
 
-Lemma RealRealheory : ring_theory Real0 Real1 Realplus Realmult Realminus Realopp (eq (A:=Real)).
-Proof.
-  constructor.
-  intro; apply Realplus_unit.
-  exact Realplus_comm.
-  symmetry; apply Realplus_assoc.
-  intro; apply Realmult_unit.
-  exact Realmult_comm.
-  symmetry ; apply Realmult_assoc.
-  intros m n p.
-  rewrite Realmult_comm.
-  rewrite (Realmult_comm n p).
-  rewrite (Realmult_comm m p).
-  apply Realmult_plus_distr.
-  reflexivity.
-  exact Realplus_inv.
-Qed.
+Context `{klb : LazyBool K} `{M_Monad : Monad M}
+  {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
+  {M_MultivalueMonad : MultivalueMonad}
+  {R : Type}
+  {SemiDecOrderedField_Real : SemiDecOrderedField R}.
+  
+  Fixpoint pow (r : R) (n : nat) : R :=
+    match n with
+    | O => real_1
+    | S m => r * pow r m
+    end.
 
-Ltac IZReal_tac t :=
-  match t with
-  | Real0 => constr:(0%Z)
-  | Real1 => constr:(1%Z)
-  | IZReal ?u =>
-    match isZcst u with
-    | true => u
+  Lemma realTheory : ring_theory real_0 real_1 real_plus real_mult real_minus real_opp (eq (A:=R)).
+  Proof.
+    constructor.
+    intro; apply real_plus_unit.
+    exact real_plus_comm.
+    symmetry; apply real_plus_assoc.
+    intro; apply real_mult_unit.
+    exact real_mult_comm.
+    symmetry ; apply real_mult_assoc.
+    intros m n p.
+    rewrite real_mult_comm.
+    rewrite (real_mult_comm n p).
+    rewrite (real_mult_comm m p).
+    apply real_mult_plus_distr.
+    reflexivity.
+    exact (real_plus_inv).
+  Qed.
+
+  Ltac IZReal_tac t :=
+    match t with
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
+      match isZcst u with
+      | true => u
+      | _ => constr:(InitialRing.NotConstant)
+      end
     | _ => constr:(InitialRing.NotConstant)
-    end
-  | _ => constr:(InitialRing.NotConstant)
-  end.
+    end.
 
-Add Ring RealRing : RealRealheory (constants [IZReal_tac]).
+  (* Add Ring realRing : realTheory (constants [IZReal_tac]). *)
+End RealRing.
+

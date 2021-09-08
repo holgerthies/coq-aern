@@ -2,6 +2,11 @@
 Axiom lem : forall P : Prop, P \/ ~P.
 Axiom Prop_ext : forall P Q : Prop, (P -> Q) -> (Q -> P) -> P = Q.
 Axiom dfun_ext : forall A (P : A -> Type) (f g: forall a : A, P a), (forall x, f x = g x) -> f = g.
+Axiom countable_choice : forall A (P : nat -> A -> Prop), (forall n, exists x, P n x) -> exists f : nat -> A , forall n, P n (f n).
+
+
+
+
 Lemma fun_ext : forall A B (f g: A -> B), (forall x, f x = g x) -> f = g.
 Proof.
   intros.
@@ -10,6 +15,10 @@ Proof.
 Defined.
 
 Definition isSubsingleton := fun P : Type => forall x y : P, x = y.
+Definition is_hprop (A : Type) := forall x y : A, x = y.
+Definition is_mono {A B} (f : A -> B) := forall x y, f x = f y -> x = y.
+
+
 Lemma fun_to_subsingleton_id : forall {A B} (f g : A -> B), isSubsingleton B -> f = g.
 Proof.
   intros.
@@ -118,4 +127,13 @@ Proof.
   simpl in H.
   exact H.
 Defined.
-  
+
+Lemma sigma_eqP2 : forall (A : Type) (P : A -> Prop) (x y : A) (a : P x) (b : P y),  x = y ->  exist P x a = exist P y b.
+Proof.
+  intros.
+  apply (sigma_eqP A P x y a b H).
+  apply irrl.
+Defined.
+
+
+
