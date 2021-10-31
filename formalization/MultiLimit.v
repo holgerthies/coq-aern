@@ -137,7 +137,8 @@ Section MultiLimit.
   Defined.
 
 
-  (* for a complete predicate [P : real_ -> Prop], when we give an initial searching point
+
+    (* for a complete predicate [P : real_ -> Prop], when we give an initial searching point
    [ M {x : real_ | w_approx P O x}] and a procedure that refines it,
    [f : forall n x, w_approx P n x -> M {y : real_ | w_approx P (S n) y /\ dist_ x y <= prec n}],
    (see that f is a function that [ (f n) x p] is roughly a multivalued real number [y]
@@ -198,6 +199,77 @@ Section MultiLimit.
     exact X1.
     exact X.
   Defined.
+
+
+  
+  Definition real_mlimit_PQ :
+    forall P : Real -> Prop,
+      forall Q : nat -> Real -> Prop,
+        is_seq_closed P ->
+        M {x : Real | w_approx P O x /\ Q O x} ->
+        (forall n x, w_approx P n x -> Q n x ->
+                     M {y : Real | w_approx P (S n) y /\ Q (S n) y /\ dist x y <= prec (S n)}) ->
+        M {x : Real | P x}. 
+  Proof.
+    intros P Q c X f.
+    assert ((forall n (x : {x : Real | w_approx P n x /\ Q n x}),
+                M {y : { y : Real | w_approx P (S n) y /\ Q (S n) y} | dist (projP1 _ _ x) (projP1 _ _ y) <= prec  (S n)})).
+    intros.
+    destruct x as [x [w w0]].
+    pose proof (f n x w).
+    apply (M_lift {y : Real | w_approx P (S n) y /\ Q (S n) y /\ dist x y <= prec (S n)}).
+    intro.
+    rename X1 into H.
+    destruct H.
+    assert ( w_approx P (S n) x0 /\ Q (S n) x0).
+    destruct a.
+    destruct H0.
+    auto.
+    exists (exist _ x0 H).
+    simpl.
+    destruct a.
+    destruct H1.
+    exact H2.
+    exact (X0 w0).
+    pose proof (M_paths _ _ X X0).
+    simpl in X1.
+    apply (M_lift_dom {x | w_approx P 0 x /\ Q O x}).
+    intro.
+    apply (M_lift {f : forall n : nat, {x : Real | w_approx P n x /\ Q n x}
+                 | forall m : nat,
+                     dist (projP1 Real (fun x : Real => w_approx P m x /\ Q m x) (f m))
+                           (projP1 Real (fun y : Real => w_approx P (S m) y /\ Q (S m) y) (f (S m))) <= prec (S m)}).
+    intro.
+    rename X2 into H.
+    rename X3 into H0.
+    destruct H.
+    destruct H0.
+    simpl in r.
+    assert (is_fast_cauchy (fun n => projP1 _ _ (x0 n))).
+    apply consecutive_converging_fast_cauchy.
+    exact r.
+    pose proof (real_limit _ H).
+    rename X2 into H0.
+    destruct H0.
+    exists x1.
+    pose proof (c (fun n => projP1 _ _ (x0 n)) H ).
+    assert (forall n : nat, w_approx P n ((fun n0 : nat => projP1 _ _ (x0 n0)) n)).
+    
+    intro.
+    destruct (x0 n).
+    simpl.
+    destruct a0.
+    exact H1.
+    apply (H0 H1).
+    exact i.
+    exact X1.
+    exact X.
+  Defined.
+
+
+
+
+
 
 
 End MultiLimit.
