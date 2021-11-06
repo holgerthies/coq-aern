@@ -778,6 +778,57 @@ Section Euclidean.
     exact X.
   Defined.
 
-
-  
+  Definition euclidean_mlimit_PQ {d} : forall P : euclidean d -> Prop, forall (Q : nat -> euclidean d -> Prop), 
+      euclidean_is_seq_closed P ->
+      M {x : euclidean d | euclidean_w_approx P O x /\ Q 0 x} ->
+      (forall n x, euclidean_w_approx P n x -> Q n x -> 
+                   M {y  | (euclidean_w_approx P (S n) y /\ Q (S n) y) /\ euclidean_max_dist x y <= prec (S n)}) ->
+      M {x | P x}. 
+  Proof.
+    intros P Q c X f.
+    assert ((forall n (x : {x | euclidean_w_approx P n x /\ Q n x}),
+                M {y : { y | euclidean_w_approx P (S n) y /\ Q (S n) y}  | euclidean_max_dist (projP1 _ _ x) (projP1 _ _ y) <= prec  (S n)} )).
+    - intros.
+      destruct x.
+      destruct a.
+      pose proof (f n x e q).
+    apply (M_lift {y  | (euclidean_w_approx P (S n) y /\ Q (S n) y) /\ euclidean_max_dist x y <= prec (S n) }).
+    intro.
+    rename X1 into H.
+    destruct H.
+    destruct a.
+    exists (exist _ x0 H).
+    simpl.
+    exact H0.
+    exact X0.
+  - pose proof (M_paths _ _ X X0).
+    simpl in X1.
+    apply (M_lift_dom {x | euclidean_w_approx P 0 x /\ Q 0 x}).
+    + intro.
+      apply (M_lift {f : forall n : nat, {x  | euclidean_w_approx P n x/\ Q n x }
+                 | forall m : nat,
+                     euclidean_max_dist (projP1 _ (fun x  => euclidean_w_approx P m x /\ Q m x) (f m))
+                                        (projP1 _ (fun y  => euclidean_w_approx P (S m) y /\ Q (S m) y) (f (S m))) <= prec (S m)}).
+      intro.
+      rename X2 into H.
+      rename X3 into H0.
+      destruct H.
+      destruct H0.
+      simpl in r.
+      assert (euclidean_is_fast_cauchy (fun n => projP1 _ _ (x0 n))).
+      apply euclidean_consecutive_converging_fast_cauchy.
+      exact r.
+      pose proof (euclidean_limit _ H).
+      destruct X2.
+      exists x1.
+      pose proof (c (fun n => projP1 _ _ (x0 n)) H).
+      apply H0.
+      intro.
+      destruct (x0 n).
+      simpl.
+      apply a0.
+      exact e.
+      exact X1.
+   + exact X.
+Defined.
 End Euclidean.
