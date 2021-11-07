@@ -623,14 +623,71 @@ Proof.
   case (real_total_order xr yr) => [p | [->  | p]]; [right | left; split=>// | right].
 Admitted.
   
-(* approximates  square root by either returning zero for small numbers or computing the actual square root *)
-Definition csqrt_perfect_approx (z : complex) n: M {sqapprox | (euclidean_max_dist complex0 z) <= prec (2*n+1) /\ sqapprox = complex0 \/ (sqapprox * sqapprox)%Complex = z}.
-Admitted.
+Lemma dn_elim : forall P : Prop, ((P -> False) -> False) -> P.
+Proof.
+intros.
+destruct (lem P).
+
+exact H0.
+contradiction (H H0).
+Defined.
+
+
+Lemma cp : forall A B, (A -> B) -> ((B -> False)) -> ((A -> False)).
+Proof.
+intros A B f g a.
+contradiction (g (f a)).
+Defined.
+
+
+Lemma dn_lift : forall A B, (A -> B) -> ((A -> False) -> False) -> ((B -> False) -> False).
+Proof.
+intros A B f.
+apply cp.
+apply cp.
+exact f.
+Defined.
+
+
+
+Definition dn A := ((A -> False) -> False).
+
+
+
+Lemma classicalize_Mexistence {T} :  forall (P : T -> Prop),  M {x | P x} -> exists x, P x.
+Proof.
+  intros P H.
+  apply dn_elim.
+  apply (dn_lift {x | P x}).
+  intro k; destruct k as [x j].
+  exists x.
+  exact j.
+  apply (M_hprop_elim).
+  intros x y.
+  auto.
+  apply fun_ext.
+  intros.
+  destruct (x x0).
+  apply (M_lift {x | P x}).
+  exact (fun x f => f x).
+  exact H.
+Qed.
+
 
 Lemma csqrt_exists (z : complex) : exists sq,  (sq * sq)%Complex = z.
 Proof.
-  case (complex_destruct z) => a [b ->].
-Admitted.
+  case (lem (z = complex0)) => P.
+  - exists complex0.
+    rewrite P.
+    rewrite /complex_mult/=.
+    have -> : (real_0 * real_0 = real_0)%Real by ring.
+    have -> : (real_0 + real_0 = real_0)%Real by ring.
+    have -> : (real_0 - real_0 = real_0)%Real by ring.
+    by trivial.
+ - apply classicalize_Mexistence.
+   apply csqrt_neq0.
+   exact P.
+Qed.
 
 Lemma csqrt_small z sq n : (sq*sq)%Complex = z /\ (euclidean_max_dist complex0 z) <= prec (2*n + 1) -> (euclidean_max_dist complex0 sq) <= prec n.
 Proof.
