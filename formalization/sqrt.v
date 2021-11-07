@@ -624,22 +624,128 @@ Proof.
 Admitted.
   
 (* approximates  square root by either returning zero for small numbers or computing the actual square root *)
-Definition csqrt_approx (z : complex) n: M {sqapprox | exists x, (x*x)%Complex = z /\ euclidean_max_dist sqapprox x <= prec n}.
+Definition csqrt_perfect_approx (z : complex) n: M {sqapprox | (euclidean_max_dist complex0 z) <= prec (2*n+1) /\ sqapprox = complex0 \/ (sqapprox * sqapprox)%Complex = z}.
 Admitted.
+
+Lemma csqrt_exists (z : complex) : exists sq,  (sq * sq)%Complex = z.
+Proof.
+  case (complex_destruct z) => a [b ->].
+Admitted.
+
+Lemma csqrt_small z sq n : (sq*sq)%Complex = z /\ (euclidean_max_dist complex0 z) <= prec (2*n + 1) -> (euclidean_max_dist complex0 sq) <= prec n.
+Proof.
+  case (complex_destruct z) => a [b ->].
+  case (complex_destruct sq) => x [y ->].
+  unfold complex_mult.
+  simpl.
+  move => [p1 p2].
+  destruct p1.
+  rewrite /euclidean_max_dist/euclidean_max_norm.
+  rewrite /euclidean_max_dist/euclidean_max_norm in p2.
+  simpl.
+  simpl in p2.
+  apply /real_le_le_le.
+  apply (Minmax.real_max_compwise_le _ (prec n) _ (prec n)).
+Admitted.  
+
+
+Lemma dist0neq0 (z : complex) : euclidean_max_dist complex0 z > real_0 -> z <> complex0.
+Proof.
+  move => P.
+  contradict P.
+  rewrite P.
+  have -> : euclidean_max_dist complex0 complex0 = real_0 by apply euclidean_max_dist_id.
+  by apply real_ngt_triv.
+Qed.
 
 Definition csqrt (z: complex) : M {sqz | (sqz * sqz)%Complex = z}.
 Proof.
-  apply euclidean_mlimit_P.
+  apply (euclidean_mlimit_PQ _ (fun (n : nat) y => {(euclidean_max_dist complex0 z) <= prec (2*(n.+1)+1) /\ y = complex0}  + {(y * y)%Complex = z} )).
   - apply euclidean_is_closed_is_seq_complete.
     apply two_point_set_closed => x1 x2 x3 x1p x2p x3p.
     case (csqrt_solutions _ _ _ x1p x3p) => P; try by auto.
     case (csqrt_solutions _ _ _ x2p x3p) => ->; try by auto.
-    Admitted.
-
-  (* - apply /M_lift/(csqrt_approx z 0) => [[x0 x0prp]]. *)
-  (*   exists x0. *)
-  (*   case x0prp => y yprp. *)
-  (*   by exists y. *)
-  (* move => n x. *)
-
+    pose proof ( M_split (euclidean_max_dist complex0 z) (prec ((2*(0+1)+1)+1)%coq_nat) (prec ((2*(0+1)+1)+1)%coq_nat) (prec_pos ((2*(0+1)+1)+1)%coq_nat)) as X; move : X.
+    rewrite /real_minus real_plus_inv.
+    apply M_lift_dom.
+    case => P.
+    + have := (csqrt_neq0 _ (dist0neq0 _ P)).
+      apply M_lift.
+      case => sq sqprp.
+      exists sq.
+      exists (right sqprp).
+      exists sq.
+      split => //.
+      have -> : euclidean_max_dist sq sq = real_0 by apply euclidean_max_dist_id.
+      apply real_lt_le.
+      apply prec_pos.
+    +  apply (real_lt_plus_r_lt (prec ((2*(0+1)+1)+1)%coq_nat)) in P.
+       rewrite real_plus_assoc in P.
+       rewrite (real_plus_comm _ ((prec ((2*(0+1)+1)+1)%coq_nat))) in P.
+       rewrite real_plus_inv in P.
+       rewrite real_plus_comm in P.
+       rewrite real_plus_unit in P.
+       rewrite prec_twice in P.
+       apply M_unit.
+       exists complex0.
+       apply real_lt_le in P.
+       have P' : euclidean_max_dist complex0 z <= prec (2*(0+1) + 1) /\ complex0 = complex0 by trivial.
+       exists (left P').
+       case (csqrt_exists z) => sq sqprp.
+       exists sq; split => //.
+       apply (csqrt_small z sq 0); split => //.
+       apply /real_le_le_le/prec_lt.
+       apply P.
+       have -> : (2 * 0 = 0)%nat by trivial.
+       have -> : (0 + 1 = 1)%nat by trivial.
+       have -> : (2 * 1 + 1 = 3)%nat by trivial.
+       by lia.
+  - intros n x P1 P2.
+    destruct P2 as [[H1 H2] | H].
+    pose proof ( M_split (euclidean_max_dist complex0 z) (prec ((2*(n.+2)+1)+1)%coq_nat) (prec ((2*(n.+2)+1)+1)%coq_nat) (prec_pos ((2*(n.+2)+1)+1)%coq_nat)) as X; move : X.
+    rewrite /real_minus real_plus_inv.
+     apply M_lift_dom.
+     case => P.
+    + have := (csqrt_neq0 _ (dist0neq0 _ P)).
+      apply M_lift.
+      case => sq sqprp.
+      exists sq.
+      exists (right sqprp).
+      split.
+      exists sq.
+      split => //.
+      have -> : euclidean_max_dist sq sq = real_0 by apply euclidean_max_dist_id.
+      apply real_lt_le.
+      apply prec_pos.
+      rewrite H2.
+      by apply (csqrt_small z sq (n.+1)).
+   + apply (real_lt_plus_r_lt (prec ((2*(n.+2)+1)+1)%coq_nat)) in P.
+     move : P.
+     rewrite real_plus_assoc (real_plus_comm _ ((prec ((2*(n.+2)+1)+1)%coq_nat))) real_plus_inv real_plus_comm real_plus_unit prec_twice.
+     move => P.
+     apply real_lt_le in P.
+     apply M_unit.
+     exists complex0.
+     have P' : euclidean_max_dist complex0 z <= prec (2*(n.+2) + 1) /\ complex0 = complex0 by trivial.
+     exists (left P').
+     split.
+     case (csqrt_exists z) => sq sqprp.
+     exists sq; split => //.
+     apply (csqrt_small z sq ); split => //.
+     rewrite H2.
+     have -> : euclidean_max_dist complex0 complex0 = real_0 by apply euclidean_max_dist_id.
+     apply real_lt_le.
+     apply prec_pos.
+   + apply M_unit.
+     exists x.        
+     exists (right H).
+     split.
+     exists x; split => //.
+     have -> : euclidean_max_dist x x = real_0 by apply euclidean_max_dist_id.
+     apply real_lt_le.
+     apply prec_pos.
+     have -> : euclidean_max_dist x x = real_0 by apply euclidean_max_dist_id.
+     apply real_lt_le.
+     apply prec_pos.
+Defined.
 End sqrt.

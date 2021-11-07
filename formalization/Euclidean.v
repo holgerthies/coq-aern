@@ -786,8 +786,6 @@ Section Euclidean.
       M {x | P x}. 
   Proof.
     intros P Q c X f.
-
-    Check projT1.
     assert ((forall n (x : {x & {_:  Q n x | euclidean_w_approx P n x }}),
                 M {y : { y  & { _ : Q (S n) y | euclidean_w_approx P (S n) y}}  | euclidean_max_dist (projT1 x) (projT1 y) <= prec  (S n)} )).
     - intros.
