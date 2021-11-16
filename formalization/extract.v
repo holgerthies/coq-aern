@@ -121,6 +121,8 @@ Extraction "Magnitude" R_magnitude.
 Require Import sqrt.
 Definition R_sqrt2 := @sqrt _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
 Extraction "Sqrt" R_sqrt2.
+Definition C_sqrt2 := @csqrt _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
+Extraction "CSqrt" C_sqrt2.
 
 (* Require Import Nabla. *)
 
