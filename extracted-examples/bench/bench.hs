@@ -163,7 +163,7 @@ csqrt_bench2r csqrtfn =
    complex_r $ csqrt_bench2 csqrtfn
 
 csqrt_bench3 :: (Floating t) => (Complex t -> Complex t) -> Complex t
-csqrt_bench3 csqrtfn = csqrtfn (complex (2^^(-1000 :: Int)) 0)
+csqrt_bench3 csqrtfn = csqrtfn (complex 0 (2^^(-1000 :: Int)))
 
 csqrt_bench3i :: (Floating t) => (Complex t -> Complex t) -> t
 csqrt_bench3i csqrtfn = 
@@ -174,7 +174,7 @@ csqrt_bench3r csqrtfn =
    complex_r $ csqrt_bench3 csqrtfn
 
 csqrt_bench4 :: (Floating t) => (Complex t -> Complex t) -> Complex t
-csqrt_bench4 csqrtfn = csqrtfn (complex (2^^(-10000 :: Int)) 0)
+csqrt_bench4 csqrtfn = csqrtfn (complex 0 (2^^(-10000 :: Int)))
 
 csqrt_bench4i :: (Floating t) => (Complex t -> Complex t) -> t
 csqrt_bench4i csqrtfn = 
@@ -183,6 +183,17 @@ csqrt_bench4i csqrtfn =
 csqrt_bench4r :: (Floating t) => (Complex t -> Complex t) -> t
 csqrt_bench4r csqrtfn = 
    complex_r $ csqrt_bench4 csqrtfn
+
+csqrt_bench5 :: (Floating t) => (Complex t -> Complex t) -> Complex t
+csqrt_bench5 csqrtfn = csqrtfn (complex 0 (2^^(1000 :: Int)))
+
+csqrt_bench5i :: (Floating t) => (Complex t -> Complex t) -> t
+csqrt_bench5i csqrtfn = 
+   complex_i $ csqrt_bench5 csqrtfn
+
+csqrt_bench5r :: (Floating t) => (Complex t -> Complex t) -> t
+csqrt_bench5r csqrtfn = 
+   complex_r $ csqrt_bench5 csqrtfn
 
 magnitude_bench1 :: (Fractional t) => (t -> Integer) -> Integer
 magnitude_bench1 magFn = magFn (0.5^(10000 :: Int))
@@ -259,6 +270,10 @@ main =
     showR $ (csqrt_bench4r CSqrt.c_sqrt2 :: CReal) ? (prec p)
   bench "csqrt4iE" p =
     showR $ (csqrt_bench4i CSqrt.c_sqrt2 :: CReal) ? (prec p)
+  bench "csqrt5rE" p =
+    showR $ (csqrt_bench5r CSqrt.c_sqrt2 :: CReal) ? (prec p)
+  bench "csqrt5iE" p =
+    showR $ (csqrt_bench5i CSqrt.c_sqrt2 :: CReal) ? (prec p)
 
   bench "civt1E" p =
     showR $ (civt_bench1 IVT.r_CIVT :: CReal) ? (prec p)

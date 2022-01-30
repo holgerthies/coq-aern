@@ -221,10 +221,100 @@ function civt3AllMethods
   runForAllMethods
 }
 
-realmaxAllMethods
-sqrt1AllMethods
-sqrt2AllMethods
-civt1AllMethods
-civt2AllMethods
-civt3AllMethods
+function csqrt0ExtractedOnly
+{
+     step="100 1000 10000"
+    steps=`printf "$step %.0s" {1..10}`
+  stepsMB=`printf "$stepMB %.0s" {1..10}`
 
+  #   steps="100 140 200 280 400 560 800 1120"
+  # stepsMB="140 200 280 400 560 800 1120 1600"
+
+    method_E_bparamss="$steps";
+    # method_H_bparamss="$steps";
+
+  bench="csqrt0r"; dir="csqrt0";
+  params="";
+  runForAllMethods
+}
+
+function csqrt1ExtractedOnly
+{
+     step="100 1000 10000 100000 1000000"
+    steps=`printf "$step %.0s" {1..10}`
+  stepsMB=`printf "$stepMB %.0s" {1..10}`
+
+  #   steps="100 140 200 280 400 560 800 1120"
+  # stepsMB="140 200 280 400 560 800 1120 1600"
+
+    method_E_bparamss="$steps";
+    # method_H_bparamss="$steps";
+
+  bench="csqrt1r"; dir="csqrt1";
+  params="";
+  runForAllMethods
+}
+
+function csqrt2ExtractedOnly
+{
+     step="100 1000 10000 100000 1000000"
+    steps=`printf "$step %.0s" {1..10}`
+  stepsMB=`printf "$stepMB %.0s" {1..10}`
+
+  #   steps="100 140 200 280 400 560 800 1120"
+  # stepsMB="140 200 280 400 560 800 1120 1600"
+
+    method_E_bparamss="$steps";
+    # method_H_bparamss="$steps";
+
+  bench="csqrt2r"; dir="csqrt2";
+  params="";
+  runForAllMethods
+}
+
+function csqrt3ExtractedOnly
+{
+     step="100 1000 10000 100000 1000000"
+    steps=`printf "$step %.0s" {1..10}`
+  stepsMB=`printf "$stepMB %.0s" {1..10}`
+
+  #   steps="100 140 200 280 400 560 800 1120"
+  # stepsMB="140 200 280 400 560 800 1120 1600"
+
+    method_E_bparamss="$steps";
+    # method_H_bparamss="$steps";
+
+  bench="csqrt3r"; dir="csqrt3";
+  params="";
+  runForAllMethods
+}
+
+function csqrt5ExtractedOnly
+{
+     step="100 1000 10000 100000 1000000"
+    steps=`printf "$step %.0s" {1..10}`
+  stepsMB=`printf "$stepMB %.0s" {1..10}`
+
+  #   steps="100 140 200 280 400 560 800 1120"
+  # stepsMB="140 200 280 400 560 800 1120 1600"
+
+    method_E_bparamss="$steps";
+    # method_H_bparamss="$steps";
+
+  bench="csqrt5r"; dir="csqrt5";
+  params="";
+  runForAllMethods
+}
+
+# realmaxAllMethods
+# sqrt1AllMethods
+# sqrt2AllMethods
+# civt1AllMethods
+# civt2AllMethods
+# civt3AllMethods
+
+# csqrt0ExtractedOnly
+# csqrt1ExtractedOnly
+# csqrt2ExtractedOnly
+csqrt3ExtractedOnly
+csqrt5ExtractedOnly
