@@ -44,6 +44,51 @@ Extract Constant M_Monad => "Build_Monad (\ _ _ f -> __uc f) (\_ a -> __uc a) (\
 Extract Constant MultivalueMonad_description => "(Prelude.error ""UNREALIZED MultivalueMonad_description"")".
 Extract Constant M_MultivalueMonad => "Build_MultivalueMonad (\ _ _ x -> __uc x) (\ _ _ x0 f -> __uc (\n -> Prelude.foldl (Prelude.flip (__uc f)) (x0) [0 .. ((n :: Prelude.Integer) Prelude.- 1)])) (\k1 k2 _ -> __uc (AERN2.select k1 k2)) (\ _ m -> m) (\ _ m -> m)".
 
+(* The following text provides some explanation of the above rule, in particular the second argument of
+ Build_MultivalueMonad.
+
+* Copied from MultivalueMonad.v:
+
+Class MultivalueMonad :=
+  {
+    MultivalueMonad_base_monad_hprop_elim : forall A, is_hprop A -> is_equiv (Monad_unit A);
+    MultivalueMonad_base_monad_traces_lift : lifts_lifted_trace M_Monad;
+    multivalued_choice : forall x y : K, x = lazy_bool_true \/ y = lazy_bool_true -> M ({ x = lazy_bool_true } + { (y = lazy_bool_true) });
+
+    MultivalueMonad_description_is_mono : Monoid_hom_is_mono _ _ MultivalueMonad_description;
+    MultivalueMonad_description_is_equiv : forall A, is_equiv (Monad_fun_map _ _ (M_description A));
+
+    MultivalueMonad_destruct : forall A (X : M A), M  {x : A | projP1 _ _ (M_description A X) x};
+  }.
+
+Definition lifts_lifted_trace := 
+  forall P : nat -> Type,
+  forall R : (forall n, P n -> P (S n) -> Prop),
+  forall X : M (P O),
+  forall f : (forall n (x : P n), M {y : P (S n) | R n x y}),
+    {F : M {f : forall n, (P n) | forall m, R m (f m) (f (S m))} |
+     sections_to_fibers _ (lifted_projP1 _ _ F) = trace_lifts_to_fiber P R X f}.
+
+* A simplified version of the above Haskell implementation of a lifts_lifted_trace:
+
+multivalueMonad_base_monad_traces_lift _ _ x0 f n 
+  = foldl (flip f) x0 [0 .. (n - 1)]
+
+which can be informally written as:
+
+  = f(n-1, f(n-2, ... f(1, f(0, x0))))
+
+* Example of use within extracted code:
+
+m_paths :: (LazyBool a1) -> (Monad a2) -> (Monoid_hom a2 (NPset Any)) ->
+           (MultivalueMonad a1 a2) -> a2 -> (Prelude.Integer -> a3 -> a2) -> a2
+m_paths klb m_Monad0 multivalueMonad_description0 m_MultivalueMonad0 x x0 =
+  projP1
+    (multivalueMonad_base_monad_traces_lift klb m_Monad0
+      multivalueMonad_description0 m_MultivalueMonad0 x x0)
+
+*)
+
 (* Some shortcuts for efficiency. Not necessary. *)
 Extract Constant M_countable_lift => "(\_ _ _ _ f -> (__uc f))". 
 
