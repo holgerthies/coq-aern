@@ -136,4 +136,7 @@ Proof.
 Defined.
 
 
+Definition dec := fun P : Prop =>  {P} + {~ P}.
+
+Definition is_discrete (X : Type) := forall x y : X, dec (x = y). 
 
