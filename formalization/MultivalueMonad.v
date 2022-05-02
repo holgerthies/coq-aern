@@ -91,7 +91,10 @@ Class MultivalueMonad :=
     MultivalueMonad_base_monad_hprop_elim : forall A, is_hprop A -> is_equiv (Monad_unit A);
     MultivalueMonad_base_monad_traces_lift : lifts_lifted_trace M_Monad;
     multivalued_choice : forall x y : K, x = lazy_bool_true \/ y = lazy_bool_true -> M ({ x = lazy_bool_true } + { (y = lazy_bool_true) });
+    
+    multivalued_countable_choice : forall x : nat -> K, (exists n, x n = lazy_bool_true) -> M {n | x n = lazy_bool_true };
 
+    
     MultivalueMonad_description_is_mono : Monoid_hom_is_mono _ _ MultivalueMonad_description;
     MultivalueMonad_description_is_equiv : forall A, is_equiv (Monad_fun_map _ _ (M_description A));
 
@@ -130,6 +133,7 @@ Definition M_hprop_elim : forall A, is_hprop A -> is_equiv (M_unit A) :=  Multiv
 (* Definition M_unit_is_mono : forall A, is_mono (M_unit A) := MultivalueMonad_base_monad_unit_is_mono _ M_structure. *)
 Definition M_traces_lift := MultivalueMonad_base_monad_traces_lift.
 Definition M_choice : forall x y, (lazy_bool_up _ x \/ lazy_bool_up _ y) -> M ({lazy_bool_up _ x} + {lazy_bool_up _ y}) := (multivalued_choice).
+Definition M_countable_choice : forall x, (exists n, lazy_bool_up _ (x n)) -> M {n | lazy_bool_up _ (x n)} := (multivalued_countable_choice).
 
 Definition M_description_is_mono : forall A, is_mono (M_description A) := MultivalueMonad_description_is_mono.
 Definition M_description_is_equiv : forall A, is_equiv (Monad_fun_map _ _ (M_description A)) := MultivalueMonad_description_is_equiv.
