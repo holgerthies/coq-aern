@@ -286,8 +286,9 @@ Section rounding.
   Defined.
 
   
-    
-  Lemma M_approx_seq : forall x : Real, forall n,  M {z  | dist (prec n * IZreal z) x <= prec n}.
+
+
+  Lemma M_approx_seq_lt : forall x : Real, forall n,  M {z  | dist (prec n * IZreal z) x < prec n}.
   Proof.
     intros.
     pose proof (rounding (x * Nreal (Npow2 n))).
@@ -295,7 +296,7 @@ Section rounding.
     intro.
     destruct H.
     exists x0.
-    apply (proj2   (dist_le_prop (prec n * IZreal x0) x (prec n) )).
+    apply (proj2 (dist_lt_prop (prec n * IZreal x0) x (prec n) )).
     destruct a.
     apply (real_lt_mult_pos_lt _ _ _ (prec_pos n)) in H.
     replace (prec n * (x * Nreal (Npow2 n)))
@@ -318,7 +319,7 @@ Section rounding.
     apply (real_lt_plus_lt (-x - prec n)) in H0.
     replace (- x - prec n + (prec n * IZreal x0 + prec n)) with (prec n * IZreal x0 - x) in H0 by ring.
     replace (- x - prec n + x) with (- prec n) in H0 by ring.
-    split; left; auto.
+    auto.
     rewrite IZreal_hom.
     ring.
     replace (x0 - 1)%Z with (x0 + (-1))%Z by lia.
@@ -326,7 +327,22 @@ Section rounding.
     
     ring.
   Defined.
+    
+  Lemma M_approx_seq : forall x : Real, forall n,  M {z  | dist (prec n * IZreal z) x <= prec n}.
+  Proof.
+    intros x n.
+    pose proof (M_approx_seq_lt x n).
+    apply (fun f => M_lift _ _ f X).
+    intro H.
+    destruct H.
+    exists x0.
+    left.
+    auto.
+  Defined.
 
+
+
+  
   Definition dyadic_sequence : (nat -> Z) -> (nat -> Real) := fun f n => prec n * IZreal (f n).
 
   Definition dyadic_M_sequence : (nat -> M Z) -> (nat -> M Real).
