@@ -4,6 +4,7 @@ Monad.v
 ClassicalMonads.v
 Nabla.v
 Kleene.v
+Sierpinski.v
 MultivalueMonad.v
 RealAxioms.v
 RealRing.v
