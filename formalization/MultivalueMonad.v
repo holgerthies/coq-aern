@@ -92,8 +92,18 @@ Section M_Defs.
       MultivalueMonad_base_monad_traces_lift : lifts_lifted_trace M_Monad;
       multivalued_choice : forall x y : K, x = lazy_bool_true \/ y = lazy_bool_true -> M ({ x = lazy_bool_true } + { (y = lazy_bool_true) });
       
-      multivalued_countable_choice : forall x : nat -> K, (exists n, x n = lazy_bool_true) -> M {n | x n = lazy_bool_true };
+      multivalued_countable_choice :
+      forall x : nat -> K,
+        (exists n, x n = lazy_bool_true ) ->
+        M {n | x n = lazy_bool_true };
 
+      multivalued_countable_andor :
+      forall x : nat -> K,
+        M {b |
+            (b = lazy_bool_true -> exists n, x n = lazy_bool_true) /\
+              (b= lazy_bool_false -> exists n, x n = lazy_bool_false) /\
+              ((b= lazy_bool_undef) = forall n, x n = lazy_bool_undef) };
+      
       
       MultivalueMonad_description_is_mono : Monoid_hom_is_mono _ _ MultivalueMonad_description;
       MultivalueMonad_description_is_equiv : forall A, is_equiv (Monad_fun_map _ _ (M_description A));
@@ -133,8 +143,21 @@ Section M_Defs.
   (* Definition M_unit_is_mono : forall A, is_mono (M_unit A) := MultivalueMonad_base_monad_unit_is_mono _ M_structure. *)
   Definition M_traces_lift := MultivalueMonad_base_monad_traces_lift.
   Definition M_choice : forall x y, (lazy_bool_up x \/ lazy_bool_up y) -> M ({lazy_bool_up x} + {lazy_bool_up y}) := (multivalued_choice).
-  Definition M_countable_choice : forall x, (exists n, lazy_bool_up (x n)) -> M {n | lazy_bool_up (x n)} := (multivalued_countable_choice).
+  Definition M_countable_andor :
+    forall x,
+      M {b | (lazy_bool_up b -> exists n, lazy_bool_up (x n)) /\
+               (lazy_bool_down b -> exists n, lazy_bool_down (x n)) /\
+               ((lazy_bool_lazy b) = forall n, lazy_bool_lazy (x n)) }  := (multivalued_countable_andor).
 
+  Definition M_countable_choice : forall x : nat -> K, (exists n, lazy_bool_up (x n)) -> M {n | lazy_bool_up (x n)}
+  (* . *)
+  (* Proof. *)
+  (*   intros. *)
+    
+
+    := (multivalued_countable_choice).
+
+  
   Definition M_description_is_mono : forall A, is_mono (M_description A) := MultivalueMonad_description_is_mono.
   Definition M_description_is_equiv : forall A, is_equiv (Monad_fun_map _ _ (M_description A)) := MultivalueMonad_description_is_equiv.
 

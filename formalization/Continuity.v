@@ -1,5 +1,5 @@
 Require Import Real.
-Require Import Sierpinski.
+Require Export Sierpinski.
 
 Section Continuity.
   

@@ -1,3 +1,4 @@
+(* Require Export Enumerable. *)
 (* Extensionality Axioms for our type theory *)
 Axiom lem : forall P : Prop, P \/ ~P.
 Axiom Prop_ext : forall P Q : Prop, (P -> Q) -> (Q -> P) -> P = Q.
@@ -58,6 +59,7 @@ Defined.
 Definition id (A : Type) : A -> A := fun x => x.
 Definition fc {A B C : Type} (f : B -> C) (g : A -> B) : A -> C := fun x => f (g x).
 Definition is_equiv {A B : Type} (f : A -> B) := {g : B -> A | fc g f = id _ /\ fc f g = id _}.
+Definition equiv (A B : Type) := {f : A -> B & is_equiv f}.
 
 
 

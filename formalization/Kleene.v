@@ -41,6 +41,7 @@ Section K_Defs.
 
   Definition lazy_bool_up : K -> Prop := fun b : K => b = lazy_bool_true.
   Definition lazy_bool_down : K -> Prop := fun b : K => b = lazy_bool_false.
+  Definition lazy_bool_lazy : K -> Prop := fun b : K => b = lazy_bool_undef.
 
   (* semideciability so that we can work on Prop directly, without mentioning K *)
   Definition semidec := fun P : Prop => {x : K | lazy_bool_up x = P}.
