@@ -17,8 +17,8 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver:
-  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/17/12.yaml
+resolver: lts-19.7
+system-ghc: true
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -46,11 +46,11 @@ packages:
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
 extra-deps:
-- cdar-mBound-0.1.0.1
-- collect-errors-0.1.4.0
-- mixed-types-num-0.5.3.0
-- aern2-mp-0.2.1.0
-- aern2-real-0.2.1.0
+- cdar-mBound-0.1.0.4
+- collect-errors-0.1.5.0
+- mixed-types-num-0.5.9.1
+- aern2-mp-0.2.8.0
+- aern2-real-0.2.8.0
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
