@@ -1,5 +1,5 @@
 Set Warnings "-parsing".
-Require Import Real testsearch.
+Require Import Real.
 From mathcomp Require Import all_ssreflect.
 Require Import Psatz.
 Require Import Nat.
@@ -7,7 +7,7 @@ Require Import PeanoNat.
 
 Require Import Kleene.
 Require Import Reals.
-Require Import RealCoqReal RealHelpers.
+Require Import RealCoqReal RealHelpers testsearch.
 Set Warnings "parsing".
 
 
