@@ -67,8 +67,10 @@ Section testsearch.
     destruct a.
     split. auto.
     intros k kx.
-    have Hk := (H2 k kx).
-    destruct (H k). by induction Hk. by auto.
+    have Hk := (H2 k).
+    destruct (H k).
+    lia.
+    auto.    
     destruct a.
     induction H1.
   Defined.
