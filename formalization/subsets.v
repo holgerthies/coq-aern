@@ -12,6 +12,20 @@ Require Import Real Euclidean List Minmax.
           {SemiDecOrderedField_Real : SemiDecOrderedField Real}
           {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
 
+  (* ring structure on Real *)
+  Ltac IZReal_tac t :=
+    match t with
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
+      match isZcst u with
+      | true => u
+      | _ => constr:(InitialRing.NotConstant)
+      end
+    | _ => constr:(InitialRing.NotConstant)
+    end.
+
+  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 Section Subsets.
   
 
@@ -93,8 +107,6 @@ Section Examples.
     apply (p1 :: (app l2 l3)).
   Defined.
   Definition coverT (n : nat) : list (ball 2) := coverIter n (make_ball (real_1 / real_2_neq_0) (real_1 / real_2_neq_0) (real_1 / real_2_neq_0)).
-
-
     
 End Examples.
  

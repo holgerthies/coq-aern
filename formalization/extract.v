@@ -326,16 +326,21 @@ Extraction Implicit complex_nonzero_cases [ klb M_Monad MultivalueMonad_descript
 Definition C_sqrt2 := @csqrt _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
 Extraction "CSqrt" C_sqrt2.
 
+Require Import subsets.
+Extraction Implicit coverT [].
+Extraction "cover" coverT.
+
+
+               
 (* Require Import Nabla. *)
 
 (* Require Import Coq.Reals.Abstract.ConstructiveMinMax. *)
 
 (* Recursive Extraction CRmin. *)
-
 (*
-
+.
 The Haskell module will require the following packages:
-- cdar-mBound >= 0.1.0.1
+ re- cdar-mBound >= 0.1.0.1
 - collect-errors >= 0.1.4
 - mixed-types-num >= 0.5.3
 - aern2-mp >= 0.2.1
