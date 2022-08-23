@@ -2,6 +2,24 @@ module Cover where
 
 import qualified Prelude
 
+import MixedTypesNumPrelude (ifThenElse)
+import qualified Numeric.OrdGenericBool as OGB
+import qualified Unsafe.Coerce as UC
+import qualified Control.Monad
+import qualified Data.Functor
+import qualified MixedTypesNumPrelude as MNP
+import qualified Math.NumberTheory.Logarithms as Logs
+import qualified AERN2.Real as AERN2
+
+__uc :: a -> b
+__uc = UC.unsafeCoerce
+__K :: a -> AERN2.CKleenean
+__K = UC.unsafeCoerce
+__R :: a -> AERN2.CReal
+__R = UC.unsafeCoerce
+__seqR :: a -> (Prelude.Integer -> AERN2.CReal)
+__seqR = UC.unsafeCoerce
+
 __ :: any
 __ = Prelude.error "Logical or arity value used"
 
@@ -60,7 +78,7 @@ real_2 = (__uc (2 :: AERN2.CReal))
 data Euclidean real =
    Nil
  | Cons Prelude.Integer real (Euclidean real)
-
+  deriving (Prelude.Show)
 caseS' :: Prelude.Integer -> (Euclidean a1) -> (a1 -> (Euclidean a1) -> a2)
           -> a2
 caseS' _ v h =
@@ -121,4 +139,8 @@ coverT n =
     {- 4th argument (SemiDecOrderedField_Real) of coverT -} n
     (make_ball (real_div real_1 real_2) (real_div real_1 real_2)
       (real_div real_1 real_2))
+
+r_coverT :: Prelude.Integer -> ([]) (Ball AERN2.CReal)
+r_coverT =
+  coverT
 

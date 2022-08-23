@@ -328,7 +328,8 @@ Extraction "CSqrt" C_sqrt2.
 
 Require Import subsets.
 Extraction Implicit coverT  [ klb SemiDecOrderedField_Real ].
-Extraction "cover" coverT.
+Definition R_coverT := @coverT _ _ _ R_SemiDecOrderedField.
+Extraction "cover" R_coverT.
 
 
                
