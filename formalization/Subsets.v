@@ -20,8 +20,6 @@ Section Subsets.
   
   Definition csubset (n : nat) := @euclidean Real n -> Prop. 
 
-  Check euclidean_max_dist. 
-
   Definition Hausdorff_dist_bound {n : nat} (S T : csubset n) d :=
     (forall x, S x -> exists y, T y /\ euclidean_max_dist x y <= d) /\
       (forall y, T y -> exists x, S x /\ euclidean_max_dist x y <= d).
@@ -50,9 +48,6 @@ Section Subsets.
   Definition closed_ball {n : nat} (c : euclidean n) (r : Real) :=
     fun x => euclidean_max_dist x c <= r.
 
-  Search list.
-
-  Search prec. 
   Definition is_compact {n : nat} (K : csubset n) :=
     forall p,
       {B : list (euclidean n) &
