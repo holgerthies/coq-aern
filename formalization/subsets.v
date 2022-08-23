@@ -1,7 +1,7 @@
 (* this file proves various properties of subsets of real numbers *)
 
 Require Import Real Euclidean List Minmax.
-
+Section SubsetM.
 
   Generalizable Variables K M Real.
 
@@ -110,4 +110,4 @@ Section Examples.
     
 End Examples.
  
- 
+End SubsetM. 
