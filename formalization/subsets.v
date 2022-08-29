@@ -484,8 +484,19 @@ Section Examples.
    destruct (split_euclidean2 P) as [x [y prp]].
    destruct Tx as [T1 [T2 T3]].
    assert ((x <= real_1) /\ (y <= real_1)) as [B1 B2].
-   admit.
-   destruct (real_coordinate x n T1 B1) as [k Hk].
+   split.
+   - apply (real_le_add_r y).
+     apply (real_le_le_le _ real_1); auto.
+     rewrite <-(real_plus_unit real_1) at 1.
+     rewrite real_plus_comm.
+     apply real_le_plus_le; auto.
+   - apply (real_le_add_r x).
+     rewrite real_plus_comm.
+     apply (real_le_le_le _ real_1); auto.
+     rewrite <-(real_plus_unit real_1) at 1.
+     rewrite real_plus_comm.
+     apply real_le_plus_le; auto.
+   - destruct (real_coordinate x n T1 B1) as [k Hk].
    destruct (real_coordinate y n T2 B2) as [j Hj].
    apply Exists_exists.
    exists (Tn_ball n k j).
