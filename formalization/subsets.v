@@ -323,6 +323,19 @@ Section Examples.
   (*    admit.     *)
   (* Admitted. *)
 
+  Lemma prec_mult_two n : (Nreal 2) * prec (S n) = prec n.
+  Proof.
+    (* simpl. *)
+    rewrite <-(prec_twice n).
+    assert (forall x, (Nreal 2) * x = x + x).
+    intro x.
+    unfold Nreal.
+    ring.
+    rewrite H.
+    rewrite (Nat.add_1_r).
+    auto.
+  Qed.
+
   Lemma real_coordinate' x n : (real_0 < x) -> (x <= real_1) -> exists k, x > (Nreal k * prec n) /\ x <= Nreal (S k) * prec n.
   Proof.
     intros H1 H2.
@@ -338,12 +351,47 @@ Section Examples.
       ring_simplify.
       unfold prec.
       exact H2.
-   -admit.
-  Admitted.
+   - destruct IH as [k' [IH_xgt IH_xle]].
+     assert (Nreal k' * prec n' = Nreal (2 * k') * prec (S n')) as E.
+       rewrite <-(prec_twice n').
+       rewrite Nreal_mult.
+       rewrite (real_mult_comm (Nreal 2)).
+       rewrite real_mult_assoc.
+       rewrite prec_twice.
+       rewrite prec_mult_two.
+       auto.
+     destruct (real_total_order x (Nreal (2*k' + 1) * prec (S n'))) as [H | [H | H]].
+      + exists (2*k')%nat.
+        split.
+        rewrite <-E. auto.
+        apply real_lt_le.
+        rewrite <-(Nat.add_1_r). auto.
+      + exists (2*k')%nat.
+        split.
+        rewrite <-E. auto.
+        apply real_eq_le.
+        rewrite <-(Nat.add_1_r). auto.
+      + exists (2*k' +1)%nat.
+        split.
+        auto.
+        rewrite <-prec_mult_two in IH_xle.
+        rewrite <-real_mult_assoc in IH_xle.
+        rewrite <-Nreal_mult in IH_xle.
+        assert (S k' * 2 = S (2 * k' + 1))%nat as E2. lia.
+        rewrite <-E2. auto.
+  Qed.
 
   Lemma real_coordinate x n : (real_0 <= x) -> (x <= real_1) -> exists k, x = real_0 /\ k = 0 \/ x > (Nreal k * prec n) /\ x <= Nreal (S k) * prec n.
-  Admitted.
-
+  Proof.
+    intros H1 H2.
+    destruct H1.
+    - destruct (real_coordinate' x n H H2) as [k'].
+     exists k'.
+     right. auto.
+    - exists 0.
+    left. auto.
+  Qed.
+    
   Lemma Nreal_nat_lt : forall m, forall n, Nreal n < Nreal m -> (n < m)%nat.
   Proof.
     induction m as [ | m' IH]; intros n H.
