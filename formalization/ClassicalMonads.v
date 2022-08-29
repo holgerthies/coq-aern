@@ -278,7 +278,10 @@ Section NonemptyPowersetMonad.
 
     (* classical nonempty powerest monad *)
 
-  #[global] Instance NPset_Monad : Monad NPset := {
+  Definition NPsetTypes : RealTypes := 
+    {| K := False; M := NPset; real := False |}.
+
+  #[global] Instance NPset_Monad : Monad NPsetTypes := {
     Monad_fun_map := NPset_fun_map;
     Monad_functorial_comp := NPset_functorial_comp;
     Monad_functorial_id := NPset_functorial_id;
@@ -838,8 +841,10 @@ Section NablaMonad.
     induction (H1 _ H); auto.
   Defined.
 
+  Definition NablaTypes : RealTypes := 
+    {| K := False; M := Nabla; real := False |}.
 
-  #[global] Instance Nabla_Monad : Monad Nabla := {
+  #[global] Instance Nabla_Monad : Monad NablaTypes := {
     Monad_fun_map := Nabla_fun_map;
     Monad_functorial_comp := Nabla_functorial_comp;
     Monad_functorial_id := Nabla_functorial_id;
