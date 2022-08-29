@@ -3,17 +3,19 @@ Require Import Kleene.
 Require Import Monad.
 Require Import ClassicalMonads.
 
-
 Section Monad_Defs.
 
-Generalizable Variables M.
+(* Generalizable Variables types. *)
 
-Context `(M_Monad : Monad M).
+Context {types : RealTypes} {M_Monad : Monad types}.
+
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+
 
 (* Definition preserves_hprop (M : Monad) := forall A, is_hprop A -> is_hprop (Monad_obj_map M A).  *)
 
-
-Definition lifted_projP1  : forall A (P : A -> Prop), M {x : A | P x} -> M A.
+Definition lifted_projP1  : forall A (P : A -> Prop), ^M {x : A | P x} -> ^M A.
 Proof.
   intros.
   apply (Monad_fun_map {x : A | P x}).
@@ -26,9 +28,9 @@ Defined.
 Definition trace_lifts_to_fiber:
   forall P : nat -> Type,
   forall R : (forall n, P n -> P (S n) -> Prop),
-    M (P O) ->
-    (forall n (x : P n), M {y : P (S n) | R n x y}) ->
-    forall n, M (P n).
+    ^M (P O) ->
+    (forall n (x : P n), ^M {y : P (S n) | R n x y}) ->
+    forall n, ^M (P n).
 Proof.
   intros P R X f.
   apply nat_rect.
@@ -44,7 +46,7 @@ Defined.
 
 (* given a collection of sections, get the retraction. *)
 Definition sections_to_fibers : forall P : nat -> Type,
-    M (forall n, P n) -> (forall n, M (P n)).
+    ^M (forall n, P n) -> (forall n, ^M (P n)).
 Proof.
   intros P X n.
   apply (Monad_fun_map _ _ (fun f => f n) X).
