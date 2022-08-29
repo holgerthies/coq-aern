@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<!-- Load the Paper.js library -->
+	<script type="text/javascript" src="dist/paper-full.min.js"></script>
+	<!-- Define inlined PaperScript associate it with myCanvas -->
+	<!-- <script type="text/javascript" src="tr-b5.js"></script> -->
+	<!-- <script type="text/javascript" src="tr-b5-nonoverlap.js"></script> -->
+	<script type="text/javascript" src="t8.js"></script>
+	<!-- <script type="text/javascript" src="st-b5-nooverlap.js"></script> -->
+	<!-- <script type="text/javascript" src="st-b10.js"></script> -->
+	<script type="text/javascript">
+		var arrangements = {};
+
+		function draw_arrangement(canvas_name, bs) {
+
+			// Get a reference to the canvas object:
+			const canvas = document.getElementById(canvas_name);
+			// Create an empty project and a view for the canvas:
+			paper.setup(canvas);
+
+			// scale the canvas coordinates to fit unit [-1,1]x[-1,1] square canvas:
+			viewW = paper.view.viewSize.width;
+			paper.view.matrix.scale(viewW / 2);
+			// paper.view.viewSize.height = viewW;
+
+			for (const b of bs) {
+				colour = "grey";
+				// console.log(t)
+				draw_ball(b.c, b.r, colour)
+			}
+
+			// Draw the view now:
+			paper.view.draw();
+		}
+
+		function draw_ball(c, r, colour) {
+			const pLT = new paper.Point(c.x + 1 - r, 1 - c.y + r);
+			const pRB = new paper.Point(c.x + 1 + r, 1 - c.y - r);
+			const b = new paper.Path.Rectangle(pLT, pRB);
+			// console.log(b)
+			b.strokeColor = 'black';
+			b.strokeWidth = 0.001;
+			b.fillColor = colour;
+			b.opacity = 0.5;
+		}
+
+		// function boxGradient(x, y, w, h) {
+		// 	return {
+		// 		gradient: {
+		// 			stops: ['salmon', 'pink']
+		// 		},
+		// 		origin: new paper.Point(x, y),
+		// 		destination: new paper.Point(x + w, y + h)
+		// 	}
+		// }
+
+		window.onload = function () {
+			draw_arrangement('myCanvas1', balls);
+		}
+	</script>
+</head>
+
+<body>
+	<canvas id="myCanvas1" width="800px" height="800px"></canvas>
+	<!-- <canvas id="myCanvas2" width="1000px" height="500px"></canvas> -->
+</body>
+
+</html>

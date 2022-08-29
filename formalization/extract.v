@@ -327,9 +327,9 @@ Definition C_sqrt2 := @csqrt _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDec
 Extraction "CSqrt" C_sqrt2.
 
 Require Import subsets.
-Extraction Implicit coverT  [ klb SemiDecOrderedField_Real ].
-Definition R_coverT := @coverT _ _ _ R_SemiDecOrderedField.
-Extraction "cover" R_coverT.
+Extraction Implicit Tn  [ klb SemiDecOrderedField_Real ].
+Definition R_Tn := @Tn _ _ _ R_SemiDecOrderedField.
+Extraction "Tn" R_Tn.
 
 
                
