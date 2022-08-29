@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/*.vo": true,
+			"**/*.vok": true,
+			"**/*.vos": true,
+			"**/*.glob": true,
+			"**/.*.aux": true,
+			"**/.*.cache": true,
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/CVS": true,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true
+		}
+	}
+}
