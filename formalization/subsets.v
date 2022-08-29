@@ -298,31 +298,7 @@ Section Examples.
     intro H.
     apply Tn_row_contains;lia.
   Qed.
-  (* Lemma real_coordinate x n : (real_0 <= x) -> (x <= real_1) -> exists k, dist x (Nreal (2*k+1) * prec (S n)) <= prec (S n). *)
-  (* Proof. *)
-  (*   intros H1 H2. *)
-  (*   induction n as [| n' IH]. *)
-  (*   - exists 0. *)
-  (*     rewrite Nat.mul_0_r, plus_O_n. *)
-  (*     unfold Nreal. *)
-  (*     rewrite real_plus_comm, real_plus_unit, real_mult_unit. *)
-  (*     rewrite dist_le_prop. *)
-  (*     split. *)
-  (*     apply (real_le_add_r (prec 1)). *)
-  (*     ring_simplify. *)
-  (*     exact H1. *)
-  (*     apply (real_le_add_r (prec 1)). *)
-  (*     rewrite (prec_twice 0). *)
-  (*     unfold prec. *)
-  (*     ring_simplify. *)
-  (*     exact H2. *)
-  (*  - destruct IH as [k kprp]. *)
-  (*    destruct (real_total_order x (Nreal (2 * k + 1) * prec (S n'))). *)
-  (*    exists (2*k)%nat. *)
-  (*    admit. *)
-  (*    admit.     *)
-  (* Admitted. *)
-
+  
   Lemma prec_mult_two n : (Nreal 2) * prec (S n) = prec n.
   Proof.
     (* simpl. *)
@@ -475,6 +451,17 @@ Section Examples.
     apply real_eq_le; auto.
   Qed.
 
+
+  Lemma real_0_mult_le x y : real_0 <= x -> real_0 <= y -> real_0 <= x * y.
+  Proof.
+    intros.
+    destruct H.
+    replace real_0 with (x * real_0) by ring.
+    apply (real_le_mult_pos_le x real_0 y H H0).
+    rewrite <-H.
+    apply real_eq_le.
+    ring.
+  Qed.
   Lemma T_is_compact : is_compact 2 T.
   Proof.
    exists Tn.
@@ -558,60 +545,57 @@ Section Examples.
    apply real_eq_le; auto.
    apply real_lt_le.
    apply (prec_pos (S n)).
-     
+   assert (real_0 <= Nreal k * prec n).
+   apply real_0_mult_le; [destruct k; [apply real_eq_le;auto |apply real_lt_le; apply Nreal_pos;lia ] | apply real_lt_le; apply prec_pos].
+   assert (Nreal k * prec n <= x).
+   apply real_lt_le;apply H.
+   assert (x <= Nreal (S k) * prec n).
+   apply H.
+   pose proof (dist_half x (Nreal k * prec n) (Nreal (S k) * prec n) H0 H1 H2).   
+   apply (real_le_le_le _ (abs (x - (Nreal k * prec n + Nreal (S k) * prec n) / real_2_neq_0))).
+   apply real_eq_le.
+    f_equal.
+   rewrite !Nreal_hom.
+   unfold real_minus.
+   unfold real_div.
+   simpl.
+   ring.
+   apply (real_le_le_le _ ((Nreal (S k) * prec n - Nreal k * prec n) / real_2_neq_0)); auto.
+   apply real_eq_le.
+   unfold real_div.
+   simpl.
+   ring.
    apply real_max_le_le_le.
-   admit.
+   destruct Hj as [[-> ->] | ].
+   simpl.
+   rewrite real_plus_unit, real_plus_comm, real_plus_unit, real_mult_unit, <-abs_symm.
+   rewrite abs_pos_id.
+   apply real_eq_le; auto.
+   apply real_lt_le.
+   apply (prec_pos (S n)).
+   assert (real_0 <= Nreal j * prec n).
+   apply real_0_mult_le; [destruct j; [apply real_eq_le;auto |apply real_lt_le; apply Nreal_pos;lia ] | apply real_lt_le; apply prec_pos].
+   assert (Nreal j * prec n <= y).
+   apply real_lt_le;apply H.
+   assert (y <= Nreal (S j) * prec n).
+   apply H.
+   pose proof (dist_half y (Nreal j * prec n) (Nreal (S j) * prec n) H0 H1 H2).   
+   apply (real_le_le_le _ (abs (y - (Nreal j * prec n + Nreal (S j) * prec n) / real_2_neq_0))).
+   apply real_eq_le.
+    f_equal.
+   rewrite !Nreal_hom.
+   unfold real_minus.
+   unfold real_div.
+   simpl.
+   ring.
+   apply (real_le_le_le _ ((Nreal (S j) * prec n - Nreal j * prec n) / real_2_neq_0)); auto.
+   apply real_eq_le.
+   unfold real_div.
+   simpl.
+   ring.
    apply real_lt_le.
    apply (prec_pos (S n)).
  Qed.
- (*  Definition process (b : ball 2) : (ball 2) * (ball 2) * (ball 2). *)
- (*  Proof. *)
- (*    pose ((snd b) / real_2_neq_0) as r'. *)
- (*    destruct (split_euclidean2 (fst b)) as [x [y P']]. *)
- (*    split. *)
- (*    split. *)
- (*    split. *)
- (*    apply (make_euclidean2 (x-r') (y-r')). *)
- (*    apply r'. *)
- (*    split. *)
- (*    apply (make_euclidean2 (x-r') (y+r')). *)
- (*    apply r'. *)
- (*    split. *)
- (*    apply (make_euclidean2 (x+r') (y-r')). *)
- (*    apply r'. *)
- (* Defined. *)
-
-
- (*  Fixpoint coverIter (n : nat) (b : (ball 2)) : (list (ball 2)). *)
- (*  Proof.   *)
- (*    induction n as [| n' result].     *)
- (*    apply (b :: nil). *)
- (*    pose (process b). *)
- (*    destruct p as [[p1 p2] p3]. *)
- (*    pose (coverIter n' p2) as l2. *)
- (*    pose (coverIter n' p3) as l3. *)
- (*    apply (p1 :: (app l2 l3)). *)
- (*  Defined. *)
- (*  Definition coverT (n : nat) : list (ball 2) := coverIter n (make_ball (real_1 / real_2_neq_0) (real_1 / real_2_neq_0) (real_1 / real_2_neq_0)). *)
-
- (*  Lemma cover_iter_diam : forall n b, diam 2 (coverIter (S n) b) = (real_1 / real_2_neq_0) * diam 2 (coverIter n b). *)
- (*  Proof. *)
- (*    intros. *)
- (*    induction n. *)
- (*    - simpl. *)
-      
- (*  Lemma T_is_compact : is_compact 2 T. *)
- (*  Proof.    *)
- (*    exists coverT. *)
- (*    split. *)
- (*    - induction n. *)
- (*      admit. *)
- (*      intros. *)
- (*    - simpl. *)
- (*      split. *)
- (*      + admit. *)
- (*      + intros m b B. *)
- (*        split. *)
 
 End Examples.
  
