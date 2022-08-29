@@ -597,6 +597,30 @@ Section Examples.
    apply (prec_pos (S n)).
  Qed.
 
+
+ Definition point_ball_mid (P : @euclidean Real 2) (b : ball 2) : ball 2.
+ Proof.
+   destruct (split_euclidean2 P) as [Px [Py _]].
+   destruct b as [bc br].
+   destruct (split_euclidean2 bc) as [bcx [bcy _]].
+   apply (make_ball ((Px + bcx)/real_2_neq_0) ((Py + bcy)/real_2_neq_0) (br / real_2_neq_0)).
+ Defined.
+
+ Definition ST_v1 := make_euclidean2 (- real_1) real_1.
+ Definition ST_v2 := make_euclidean2 (- real_1) (- real_1).
+ Definition ST_v3 := make_euclidean2 real_1 (- real_1).
+
+ Definition ST_split_ball (b : ball 2) :=
+   (point_ball_mid ST_v1 b) :: 
+   (point_ball_mid ST_v2 b) :: 
+   (point_ball_mid ST_v3 b) :: nil.
+
+ Fixpoint STn n : list (ball 2) := 
+   match n with
+   | 0 => (make_ball real_0 real_0 real_1) :: nil
+   | (S n') => List.concat (List.map ST_split_ball (STn n'))
+   end.
+
 End Examples.
  
 End SubsetM. 
