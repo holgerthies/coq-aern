@@ -414,32 +414,67 @@ Section Examples.
      apply H.
   Qed.
 
-  Lemma dist_half x y z : (real_0 <= y) -> (y <= x) -> (x <= z) -> abs (x - (y+z) / real_2_neq_0) <= (y+z) / real_2_neq_0.
+  Lemma dist_half x y z : (real_0 <= y) -> (y <= x) -> (x <= z) -> abs (x - (y+z) / real_2_neq_0) <= (z-y) / real_2_neq_0.
   Proof.
     intros H1 H2 H3.
     assert (real_0 <= x /\ real_0 <= z) as [H4 H5].
     split;apply (real_le_le_le _ y); auto.
     apply (real_le_le_le _ x);auto.
-    assert (real_0 <= x - (y + z) / real_2_neq_0).
+    assert (forall a b,  abs a <= b -> abs(a / real_2_neq_0) <= b / real_2_neq_0 ) as absd2.
     {
-      
-    }
-    assert (y <= z).
-    apply (real_le_le_le _ x); auto.
-    assert (forall a b, a <= b -> a - b/real_2_neq_0 <= b/real_2_neq_0).
-    { intros.
-      apply (real_le_add_r (b / real_2_neq_0)).
-      ring_simplify.
+      intros.
       unfold real_div.
-      ring_simplify.
-      rewrite real_mult_comm,<-real_mult_assoc.
-      rewrite real_mult_inv.
-      ring_simplify; auto.
+      rewrite abs_mult.
+      rewrite (abs_pos_id (/ _)).
+      rewrite real_mult_comm, (real_mult_comm b).
+      apply real_le_mult_pos_le; auto.
+      apply d2_pos.
+      apply real_lt_le.
+      apply d2_pos.
     }
-    destruct (real_total_order (x- (y+z) / real_2_neq_0) real_0).
-    rewrite abs_pos_id.
-    apply H0.
-    Search _ (_ <= (_ + _)).
+    assert (x  - (y + z) / real_2_neq_0 = ((real_2 * x - (y+ z)) / real_2_neq_0)). 
+    {
+      unfold real_minus.
+      rewrite <-(real_div_distr (real_2 * x)).
+      unfold real_div.
+      assert (forall x y , - x * y = - (x * y)) as ->.
+      intros; ring.
+      apply real_eq_plus_eq.
+      ring_simplify.
+      rewrite real_mult_assoc, (real_mult_comm real_2), real_mult_inv.
+      ring.
+    }
+    rewrite H.
+    apply absd2.
+    assert (forall x,  x < real_0 \/ real_0 <= x) as T.
+    {
+      intros.
+      destruct (real_total_order x0 real_0) as [T| [T| T]]; [| right; apply real_eq_le | right; apply real_lt_le  ];auto.
+    }.
+    destruct (T (real_2 * x - (y + z))) as [T' | T'].
+    rewrite abs_neg_id_neg; [| auto].
+    apply (real_le_add_r (real_2*x)).
+    ring_simplify.
+    apply (real_le_le_le _ (real_2*y - y + z)).
+    apply real_eq_le.
+    unfold real_2; simpl.
+    ring.
+    unfold real_minus.
+    rewrite !real_plus_assoc, !(real_plus_comm (real_2 * _)).
+    apply real_le_plus_le.
+    apply real_le_mult_pos_le; auto.
+    apply real_lt_0_2.
+    rewrite abs_pos_id; [| auto].
+    apply (real_le_le_le _ (real_2 * z - (y + z))).
+    unfold real_minus.
+    rewrite !(real_plus_comm (real_2 * _)).
+    apply real_le_plus_le.
+    apply real_le_mult_pos_le; auto; apply real_lt_0_2.
+    unfold real_2.
+    ring_simplify.   
+    apply real_eq_le; auto.
+  Qed.
+
   Lemma T_is_compact : is_compact 2 T.
   Proof.
    exists Tn.
@@ -512,7 +547,7 @@ Section Examples.
    apply real_eq_le; auto.
    apply real_lt_le.
    apply (prec_pos (S n)).
-   
+     
    apply real_max_le_le_le.
    admit.
    apply real_lt_le.
