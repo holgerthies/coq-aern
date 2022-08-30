@@ -4,14 +4,12 @@ Require Import Minmax.
 Local Open Scope Real_scope.
 
 Section IVT.
-  Generalizable Variables K M Real.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+  Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+
+  #[local] Notation "^K" := (@K types) (at level 0).
+  #[local] Notation "^M" := (@M types) (at level 0).
+  #[local] Notation "^Real" := (@Real types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -430,7 +428,7 @@ Section IVT.
   Qed.
 
 
-  Definition opp_fun (f : Real -> Real) : (Real -> Real)
+  Definition opp_fun (f : ^Real -> ^Real) : (^Real -> ^Real)
     := fun x => - f x.
 
   Lemma opp_fun_inv : forall f : Real -> Real,
@@ -591,7 +589,7 @@ Section IVT.
   
   Lemma M_uniq_pick : forall (f : Real -> Real) (a b c d : Real), continuous f ->
                                                                   uniq f a d ->
-                                                                  b < c -> a < b -> c < d  -> M ({f b < real_0}+{real_0 < f c}).
+                                                                  b < c -> a < b -> c < d  -> ^M ({f b < real_0}+{real_0 < f c}).
   Proof.
     intros.
     apply (choose (f b < real_0)  (real_0 < f c)); auto with real.
@@ -739,7 +737,7 @@ Section IVT.
 
   
   Definition trisect (f : Real -> Real) (a b : Real)
-    : continuous f -> uniq f a b -> M {a' & {b'| uniq f a' b' /\ talve a a' b' b } }.
+    : continuous f -> uniq f a b -> ^M {a' & {b'| uniq f a' b' /\ talve a a' b' b } }.
   Proof.
     intros cont [t1 [ord H]].
     apply (mjoin (f ((real_2*a+b)/dreal_3) < real_0) (real_0 <(f ((a+real_2*b)/dreal_3)))).
@@ -970,7 +968,7 @@ Section IVT.
 
 
   Definition halving (f : Real -> Real) (a b : Real)
-    : continuous f -> uniq f a b -> M {a'& {b' | uniq f a' b' /\ halve a a' b' b } }.
+    : continuous f -> uniq f a b -> ^M {a'& {b' | uniq f a' b' /\ halve a a' b' b } }.
   Proof.
     intros.
     pose proof (trisect f a b H H0) as one.
@@ -993,7 +991,7 @@ Section IVT.
   Local Hint Resolve real_1_gt_0 : real.
   Lemma root_approx  (f : Real -> Real)
         (cont : continuous f) (uni : uniq f real_0 real_1)  (n : nat)
-    : M {(a,b)| uniq f a b /\ refining real_0 a b real_1 n}.
+    : ^M {(a,b)| uniq f a b /\ refining real_0 a b real_1 n}.
   Proof.
     induction n.
     + apply M_unit.

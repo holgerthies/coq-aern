@@ -19,14 +19,12 @@ Require Import PeanoNat.
 
 
 Section RealMetric.
-  Generalizable Variables K M Real.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -175,10 +173,8 @@ Section RealMetric.
     apply @prec_pos.
   Defined.
 
-
   
-  
-  Definition abs : Real -> Real.
+  Definition abs : ^Real -> ^Real.
   Proof.
     intros x.
     destruct (abs_prop x).
@@ -655,7 +651,7 @@ Section RealMetric.
     exact dist_0_1.
   Qed.
 
-  Definition convex (x y w1 w2 : Real) : x < y -> w1 > real_0 -> w2 > real_0 -> Real.
+  Definition convex (x y w1 w2 : ^Real) : x < y -> w1 > real_0 -> w2 > real_0 -> ^Real.
   Proof.
     intros p p1 p2.
     pose proof (real_lt_lt_plus_lt real_0 w1 real_0 w2 p1 p2).

@@ -89,14 +89,11 @@ Defined.
 (** relator *)
 
 Section Relator.
-  Generalizable Variables K M Real.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -114,7 +111,7 @@ Section Relator.
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   
-  Parameter relator : Real -> Nabla.nabla totalR.
+  Parameter relator : ^Real -> Nabla.nabla totalR.
   Axiom relator_mono : forall x y, relator x = relator y -> x = y.
   Axiom relator_epi : forall y, exists x, y = relator x. 
   Lemma relator_mono_neg : forall x y, x <> y -> relator x <> relator y.
@@ -171,14 +168,14 @@ Section Relator.
 
   Section transfer.
 
-    Definition transfer_fiberT : (Real -> Type) -> (Nabla.nabla totalR -> Type).
+    Definition transfer_fiberT : (^Real -> Type) -> (Nabla.nabla totalR -> Type).
     Proof.
       intros P x.
       exact (forall y, x = relator y -> P y).
     Defined.
     
 
-    Definition transfer_fiberP : (Real -> Prop) -> (Nabla.nabla totalR -> Prop).
+    Definition transfer_fiberP : (^Real -> Prop) -> (Nabla.nabla totalR -> Prop).
     Proof.
       intros P x.
       exact (forall y, x = relator y -> P y).

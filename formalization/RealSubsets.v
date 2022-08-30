@@ -6,14 +6,11 @@ Require Import Real.
 
 Section RealSubsets.
   
-  Generalizable Variables K M Real.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -31,7 +28,7 @@ Section RealSubsets.
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
 
-  Definition real_subset := Real -> Prop.
+  Definition real_subset := ^Real -> Prop.
   Definition complement : real_subset -> real_subset := fun P x => ~ P x.
   Definition is_open : real_subset -> Prop := fun P => forall x, P x -> exists n, forall y, dist x y < prec n -> P y.
   Definition is_closed S := is_open (complement S).

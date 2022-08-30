@@ -217,16 +217,17 @@ Section Real_Defs3.
   Definition is_fast_cauchy_p (f : nat -> Real) := forall n m, - prec n - prec m <= f n - f m <= prec n + prec m.
   Definition is_fast_limit_p (x : Real) (f : nat -> Real) := forall n, - prec n <= x - f n <= prec n.
 
-  Class ComplArchiSemiDecOrderedField :=
-    {
-      (* W_complete : forall c : Real CarrierField -> Prop, W_nemp c ->  W_upbd c -> exists z, W_sup c z; *)
-      real_Archimedean : forall r : Real, r > real_0 -> exists n, prec n < r;
-      real_limit_p : forall f : nat -> Real, is_fast_cauchy_p f -> {x | is_fast_limit_p x f};
-    }.
-
   (* add to hint db *)
   Create HintDb real.
 
 End Real_Defs3.
+
+Class ComplArchiSemiDecOrderedField_Real (types : RealTypes) :=
+{
+  (* W_complete : forall c : Real CarrierField -> Prop, W_nemp c ->  W_upbd c -> exists z, W_sup c z; *)
+  sofReal :> SemiDecOrderedField_Real types;
+  real_Archimedean : forall r : @Real types, r > real_0 -> exists n, prec n < r;
+  real_limit_p : forall f : nat -> @Real types, is_fast_cauchy_p f -> {x | is_fast_limit_p x f};
+}.
 
 Global Hint Resolve real_lt_semidec  real_plus_comm  real_plus_assoc  real_plus_inv real_plus_unit  real_mult_comm  real_mult_assoc  real_mult_inv  real_mult_unit  real_mult_plus_distr  real_1_neq_0  real_1_gt_0 real_total_order  real_lt_nlt  real_lt_lt_lt  real_lt_plus_lt  real_lt_mult_pos_lt real_lt_n_Sn real_lt_0_2 real_ngt_triv real_gt_neq real_2_neq_0 : real.

@@ -1,27 +1,25 @@
 Require Import Nnat.
 Require Import ArithRing.
 Require Export Ring Field.
-Require Import Kleene Monad ClassicalMonads MultivalueMonad RealAxioms.
+Require Import Base Kleene Monad ClassicalMonads MultivalueMonad RealAxioms.
 
 Local Open Scope Real_scope.
 
 Section RealRing.
 
-Generalizable Variables K M R.
+Context {types : RealTypes} { sofReal : SemiDecOrderedField_Real types }.
 
-Context `{klb : LazyBool K} `{M_Monad : Monad M}
-  {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-  {M_MultivalueMonad : MultivalueMonad}
-  {R : Type}
-  {SemiDecOrderedField_Real : SemiDecOrderedField R}.
-  
-  Fixpoint pow (r : R) (n : nat) : R :=
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
+ 
+  Fixpoint pow (r : Real) (n : nat) : Real :=
     match n with
     | O => real_1
     | S m => r * pow r m
     end.
 
-  Lemma realTheory : ring_theory real_0 real_1 real_plus real_mult real_minus real_opp (eq (A:=R)).
+  Lemma realTheory : ring_theory real_0 real_1 real_plus real_mult real_minus real_opp (eq (A:=Real)).
   Proof.
     constructor.
     intro; apply real_plus_unit.

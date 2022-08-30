@@ -6,14 +6,12 @@ Require Export Relator.
 
 
 Section RealCoqReal.
-  Generalizable Variables K M Real.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -30,7 +28,7 @@ Section RealCoqReal.
 
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   
-  Definition relate : Real -> R -> Prop.
+  Definition relate : ^Real -> R -> Prop.
   Proof.
     intros x y.
     destruct (relator x).
@@ -433,7 +431,7 @@ Section RealCoqReal.
   Proof.
     intros.
     unfold relate.
-    pose proof (@relator_epi Real (Nabla.nabla_unit _ (exist _ x H))). 
+    pose proof (@relator_epi types (Nabla.nabla_unit _ (exist _ x H))). 
     destruct H0.
     exists x0.
     split; auto.
@@ -800,7 +798,7 @@ Section RealCoqReal.
   Defined.
   
 
-  Definition transport_fiber : (Real -> Prop) -> (R -> Prop).
+  Definition transport_fiber : (^Real -> Prop) -> (R -> Prop).
   Proof.
     intros.
     exact (forall x, relate x H -> X x).

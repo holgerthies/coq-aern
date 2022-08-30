@@ -8,14 +8,12 @@ Require Export Ring Field.
 
 
 Section Complex.
-  Generalizable Variables K M Real.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -34,22 +32,22 @@ Section Complex.
 
   
 
-  Definition complex := @euclidean Real 2.
+  Definition complex := @euclidean types 2.
   
 
-  Definition real_to_complex : Real -> complex.
+  Definition real_to_complex : ^Real -> complex.
   Proof.
     intro x.
     exact (cons x (cons real_0 nil)).
   Defined.
 
-  Definition Imag_to_complex : Real -> complex.
+  Definition Imag_to_complex : ^Real -> complex.
   Proof.
     intro x.
     exact (cons real_0 (cons x nil)).
   Defined.
 
-  Definition Complex : Real -> Real -> complex.
+  Definition Complex : ^Real -> ^Real -> complex.
   Proof.
     intros r i.
     exact (cons r (cons i nil)).
