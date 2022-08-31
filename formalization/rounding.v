@@ -6,14 +6,11 @@ Require Import Psatz.
         
 Section rounding.
 
-  Generalizable Variables K M Real.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -31,12 +28,12 @@ Section rounding.
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
 
-  Lemma naive_rounding_pos : forall x : Real, x > real_0 -> M {k  | Nreal k < x < Nreal (k + 4) }.
+  Lemma naive_rounding_pos : forall x : Real, x > real_0 -> ^M {k  | Nreal k < x < Nreal (k + 4) }.
     intros.
     pose proof (epsilon_smallest_PQ_M (fun n => x < Nreal (n) + prec 1) (fun n => Nreal (n) - prec 1 < x)).
     simpl in X.
     assert ((forall n : nat,
-       M ({x < Nreal (n ) + real_1 / real_2_neq_0} + {Nreal (n ) - real_1 / real_2_neq_0 < x}))).
+       ^M ({x < Nreal (n ) + real_1 / real_2_neq_0} + {Nreal (n ) - real_1 / real_2_neq_0 < x}))).
     intro.
     apply choose; auto with real.
     pose proof (W_split x (Nreal n) (real_1 / real_2_neq_0)).
@@ -131,7 +128,7 @@ Section rounding.
 
 
 
-  Lemma naive_rounding : forall x : Real,  M {k  | IZreal k < x < IZreal (k + 4) }.
+  Lemma naive_rounding : forall x : Real,  ^M {k  | IZreal k < x < IZreal (k + 4) }.
   Proof.
     intro.
     pose proof (choose (- prec 1 < x < prec 1) (real_0 < x \/ x < real_0)).
@@ -233,7 +230,7 @@ Section rounding.
 
   Defined.
   
-  Lemma rounding : forall x : Real,  M {k  | IZreal (k - 1) < x < IZreal (k + 1) }.
+  Lemma rounding : forall x : Real,  ^M {k  | IZreal (k - 1) < x < IZreal (k + 1) }.
   Proof.
     intros.
     pose proof (naive_rounding x).
@@ -287,7 +284,7 @@ Section rounding.
 
   
     
-  Lemma M_approx_seq : forall x : Real, forall n,  M {z  | dist (prec n * IZreal z) x <= prec n}.
+  Lemma M_approx_seq : forall x : Real, forall n,  ^M {z  | dist (prec n * IZreal z) x <= prec n}.
   Proof.
     intros.
     pose proof (rounding (x * Nreal (Npow2 n))).
@@ -329,7 +326,7 @@ Section rounding.
 
   Definition dyadic_sequence : (nat -> Z) -> (nat -> Real) := fun f n => prec n * IZreal (f n).
 
-  Definition dyadic_M_sequence : (nat -> M Z) -> (nat -> M Real).
+  Definition dyadic_M_sequence : (nat -> ^M Z) -> (nat -> ^M ^Real).
   Proof.
     intros f n.
     apply (fun g => M_lift _ _ g (f n)).
@@ -337,7 +334,7 @@ Section rounding.
     exact (prec n * IZreal z).
   Defined.
   
-  Lemma approx_dyadic_sequence : forall x : Real, M {f : nat -> Z | is_fast_limit x (dyadic_sequence f)}.
+  Lemma approx_dyadic_sequence : forall x : Real, ^M {f : nat -> Z | is_fast_limit x (dyadic_sequence f)}.
   Proof.
     intros.
     pose proof (M_countable_lift _ (M_approx_seq x)).
@@ -367,12 +364,12 @@ Section rounding.
     rewrite M_all_picture_1.
     intros.
     unfold dyadic_M_sequence in H, H0.
-    pose proof (@M_fun_cont _ _ _ Z Real (fun z : Z => prec n * IZreal z) (M_projP1 Z (fun z : Z => dist (prec n * IZreal z) x <= prec n) (M_approx_seq x n)) a).
+    pose proof (@M_fun_cont _ _ Z Real (fun z : Z => prec n * IZreal z) (M_projP1 Z (fun z : Z => dist (prec n * IZreal z) x <= prec n) (M_approx_seq x n)) a).
     unfold M_lift in H.
     simpl in H.
     rewrite H1 in H; clear H1.
 
-    pose proof (@M_fun_cont _ _ _ Z Real (fun z : Z => prec m * IZreal z) (M_projP1 Z (fun z : Z => dist (prec m * IZreal z) x <= prec m) (M_approx_seq x m)) a0).
+    pose proof (@M_fun_cont _ _ Z Real (fun z : Z => prec m * IZreal z) (M_projP1 Z (fun z : Z => dist (prec m * IZreal z) x <= prec m) (M_approx_seq x m)) a0).
     unfold M_lift in H0.
     simpl in H0.
     rewrite H1 in H0; clear H1.
@@ -410,6 +407,7 @@ Section rounding.
     intro.
     intros.
     unfold dyadic_M_sequence in H.
+    unfold M_lift in H.
     rewrite (M_fun_cont (fun z : Z => prec n * IZreal z)) in H.
     destruct H.
     destruct H.

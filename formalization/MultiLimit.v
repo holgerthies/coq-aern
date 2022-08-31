@@ -21,14 +21,11 @@ Require Import Psatz.
 
 Section MultiLimit.
   
-  Generalizable Variables K M Real.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -147,14 +144,14 @@ Section MultiLimit.
    that are in [P] *)
   Definition real_mlimit_P : forall P : Real -> Prop,
       is_seq_closed P ->
-      M {x : Real | w_approx P O x} ->
+      ^M {x : Real | w_approx P O x} ->
       (forall n x, w_approx P n x ->
-                   M {y : Real | w_approx P (S n) y /\ dist x y <= prec (S n)}) ->
-      M {x : Real | P x}. 
+                   ^M {y : Real | w_approx P (S n) y /\ dist x y <= prec (S n)}) ->
+      ^M {x : Real | P x}. 
   Proof.
     intros P c X f.
     assert ((forall n (x : {x : Real | w_approx P n x}),
-                M {y : { y : Real | w_approx P (S n) y} | dist (projP1 _ _ x) (projP1 _ _ y) <= prec  (S n)})).
+                ^M {y : { y : Real | w_approx P (S n) y} | dist (projP1 _ _ x) (projP1 _ _ y) <= prec  (S n)})).
     intros.
     destruct x.
     pose proof (f n x w).
@@ -206,14 +203,14 @@ Section MultiLimit.
     forall P : Real -> Prop,
       forall Q : nat -> Real -> Prop,
         is_seq_closed P ->
-        M {x : Real | w_approx P O x /\ Q O x} ->
+        ^M {x : Real | w_approx P O x /\ Q O x} ->
         (forall n x, w_approx P n x -> Q n x ->
-                     M {y : Real | w_approx P (S n) y /\ Q (S n) y /\ dist x y <= prec (S n)}) ->
-        M {x : Real | P x}. 
+                     ^M {y : Real | w_approx P (S n) y /\ Q (S n) y /\ dist x y <= prec (S n)}) ->
+        ^M {x : Real | P x}. 
   Proof.
     intros P Q c X f.
     assert ((forall n (x : {x : Real | w_approx P n x /\ Q n x}),
-                M {y : { y : Real | w_approx P (S n) y /\ Q (S n) y} | dist (projP1 _ _ x) (projP1 _ _ y) <= prec  (S n)})).
+                ^M {y : { y : Real | w_approx P (S n) y /\ Q (S n) y} | dist (projP1 _ _ x) (projP1 _ _ y) <= prec  (S n)})).
     intros.
     destruct x as [x [w w0]].
     pose proof (f n x w).

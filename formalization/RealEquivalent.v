@@ -18,17 +18,21 @@ Defined.
   
 Section RealEquivalent.
 
-  Generalizable Variables K M Real_S Real_T.
+Context {typesS : RealTypes} { casofRealS : ComplArchiSemiDecOrderedField_Real typesS }.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real_S : Type}
-          {SemiDecOrderedField_Real_S : SemiDecOrderedField Real_S}
-          {ComplArchiSemiDecOrderedField_Real_S : @ComplArchiSemiDecOrderedField _ _ _ SemiDecOrderedField_Real_S}
-          {Real_T : Type}
-          {SemiDecOrderedField_Real_T : SemiDecOrderedField Real_T}
-          {ComplArchiSemiDecOrderedField_Real_T : @ComplArchiSemiDecOrderedField _ _ _ SemiDecOrderedField_Real_T}.
+#[local] Notation "^K" := (@K typesS) (at level 0).
+#[local] Notation "^M" := (@M typesS) (at level 0).
+#[local] Notation "^RealS" := (@Real typesS) (at level 0).
+#[local] Definition sofRealS := @sofReal typesS casofRealS.
+#[local] Notation "^IZrealS" := (@IZreal typesS sofReal) (at level 0).
+
+Context {typesT : RealTypes} { casofRealT : ComplArchiSemiDecOrderedField_Real typesT }.
+
+Context {eqKST : @K typesS = @K typesT}.
+Context {eqMST : @M typesS = @M typesT}.
+#[local] Notation "^RealT" := (@Real typesT) (at level 0).
+#[local] Definition sofRealT := @sofReal typesT casofRealT.
+#[local] Notation "^IZrealT" := (@IZreal typesT sofReal) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -43,8 +47,8 @@ Section RealEquivalent.
     | _ => constr:(InitialRing.NotConstant)
     end.
 
-  Add Ring realRing : (@realTheory _ _ Real_S _ ) (constants [IZReal_tac]).
-  Add Ring realRing : (@realTheory _ _ Real_T _ ) (constants [IZReal_tac]).
+  Add Ring realRing : (@realTheory _ sofRealS ) (constants [IZReal_tac]).
+  Add Ring realRing : (@realTheory _ sofRealT ) (constants [IZReal_tac]).
 
 
   
@@ -85,7 +89,7 @@ Section RealEquivalent.
  
   
   Lemma converging_dyadic_sequence_converging :
-    forall f : nat -> M Z, @M_is_fast_cauchy _ _ _ _ _ _ Real_S _ _ (@dyadic_M_sequence _ _ _ _ _ _ f) -> @M_is_fast_cauchy _ _ _ _ _ _ Real_T _ _ (@dyadic_M_sequence _ _ _ _ _  _ f).
+    forall f : nat -> ^M Z, @M_is_fast_cauchy _ casofRealS (@dyadic_M_sequence _ casofRealS f) -> @M_is_fast_cauchy _ casofRealT (@dyadic_M_sequence _ casofRealT f).
   Proof. 
     intros.
     intros n m.

@@ -1,25 +1,19 @@
 Require Import ConstructiveEpsilon.
 Require Import Real.
-Set Warnings "-parsing".
 From mathcomp Require Import all_ssreflect.
 Require Import Psatz.
 Require Import Nat.
 Require Import PeanoNat.
 Require Import Kleene.
 Require Import Reals.
-Set Warnings "parsing".
-(* 
-   Multivalued searching from existing searching:
-     constructive_indefinite_ground_description_nat_Acc_PQ
-   It is not yet decided if this to be used for our searching.. 
- *)
 
 Section testsearch.
-  Generalizable Variables K M.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
 
 
   Definition when_first : forall P Q : nat -> Prop, (forall n : nat, {P n} + {Q n}) -> (nat -> Prop).
@@ -77,9 +71,9 @@ Section testsearch.
 
   Definition epsilon_smallest_PQ_M
     : forall P Q : nat -> Prop,
-      (forall n, M ({P n} + {Q n})) ->
+      (forall n, ^M ({P n} + {Q n})) ->
       (exists n, ~Q n) ->
-      M {n | P n /\ (forall k, (k < n)%coq_nat -> Q k)}.
+      ^M {n | P n /\ (forall k, (k < n)%coq_nat -> Q k)}.
   Proof.
     intros.
     apply M_countable_lift in X.
@@ -101,9 +95,9 @@ Section testsearch.
 
   Definition epsilon_smallest_choose_M
     : forall P : nat -> Prop,
-      (forall n : nat, M ({P n.+1} + {~ P n}) ) ->
+      (forall n : nat, ^M ({P n.+1} + {~ P n}) ) ->
       (exists n : nat, P n) -> 
-      M {n : nat | P (n.+1) /\ (forall k, (k < n)%coq_nat -> ~ P k)}.
+      ^M {n : nat | P (n.+1) /\ (forall k, (k < n)%coq_nat -> ~ P k)}.
   Proof.
     intros P P_decM e.
     apply epsilon_smallest_PQ_M.
@@ -114,7 +108,7 @@ Section testsearch.
   Defined.
   
 
-  Lemma weaken_orM_r : forall P Q Q': Prop, (Q -> Q') -> M ({P}+{Q}) -> M ({P}+{Q'}).
+  Lemma weaken_orM_r : forall P Q Q': Prop, (Q -> Q') -> ^M ({P}+{Q}) -> ^M ({P}+{Q'}).
   Proof.
     intros P Q Q' QQ'.
     apply M_lift.

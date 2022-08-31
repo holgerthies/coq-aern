@@ -21,14 +21,11 @@ Fixpoint Npow2 n :=
 Open Scope Real_scope.
 
 Section RealOrder.
-  Generalizable Variables K M Real.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -1174,7 +1171,7 @@ Section RealOrder.
 
 
   (** string but multivalued split **)
-  Lemma M_split : forall x y ε : Real, ε > real_0 -> M ({x>y-ε} + {y>x-ε}).
+  Lemma M_split : forall x y ε : Real, ε > real_0 -> ^M ({x>y-ε} + {y>x-ε}).
   Proof.
     intros x y ε p.  
     apply (choose (x > y-ε) (y > x-ε)); auto with real.
@@ -1184,7 +1181,7 @@ Section RealOrder.
 
   Local Hint Resolve M_split : real.
 
-  Lemma not_bounded : forall x : Real, M { y | y > x }.
+  Lemma not_bounded : forall x : Real, ^M { y | y > x }.
   Proof.
     intro x.
     apply (mjoin (x>real_0-real_1) (real_0>x-real_1)).
@@ -1523,3 +1520,5 @@ Global Hint Resolve W_split : real.
 
 
 Global Hint Resolve Nreal_Npow2_pos prec_Npow2_unit precinv nat_bound_above IZreal_Nreal overlapping IZreal_opp IZreal_strict_monotone Nreal_monotone Nreal_strict_monotone : real.
+
+Search _ (Real -> Real).

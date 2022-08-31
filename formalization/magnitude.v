@@ -11,17 +11,15 @@ Require Import RealCoqReal RealHelpers testsearch.
 Set Warnings "parsing".
 
 
-
 Section magnitude.
 
-  Generalizable Variables K M Real.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
+#[local] Definition sofReal := @sofReal types casofReal.
+#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -55,7 +53,7 @@ Section magnitude.
   .
   (* prec n.+2 < x < prec n. *)
   Definition magnitude1 x : (real_0 < x < real_1 / real_2_neq_0) 
-                            -> M { n | is_magnitude1 x n }.
+                            -> ^M { n | is_magnitude1 x n }.
   Proof.
     move => [pos lt2].
 
@@ -66,7 +64,7 @@ Section magnitude.
 
     unfold is_magnitude1.
     Definition P x n := lt_prec x (n.+1).
-    suff g1M : M { n : nat | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)}.
+    suff g1M : ^M { n : nat | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)}.
     apply (M_lift ({n : nat | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)})).
     2: { exact g1M. }
     clear g1M. intro g1.
@@ -109,7 +107,7 @@ Section magnitude.
       suff : exists n,  (/ 2 ^ n.+1 < xr)%R.
     - case => n nprp.
       exists n.
-      have P := (@relate_prec _ _ _   SemiDecOrderedField_Real n.+1).
+      have P := (@relate_prec _ casofReal n.+1).
       classical.
       relate.
       trivial.
@@ -134,10 +132,10 @@ Section magnitude.
                                                       | Z.neg p => RealRing.pow (/ xne0) (Pos.to_nat p)
                                                       end.
 
-  Lemma dec_x_lt_2 x : M ({x < real_2} + {real_1 < x}).
+  Lemma dec_x_lt_2 x : ^M ({x < real_2} + {real_1 < x}).
   Proof.
 
-    pose proof ( M_split x (@IZreal K klb Real  SemiDecOrderedField_Real 3 / real_2_neq_0) (/ real_2_neq_0) d2_pos) as H.
+    pose proof ( M_split x (IZreal 3 / real_2_neq_0) (/ real_2_neq_0) d2_pos) as H.
     apply (fun p => mjoin _ _ _ p H).
     intro.
     clear H.
@@ -317,7 +315,7 @@ Section magnitude.
 
 
   (* first extend magnitude to numbers <= 2 *)
-  Definition magnitude2 x : (real_0 < x < real_2) -> M { z | is_magnitude x z }.
+  Definition magnitude2 x : (real_0 < x < real_2) -> ^M { z | is_magnitude x z }.
   Proof.
     move => [xgt0 xle1].
     pose (y := (x / IZreal4neq0)).
@@ -330,7 +328,7 @@ Section magnitude.
       suff : (x1 < 2)%R by lra.
         by apply /transport_lt_inv/xle1/IZreal_relator/Ha.
         have magy n : is_magnitude y n -> is_magnitude x (n+2)%Z by apply magnitude_fourth.
-        suff : M { z | is_magnitude y z}.
+        suff : ^M { z | is_magnitude y z}.
     - apply M_lift.
       case => z zprp.
       exists (z+2)%Z.
@@ -389,7 +387,7 @@ Section magnitude.
   Qed.
 
 
-  Definition magnitude x : real_0 < x -> M {z | is_magnitude x z}.
+  Definition magnitude x : real_0 < x -> ^M {z | is_magnitude x z}.
   Proof.
     move => xgt0.
     have := dec_x_lt_2 x. 

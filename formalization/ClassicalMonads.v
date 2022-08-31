@@ -838,7 +838,6 @@ Section NablaMonad.
     induction (H1 _ H); auto.
   Defined.
 
-
   #[global] Instance Nabla_Monad : Monad Nabla := {
     Monad_fun_map := Nabla_fun_map;
     Monad_functorial_comp := Nabla_functorial_comp;

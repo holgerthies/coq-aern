@@ -4,21 +4,15 @@ Require Import Real Reals RealCoqReal.
 Set Warnings "parsing".
 Require Import Psatz.
 
-
-
-
-
 Section RealHelpers.
 
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  Generalizable Variables K M Real.
-
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
+#[local] Definition sofReal := @sofReal types casofReal.
+#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -38,7 +32,7 @@ Section RealHelpers.
 
   Lemma IZreal_relator z : relate (IZreal z) (IZR z).
   Proof.
-    suff H : forall z', (0 <= z')%Z -> @relate Real  (@IZreal K klb Real SemiDecOrderedField_Real  z') (IZR z').
+    suff H : forall z', (0 <= z')%Z -> relate (^IZreal z') (IZR z').
     - case z => [| p |p]; try by apply H;lia.
       rewrite IZreal_neg IZR_NEG.
       apply relate_subtraction.
@@ -49,14 +43,14 @@ Section RealHelpers.
         have -> : (Z.succ (Z.of_nat n')) = ((Z.of_nat n') +1)%Z by lia.
         rewrite IZreal_hom plus_IZR.
         apply relate_addition =>//.
-        suff -> : (@IZreal _ _ _ SemiDecOrderedField_Real 1) = (@real_1 _ _ _ SemiDecOrderedField_Real) by apply relate_constant1.
+        suff -> : (^IZreal 1) = (@real_1 types sofReal) by apply relate_constant1.
         intros.
         simpl; auto.
   Qed.
 
   Lemma relate_IZreal z x : relate (IZreal z) x -> x = (IZR z).
   Proof.
-    suff H: relate (@IZreal _ _ _ SemiDecOrderedField_Real z) (IZR z).
+    suff H: relate (^IZreal z) (IZR z).
     - move => R.
         by relate.
           by apply IZreal_relator.

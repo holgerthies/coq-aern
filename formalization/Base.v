@@ -4,8 +4,15 @@ Axiom Prop_ext : forall P Q : Prop, (P -> Q) -> (Q -> P) -> P = Q.
 Axiom dfun_ext : forall A (P : A -> Type) (f g: forall a : A, P a), (forall x, f x = g x) -> f = g.
 Axiom countable_choice : forall A (P : nat -> A -> Prop), (forall n, exists x, P n x) -> exists f : nat -> A , forall n, P n (f n).
 
-
-
+Record RealTypes : Type := mkRealTypes
+{
+  K : Type;
+  M : Type -> Type;
+  Real : Type;
+}.
+Arguments K {r}.
+Arguments M [r] type.
+Arguments Real {r}.
 
 Lemma fun_ext : forall A B (f g: A -> B), (forall x, f x = g x) -> f = g.
 Proof.

@@ -14,14 +14,11 @@ Require Import Psatz.
 (* This file proves that Real is order complete in classical sense *)
 
 Section RealLimit0.
-  Generalizable Variables K M Real.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -163,7 +160,7 @@ Section RealLimit0.
 
 
   
-  Definition W_is_non_empty (P : Real -> Prop) := exists z, P z.
+  Definition W_is_non_empty (P : ^Real -> Prop) := exists z, P z.
   Definition W_is_upper_bound  (P : Real -> Prop) (u : Real ) := forall z : Real, P z -> z <= u.
   Definition W_is_strict_upper_bound  (P : Real -> Prop) (u : Real ) := forall z : Real, P z -> z < u.
   Definition W_is_bounded_above (P : Real -> Prop) := exists u, W_is_upper_bound P u.

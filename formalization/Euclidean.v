@@ -5,14 +5,11 @@ Require Import MultiLimit.
 
 Section Euclidean.
   
-  Generalizable Variables K M Real.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -32,7 +29,7 @@ Section Euclidean.
   
   Inductive euclidean : nat -> Type :=
     nil :  euclidean O 
-  | cons : forall {n}, Real -> euclidean n -> euclidean (S n).
+  | cons : forall {n}, ^Real -> euclidean n -> euclidean (S n).
 
 
   (* from Vector library (Library Coq.Vectors.VectorDef) *)
@@ -84,7 +81,7 @@ Section Euclidean.
     auto.
   Defined.
 
-  Definition euclidean_head {n : nat} : euclidean (S n) -> Real.
+  Definition euclidean_head {n : nat} : euclidean (S n) -> ^Real.
   Proof.
     intros.
     destruct (dim_succ_destruct X).
@@ -164,7 +161,7 @@ Section Euclidean.
     := euclidean_plus x (euclidean_opp y).
 
 
-  Definition euclidean_max_norm {n : nat} (x : euclidean n) : Real.
+  Definition euclidean_max_norm {n : nat} (x : euclidean n) : ^Real.
   Proof.
     induction x.
     exact real_0.
@@ -357,7 +354,7 @@ Section Euclidean.
   Definition euclidean_is_fast_cauchy {n : nat} (f : nat -> euclidean n) : Prop
     := forall n m, euclidean_max_dist (f n) (f m) <= prec n + prec m.
 
-  Definition euclidean_head_sequence {n : nat} (f : nat -> euclidean (S n)) : nat -> Real.
+  Definition euclidean_head_sequence {n : nat} (f : nat -> euclidean (S n)) : nat -> ^Real.
   Proof.
     intros.
     pose proof (f H).
@@ -592,7 +589,7 @@ Section Euclidean.
 
 
   Lemma euclidean_mslimit_P : forall {n : nat} (P : euclidean n -> Prop),
-      (exists! x, P x) -> (forall m, M {e  | exists a, P a /\ euclidean_max_dist e a <= prec m}) -> {a | P a}.
+      (exists! x, P x) -> (forall m, ^M {e  | exists a, P a /\ euclidean_max_dist e a <= prec m}) -> {a | P a}.
   Proof.
     intros.
     apply M_hprop_elim_f.
@@ -725,14 +722,14 @@ Section Euclidean.
 
   Definition euclidean_mlimit_P {d} : forall P : euclidean d -> Prop,
       euclidean_is_seq_closed P ->
-      M {x : euclidean d | euclidean_w_approx P O x} ->
+      ^M {x : euclidean d | euclidean_w_approx P O x} ->
       (forall n x, euclidean_w_approx P n x ->
-                   M {y  | euclidean_w_approx P (S n) y /\ euclidean_max_dist x y <= prec (S n)}) ->
-      M {x | P x}. 
+                   ^M {y  | euclidean_w_approx P (S n) y /\ euclidean_max_dist x y <= prec (S n)}) ->
+      ^M {x | P x}. 
   Proof.
     intros P c X f.
     assert ((forall n (x : {x | euclidean_w_approx P n x}),
-                M {y : { y | euclidean_w_approx P (S n) y} | euclidean_max_dist (projP1 _ _ x) (projP1 _ _ y) <= prec  (S n)})).
+                ^M {y : { y | euclidean_w_approx P (S n) y} | euclidean_max_dist (projP1 _ _ x) (projP1 _ _ y) <= prec  (S n)})).
     intros.
     destruct x.
     pose proof (f n x e).
@@ -780,14 +777,14 @@ Section Euclidean.
 
   Definition euclidean_mlimit_PQ {d} : forall P : euclidean d -> Prop, forall (Q : nat -> euclidean d -> Set), 
       euclidean_is_seq_closed P ->
-      M {x : euclidean d & {_ : Q 0 x | euclidean_w_approx P O x} } ->
+      ^M {x : euclidean d & {_ : Q 0 x | euclidean_w_approx P O x} } ->
       (forall n x, euclidean_w_approx P n x -> Q n x -> 
-                   M {y  & {_ : Q (S n) y | (euclidean_w_approx P (S n) y) /\ euclidean_max_dist x y <= prec (S n)}}) ->
-      M {x | P x}. 
+                   ^M {y  & {_ : Q (S n) y | (euclidean_w_approx P (S n) y) /\ euclidean_max_dist x y <= prec (S n)}}) ->
+      ^M {x | P x}. 
   Proof.
     intros P Q c X f.
     assert ((forall n (x : {x & {_:  Q n x | euclidean_w_approx P n x }}),
-                M {y : { y  & { _ : Q (S n) y | euclidean_w_approx P (S n) y}}  | euclidean_max_dist (projT1 x) (projT1 y) <= prec  (S n)} )).
+                ^M {y : { y  & { _ : Q (S n) y | euclidean_w_approx P (S n) y}}  | euclidean_max_dist (projT1 x) (projT1 y) <= prec  (S n)} )).
     - intros.
       destruct x.
       destruct s.

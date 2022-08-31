@@ -1,14 +1,14 @@
 Require Import Base.
 
 (** Kleene type **)
-Class LazyBool (LB : Type) :=
+Class LazyBool_K (types : RealTypes) :=
   {
-    lazy_bool_true : LB;
-    lazy_bool_false : LB;
+    lazy_bool_true : @K types;
+    lazy_bool_false : @K types;
 
-    lazy_bool_neg : LB -> LB;
-    lazy_bool_or : LB -> LB -> LB;
-    lazy_bool_and : LB -> LB -> LB;
+    lazy_bool_neg : @K types -> @K types;
+    lazy_bool_or : @K types -> @K types -> @K types;
+    lazy_bool_and : @K types -> @K types -> @K types;
 
     lazy_bool_defined_is_bool : forall k,
         (k = lazy_bool_true \/ k = lazy_bool_false) -> ({k = lazy_bool_true} + {k = lazy_bool_false});
@@ -24,11 +24,11 @@ Class LazyBool (LB : Type) :=
 
 Section K_Defs.
 
-  Generalizable Variable K.
-
-  Context `(klb : LazyBool K).
+  Context {types : RealTypes} (lbK : LazyBool_K types).
 
   Definition lazy_bool_up : K -> Prop := fun b : K => b = lazy_bool_true.
   Definition lazy_bool_down : K -> Prop := fun b : K => b = lazy_bool_false.
+
+  (* Search _ (K -> _). *)
 
 End K_Defs.

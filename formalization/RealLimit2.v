@@ -14,14 +14,12 @@ Require Import RealLimit1.
 Require Export RealMetric.
 
 Section RealLimit2.
-  Generalizable Variables K M Real.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -162,7 +160,7 @@ Section RealLimit2.
   Definition real_mslimit_P :
     forall (P : Real -> Prop),
       (exists! z, P z) ->
-      ((forall n, M {e  | (exists a : Real, P a /\ dist e a <= prec n)}) -> {a : Real | P a}).
+      ((forall n, ^M {e  | (exists a : Real, P a /\ dist e a <= prec n)}) -> {a : Real | P a}).
   Proof.
     intros.
     apply (M_countable_lift)  in X.
@@ -193,7 +191,7 @@ Section RealLimit2.
   Definition real_mslimit_P_lt :
     forall (P : Real -> Prop),
       (exists! z, P z) ->
-      ((forall n, M {e  | (exists a : Real, P a /\ dist e a < prec n)}) -> {a : Real | P a}).
+      ((forall n, ^M {e  | (exists a : Real, P a /\ dist e a < prec n)}) -> {a : Real | P a}).
   Proof.
     intros.
     apply (M_countable_lift)  in X.
@@ -239,7 +237,7 @@ Section RealLimit2.
 
 
   Definition real_mslimit :
-    forall f : nat -> M Real, M_is_fast_cauchy f -> M {x | M_is_fast_limit_some x f}.
+    forall f : nat -> ^M Real, M_is_fast_cauchy f -> ^M {x | M_is_fast_limit_some x f}.
   Proof.
     intros.
     pose proof (countable_selection _ f).
