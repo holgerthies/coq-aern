@@ -1,6 +1,4 @@
 (* this file proves various properties of subsets of real numbers *)
-
-
 Require Import Lia.
 Require Import Real Euclidean List Minmax.
 Section SubsetM.
@@ -30,7 +28,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 Section Subsets.
   
-
   Context (d : nat).
 
   Definition euclidean_subset :=  (^euclidean d) -> Prop.
@@ -45,14 +42,11 @@ Section Subsets.
   Definition ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) <= (snd b)).  
 
   Definition diam (L : list ball) := (fold_right (fun b1 r => (real_max (snd b1) r)) real_0 L).
-  Definition is_compact (M : euclidean_subset) := 
-    {L : nat -> list ball |
-      (forall n, diam (L n) <= prec n) /\
-      (forall n, Forall (fun b => intersects (ball_to_subset b) M) (L n)) /\
-      forall n, forall x,  M x ->  Exists (fun b => (ball_to_subset b) x) (L n)
-    }. 
 
-    Lemma split_euclidean2 (P : (^euclidean 2)) : { x & {y | P = (Euclidean.cons x (Euclidean.cons y Euclidean.nil))}}.
+  Definition Hausdorff_dist_bound (S T : euclidean_subset) n :=
+    (forall x, S x -> exists y, T y /\ euclidean_max_dist x y <= n) /\
+      (forall y, T y -> exists x, S x /\ euclidean_max_dist x y <= n).
+      Lemma split_euclidean2 (P : (^euclidean 2)) : { x & {y | P = (Euclidean.cons x (Euclidean.cons y Euclidean.nil))}}.
     Proof.
       pose proof  (dim_succ_destruct P).
       destruct X as [x P'].
@@ -70,6 +64,63 @@ Section Subsets.
     Defined.
   
     Definition make_euclidean2 (x y : ^Real) := Euclidean.cons x (Euclidean.cons y Euclidean.nil).
+
+
+  Definition is_compact (M : euclidean_subset) := forall n, {Ln : list ball |
+                                                    diam Ln <= prec n /\
+                                                    Forall (fun b => intersects (ball_to_subset b) M) Ln /\
+                                                    forall x,  M x ->  Exists (fun b => (ball_to_subset b) x) Ln
+                                                    }. 
+(*   Lemma is_compact_lim : *)
+(*     forall k : euclidean_subset, *)
+(*       (forall n : nat, {X :  euclidean_subset & prod (is_compact X) (Hausdorff_dist_bound X k (prec n))})   *)
+(*       -> is_compact k. *)
+(*   Proof. *)
+(*     intros. *)
+(*     intro p. *)
+(*     destruct (X (S p)). *)
+(*     destruct p0. *)
+(*     destruct (i (S p)). *)
+(*     exists x0. *)
+
+(*     split. *)
+(*     destruct a. *)
+(*     assert (forall k0, *)
+(*                (exists y : euclidean d, x y /\ euclidean_max_dist k0 y <= prec (S p)) -> *)
+(*                exists y : euclidean d, k y /\ euclidean_max_dist k0 y <= prec p). *)
+(*     intros. *)
+(*     destruct H1. *)
+(*     destruct H1. *)
+(*     destruct h. *)
+(*     pose proof (H3 x1 H1). *)
+(*     destruct H5. *)
+(*     exists x2. *)
+(*     destruct H5; split; auto. *)
+(*     pose proof (euclidean_max_dist_tri k0 x1 x2). *)
+(*     pose proof (real_le_le_plus_le _ _ _ _ H2 H6). *)
+(*     replace (S p) with (p + 1)%nat in H8. *)
+(*     rewrite prec_twice in H8. *)
+(*     apply (real_le_le_le _ _ _ H7 H8). *)
+(*     lia. *)
+(*     apply (Forall_impl _ H1 H0). *)
+(*     destruct a. *)
+(*     intros. *)
+(*     destruct h. *)
+(*     pose proof (H3 y H1). *)
+(*     destruct H4. *)
+(*     destruct H4. *)
+(*     pose proof (H0 x1 H4). *)
+(*     assert (forall k0, *)
+(*                (euclidean_max_dist k0 x1 <= prec (S p)) -> *)
+(*                euclidean_max_dist k0 y <= prec p). *)
+(*     intros. *)
+(*     pose proof (euclidean_max_dist_tri k0 x1 y). *)
+(*     pose proof (real_le_le_plus_le _ _ _ _ H7 H5). *)
+(*     replace (S p) with (p + 1)%nat in H9 by lia. *)
+(*     rewrite prec_twice in H9. *)
+(*     apply (real_le_le_le _ _ _ H8 H9). *)
+(*     apply (Exists_impl _ H7 H6). *)
+(*   Defined.   *)
 End Subsets.
 
 Section SimpleTriangle.
@@ -466,9 +517,10 @@ Section SimpleTriangle.
   Qed.
   Lemma T_is_compact : is_compact 2 T.
   Proof.
-   exists Tn.
+   intro n.
+   exists (Tn n).
    split; [apply Tn_diam | split; [apply Tn_intersects_T | ]].
-   intros n P Tx.
+   intros P Tx.
    unfold T in Tx.
    destruct (split_euclidean2 P) as [x [y prp]].
    destruct Tx as [T1 [T2 T3]].
