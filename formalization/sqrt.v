@@ -10,14 +10,14 @@ Open Scope Real_scope.
 Set Warnings "parsing".
 
 Section sqrt.
-  Generalizable Variables K M Real.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
+#[local] Definition sofReal := @sofReal types casofReal.
+#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -66,7 +66,7 @@ Proof.
   by apply sqrt_lt_R0.
 Qed.
 
-Definition sqrt_approx x n : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | forall rx ry, relate x rx -> @relate Real y ry -> (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R}.
+Definition sqrt_approx x n : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | forall rx ry, relate x rx -> @relate types y ry -> (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R}.
 Proof.
   move => B1 B2.
   assert (yP : {y | (real_0 < y) /\ forall rx ry, relate x rx -> relate y ry -> (ry = 1 \/ sqrt rx <= ry)%R /\ (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R}).
@@ -145,7 +145,8 @@ Proof.
   destruct yP as [y P].
   exists y; apply P.
 Defined.
-Definition sqrt_approx_fast x n : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | forall rx ry, relate x rx -> @relate Real y ry -> (Rabs (ry - sqrt rx) < (/ 2 ^ n))%R}.
+
+Definition sqrt_approx_fast x n : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | forall rx ry, relate x rx -> @relate types y ry -> (Rabs (ry - sqrt rx) < (/ 2 ^ n))%R}.
 Proof.
   move => B1 B2.
   have [y P] := sqrt_approx x (Nat.log2 n.+1).+1 B1 B2.
@@ -161,7 +162,7 @@ Defined.
 Lemma sqrt_approx_coq_real x : is_total x -> (/ 4 <= x <= 2)%R ->  forall n, exists y, is_total y /\ (Rabs (y - sqrt x) < (/ 2 ^ n))%R.
 Proof.
   move => H1 H2.
-  have [x' [P1 P2]] := (@ana2 Real _ H1) .
+  have [x' [P1 P2]] := (@ana2 types _ H1) .
   have [H2' H2''] : (/ IZreal4neq0) <= x' /\ x' <= real_2.
   - split; classical; relate; first by rewrite (relate_IZreal _ _ Ha);lra.
     by rewrite (relate_IZreal _ _ H0);lra.
@@ -200,7 +201,7 @@ Proof.
     Holger B2.
     relate.
     have L : (/ 4 <= xr <= 2)%R by rewrite <- (relate_IZreal _ _ Ha), <- (relate_IZreal _ _ Hy0); lra.
-    have [y [S1 S2]] := (@ana2 Real _ (TT _ (relate_total _ _ Hx0) L)).
+    have [y [S1 S2]] := (@ana2 types _ (TT _ (relate_total _ _ Hx0) L)).
     exists y.
     split => [ | x' [P1 P2]].
     split.
@@ -224,7 +225,7 @@ Proof.
   Holger B2.
   relate.
   have L : (/ 4 <= y0 <= 2)%R by rewrite <- (relate_IZreal _ _ Ha), <- (relate_IZreal _ _ Hy0); lra.
-  have [sx [S1 S2]] := (@ana2 Real _ (TT _ (relate_total _ _ Hx0) L)).
+  have [sx [S1 S2]] := (@ana2 types _ (TT _ (relate_total _ _ Hx0) L)).
   pose proof(relate_prec n) as Rp.
   exists sx.
   split.
@@ -244,7 +245,7 @@ Proof.
 Qed.
 
 
-Definition scale x : (real_0 < x) -> M { zy | (Zpow real_2 RealOrder.d2 (2*zy.1)) * zy.2 = x /\ (/ IZreal4neq0) <= zy.2 <= real_2 }.
+Definition scale x : (real_0 < x) -> ^M { zy | (Zpow real_2 RealOrder.d2 (2*zy.1)) * zy.2 = x /\ (/ IZreal4neq0) <= zy.2 <= real_2 }.
 Proof.
   move => H.
   pose proof (magnitude x H).
@@ -377,7 +378,7 @@ Proof.
     by rewrite -prec_twice.
 Defined. 
 
-Lemma complex_nonzero_cases  a b : Complex a b <> complex0 -> M ({real_0 < a} + {a < real_0} + {real_0 < b} + {b < real_0}).
+Lemma complex_nonzero_cases  a b : Complex a b <> complex0 -> ^M ({real_0 < a} + {a < real_0} + {real_0 < b} + {b < real_0}).
 Proof.
   move => H.
   have neq0_cases : ~(a = real_0 /\ b  = real_0) by move => [C1 C2];rewrite C1 C2 in H.
@@ -409,7 +410,7 @@ Proof.
   by apply real_lt_le;apply square_pos;apply real_gt_neq.
 Qed.
 
-Definition csqrt_neq0 (z : complex) : z <> complex0  -> M {sqz | complex_mult sqz sqz = z}.
+Definition csqrt_neq0 (z : complex) : z <> complex0  -> ^M {sqz | complex_mult sqz sqz = z}.
 Proof.
   destruct (complex_destruct z) as [a [b ->]] => H.
   have := complex_nonzero_cases _ _ H.
@@ -654,7 +655,7 @@ Definition dn A := ((A -> False) -> False).
 
 
 
-Lemma classicalize_Mexistence {T} :  forall (P : T -> Prop),  M {x | P x} -> exists x, P x.
+Lemma classicalize_Mexistence {T} :  forall (P : T -> Prop),  ^M {x | P x} -> exists x, P x.
 Proof.
   intros P H.
   apply dn_elim.
@@ -715,7 +716,7 @@ Proof.
   by apply real_ngt_triv.
 Qed.
 
-Definition csqrt (z: complex) : M {sqz | (sqz * sqz)%Complex = z}.
+Definition csqrt (z: complex) : ^M {sqz | (sqz * sqz)%Complex = z}.
 Proof.
   apply (euclidean_mlimit_PQ _ (fun (n : nat) y => {(euclidean_max_dist complex0 z) <= prec (2*(n.+1)+1) /\ y = complex0}  + {(y * y)%Complex = z} )).
   - apply euclidean_is_closed_is_seq_complete.

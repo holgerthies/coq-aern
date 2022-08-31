@@ -4,12 +4,7 @@ Require Import Real Reals RealCoqReal.
 Set Warnings "parsing".
 Require Import Psatz.
 
-
-
-
-
 Section RealHelpers.
-
 
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
