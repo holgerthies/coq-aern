@@ -5,14 +5,14 @@ Require Import Lia.
 Require Import Real Euclidean List Minmax.
 Section SubsetM.
 
-  Generalizable Variables K M Real.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-          {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-          {M_MultivalueMonad : MultivalueMonad}
-          {Real : Type}
-          {SemiDecOrderedField_Real : SemiDecOrderedField Real}
-          {ComplArchiSemiDecOrderedField_Real : ComplArchiSemiDecOrderedField}.
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
+#[local] Definition sofReal := @sofReal types casofReal.
+#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
+#[local] Notation "^euclidean" := (@euclidean types) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
@@ -33,7 +33,7 @@ Section Subsets.
 
   Context (d : nat).
 
-  Definition euclidean_subset :=  (@euclidean Real d) -> Prop.
+  Definition euclidean_subset :=  (^euclidean d) -> Prop.
   Definition union (A B : euclidean_subset) := fun x => A x \/ B x.
   Definition intersection (A B : euclidean_subset) := fun x => A x /\ B x.
   Definition intersects (A B : euclidean_subset) := exists x, intersection A B x.
@@ -41,7 +41,7 @@ Section Subsets.
 
   Definition empty_set : euclidean_subset := fun x => False.
 
-  Definition ball := ((@euclidean Real d) * Real)%type.
+  Definition ball := ((^euclidean d) * ^Real)%type.
   Definition ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) <= (snd b)).  
 
   Definition diam (L : list ball) := (fold_right (fun b1 r => (real_max (snd b1) r)) real_0 L).
@@ -54,7 +54,7 @@ Section Subsets.
 End Subsets.
 
 Section Examples.
-  Lemma split_euclidean2 (P : (@euclidean Real 2)) : { x & {y | P = (Euclidean.cons x (Euclidean.cons y Euclidean.nil))}}.
+  Lemma split_euclidean2 (P : (^euclidean 2)) : { x & {y | P = (Euclidean.cons x (Euclidean.cons y Euclidean.nil))}}.
   Proof.
     pose proof  (dim_succ_destruct P).
     destruct X as [x P'].
@@ -71,7 +71,7 @@ Section Examples.
     apply dim_zero_destruct.
   Defined.
 
-  Definition make_euclidean2 (x y : Real) := Euclidean.cons x (Euclidean.cons y Euclidean.nil).
+  Definition make_euclidean2 (x y : ^Real) := Euclidean.cons x (Euclidean.cons y Euclidean.nil).
   Definition make_ball (x y r : Real) : ball 2 := ((make_euclidean2 x y), r).
   
   Definition Tn_ball (n k j :nat) : (ball 2) := make_ball (Nreal (2*k+1) * prec (S n)) (Nreal (2*j+1) * prec (S n)) (prec (S n)).
@@ -598,7 +598,7 @@ Section Examples.
  Qed.
 
 
- Definition point_ball_mid (P : @euclidean Real 2) (b : ball 2) : ball 2.
+ Definition point_ball_mid (P : ^euclidean 2) (b : ball 2) : ball 2.
  Proof.
    destruct (split_euclidean2 P) as [Px [Py _]].
    destruct b as [bc br].
