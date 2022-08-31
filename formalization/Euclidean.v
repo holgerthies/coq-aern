@@ -831,3 +831,4 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    + exact X.
 Defined.
 End Euclidean.
+
