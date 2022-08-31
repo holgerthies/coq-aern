@@ -147,7 +147,7 @@ Section Examples.
     exists (fst (Tn_ball n k j)).
     split.
     unfold ball_to_subset.
-    Search euclidean_max_dist.
+    (* Search euclidean_max_dist. *)
     pose proof (euclidean_max_dist_id (fst (Tn_ball n k j)) (fst (Tn_ball n k j))).
     destruct H0.
     rewrite H1.
@@ -375,7 +375,7 @@ Section Examples.
       simpl in H.
       apply real_nlt_triv in H.
       contradict H.
-      Search Nreal.
+      (* Search Nreal. *)
       pose proof (Nreal_pos (S n)).
       contradict H.
       apply real_lt_nlt.
