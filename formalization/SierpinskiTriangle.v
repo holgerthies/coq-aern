@@ -67,7 +67,59 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     | (S n') => List.concat (List.map ST_split_ball (STn n'))
     end.
 
+    Lemma point_ball_mid_halves p b d : (snd b <= d) -> snd (point_ball_mid p b) <= d / real_2_neq_0.
+  Proof.
+    intro.
+    unfold point_ball_mid.
+    rewrite (surjective_pairing b). 
+    simpl.
+    unfold real_div.
+    rewrite real_mult_comm.
+    rewrite (real_mult_comm d).
+    apply real_le_mult_pos_le.
+    apply real_pos_inv_pos.
+    apply real_2_pos.
+    auto.
+  Qed.
+
+  Lemma STn_diam n : diam 2 (STn n) <= prec n.
+  Proof.
+    induction n.
+    - simpl.
+      apply real_max_le_le_le.
+      apply real_le_triv.
+      left. apply real_1_gt_0.
+    - simpl.
+      induction (STn n).
+      + simpl.
+        assert (real_0 < / real_2_neq_0).
+        apply real_pos_inv_pos.
+        apply real_2_pos.
+        apply real_0_mult_le.
+        auto. left. auto.
+      + simpl.
+        simpl in IHn.
+        assert (snd a <= prec n) as IHa.
+        apply (real_max_le_fst_le _ (diam 2 l)); auto.
+        apply real_max_le_snd_le in IHn.
+        pose proof (IHl IHn) as IH.
+
+        apply real_max_le_le_le.
+        apply point_ball_mid_halves; auto.
+        apply real_max_le_le_le.
+        apply point_ball_mid_halves; auto.
+        apply real_max_le_le_le.
+        apply point_ball_mid_halves; auto.
+
+        auto.
+  Qed.
+
   Lemma ST_compact : forall s, (ST s) -> is_compact 2 s.
+  Proof.
+    intros s STs n.
+    exists (STn n).
+    split.
+    exact (STn_diam n).
   Admitted.
   
 End SierpinskiTriangle.
