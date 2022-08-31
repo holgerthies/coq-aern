@@ -66,11 +66,12 @@ Section Subsets.
     Definition make_euclidean2 (x y : ^Real) := Euclidean.cons x (Euclidean.cons y Euclidean.nil).
 
 
-  Definition is_compact (M : euclidean_subset) := forall n, {Ln : list ball |
-                                                    diam Ln <= prec n /\
-                                                    Forall (fun b => intersects (ball_to_subset b) M) Ln /\
-                                                    forall x,  M x ->  Exists (fun b => (ball_to_subset b) x) Ln
-                                                    }. 
+  Definition is_compact (M : euclidean_subset) := 
+    forall n, {Ln : list ball |
+                diam Ln <= prec n /\
+                Forall (fun b => intersects (ball_to_subset b) M) Ln /\
+                forall x,  M x ->  Exists (fun b => (ball_to_subset b) x) Ln
+              }.
 (*   Lemma is_compact_lim : *)
 (*     forall k : euclidean_subset, *)
 (*       (forall n : nat, {X :  euclidean_subset & prod (is_compact X) (Hausdorff_dist_bound X k (prec n))})   *)
