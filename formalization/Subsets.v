@@ -709,6 +709,8 @@ Section SierpinskiTriangle.
     | (S n') => List.concat (List.map ST_split_ball (STn n'))
     end.
 
+  Lemma ST_compact : forall s, (ST s) -> is_compact 2 s.
+  Admitted.
   
 End SierpinskiTriangle.
 
