@@ -45,33 +45,42 @@ Section Subsets.
   Definition ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) <= (snd b)).  
 
   Definition diam (L : list ball) := (fold_right (fun b1 r => (real_max (snd b1) r)) real_0 L).
-  Definition is_compact (M : euclidean_subset) := {L : nat -> list ball |
-                                                    (forall n, diam (L n) <= prec n) /\
-                                                    (forall n, Forall (fun b => intersects (ball_to_subset b) M) (L n)) /\
-                                                    forall n, forall x,  M x ->  Exists (fun b => (ball_to_subset b) x) (L n)
-                                                    }. 
+  Definition is_compact (M : euclidean_subset) := 
+    {L : nat -> list ball |
+      (forall n, diam (L n) <= prec n) /\
+      (forall n, Forall (fun b => intersects (ball_to_subset b) M) (L n)) /\
+      forall n, forall x,  M x ->  Exists (fun b => (ball_to_subset b) x) (L n)
+    }. 
 
+    Lemma split_euclidean2 (P : (^euclidean 2)) : { x & {y | P = (Euclidean.cons x (Euclidean.cons y Euclidean.nil))}}.
+    Proof.
+      pose proof  (dim_succ_destruct P).
+      destruct X as [x P'].
+      destruct P' as [P0 P1].
+      pose proof (dim_succ_destruct P0).
+      destruct X as [y P2].
+      exists x.
+      exists y.
+      rewrite P1.
+      destruct P2.
+      f_equal.
+      rewrite e.
+      f_equal.
+      apply dim_zero_destruct.
+    Defined.
+  
+    Definition make_euclidean2 (x y : ^Real) := Euclidean.cons x (Euclidean.cons y Euclidean.nil).
 End Subsets.
 
-Section Examples.
-  Lemma split_euclidean2 (P : (^euclidean 2)) : { x & {y | P = (Euclidean.cons x (Euclidean.cons y Euclidean.nil))}}.
-  Proof.
-    pose proof  (dim_succ_destruct P).
-    destruct X as [x P'].
-    destruct P' as [P0 P1].
-    pose proof (dim_succ_destruct P0).
-    destruct X as [y P2].
-    exists x.
-    exists y.
-    rewrite P1.
-    destruct P2.
-    f_equal.
-    rewrite e.
-    f_equal.
-    apply dim_zero_destruct.
+Section SimpleTriangle.
+
+  Definition T : (euclidean_subset 2).
+  unfold euclidean_subset.
+  intro P.
+  destruct (split_euclidean2 P) as [x [y P']].
+  apply ((real_0 <= x) /\ (real_0 <= y) /\ ((x + y) <= real_1)).
   Defined.
 
-  Definition make_euclidean2 (x y : ^Real) := Euclidean.cons x (Euclidean.cons y Euclidean.nil).
   Definition make_ball (x y r : Real) : ball 2 := ((make_euclidean2 x y), r).
   
   Definition Tn_ball (n k j :nat) : (ball 2) := make_ball (Nreal (2*k+1) * prec (S n)) (Nreal (2*j+1) * prec (S n)) (prec (S n)).
@@ -133,13 +142,6 @@ Section Examples.
     apply real_lt_le.
     apply prec_pos.
   Qed.
-
-  Definition T : (euclidean_subset 2).
-    unfold euclidean_subset.
-    intro P.
-    destruct (split_euclidean2 P) as [x [y P']].
-    apply ((real_le real_0 x) /\ (real_le real_0 y) /\ (real_le (x + y) real_1)).
-  Defined.
 
   Lemma Tn_ball_intersects (n k j : nat) : (j + k+ 1 <= (Npow2 n))%nat ->  intersects 2 (ball_to_subset 2 (Tn_ball n k j)) T.
   Proof using Type.
@@ -597,18 +599,25 @@ Section Examples.
    apply (prec_pos (S n)).
  Qed.
 
+End SimpleTriangle.
 
- Definition point_ball_mid (P : ^euclidean 2) (b : ball 2) : ball 2.
- Proof.
-   destruct (split_euclidean2 P) as [Px [Py _]].
-   destruct b as [bc br].
-   destruct (split_euclidean2 bc) as [bcx [bcy _]].
-   apply (make_ball ((Px + bcx)/real_2_neq_0) ((Py + bcy)/real_2_neq_0) (br / real_2_neq_0)).
- Defined.
+Section SierpinskiTriangle.
 
- Definition ST_v1 := make_euclidean2 (- real_1) real_1.
- Definition ST_v2 := make_euclidean2 (- real_1) (- real_1).
- Definition ST_v3 := make_euclidean2 real_1 (- real_1).
+  Definition ST_v1 := make_euclidean2 (- real_1) real_1.
+  Definition ST_v2 := make_euclidean2 (- real_1) (- real_1).
+  Definition ST_v3 := make_euclidean2 real_1 (- real_1).
+
+  Definition has_ST_v123 (s : euclidean_subset 2) : Prop :=
+    (s ST_v1) \/ (s ST_v2) \/ (s ST_v3).
+
+  Definition point_ball_mid (P : ^euclidean 2) (b : ball 2) : ball 2.
+    destruct (split_euclidean2 P) as [Px [Py _]].
+    destruct b as [bc br].
+    destruct (split_euclidean2 bc) as [bcx [bcy _]].
+    apply (make_ball ((Px + bcx)/real_2_neq_0) ((Py + bcy)/real_2_neq_0) (br / real_2_neq_0)).
+  Defined.
+
+  (* Definition ST_selfSimilar (s : euclidean_subset 2) : Prop := *)
 
  Definition ST_split_ball (b : ball 2) :=
    (point_ball_mid ST_v1 b) :: 
@@ -617,10 +626,13 @@ Section Examples.
 
  Fixpoint STn n : list (ball 2) := 
    match n with
-   | 0 => (make_ball real_0 real_0 real_1) :: nil
+   | 0 => (make_ball real_0 real_0 real_1) :: nil 
+          (* the initial cover is the square ([-1,1],[-1,1]) *) 
    | (S n') => List.concat (List.map ST_split_ball (STn n'))
    end.
 
-End Examples.
+  
+End SierpinskiTriangle.
+
  
 End SubsetM. 
