@@ -179,7 +179,7 @@ Proof.
   exact (Monad_fun_map _ _ f).
 Defined.
 
-Lemma M_fun_cont : forall {A B} (f : A -> B) X b , M_picture_1 (Monad_fun_map _ _ f X) b = exists a, (M_picture_1 X) a /\ b = f a  .
+Lemma M_fun_cont : forall {A B} (f : A -> B) X b , M_picture_1 (M_lift _ _ f X) b = exists a, (M_picture_1 X) a /\ b = f a  .
 Proof.
   intros.
   unfold M_picture_1.
@@ -187,6 +187,7 @@ Proof.
   apply (lp _ _ (fun g => g X)) in H.
   fold (M_description A) in H.
   fold (M_description B) in H.
+  unfold M_lift.
   rewrite H.
   clear H.
   apply Prop_ext.
@@ -206,13 +207,14 @@ Proof.
   auto.
 Defined.
 
-Lemma M_fun_cont_r : forall {A B} (f : A -> B), forall X x, M_picture_1 X x -> M_picture_1 (Monad_fun_map _ _ f X) (f x).
+Lemma M_fun_cont_r : forall {A B} (f : A -> B), forall X x, M_picture_1 X x -> M_picture_1 (M_lift _ _ f X) (f x).
 Proof.
   intros.
   pose proof ((Monoid_hom_nat_trans_prop _ _  A B f)).
   apply (lp _ _ (fun g => g X)) in H0.
   unfold M_picture_1.
   fold (M_description B) in H0.
+  unfold M_lift.
   rewrite H0.
   unfold M_picture_1 in H.
   pose (j :=  (Monoid_hom_nat_trans _ _ A X)).
@@ -443,7 +445,7 @@ Defined.
 Definition mjoin (p q : Prop) (T : Type) : ({p}+{q} -> T) ->  ^M ({p}+{q}) -> ^M T.
 Proof.
   intros f x.
-  exact (Monad_fun_map _ _ f x).
+  exact (M_lift _ _ f x).
 Defined.
 
 (* semideciability so that we can work on Prop directly, without mentioning K *)
@@ -456,7 +458,7 @@ Proof.
   destruct X0.
   destruct i.
   destruct i0.
-  apply (Monad_fun_map ({lazy_bool_up _ x} + {lazy_bool_up _ x0})).
+  apply (M_lift ({lazy_bool_up _ x} + {lazy_bool_up _ x0})).
   intro.
   destruct H4; auto.
   apply select.
@@ -485,7 +487,7 @@ Proof.
   intros.
   apply (Monad_fun_map_dom A).
   intro.
-  apply (Monad_fun_map (A ->B)).
+  apply (M_lift (A ->B)).
   auto.
   auto.
   auto.
@@ -639,6 +641,7 @@ Definition M_in_destruct : forall A, forall X : ^M A, ^M {x : A | M_in x X}.
   exists x.
   intro.
   pose proof (M_fun_cont_r (fun b : A => x = b) X x p).
+  unfold M_lift in H0.
   rewrite H in H0.
   pose proof (@Monoid_hom_unit _ _ _ _ (M_description_hom) Prop).
   apply (lp _ _ (fun g => g False)) in H1.
@@ -688,6 +691,7 @@ Proof.
   assert (x = True) by (apply Prop_ext; intro; auto).
   induction (eq_sym H1).
   pose proof (M_fun_cont (fun b : A => a = b) X True).
+  unfold M_lift in H2.
   rewrite H2.
   apply Prop_ext; intro.
   destruct H3.
@@ -702,6 +706,7 @@ Proof.
   induction (eq_sym H1).
   clear H H1.
   pose proof (M_fun_cont (fun b : A => a = b) X False).
+  unfold M_lift in H.
   rewrite H.
   apply Prop_ext; intro.
   apply M_picture_1_intro; auto.
@@ -723,6 +728,7 @@ Proof.
   unfold M_in, M_some, Mor.
   intro.
   pose proof (M_fun_cont (fun b : A => a = b) X True).
+  unfold M_lift in H1.
   rewrite H0 in H1.
   assert ( (exists a0 : A, M_picture_1 X a0 /\ True = (a = a0))).
   exists a; split; auto.
@@ -739,6 +745,7 @@ Proof.
   unfold M_all, Mand.
   apply Prop_ext; intros.
   pose proof (M_fun_cont_r P X a H0).
+  unfold M_lift in H1.
   rewrite H in H1.
   apply M_picture_1_destruct in H1.
   rewrite<- H1; auto.
@@ -748,6 +755,7 @@ Proof.
   intro; apply Prop_ext; intro.
   apply M_picture_1_intro.
   pose proof (M_fun_cont P X x).
+  unfold M_lift in H1.
   rewrite H1 in H0.
   destruct H0.
   destruct H0.
@@ -760,6 +768,7 @@ Proof.
   rewrite <- H0.
   
   pose proof (M_fun_cont P X True).
+  unfold M_lift in H1.
   rewrite H1.
   apply M_hprop_elim_f.
   intros y z; apply irrl.
@@ -890,6 +899,7 @@ Proof.
   apply M_ext.
   apply fun_ext; intro.
   apply Prop_ext; intro.
+  fold M_lift in H0.
   rewrite (M_fun_cont P X x) in H0.
   destruct H0.
   destruct H0.
@@ -903,6 +913,7 @@ Proof.
   
   apply (M_picture_1_destruct) in H0.
   rewrite <- H0.
+  fold M_lift.
   rewrite (M_fun_cont P X False).
   destruct (M_W_destruct X).
   pose proof (H x0).
@@ -917,6 +928,7 @@ Proof.
   intro.
   apply (lp _ _ M_picture_1) in H0.
   pose proof (M_fun_cont P X True).
+  fold M_lift in H0.
   rewrite H0 in H1.
   assert ((exists a : A, M_picture_1 X a /\ True = P a)).
   destruct H.
@@ -970,6 +982,7 @@ Proof.
   destruct X0.
   exists x0.
   pose proof (M_fun_cont_r P x _ p).
+  fold M_lift in m.
   rewrite m in H.
   apply M_picture_1_destruct in H.
   rewrite <- H; auto.

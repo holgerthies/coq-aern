@@ -4,14 +4,7 @@
 module IVT where
 
 import qualified Prelude
-
-#ifdef __GLASGOW_HASKELL__
-import qualified GHC.Base
-#else
--- HUGS
-import qualified IOExts
-#endif
-
+import Prelude ((*),(+),(-),(/))
 import MixedTypesNumPrelude (ifThenElse)
 import qualified Numeric.OrdGenericBool as OGB
 import qualified Unsafe.Coerce as UC
@@ -21,22 +14,21 @@ import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
 
-__uc :: a -> b
-__uc = UC.unsafeCoerce
-__K :: a -> AERN2.CKleenean
-__K = UC.unsafeCoerce
-__R :: a -> AERN2.CReal
-__R = UC.unsafeCoerce
-__seqR :: a -> (Prelude.Integer -> AERN2.CReal)
-__seqR = UC.unsafeCoerce
-
 #ifdef __GLASGOW_HASKELL__
-unsafeCoerce :: a -> b
-unsafeCoerce = __uc
+import qualified GHC.Base
+#if __GLASGOW_HASKELL__ >= 900
+import qualified GHC.Exts
+#endif
 #else
 -- HUGS
-unsafeCoerce :: a -> b
-unsafeCoerce = IOExts.unsafeCoerce
+import qualified IOExts
+#endif
+
+#ifdef __GLASGOW_HASKELL__
+type Any = GHC.Base.Any
+#else
+-- HUGS
+type Any = ()
 #endif
 
 __ :: any
@@ -52,101 +44,99 @@ nat_rect f f0 n =
 type Sig a = a
   -- singleton inductive, whose constructor was exist
   
-multivalued_choice :: a1 -> a1 -> a2
-multivalued_choice = (\k1 k2 -> __uc (AERN2.select (__K k1) (__K k2)))
+type M a = a
 
-select :: a1 -> a1 -> a2
+multivalued_choice :: AERN2.CKleenean -> AERN2.CKleenean -> M Prelude.Bool
+multivalued_choice = AERN2.select
+
+m_lift :: (a1 -> a2) -> (M a1) -> M a2
+m_lift = Prelude.id
+
+m_unit :: a1 -> M a1
+m_unit = Prelude.id
+
+m_lift_dom :: (a1 -> M a2) -> (M a1) -> M a2
+m_lift_dom = Prelude.id
+
+m_hprop_elim_f :: (M a1) -> a1
+m_hprop_elim_f = Prelude.id
+
+m_countable_lift :: (Prelude.Integer -> M a1) -> M (Prelude.Integer -> a1)
+m_countable_lift = Prelude.id
+
+select :: AERN2.CKleenean -> AERN2.CKleenean -> M Prelude.Bool
 select =
   multivalued_choice
 
-type Semidec k = k
+mjoin :: (Prelude.Bool -> a1) -> (M Prelude.Bool) -> M a1
+mjoin = Prelude.id
 
-choose :: (Semidec a1) -> (Semidec a1) -> a2
+type Semidec = AERN2.CKleenean
+
+choose :: Semidec -> Semidec -> M Prelude.Bool
 choose x x0 =
-  __uc (\h4 -> h4) (select x x0)
+  m_lift (\h4 -> h4) (select x x0)
 
-real_0 :: a2
-real_0 = (__uc (0 :: AERN2.CReal))
+real_limit_p :: (Prelude.Integer -> AERN2.CReal) -> AERN2.CReal
+real_limit_p = AERN2.limit
 
-real_1 :: a2
-real_1 = (__uc (1 :: AERN2.CReal))
-
-real_plus :: a2 -> a2 -> a2
-real_plus = (\x y -> __uc (((__R x) Prelude.+ (__R y))))
-
-real_mult :: a2 -> a2 -> a2
-real_mult = (\x y -> __uc (((__R x) Prelude.* (__R y))))
-
-real_lt_semidec :: a2 -> a2 -> Semidec a1
-real_lt_semidec = (\ x y -> __uc ((__R x) OGB.< (__R y)))
-
-real_div :: a2 -> a2 -> a2
-real_div = (\x y -> __uc (((__R x) Prelude./ (__R y))))
-
-real_2 :: a2
-real_2 = (__uc (2 :: AERN2.CReal))
-
-real_limit_p :: (Prelude.Integer -> a2) -> a2
-real_limit_p = (\ f -> __uc (AERN2.limit (__seqR f)))
-
-real_limit_P_p :: (Prelude.Integer -> a2) -> a2
+real_limit_P_p :: (Prelude.Integer -> AERN2.CReal) -> AERN2.CReal
 real_limit_P_p p =
    (real_limit_p (\n ->  (p n)))
 
-real_limit_P :: (Prelude.Integer -> a3) -> a3
+real_limit_P :: (Prelude.Integer -> AERN2.CReal) -> AERN2.CReal
 real_limit_P =
   real_limit_P_p
 
-real_mslimit_P :: (Prelude.Integer -> a2) -> a3
+real_mslimit_P :: (Prelude.Integer -> M AERN2.CReal) -> AERN2.CReal
 real_mslimit_P x =
-  let {x0 = __uc x} in __uc (__uc real_limit_P x0)
+  let {x0 = m_countable_lift x} in m_hprop_elim_f (m_lift real_limit_P x0)
 
-m_uniq_pick :: (a3 -> a3) -> a3 -> a3 -> a3 -> a3 -> a2
+m_uniq_pick :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal -> AERN2.CReal ->
+               AERN2.CReal -> AERN2.CReal -> M Prelude.Bool
 m_uniq_pick f _ b c _ =
-  choose (real_lt_semidec (f b) real_0) (real_lt_semidec real_0 (f c))
+  choose ((OGB.<) (f b) (0 :: AERN2.CReal))
+    ((OGB.<) (0 :: AERN2.CReal) (f c))
 
-real_3 :: a2
-real_3 = (__uc (3 :: AERN2.CReal))
+real_3 :: AERN2.CReal
+real_3 = (3 :: AERN2.CReal)
 
-trisect :: (a3 -> a3) -> a3 -> a3 -> a2
+trisect :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal -> AERN2.CReal -> M
+           ((,) AERN2.CReal AERN2.CReal)
 trisect f a b =
-  __uc (\h0 ->
+  mjoin (\h0 ->
     case h0 of {
-     Prelude.True -> (,) (real_div (real_plus (real_mult real_2 a) b) real_3)
-      b;
-     Prelude.False -> (,) a
-      (real_div (real_plus a (real_mult real_2 b)) real_3)})
-    (m_uniq_pick f a (real_div (real_plus (real_mult real_2 a) b) real_3)
-      (real_div (real_plus a (real_mult real_2 b)) real_3) b)
+     Prelude.True -> (,) ((/) ((+) ((*) (2 :: AERN2.CReal) a) b) real_3) b;
+     Prelude.False -> (,) a ((/) ((+) a ((*) (2 :: AERN2.CReal) b)) real_3)})
+    (m_uniq_pick f a ((/) ((+) ((*) (2 :: AERN2.CReal) a) b) real_3)
+      ((/) ((+) a ((*) (2 :: AERN2.CReal) b)) real_3) b)
 
-halving :: (a3 -> a3) -> a3 -> a3 -> a2
+halving :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal -> AERN2.CReal -> M
+           ((,) AERN2.CReal AERN2.CReal)
 halving f a b =
   let {one = trisect f a b} in
-  __uc (\q ->
+  m_lift_dom (\q ->
     case q of {
-     (,) x s ->
-      let {x0 = trisect f x s} in
-      __uc (\x1 -> case x1 of {
-                    (,) x' s0 -> (,) x' s0}) x0}) one
+     (,) x p ->
+      let {x0 = trisect f x p} in
+      m_lift (\x1 -> case x1 of {
+                      (,) x2 p0 -> (,) x2 p0}) x0}) one
 
-root_approx :: (a3 -> a3) -> Prelude.Integer -> a2
+root_approx :: (AERN2.CReal -> AERN2.CReal) -> Prelude.Integer -> M
+               ((,) AERN2.CReal AERN2.CReal)
 root_approx f n =
-  nat_rect (__uc ((,) real_0 real_1)) (\_ iHn ->
-    __uc (\x ->
+  nat_rect (m_unit ((,) (0 :: AERN2.CReal) (1 :: AERN2.CReal))) (\_ iHn ->
+    m_lift_dom (\x ->
       case x of {
-       (,) x0 s ->
-        let {x1 = halving f x0 s} in
-        __uc (\x2 -> case x2 of {
-                      (,) x' s0 -> (,) x' s0}) x1}) iHn) n
+       (,) x0 p ->
+        let {x1 = halving f x0 p} in
+        m_lift (\x2 -> case x2 of {
+                        (,) x3 p0 -> (,) x3 p0}) x1}) iHn) n
 
-cIVT :: (a3 -> a3) -> a3
+cIVT :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal
 cIVT f =
   real_mslimit_P (\n ->
     let {x = root_approx f (Prelude.succ n)} in
-    __uc (\x0 -> case x0 of {
-                  (,) x1 _ -> x1}) x)
-
-r_CIVT :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal
-r_CIVT =
-  cIVT
+    m_lift (\x0 -> case x0 of {
+                    (,) x1 _ -> x1}) x)
 

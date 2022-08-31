@@ -20,40 +20,44 @@ Extract Inlined Constant projP1 => "".
 Require Import Kleene.
 
 (* Declare the existence of Kleeneans *)
-Parameter K : Set.
-Axiom K_LazyBool : LazyBool K.
+Parameter types : RealTypes.
+Axiom klb : LazyBool_K types.
 
 (* interpreting Kleeneans *)
+Extraction Implicit K [ r ].
 Extract Inlined Constant K => "AERN2.CKleenean".
 
 (* Erase the type class parameter and map to concrete types in Haskell. *)
-Extraction Implicit lazy_bool_true [ LB ].
-Extract Constant lazy_bool_true => "AERN2.ckleenean Prelude.True".
+Extraction Implicit lazy_bool_true [ types LazyBool_K ].
+Extract Constant lazy_bool_true => "(AERN2.ckleenean Prelude.True)".
 
-Extraction Implicit lazy_bool_false [ LB ].
-Extract Constant lazy_bool_false => "AERN2.ckleenean Prelude.False".
+Extraction Implicit lazy_bool_false [ types LazyBool_K ].
+Extract Constant lazy_bool_false => "(AERN2.ckleenean Prelude.False)".
 
-Extraction Implicit lazy_bool_neg [ LB ].
-Extract Constant lazy_bool_neg => "\x -> __uc (OGB.not (__K x))".
+Extraction Implicit lazy_bool_neg [ types LazyBool_K ].
+Extract Constant lazy_bool_neg => "OGB.not".
 
-Extraction Implicit lazy_bool_or [ LB ].
-Extract Constant lazy_bool_or => "\x y -> __uc ((__K x) OGB.|| (__K y))".
+Extraction Implicit lazy_bool_or [ types LazyBool_K ].
+Extract Constant lazy_bool_or => "(OGB.||)".
 
-Extraction Implicit lazy_bool_and [ LB ].
-Extract Constant lazy_bool_and => "\x y -> __uc ((__K x) OGB.&& (__K y))".
+Extraction Implicit lazy_bool_and [ types LazyBool_K ].
+Extract Constant lazy_bool_and => "(OGB.&&)".
 
-Extraction Implicit lazy_bool_defined_is_bool [ LB ].
-Extract Inlined Constant lazy_bool_defined_is_bool => "Prelude.error ""UNREALIZED lazy_bool_defined_is_bool"" ".
+Extraction Implicit lazy_bool_defined_is_bool [ types LazyBool_K ].
+Extract Inlined Constant lazy_bool_defined_is_bool => "(Prelude.error ""UNREALIZED lazy_bool_defined_is_bool"")".
 
 (* Test extraction of Kleeneans *)
 
 Section K_Dummy_Defs.
-  Generalizable Variable K.
-  Context `(klb : LazyBool K).
+
+Context {types : RealTypes} { klb : LazyBool_K types }.
+
+#[local] Notation "^K" := (@K types) (at level 0).
+
   Definition k_test := lazy_bool_and lazy_bool_true lazy_bool_false.
 End K_Dummy_Defs.
 
-(* Extraction Implicit k_test [ 1 ]. *)
+(* Extraction Implicit k_test [ types klb ]. *)
 (* Extraction "K_Test" k_test. *)
 
 Require Import Monad.
@@ -61,56 +65,50 @@ Require Import ClassicalMonads.
 Require Import MultivalueMonad.
 
 (* Declare the existence of multivaluemonad *)
-Parameter M : Type -> Type.
-Axiom M_Monad : Monad M.
-Axiom MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad.
-Axiom M_MultivalueMonad : @MultivalueMonad _ K_LazyBool _ _ MultivalueMonad_description.
 
-(* interpreting multivaluemonad *)
+Axiom mvmM : MultivalueMonad_M types.
+
+(* interpreting the Multivalue Monad as the identity monad in Haskell *)
+Extraction Implicit M [ r ].
 Extract Constant M "a" => "a".
 
-Extraction Implicit Monad_fun_map [ Monad ].
-Extract Inlined Constant Monad_fun_map => "__uc".
+(* interpreting multivaluemonad *)
 
-Extraction Implicit Monad_unit [ Monad ].
-Extract Inlined Constant Monad_unit => "__uc".
+Extraction Implicit M_Monad [ types MultivalueMonad_M ].
 
-Extraction Implicit Monad_mult [ Monad ].
-Extract Inlined Constant Monad_mult => "__uc".
+Extraction Implicit M_lift [ types mvmM ].
+Extract Constant M_lift => "Prelude.id".
 
-Extract Constant MultivalueMonad_description => "(Prelude.error ""UNREALIZED MultivalueMonad_description"")".
+Extraction Implicit M_unit [ types mvmM ].
+Extract Constant M_unit => "Prelude.id".
 
+Extraction Implicit M_mult [ types mvmM ].
+Extract Constant M_mult => "Prelude.id".
 
 (* Shortcut extractions for improved readability. *)
-Extraction Implicit M_unit [ M_Monad ].
-Extract Inlined Constant M_unit => "__uc".
-Extraction Implicit M_mult [ M_Monad ].
-Extract Inlined Constant M_mult => "__uc".
-Extraction Implicit M_lift [ M_Monad ].
-Extract Inlined Constant M_lift => "__uc".
-Extraction Implicit M_lift_dom [ M_Monad ].
-Extract Inlined Constant M_lift_dom => "__uc".
-Extraction Implicit mjoin [ M_Monad ].
-Extract Inlined Constant mjoin => "__uc".
+Extraction Implicit M_lift_dom [ types mvmM ].
+Extract Constant M_lift_dom => "Prelude.id".
+Extraction Implicit mjoin [ types mvmM ].
+Extract Constant mjoin => "Prelude.id".
 
-Extraction Implicit MultivalueMonad_base_monad_traces_lift [ klb M_Monad MultivalueMonad_description MultivalueMonad ].
-Extract Constant MultivalueMonad_base_monad_traces_lift => "(\ x0 f -> __uc (\n -> Prelude.foldl (Prelude.flip (__uc f)) (x0) [0 .. ((n :: Prelude.Integer) Prelude.- 1)]))".
+Extraction Implicit M_base_monad_traces_lift [ types MultivalueMonad_M ].
+Extract Constant M_base_monad_traces_lift => "(\ x0 f -> (\n -> Prelude.foldl (Prelude.flip f) (x0) [0 .. ((n :: Prelude.Integer) Prelude.- 1)]))".
 
-Extraction Implicit MultivalueMonad_base_monad_hprop_elim [ klb M_Monad MultivalueMonad_description MultivalueMonad ].
-Extract Inlined Constant MultivalueMonad_base_monad_hprop_elim => "__uc".
+(* Extraction Implicit M_base_monad_hprop_elim [ types MultivalueMonad_M ]. *)
+(* Extract Inlined Constant M_base_monad_hprop_elim => "__uc". *)
 
-Extraction Implicit multivalued_choice [ klb M_Monad MultivalueMonad_description MultivalueMonad ].
-Extract Constant multivalued_choice => "(\k1 k2 -> __uc (AERN2.select (__K k1) (__K k2)))".
+Extraction Implicit multivalued_choice [ types MultivalueMonad_M ].
+Extract Constant multivalued_choice => "AERN2.select".
 
-Extraction Implicit M_hprop_elim_f [ klb M_Monad MultivalueMonad_description M_MultivalueMonad ].
-Extract Inlined Constant M_hprop_elim_f => "__uc".
+Extraction Implicit M_hprop_elim_f [ types mvmM ].
+Extract Constant M_hprop_elim_f => "Prelude.id".
 
-Extraction Implicit choose [ klb M_Monad MultivalueMonad_description M_MultivalueMonad ].
+Extraction Implicit choose [ types mvmM ].
 
-Extraction Implicit M_paths [ klb M_Monad MultivalueMonad_description M_MultivalueMonad ].
+Extraction Implicit M_paths  [ types mvmM ].
 
-Extraction Implicit semidec_or [ klb ].
-Extraction Implicit semidec_and [ klb ].
+Extraction Implicit semidec_or [ types mvmM ].
+Extraction Implicit semidec_and [ types mvmM ].
 
 
 (* (\ _ m -> m)  *)
@@ -118,102 +116,96 @@ Extraction Implicit semidec_and [ klb ].
 (* MultivalueMonad_destruct *)
 (* (\ _ m -> m) *)
 
-Extraction Implicit select [ klb M_Monad MultivalueMonad_description M_MultivalueMonad ].
+Extraction Implicit select  [ types mvmM ].
 
 (* Some shortcuts for efficiency. *)
-Extraction Implicit M_countable_lift [ klb M_Monad MultivalueMonad_description M_MultivalueMonad ].
-Extract Inlined Constant M_countable_lift => "__uc". 
+Extraction Implicit M_countable_lift [ types mvmM ].
+Extract Constant M_countable_lift => "Prelude.id". 
 
 (* Test extraction of multivaluemonad *)
-Definition m_test := @select _ _ _ _ _ M_MultivalueMonad.
+Definition m_test := @select _ mvmM.
 (* Extraction "M_Test" m_test. *)
 
 Require Import Real.
 
-(* Assume that there is R*)
-Parameter R : Set.
-Axiom R_SemiDecOrderedField : @SemiDecOrderedField  _ K_LazyBool R.
-Axiom R_ComplArchiSemiDecOrderedField : @ComplArchiSemiDecOrderedField _ _ _ R_SemiDecOrderedField.
+Axiom sofReal : @SemiDecOrderedField_Real types.
+Axiom casofReal : @ComplArchiSemiDecOrderedField_Real types.
 
-Extract Inlined Constant R => "AERN2.CReal".
+Extraction Implicit Real [ r ].
+Extract Inlined Constant Real => "AERN2.CReal".
 
-Extraction Implicit real_0 [ klb SemiDecOrderedField ].
-Extract Constant real_0 => "(__uc (0 :: AERN2.CReal))".
+Extraction Implicit real_0 [ types SemiDecOrderedField_Real ].
+Extract Inlined Constant real_0 => "(0 :: AERN2.CReal)".
 
-Extraction Implicit real_1 [ klb SemiDecOrderedField ].
-Extract Constant real_1 => "(__uc (1 :: AERN2.CReal))".
+Extraction Implicit real_1 [ types SemiDecOrderedField_Real ].
+Extract Inlined Constant real_1 => "(1 :: AERN2.CReal)".
 
-Extraction Implicit real_2 [ klb SemiDecOrderedField_Real ].
-Extract Constant real_2 => "(__uc (2 :: AERN2.CReal))".
+Extraction Implicit real_2 [ types sofReal ].
+Extract Inlined Constant real_2 => "(2 :: AERN2.CReal)".
 
 (* Extraction Implicit real_3 [ klb SemiDecOrderedField_Real ]. *)
-(* Extract Constant real_3 => "(__uc (3 :: AERN2.CReal))". *)
+(* Extract Inlined Constant real_3 => "(3 :: AERN2.CReal)". *)
 
-Extraction Implicit real_plus [ klb SemiDecOrderedField ].
-Extract Constant real_plus => "(\x y -> __uc (((__R x) Prelude.+ (__R y))))".
+Extraction Implicit real_plus [ types SemiDecOrderedField_Real ].
+Extract Inlined Constant real_plus => "(+)".
 
-Extraction Implicit real_mult [ klb SemiDecOrderedField ].
-Extract Constant real_mult => "(\x y -> __uc (((__R x) Prelude.* (__R y))))".
+Extraction Implicit real_mult [ types SemiDecOrderedField_Real ].
+Extract Inlined Constant real_mult => "(*)".
 
-Extraction Implicit real_opp [ klb SemiDecOrderedField ].
-Extract Constant real_opp => "(\x -> __uc (Prelude.negate (__R x)))".
+Extraction Implicit real_opp [ types SemiDecOrderedField_Real ].
+Extract Inlined Constant real_opp => "Prelude.negate".
 
-Extraction Implicit real_inv [ klb SemiDecOrderedField ].
-Extract Constant real_inv => "(\x -> __uc (Prelude.recip (__R x)))".
+Extraction Implicit real_inv [ types SemiDecOrderedField_Real ].
+Extract Inlined Constant real_inv => "Prelude.recip".
 
-Extraction Implicit real_lt_semidec [ klb SemiDecOrderedField ].
-Extract Constant real_lt_semidec => "(\ x y -> __uc ((__R x) OGB.< (__R y)))".
+Extraction Implicit real_lt_semidec [ types SemiDecOrderedField_Real ].
+Extract Inlined Constant real_lt_semidec => "(OGB.<)".
 
-Extraction Implicit real_limit_p [ klb SemiDecOrderedField_Real ComplArchiSemiDecOrderedField ].
-Extract Constant real_limit_p => "(\ f -> __uc (AERN2.limit (__seqR f)))".
+Extraction Implicit real_limit_p [ types ComplArchiSemiDecOrderedField_Real ].
+Extract Constant real_limit_p => "AERN2.limit".
 
-Extraction Implicit real_limit [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit real_limit_P [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit real_limit_P_p [ klb SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit real_limit_P_lt [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit real_limit_P_lt_p [ klb SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit real_mslimit_P [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit real_mslimit_P_p [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit real_mslimit_P_lt [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit real_mslimit_P_lt_p [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
+Extraction Implicit real_limit  [ types casofReal ].
+Extraction Implicit real_limit_P  [ types casofReal ].
+Extraction Implicit real_limit_P_p  [ types casofReal ].
+Extraction Implicit real_limit_P_lt  [ types casofReal ].
+Extraction Implicit real_limit_P_lt_p  [ types casofReal ].
+Extraction Implicit real_mslimit_P  [ types casofReal ].
+Extraction Implicit real_mslimit_P_p  [ types casofReal ].
+Extraction Implicit real_mslimit_P_lt  [ types casofReal ].
+Extraction Implicit real_mslimit_P_lt_p  [ types casofReal ].
 
-Extraction Implicit M_split [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ].
+Extraction Implicit M_split  [ types casofReal ].
 
 (* Some optional shortcuts for increased efficiency. *)
-Extraction Implicit IZreal [ klb SemiDecOrderedField_Real ].
-Extract Constant IZreal => "(\z -> __uc (AERN2.creal z))".
-Extraction Implicit real_minus [ klb SemiDecOrderedField_Real ].
-Extract Constant real_minus => "(\x y -> __uc (((__R x) Prelude.- (__R y))))".
-Extraction Implicit real_div [ klb SemiDecOrderedField_Real ].
-Extract Constant real_div => "(\x y -> __uc (((__R x) Prelude./ (__R y))))".
-Extraction Implicit prec [ klb SemiDecOrderedField_Real ].
-Extract Constant prec => "(\n -> __uc ((0.5 :: AERN2.CReal) Prelude.^ n))".
+Extraction Implicit IZreal [ types sofReal ].
+Extract Constant IZreal => "AERN2.creal".
+Extraction Implicit real_minus [ types sofReal ].
+Extract Inlined Constant real_minus => "(-)".
+Extraction Implicit real_div [ types sofReal ].
+Extract Inlined Constant real_div => "(/)".
+Extraction Implicit prec [ types sofReal ].
+Extract Constant prec => "((0.5 :: AERN2.CReal) Prelude.^)".
 
-Extraction Implicit abs [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
+Extraction Implicit abs [ types casofReal ].
 
-Extraction Implicit abs_prop [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
+Extraction Implicit abs_prop [ types casofReal ].
 
 (* Test extraction of R *)
 Section Real_tests.
-  Local Open Scope Real_scope.
+  Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  Generalizable Variables K M R.
+  #[local] Notation "^K" := (@K types) (at level 0).
+  #[local] Notation "^M" := (@M types) (at level 0).
+  #[local] Notation "^Real" := (@Real types) (at level 0).
 
-  Context `{klb : LazyBool K} `{M_Monad : Monad M}
-    {MultivalueMonad_description : Monoid_hom M_Monad NPset_Monad} 
-    {M_MultivalueMonad : MultivalueMonad}
-    {R : Type}
-    {R_OF : SemiDecOrderedField R}.
-  
   Definition real_test1 := (- real_1) + (IZreal 2) - (prec 2).
 End Real_tests.
 
-Extraction Implicit real_test1 [ klb R_OF ].
-Definition R_test1 := @real_test1 _ _ R_SemiDecOrderedField.
-(* Extraction "R_Test1" R_test1. *)
+Extraction Implicit real_test1 [ types casofReal ].
+(* Extraction "R_Test1" real_test1. *)
 
-Definition R_test2 := @real_limit_p _ _ _ _ R_ComplArchiSemiDecOrderedField.
-(* Extraction "R_Test2" R_test2. *)
+Definition R_test2 := @real_limit_p _ casofReal.
+Extraction "R_Test2" R_test2.
 
 Extract Inductive bool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
 Extract Inductive sumbool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
@@ -221,7 +213,7 @@ Extract Inductive sumbool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
 Extract Inductive sigT => "(,)" ["(,)"].
 Extract Inductive prod => "(,)"  [ "(,)" ].
 
-Extract Inlined Constant Nat.log2 => "(MNP.integer Prelude.. Logs.integerLog2)".
+Extract Constant Nat.log2 => "(MNP.integer Prelude.. Logs.integerLog2)".
 
 (* Sewon's lab seminar talk material*)
 (* Maximum *)
@@ -229,108 +221,87 @@ Extract Inlined Constant Nat.log2 => "(MNP.integer Prelude.. Logs.integerLog2)".
 (* root finding function *)
 Require Import IVT.
 
-Extraction Implicit real_3 [ klb SemiDecOrderedField_Real ].
-Extract Constant real_3 => "(__uc (3 :: AERN2.CReal))".
+Extraction Implicit real_3 [ types casofReal ].
+Extract Constant real_3 => "(3 :: AERN2.CReal)".
 
-Extraction Implicit CIVT [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit root_approx [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit halving [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit trisect [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit M_uniq_pick [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
+Extraction Implicit CIVT [ types casofReal ].
+Extraction Implicit root_approx [ types casofReal ].
+Extraction Implicit halving [ types casofReal ].
+Extraction Implicit trisect [ types casofReal ].
+Extraction Implicit M_uniq_pick [ types casofReal ].
 
-Definition R_CIVT := @CIVT _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
-
-Extraction "IVT" R_CIVT.
+(* Extraction "IVT" CIVT. *)
 
 (* maximum *)
 Require Import Minmax.
 
-Extraction Implicit real_max_prop [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-Extraction Implicit real_max [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
+Extraction Implicit real_max_prop [ types casofReal ].
+Extraction Implicit real_max [ types casofReal ].
 
-Definition R_real_max := @real_max _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
-Extraction "Max" R_real_max.
+(* Extraction "Max" real_max. *)
 
 (* magnitude *)
 Require Import testsearch.
 
-Extraction Implicit weaken_orM_r [ M_Monad ].
+Extraction Implicit weaken_orM_r [ types casofReal ].
 
-Extraction Implicit epsilon_smallest_choose_M [ klb M_Monad MultivalueMonad_description M_MultivalueMonad ].
+Extraction Implicit epsilon_smallest_choose_M  [ types casofReal ].
 
-Extraction Implicit epsilon_smallest_PQ_M [ klb M_Monad MultivalueMonad_description M_MultivalueMonad ].
+Extraction Implicit epsilon_smallest_PQ_M [ types casofReal ].
 
 Require Import magnitude.
 
-Extraction Implicit magnitude [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ].
-Extraction Implicit magnitude1 [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ].
-Extraction Implicit magnitude2 [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ].
-Extraction Implicit dec_x_lt_2 [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ].
+Extraction Implicit magnitude [ types casofReal ].
+Extraction Implicit magnitude1 [ types casofReal ].
+Extraction Implicit magnitude2 [ types casofReal ].
+Extraction Implicit dec_x_lt_2 [ types casofReal ].
 
-Extraction Implicit Zpow [ klb SemiDecOrderedField_Real ].
+Extraction Implicit Zpow [ types casofReal ].
 
-Definition R_magnitude := @magnitude _ _ _ _ _ M_MultivalueMonad _ R_SemiDecOrderedField.
-Extraction "Magnitude" R_magnitude.
+(* Extraction "Magnitude" magnitude.magnitude. *)
 
 Require Import RealRing.
 
-Extraction Implicit pow [ klb SemiDecOrderedField_Real ].
+Extraction Implicit pow [ types sofReal ].
 
 Require Import Complex.
 
-Extraction Implicit complex0 [ klb SemiDecOrderedField_Real ].
+Extraction Implicit complex0  [ types casofReal ].
 
 Require Import Euclidean.
 
-Extraction Implicit euclidean_max_dist [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real].
-
-Extraction Implicit euclidean_mlimit_PQ [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real].
-
-Extraction Implicit euclidean_max_norm [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real].
-
-Extraction Implicit euclidean_limit [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real].
-
-Extraction Implicit euclidean_zero [ klb SemiDecOrderedField_Real].
-
-Extraction Implicit euclidean_opp [ klb SemiDecOrderedField_Real].
-
-Extraction Implicit euclidean_plus [ klb SemiDecOrderedField_Real].
-
-Extraction Implicit euclidean_minus [ klb SemiDecOrderedField_Real].
+Extraction Implicit euclidean_max_dist [ types casofReal ].
+Extraction Implicit euclidean_mlimit_PQ [ types casofReal ].
+Extraction Implicit euclidean_max_norm [ types casofReal ].
+Extraction Implicit euclidean_limit [ types casofReal ].
+Extraction Implicit euclidean_zero [ types casofReal ].
+Extraction Implicit euclidean_opp [ types casofReal ].
+Extraction Implicit euclidean_plus [ types casofReal ].
+Extraction Implicit euclidean_minus [ types casofReal ].
 
 (* sqrt *)
 Require Import sqrt.
 
-Extraction Implicit sqrt [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
+Extraction Implicit sqrt [ types casofReal ].
+Extraction Implicit sqrt_pos [ types casofReal ].
 
-Extraction Implicit sqrt_pos [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
+Extraction Implicit scale [ types casofReal ].
 
-Extraction Implicit scale [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ].
+Extraction Implicit restr_sqrt [ types casofReal ].
+Extraction Implicit sqrt_approx_fast [ types casofReal ].
+Extraction Implicit sqrt_approx [ types casofReal ].
 
-Extraction Implicit restr_sqrt [ klb SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
+(* Extraction "Sqrt" sqrt.sqrt. *)
 
-Extraction Implicit sqrt_approx_fast [ klb SemiDecOrderedField_Real ].
+Extraction Implicit csqrt [ types casofReal ].
+Extraction Implicit csqrt_neq0 [ types casofReal ].
+Extraction Implicit complex_nonzero_cases [ types casofReal ].
 
-Extraction Implicit sqrt_approx [ klb SemiDecOrderedField_Real ].
+(* Extraction "CSqrt" csqrt. *)
 
-
-Definition R_sqrt2 := @sqrt _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
-Extraction "Sqrt" R_sqrt2.
-
-Extraction Implicit csqrt [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-
-Extraction Implicit csqrt_neq0 [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ComplArchiSemiDecOrderedField_Real ].
-
-Extraction Implicit complex_nonzero_cases [ klb M_Monad MultivalueMonad_description M_MultivalueMonad SemiDecOrderedField_Real ].
-
-Definition C_sqrt2 := @csqrt _ _ _ _ _ M_MultivalueMonad _ _ R_ComplArchiSemiDecOrderedField.
-Extraction "CSqrt" C_sqrt2.
-
-Require Import subsets.
-Extraction Implicit Tn  [ klb SemiDecOrderedField_Real ].
-Definition R_Tn := @Tn _ _ _ R_SemiDecOrderedField.
-Extraction "Tn" R_Tn.
-
+(* Require Import Subsets.
+Extraction Implicit Tn [ types casofReal ].
+Extraction "Tn" Tn. *)
 
                
 (* Require Import Nabla. *)
@@ -339,17 +310,12 @@ Extraction "Tn" R_Tn.
 
 (* Recursive Extraction CRmin. *)
 (*
-.
-The Haskell module will require the following packages:
- re- cdar-mBound >= 0.1.0.1
-- collect-errors >= 0.1.4
-- mixed-types-num >= 0.5.3
-- aern2-mp >= 0.2.1
-- aern2-real >= 0.2.1
-- integer-logarithms
 
-In the generated Haskell files, add the following imports and definitions:
+The Haskell module will require the packages specified in stack.yaml in folder extracted-examples.
+ 
+In the generated Haskell files, add the following imports:
 
+import Prelude ((*),(+),(-),(/))
 import MixedTypesNumPrelude (ifThenElse)
 import qualified Numeric.OrdGenericBool as OGB
 import qualified Unsafe.Coerce as UC
@@ -358,14 +324,5 @@ import qualified Data.Functor
 import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
-
-__uc :: a -> b
-__uc = UC.unsafeCoerce
-__K :: a -> AERN2.CKleenean
-__K = UC.unsafeCoerce
-__R :: a -> AERN2.CReal
-__R = UC.unsafeCoerce
-__seqR :: a -> (Prelude.Integer -> AERN2.CReal)
-__seqR = UC.unsafeCoerce
 
 *)

@@ -367,11 +367,13 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     pose proof (@M_fun_cont _ _ Z Real (fun z : Z => prec n * IZreal z) (M_projP1 Z (fun z : Z => dist (prec n * IZreal z) x <= prec n) (M_approx_seq x n)) a).
     unfold M_lift in H.
     simpl in H.
+    fold M_lift in H.
     rewrite H1 in H; clear H1.
 
     pose proof (@M_fun_cont _ _ Z Real (fun z : Z => prec m * IZreal z) (M_projP1 Z (fun z : Z => dist (prec m * IZreal z) x <= prec m) (M_approx_seq x m)) a0).
     unfold M_lift in H0.
     simpl in H0.
+    fold M_lift in H0.
     rewrite H1 in H0; clear H1.
     destruct H, H0.
     destruct H.
@@ -379,6 +381,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite H1, H2.
     unfold M_projP1 in H.
     pose proof (M_fun_cont  (fun X0 : {x0 : Z | dist (prec n * IZreal x0) x <= prec n} => let (x0, _) := X0 in x0) (M_approx_seq x n) x0).
+    fold M_lift in H.
     rewrite H3 in H; clear H3.
     destruct H.
     destruct x2.
@@ -388,6 +391,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
     pose proof (M_fun_cont  (fun X0 : {x0 : Z | dist (prec m * IZreal x0) x <= prec m} => let (x0, _) := X0 in x0) (M_approx_seq x m) x1).
     unfold M_projP1 in H0.
+    fold M_lift in H0.
     rewrite H4 in H0; clear H4.
     destruct H0.
     destruct x3.
@@ -407,13 +411,13 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     intro.
     intros.
     unfold dyadic_M_sequence in H.
-    unfold M_lift in H.
     rewrite (M_fun_cont (fun z : Z => prec n * IZreal z)) in H.
     destruct H.
     destruct H.
     unfold projP1 in H.
     unfold M_existence_to_all in H.
     unfold M_projP1 in H.
+    fold M_lift in H.
     rewrite M_fun_cont in H.
     destruct H.
     destruct H.

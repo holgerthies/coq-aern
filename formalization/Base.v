@@ -10,9 +10,9 @@ Record RealTypes : Type := mkRealTypes
   M : Type -> Type;
   Real : Type;
 }.
-Arguments K {r}.
-Arguments M [r] type.
-Arguments Real {r}.
+Arguments K {types} : rename.
+Arguments M [types] type : rename.
+Arguments Real {types} : rename.
 
 Lemma fun_ext : forall A B (f g: A -> B), (forall x, f x = g x) -> f = g.
 Proof.

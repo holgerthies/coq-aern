@@ -4,14 +4,7 @@
 module Sqrt where
 
 import qualified Prelude
-
-#ifdef __GLASGOW_HASKELL__
-import qualified GHC.Base
-#else
--- HUGS
-import qualified IOExts
-#endif
-
+import Prelude ((*),(+),(-),(/))
 import MixedTypesNumPrelude (ifThenElse)
 import qualified Numeric.OrdGenericBool as OGB
 import qualified Unsafe.Coerce as UC
@@ -21,22 +14,21 @@ import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
 
-__uc :: a -> b
-__uc = UC.unsafeCoerce
-__K :: a -> AERN2.CKleenean
-__K = UC.unsafeCoerce
-__R :: a -> AERN2.CReal
-__R = UC.unsafeCoerce
-__seqR :: a -> (Prelude.Integer -> AERN2.CReal)
-__seqR = UC.unsafeCoerce
-
 #ifdef __GLASGOW_HASKELL__
-unsafeCoerce :: a -> b
-unsafeCoerce = __uc
+import qualified GHC.Base
+#if __GLASGOW_HASKELL__ >= 900
+import qualified GHC.Exts
+#endif
 #else
 -- HUGS
-unsafeCoerce :: a -> b
-unsafeCoerce = IOExts.unsafeCoerce
+import qualified IOExts
+#endif
+
+#ifdef __GLASGOW_HASKELL__
+type Any = GHC.Base.Any
+#else
+-- HUGS
+type Any = ()
 #endif
 
 __ :: any
@@ -86,6 +78,9 @@ log2_iter k p q r =
       (\r' -> log2_iter k' p (Prelude.succ q) r')
       r)
     k
+
+log2 :: Prelude.Integer -> Prelude.Integer
+log2 = (MNP.integer Prelude.. Logs.integerLog2)
 
 succ :: Prelude.Integer -> Prelude.Integer
 succ x =
@@ -407,7 +402,7 @@ div_eucl a b =
     (\fO fP fN n -> if n Prelude.== 0 then fO () else
                    if n Prelude.> 0 then fP n else
                    fN (Prelude.negate n))
-      (\_ -> (,) 0 0)
+      (\_ -> (,) 0 a)
       (\_ -> pos_div_eucl a' b)
       (\b' ->
       case pos_div_eucl a' ((\x -> x) b') of {
@@ -426,7 +421,7 @@ div_eucl a b =
     (\fO fP fN n -> if n Prelude.== 0 then fO () else
                    if n Prelude.> 0 then fP n else
                    fN (Prelude.negate n))
-      (\_ -> (,) 0 0)
+      (\_ -> (,) 0 a)
       (\_ ->
       case pos_div_eucl a' b of {
        (,) q r ->
@@ -448,92 +443,83 @@ div_eucl a b =
 div :: Prelude.Integer -> Prelude.Integer -> Prelude.Integer
 div = (\n m -> if m Prelude.== 0 then 0 else Prelude.div n m)
 
-multivalued_choice :: a1 -> a1 -> a2
-multivalued_choice = (\k1 k2 -> __uc (AERN2.select (__K k1) (__K k2)))
+type M a = a
 
-select :: a1 -> a1 -> a2
+multivalued_choice :: AERN2.CKleenean -> AERN2.CKleenean -> M Prelude.Bool
+multivalued_choice = AERN2.select
+
+m_lift :: (a1 -> a2) -> (M a1) -> M a2
+m_lift = Prelude.id
+
+m_lift_dom :: (a1 -> M a2) -> (M a1) -> M a2
+m_lift_dom = Prelude.id
+
+m_hprop_elim_f :: (M a1) -> a1
+m_hprop_elim_f = Prelude.id
+
+m_countable_lift :: (Prelude.Integer -> M a1) -> M (Prelude.Integer -> a1)
+m_countable_lift = Prelude.id
+
+select :: AERN2.CKleenean -> AERN2.CKleenean -> M Prelude.Bool
 select =
   multivalued_choice
 
-type Semidec k = k
+mjoin :: (Prelude.Bool -> a1) -> (M Prelude.Bool) -> M a1
+mjoin = Prelude.id
 
-choose :: (Semidec a1) -> (Semidec a1) -> a2
+type Semidec = AERN2.CKleenean
+
+choose :: Semidec -> Semidec -> M Prelude.Bool
 choose x x0 =
-  __uc (\h4 -> h4) (select x x0)
+  m_lift (\h4 -> h4) (select x x0)
 
-real_0 :: a2
-real_0 = (__uc (0 :: AERN2.CReal))
+iZreal :: Prelude.Integer -> AERN2.CReal
+iZreal = AERN2.creal
 
-real_1 :: a2
-real_1 = (__uc (1 :: AERN2.CReal))
+prec :: Prelude.Integer -> AERN2.CReal
+prec = ((0.5 :: AERN2.CReal) Prelude.^)
 
-real_plus :: a2 -> a2 -> a2
-real_plus = (\x y -> __uc (((__R x) Prelude.+ (__R y))))
+real_limit_p :: (Prelude.Integer -> AERN2.CReal) -> AERN2.CReal
+real_limit_p = AERN2.limit
 
-real_mult :: a2 -> a2 -> a2
-real_mult = (\x y -> __uc (((__R x) Prelude.* (__R y))))
-
-real_opp :: a2 -> a2
-real_opp = (\x -> __uc (Prelude.negate (__R x)))
-
-real_inv :: a2 -> a2
-real_inv = (\x -> __uc (Prelude.recip (__R x)))
-
-real_lt_semidec :: a2 -> a2 -> Semidec a1
-real_lt_semidec = (\ x y -> __uc ((__R x) OGB.< (__R y)))
-
-real_minus :: a2 -> a2 -> a2
-real_minus = (\x y -> __uc (((__R x) Prelude.- (__R y))))
-
-real_div :: a2 -> a2 -> a2
-real_div = (\x y -> __uc (((__R x) Prelude./ (__R y))))
-
-iZreal :: Prelude.Integer -> a2
-iZreal = (\z -> __uc (AERN2.creal z))
-
-real_2 :: a2
-real_2 = (__uc (2 :: AERN2.CReal))
-
-prec :: Prelude.Integer -> a2
-prec = (\n -> __uc ((0.5 :: AERN2.CReal) Prelude.^ n))
-
-real_limit_p :: (Prelude.Integer -> a2) -> a2
-real_limit_p = (\ f -> __uc (AERN2.limit (__seqR f)))
-
-pow :: a2 -> Prelude.Integer -> a2
+pow :: AERN2.CReal -> Prelude.Integer -> AERN2.CReal
 pow r n =
   (\fO fS n -> if n Prelude.== 0 then fO () else fS (n Prelude.- 1))
-    (\_ -> real_1)
-    (\m -> real_mult r (pow r m))
+    (\_ -> (1 :: AERN2.CReal))
+    (\m -> (*) r (pow r m))
     n
 
-linear_search :: (Prelude.Integer -> Prelude.Bool) -> Prelude.Integer ->
-                 Prelude.Integer
-linear_search p_dec m =
-  case p_dec m of {
-   Prelude.True -> m;
-   Prelude.False -> linear_search p_dec (Prelude.succ m)}
+linear_search_conform :: (Prelude.Integer -> Prelude.Bool) -> Prelude.Integer
+                         -> Prelude.Integer
+linear_search_conform p_dec start =
+  case p_dec start of {
+   Prelude.True -> start;
+   Prelude.False -> linear_search_conform p_dec (Prelude.succ start)}
+
+linear_search_from_0_conform :: (Prelude.Integer -> Prelude.Bool) ->
+                                Prelude.Integer
+linear_search_from_0_conform p_dec =
+  linear_search_conform p_dec 0
 
 epsilon_smallest :: (Prelude.Integer -> Prelude.Bool) -> Prelude.Integer
-epsilon_smallest p_dec =
-  linear_search p_dec 0
+epsilon_smallest =
+  linear_search_from_0_conform
 
-m_split :: a3 -> a3 -> a3 -> a2
+m_split :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> M Prelude.Bool
 m_split x y _UU03b5_ =
-  choose (real_lt_semidec (real_minus y _UU03b5_) x)
-    (real_lt_semidec (real_minus x _UU03b5_) y)
+  choose ((OGB.<) ((-) y _UU03b5_) x) ((OGB.<) ((-) x _UU03b5_) y)
 
-real_limit_P_lt_p :: (Prelude.Integer -> a2) -> a2
+real_limit_P_lt_p :: (Prelude.Integer -> AERN2.CReal) -> AERN2.CReal
 real_limit_P_lt_p p =
    (real_limit_p (\n ->  (p n)))
 
-real_limit_P_p :: (Prelude.Integer -> a2) -> a2
+real_limit_P_p :: (Prelude.Integer -> AERN2.CReal) -> AERN2.CReal
 real_limit_P_p p =
    (real_limit_p (\n ->  (p n)))
 
-real_mslimit_P_p :: (Prelude.Integer -> a2) -> a3
+real_mslimit_P_p :: (Prelude.Integer -> M AERN2.CReal) -> AERN2.CReal
 real_mslimit_P_p x =
-  let {x0 = __uc x} in __uc (__uc real_limit_P_p x0)
+  let {x0 = m_countable_lift x} in m_hprop_elim_f (m_lift real_limit_P_p x0)
 
 ssr_have :: a1 -> (a1 -> a2) -> a2
 ssr_have step rest =
@@ -563,79 +549,81 @@ epsilon_smallest_PQ :: (Prelude.Integer -> Prelude.Bool) -> Prelude.Integer
 epsilon_smallest_PQ =
   epsilon_smallest
 
-epsilon_smallest_PQ_M :: (Prelude.Integer -> a2) -> a2
+epsilon_smallest_PQ_M :: (Prelude.Integer -> M Prelude.Bool) -> M
+                         Prelude.Integer
 epsilon_smallest_PQ_M x =
-  let {x0 = __uc x} in __uc epsilon_smallest_PQ x0
+  let {x0 = m_countable_lift x} in m_lift epsilon_smallest_PQ x0
 
-epsilon_smallest_choose_M :: (Prelude.Integer -> a2) -> a2
+epsilon_smallest_choose_M :: (Prelude.Integer -> M Prelude.Bool) -> M
+                             Prelude.Integer
 epsilon_smallest_choose_M =
   epsilon_smallest_PQ_M
 
-weaken_orM_r :: a1 -> a1
+weaken_orM_r :: (M Prelude.Bool) -> M Prelude.Bool
 weaken_orM_r =
-  __uc (\__top_assumption_ ->
+  m_lift (\__top_assumption_ ->
     let {_evar_0_ = \_ -> Prelude.True} in
     let {_evar_0_0 = \_ -> Prelude.False} in
     case __top_assumption_ of {
      Prelude.True -> _evar_0_ __;
      Prelude.False -> _evar_0_0 __})
 
-magnitude1 :: a3 -> a2
+magnitude1 :: AERN2.CReal -> M Prelude.Integer
 magnitude1 x =
   ssr_have __ (\_ ->
-    ssr_suff (\g1M -> __uc (\g1 -> g1) g1M)
+    ssr_suff (\g1M -> m_lift (\g1 -> g1) g1M)
       (epsilon_smallest_choose_M (\n ->
         weaken_orM_r
-          (choose (real_lt_semidec (prec (Prelude.succ (Prelude.succ n))) x)
-            (real_lt_semidec x (prec (Prelude.succ n)))))))
+          (choose ((OGB.<) (prec (Prelude.succ (Prelude.succ n))) x)
+            ((OGB.<) x (prec (Prelude.succ n)))))))
 
-zpow :: a2 -> Prelude.Integer -> a2
+zpow :: AERN2.CReal -> Prelude.Integer -> AERN2.CReal
 zpow x z =
   (\fO fP fN n -> if n Prelude.== 0 then fO () else
                    if n Prelude.> 0 then fP n else
                    fN (Prelude.negate n))
-    (\_ -> real_1)
+    (\_ -> (1 :: AERN2.CReal))
     (\p -> pow x (to_nat p))
-    (\p -> pow (real_inv x) (to_nat p))
+    (\p -> pow (Prelude.recip x) (to_nat p))
     z
 
-dec_x_lt_2 :: a3 -> a2
+dec_x_lt_2 :: AERN2.CReal -> M Prelude.Bool
 dec_x_lt_2 x =
   let {
    h = m_split x
-         (real_div (iZreal ((\x -> x) ((\x -> 2 Prelude.* x Prelude.+ 1) 1)))
-           real_2) (real_inv real_2)}
+         ((/) (iZreal ((\x -> x) ((\x -> 2 Prelude.* x Prelude.+ 1) 1)))
+           (2 :: AERN2.CReal)) (Prelude.recip (2 :: AERN2.CReal))}
   in
-  __uc (\h0 ->
+  mjoin (\h0 ->
     case h0 of {
      Prelude.True -> Prelude.False;
      Prelude.False -> Prelude.True}) h
 
-magnitude2 :: a3 -> a2
+magnitude2 :: AERN2.CReal -> M Prelude.Integer
 magnitude2 x =
   let {
-   y = real_div x
+   y = (/) x
          (iZreal ((\x -> x) ((\x -> 2 Prelude.* x) ((\x -> 2 Prelude.* x)
            1))))}
   in
   ssr_have __ (\_ ->
     ssr_have __ (\_ ->
       ssr_suff
-        (__uc (\_top_assumption_ ->
+        (m_lift (\_top_assumption_ ->
           (Prelude.+) _top_assumption_ ((\x -> x) ((\x -> 2 Prelude.* x) 1))))
         (ssr_have (magnitude1 y)
-          (__uc (\_top_assumption_ -> Prelude.negate ( _top_assumption_))))))
+          (m_lift (\_top_assumption_ -> Prelude.negate ( _top_assumption_))))))
 
-magnitude :: a3 -> a2
+magnitude :: AERN2.CReal -> M Prelude.Integer
 magnitude x =
   ssr_have (dec_x_lt_2 x)
-    (__uc (\_top_assumption_ ->
+    (m_lift_dom (\_top_assumption_ ->
       let {_evar_0_ = \_ -> magnitude2 x} in
       let {
        _evar_0_0 = \_ ->
         ssr_have __ (\_ ->
-          ssr_have (magnitude2 (real_inv x))
-            (__uc (\_top_assumption_0 ->
+          ssr_have (magnitude2 (Prelude.recip x))
+            (m_lift (\_top_assumption_0 ->
               (Prelude.+) (Prelude.negate _top_assumption_0) ((\x -> x)
                 ((\x -> 2 Prelude.* x) 1)))))}
       in
@@ -643,48 +631,48 @@ magnitude x =
        Prelude.True -> _evar_0_ __;
        Prelude.False -> _evar_0_0 __}))
 
-sqrt_approx :: a2 -> Prelude.Integer -> a2
+sqrt_approx :: AERN2.CReal -> Prelude.Integer -> AERN2.CReal
 sqrt_approx x n =
-  nat_rect real_1 (\_ __top_assumption_ ->
+  nat_rect (1 :: AERN2.CReal) (\_ __top_assumption_ ->
     ssr_have __ (\_ ->
-      real_mult (real_inv real_2)
-        (real_plus __top_assumption_ (real_div x __top_assumption_)))) n
+      (*) (Prelude.recip (2 :: AERN2.CReal))
+        ((+) __top_assumption_ ((/) x __top_assumption_)))) n
 
-sqrt_approx_fast :: a2 -> Prelude.Integer -> a2
+sqrt_approx_fast :: AERN2.CReal -> Prelude.Integer -> AERN2.CReal
 sqrt_approx_fast x n =
-  ssr_have
-    (sqrt_approx x (Prelude.succ
-      ((MNP.integer Prelude.. Logs.integerLog2) (Prelude.succ n))))
+  ssr_have (sqrt_approx x (Prelude.succ (log2 (Prelude.succ n))))
     (\__top_assumption_ -> __top_assumption_)
 
-restr_sqrt :: a2 -> a2
+restr_sqrt :: AERN2.CReal -> AERN2.CReal
 restr_sqrt x =
   ssr_have __ (\_ ->
     real_limit_P_lt_p (\n ->
       ssr_have (sqrt_approx_fast x n) (\__top_assumption_ ->
         __top_assumption_)))
 
-scale :: a3 -> a2
+scale :: AERN2.CReal -> M ((,) Prelude.Integer AERN2.CReal)
 scale x =
   let {x0 = magnitude x} in
-  __uc (\_top_assumption_ ->
+  m_lift (\_top_assumption_ ->
     ssr_have (div _top_assumption_ ((\x -> x) ((\x -> 2 Prelude.* x) 1)))
       (\_top_assumption_0 -> (,) _top_assumption_0
-      (real_mult
-        (zpow real_2
+      ((*)
+        (zpow (2 :: AERN2.CReal)
           ((Prelude.*) (Prelude.negate ((\x -> 2 Prelude.* x) 1))
             _top_assumption_0)) x))) x0
 
-sqrt_pos :: a3 -> a3
+sqrt_pos :: AERN2.CReal -> AERN2.CReal
 sqrt_pos x =
-  __uc
+  m_hprop_elim_f
     (ssr_have (scale x)
-      (__uc (\_top_assumption_ ->
-        let {_evar_0_ = \z y -> real_mult (zpow real_2 z) (restr_sqrt y)} in
+      (m_lift (\_top_assumption_ ->
+        let {
+         _evar_0_ = \z y -> (*) (zpow (2 :: AERN2.CReal) z) (restr_sqrt y)}
+        in
         case _top_assumption_ of {
-         (,) x0 x1 -> _evar_0_ x0 x1})))
+         (,) a b -> _evar_0_ a b})))
 
-sqrt :: a3 -> a3
+sqrt :: AERN2.CReal -> AERN2.CReal
 sqrt x =
   real_mslimit_P_p (\n ->
     let {
@@ -697,23 +685,19 @@ sqrt x =
                 0)))}
     in
     let {
-     _evar_0_ = __uc (\_top_assumption_ ->
+     _evar_0_ = m_lift (\_top_assumption_ ->
                   let {_evar_0_ = \_ -> sqrt_pos x} in
-                  let {_evar_0_0 = \_ -> real_0} in
+                  let {_evar_0_0 = \_ -> (0 :: AERN2.CReal)} in
                   case _top_assumption_ of {
                    Prelude.True -> _evar_0_ __;
                    Prelude.False -> _evar_0_0 __})}
     in
-    eq_rect_r real_0 _evar_0_
-      (real_plus
+    eq_rect_r (0 :: AERN2.CReal) _evar_0_
+      ((+)
         (prec
           (addn (muln (Prelude.succ (Prelude.succ 0)) n) (Prelude.succ 0)))
-        (real_opp
+        (Prelude.negate
           (prec
             (addn (muln (Prelude.succ (Prelude.succ 0)) n) (Prelude.succ 0)))))
       x0)
-
-r_sqrt2 :: AERN2.CReal -> AERN2.CReal
-r_sqrt2 =
-  sqrt
 
