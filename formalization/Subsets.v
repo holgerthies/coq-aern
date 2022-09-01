@@ -48,96 +48,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     | a :: L' => (fst a, prec p) :: change_diam L' p
    end.
 
-  (* Lemma change_diam_prop (L : list ball) (p : nat) : {L' : list ball | (forall b, In b L -> (In ((fst b), prec p) L')) /\ (forall b, In b L' -> (exists r, In ((fst b), r) L) /\ (snd b = prec p))}. *)
-  (* Proof. *)
-  (*   induction L. *)
-  (*   - exists nil. *)
-  (*     simpl. *)
-  (*     split; intros;auto. *)
-  (*     contradict H. *)
-  (*   - destruct IHL. *)
-  (*     exists ((fst a, prec p) :: x). *)
-  (*     intros. *)
-  (*     simpl. *)
-  (*     split. *)
-  (*     + intros. *)
-  (*       destruct H. *)
-  (*       left. *)
-  (*       f_equal. *)
-  (*       f_equal. *)
-  (*       apply H. *)
-  (*       right. *)
-  (*       apply a0. *)
-  (*       apply H. *)
-  (*    + intros [c r]. *)
-  (*      split. *)
-  (*      destruct H. *)
-  (*      exists (snd a). *)
-  (*      apply pair_equal_spec in H. *)
-  (*      left. *)
-  (*      simpl. *)
-  (*      rewrite (surjective_pairing a). *)
-  (*      f_equal. *)
-  (*      apply H. *)
-  (*      destruct a0. *)
-  (*      destruct (H1 _ H). *)
-  (*      destruct H2. *)
-  (*      exists x0. *)
-  (*      right. *)
-  (*      apply H2. *)
-  (*      destruct H. *)
-  (*      simpl. *)
-  (*      apply pair_equal_spec in H. *)
-  (*      destruct H; auto. *)
-  (*      destruct a0. *)
-  (*      apply H1. *)
-  (*      apply H. *)
-  (* Defined. *)
-
-  (* Definition change_diam  (L : list ball) (p : nat) : list ball. *)
-  (* Proof. *)
-  (*   destruct (change_diam_prop L p). *)
-  (*   apply x. *)
-  (* Defined. *)
-
-  Lemma change_diam_prop L p: diam (change_diam L p) <= prec p /\ (forall b, In b L -> (In ((fst b), prec p) (change_diam L p))) /\ (forall b, In b  (change_diam L p) -> (exists r, In ((fst b), r) L)).
-  Proof.
-    induction L as [ | b L' [D [L R]]].
-    simpl.
-    split; [ | split]; intros;auto.
-    apply real_lt_le.
-    apply prec_pos.
-    contradict H.
-
-    split; [| split].
-    - simpl.
-      apply real_max_le_le_le.
-      apply real_eq_le; auto.
-      apply D.
-   - intros.
-     destruct H.
-     left.
-     f_equal.
-     f_equal.
-     exact H.
-     right.
-     apply L.
-     exact H.
-  - intros [c r].
-    simpl.
-    intros H.
-    destruct H.
-    exists (snd b).
-    apply pair_equal_spec in H.
-    left.
-    rewrite (surjective_pairing b).
-    f_equal.
-    apply H.
-    destruct (R _ H).
-    exists x.
-    right.
-    apply H0.
-  Qed.
   Lemma change_diam_spec L p : forall b, In b (change_diam L p) <-> snd b = prec p /\ exists r, In (fst b, r) L.
   Proof.
     intros b.
@@ -292,6 +202,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply (real_le_le_le _ (diam L)); auto.
     apply diam_forall; auto.
   Defined.
+
+
 End Subsets.
 
  
