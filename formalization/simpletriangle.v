@@ -558,7 +558,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply T.
     apply translation.
     apply IHn.
-    apply (make_euclidean2 real_2 real_2).
+    apply (make_euclidean2 (- /real_2_neq_0) (- /real_2_neq_0)).
  Defined.
 
  Lemma empty_set_is_compact : is_compact 2 (empty_set 2).

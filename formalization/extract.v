@@ -301,12 +301,15 @@ Extraction Implicit complex_nonzero_cases [ types casofReal ].
 
 (* Extraction "CSqrt" csqrt. *)
 
-Require Import Subsets.
+Require Import simpletriangle.
 Extraction Implicit Tn_ball [ types casofReal ].
 Extraction Implicit Tn_col [ types casofReal ].
 Extraction Implicit Tn_row [ types casofReal ].
 Extraction Implicit Tn [ types casofReal ].
 (* Extraction "Tn" Tn. *)
+
+Extraction Implicit multi_triangles_compact [ types casofReal ].
+Extraction "MTn" multi_triangles_compact.
 
 Require Import SierpinskiTriangle.
 Extraction Implicit caseS' [ types ].
