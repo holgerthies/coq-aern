@@ -19,6 +19,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     match t with
     | real_0 => constr:(0%Z)
     | real_1 => constr:(1%Z)
+    | real_2 => constr:(2%Z)
     | IZreal ?u =>
       match isZcst u with
       | true => u
@@ -28,6 +29,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     end.
 
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
+
+  Lemma real_0_neg_eq : - real_0 = real_0.
+  Proof. ring. Qed.
 
   (* The vertices of the triangle hull *)
 
@@ -115,7 +119,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     split; auto; split; auto.
   Qed.
 
-  (* Self-similarity with ratio 1/2*)
+  (* Self-similarity with ratio 1/2 *)
 
   Definition one_half := / real_2_neq_0.
 
@@ -132,36 +136,49 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply (make_euclidean2 ((x1 + x2) * one_half) ((y1 + y2) * one_half)).
   Defined.
 
+  Definition point_point_away (p1 : ^euclidean 2) (p2 : ^euclidean 2) : ^euclidean 2.
+    destruct (split_euclidean2 p1) as [x1 [y1 _]].
+    destruct (split_euclidean2 p2) as [x2 [y2 _]].
+    apply (make_euclidean2 ((x2 + x2 - x1)) ((y2 + y2 - y1))).
+  Defined.
+
+  Lemma point_point_away_mid_id  (p1 : ^euclidean 2) (p2 : ^euclidean 2) : p2 = point_point_mid p1 (point_point_away p1 p2).
+  Proof.
+    destruct (split_euclidean2 p1) as [x1 [y1 pxy1]].
+    destruct (split_euclidean2 p2) as [x2 [y2 pxy2]].
+    rewrite pxy1, pxy2.
+    unfold point_point_mid, point_point_away, make_euclidean2. simpl.
+    clear pxy1 pxy2 p1 p2.
+
+    f_equal.
+    assert ((x1 + (x2 + x2 - x1)) = x2*real_2) as Temp.
+    ring. rewrite Temp; clear Temp.
+    rewrite real_mult_assoc.
+    unfold one_half.
+    rewrite (real_mult_comm real_2).
+    rewrite real_mult_inv.
+    rewrite real_mult_comm.
+    rewrite real_mult_unit.
+    auto.
+    
+    f_equal.
+    assert ((y1 + (y2 + y2 - y1)) = y2*real_2) as Temp.
+    ring. rewrite Temp; clear Temp.
+    rewrite real_mult_assoc.
+    unfold one_half.
+    rewrite (real_mult_comm real_2).
+    rewrite real_mult_inv.
+    rewrite real_mult_comm.
+    rewrite real_mult_unit.
+    auto.
+  Qed.
+
   Definition point_ball_mid (p : ^euclidean 2) (b : ^ball 2) : ^ball 2.
     destruct b as [bc br].
     apply (pair (point_point_mid p bc) (br * one_half)).
   Defined.
 
-  Definition ST_selfSimilar (s : euclidean_subset 2) : Prop :=
-    forall pt : ^euclidean 2, 
-    inside_ST_hull_pt pt ->
-    s pt = s (point_point_mid ST_v1 pt)
-    /\ 
-    s pt = s (point_point_mid ST_v2 pt)
-    /\ 
-    s pt = s (point_point_mid ST_v3 pt).  
-
-  Definition ST (s : euclidean_subset 2) : Prop :=
-    has_ST_v123 s /\ inside_ST_hull s /\ ST_selfSimilar s.
-
-  Definition ST_split_ball (b : ball 2) :=
-    (point_ball_mid ST_v1 b) :: 
-    (point_ball_mid ST_v2 b) :: 
-    (point_ball_mid ST_v3 b) :: nil.
-
-  Fixpoint STn n : list (ball 2) := 
-    match n with
-    | 0 => (make_ball real_0 real_0 real_1) :: nil 
-           (* the initial cover is the square ([-1,1],[-1,1]) *) 
-    | (S n') => List.concat (List.map ST_split_ball (STn n'))
-    end.
-
-    Lemma point_ball_mid_halves p b d : (snd b <= d) -> snd (point_ball_mid p b) <= d * one_half.
+  Lemma point_ball_mid_halves p b d : (snd b <= d) -> snd (point_ball_mid p b) <= d * one_half.
   Proof.
     intro.
     unfold point_ball_mid.
@@ -176,42 +193,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     auto.
   Qed.
 
-  Lemma STn_diam n : diam 2 (STn n) <= prec n.
-  Proof.
-    induction n.
-    - simpl.
-      apply real_max_le_le_le.
-      apply real_le_triv.
-      left. apply real_1_gt_0.
-    - simpl.
-      induction (STn n).
-      + simpl.
-        assert (real_0 < / real_2_neq_0).
-        apply real_pos_inv_pos.
-        apply real_2_pos.
-        apply real_0_mult_le.
-        auto. left. auto.
-      + simpl.
-        simpl in IHn.
-        assert (snd a <= prec n) as IHa.
-        apply (real_max_le_fst_le _ (diam 2 l)); auto.
-        apply real_max_le_snd_le in IHn.
-        pose proof (IHl IHn) as IH.
-
-        apply real_max_le_le_le.
-        apply point_ball_mid_halves; auto.
-        apply real_max_le_le_le.
-        apply point_ball_mid_halves; auto.
-        apply real_max_le_le_le.
-        apply point_ball_mid_halves; auto.
-
-        auto.
-  Qed.
-
-  Lemma real_0_neg_eq : - real_0 = real_0.
-  Proof. ring. Qed.
-
-  Lemma mid_pt_in_ball v b pt : ball_to_subset 2 b pt -> ball_to_subset 2 (point_ball_mid v b) (point_point_mid v pt).
+  Lemma point_point_mid_in_ball_mid v b pt : 
+    ball_to_subset 2 b pt -> 
+    ball_to_subset 2 (point_ball_mid v b) (point_point_mid v pt).
   Proof.
     destruct b as [bc br].
     unfold ball_to_subset.
@@ -264,6 +248,72 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     left; apply one_half_pos.
   Qed.
 
+  Definition ST_selfSimilar (s : euclidean_subset 2) : Prop :=
+    forall pt : ^euclidean 2, 
+    inside_ST_hull_pt pt ->
+    s pt = s (point_point_mid ST_v1 pt)
+    /\ 
+    s pt = s (point_point_mid ST_v2 pt)
+    /\ 
+    s pt = s (point_point_mid ST_v3 pt).  
+
+  (* Characterisation of the Sierpinski triangle (except being closed) *)
+
+  Definition ST (s : euclidean_subset 2) : Prop :=
+    has_ST_v123 s /\ inside_ST_hull s /\ ST_selfSimilar s.
+
+  (* Constructive definition of the Sierpinski triangle using covers *)
+
+  Definition ST_split_ball (b : ball 2) :=
+    (point_ball_mid ST_v1 b) :: 
+    (point_ball_mid ST_v2 b) :: 
+    (point_ball_mid ST_v3 b) :: nil.
+
+  (* the square ([-1,1],[-1,1]) *) 
+  Definition initial_ball := make_ball real_0 real_0 real_1.
+
+  Fixpoint STn n : list (ball 2) := 
+    match n with
+    | 0 => initial_ball :: nil 
+    | (S n') => List.concat (List.map ST_split_ball (STn n'))
+    end.
+
+  (* The diameter shrinks exponentially with n *)
+
+  Lemma STn_diam n : diam 2 (STn n) <= prec n.
+  Proof.
+    induction n.
+    - simpl.
+      apply real_max_le_le_le.
+      apply real_le_triv.
+      left. apply real_1_gt_0.
+    - simpl.
+      induction (STn n).
+      + simpl.
+        assert (real_0 < / real_2_neq_0).
+        apply real_pos_inv_pos.
+        apply real_2_pos.
+        apply real_0_mult_le.
+        auto. left. auto.
+      + simpl.
+        simpl in IHn.
+        assert (snd a <= prec n) as IHa.
+        apply (real_max_le_fst_le _ (diam 2 l)); auto.
+        apply real_max_le_snd_le in IHn.
+        pose proof (IHl IHn) as IH.
+
+        apply real_max_le_le_le.
+        apply point_ball_mid_halves; auto.
+        apply real_max_le_le_le.
+        apply point_ball_mid_halves; auto.
+        apply real_max_le_le_le.
+        apply point_ball_mid_halves; auto.
+
+        auto.
+  Qed.
+
+  (* Intersection of cover and ST *)
+
   Lemma STn_intersects n s: (ST s) -> Forall (fun b : ^ball 2 => intersects 2 (ball_to_subset 2 b) s) (STn n).
   Proof.
     intro STs.
@@ -310,7 +360,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
         apply Forall_cons.
         * exists (point_point_mid ST_v1 pt).
           unfold intersection; split.
-          apply mid_pt_in_ball.
+          apply point_point_mid_in_ball_mid.
           auto.
 
           destruct (selfSimilar pt) as [spt1 _].
@@ -320,7 +370,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
         * apply Forall_cons.
           exists (point_point_mid ST_v2 pt).
           unfold intersection; split.
-          apply mid_pt_in_ball.
+          apply point_point_mid_in_ball_mid.
           auto.
 
           destruct (selfSimilar pt) as [_ [spt2 _]].
@@ -330,7 +380,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
           apply Forall_cons.
           exists (point_point_mid ST_v3 pt).
           unfold intersection; split.
-          apply mid_pt_in_ball.
+          apply point_point_mid_in_ball_mid.
           auto.
 
           destruct (selfSimilar pt) as [_ [_ spt3]].
@@ -494,6 +544,12 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
         * left. apply real_1_gt_0.
 
     - intros pt spt.
+
+    (* work out the nearest vertex to pt *)
+
+    (* move pt away from the nearest vertex *)
+
+    (*  *)
       
   Admitted.
   
