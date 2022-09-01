@@ -35,4 +35,5 @@ magnitude.v
 sqrt.v
 
 Subsets.v
+simpletriangle.v
 SierpinskiTriangle.v
