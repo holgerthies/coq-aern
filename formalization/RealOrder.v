@@ -42,11 +42,54 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
-  (* Notation real_ := (real R). *)
-  (* Notation real_0_ := (@real_0 R). *)
-  (* Notation real_1_ := (@real_1 R). *)
-  (* Notation prec_ := (@prec R). *)
+  (* equality reasoning *)
 
+  Lemma real_eq_eq_mult_eq : forall a b c d : Real, a = b -> c = d -> a*c = b*d.
+  Proof.
+    intros.
+    rewrite H; rewrite H0; exact eq_refl.
+  Qed.
+
+  Lemma real_eq_plus_eq : forall z1 z2 z3 : Real, z1 = z2 -> z1 + z3 = z2 + z3.
+  Proof.
+    intros z1 z2 z3 p.
+    rewrite p.
+    exact eq_refl.
+  Qed.
+
+  Lemma real_eq_mult_eq : forall z z1 z2 : Real, z1 = z2 -> z * z1 = z * z2.
+  Proof.
+    intros z1 z2 z3 p.
+    rewrite p.
+    exact eq_refl.
+  Qed.
+
+  Lemma real_eq_mult_eq_r : forall z z1 z2 : Real, z1 = z2 -> z1 * z = z2 * z.
+  Proof.
+    intros z1 z2 z3 p.
+    rewrite p.
+    exact eq_refl.
+  Qed.
+
+  Lemma real_eq_plus_cancel : forall a b c : Real, b + a = c + a -> b = c.
+  Proof.
+    intros a b c p.
+    apply (real_eq_plus_eq (b+a) (c+a) (-a)) in p.
+    ring_simplify in p; exact p.
+  Qed.
+
+  Lemma real_eq_mult_cancel : forall a b c : Real, a <> real_0 -> b * a = c * a -> b = c.
+  Proof.
+    intros a b c aNeq0 p.
+    apply (real_eq_mult_eq_r (/aNeq0) (b*a) (c*a)) in p.
+    rewrite real_mult_assoc in p.
+    rewrite (real_mult_assoc (c)) in p.
+    rewrite (real_mult_comm a) in p.
+    rewrite real_mult_inv in p.
+    ring_simplify in p; exact p.
+  Qed.
+
+  (* inequality reasoning *)
   
   Lemma real_ge_triv : forall z : Real, z >= z.
   Proof.
@@ -103,14 +146,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     exact H.
   Qed.
 
-  Lemma real_eq_plus_eq : forall z1 z2 z3 : Real, z1 = z2 -> z1 + z3 = z2 + z3.
-  Proof.
-    intros z1 z2 z3 p.
-    rewrite p.
-    exact eq_refl.
-  Qed.
-
-  
   Lemma real_ge_le : forall z1 z2 : Real, z1 >= z2 -> z2 <= z1.
   Proof.
     intros z1 z2 p.
@@ -367,12 +402,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     auto.
   Qed.
 
-
-  Lemma real_eq_eq_mult_eq : forall a b c d : Real, a = b -> c = d -> a*c = b*d.
-  Proof.
-    intros.
-    rewrite H; rewrite H0; exact eq_refl.
-  Qed.
 
   Lemma real_half_gt_zero : forall a : Real, a > real_0 -> a / d2 > real_0. 
   Proof.
@@ -887,13 +916,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     intro p.
     unfold IZreal; auto.
   Qed.
-  Lemma real_eq_plus_cancel : forall a b c : Real, b + a = c + a -> b = c.
-  Proof.
-    intros a b c p.
-    apply (real_eq_plus_eq (b+a) (c+a) (-a)) in p.
-    ring_simplify in p; exact p.
-  Qed.
-
   
   Lemma IZreal_pos_neg : forall p1 p2, IZreal (Z.pos p1 + Z.neg p2) = IZreal (Z.pos p1) + IZreal (Z.neg p2).
   Proof.
@@ -1137,15 +1159,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Proof.
     assert (/d2 > real_0); auto with real.  
   Qed.
-
-  
-  
-  Lemma real_eq_mult_eq : forall z z1 z2 : Real, z1 = z2 -> z*z1=z*z2.
-  Proof.
-    intros.
-    auto with real.
-  Qed.
-
 
   Lemma W_split : forall x y ε : Real, ε > real_0 -> x>y-ε \/ y>x-ε.
   Proof.
