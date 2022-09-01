@@ -31,6 +31,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   apply ((real_0 <= x) /\ (real_0 <= y) /\ ((x + y) <= real_1)).
   Defined.
 
+  Definition make_ball (x y r : ^Real) : ball 2 := ((make_euclidean2 x y), r).
   
   Definition Tn_ball (n k j :nat) : (ball 2) := make_ball (Nreal (2*k+1) * prec (S n)) (Nreal (2*j+1) * prec (S n)) (prec (S n)).
 
