@@ -832,3 +832,32 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 Defined.
 End Euclidean.
 
+Section Euclidean2.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
+#[local] Definition sofReal := @sofReal types casofReal.
+#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
+#[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+Lemma split_euclidean2 (P : (^euclidean 2)) : { x & {y | P = (Euclidean.cons x (Euclidean.cons y Euclidean.nil))}}.
+Proof.
+pose proof  (dim_succ_destruct P).
+destruct X as [x P'].
+destruct P' as [P0 P1].
+pose proof (dim_succ_destruct P0).
+destruct X as [y P2].
+exists x.
+exists y.
+rewrite P1.
+destruct P2.
+f_equal.
+rewrite e.
+f_equal.
+apply dim_zero_destruct.
+Defined.
+
+Definition make_euclidean2 (x y : ^Real) := Euclidean.cons x (Euclidean.cons y Euclidean.nil).
+End Euclidean2.
+
