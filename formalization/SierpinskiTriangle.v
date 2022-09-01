@@ -29,14 +29,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
-  Definition one_half := / real_2_neq_0.
-
-  Lemma one_half_pos : one_half > real_0.
-  Proof.
-    unfold one_half.
-    apply real_pos_inv_pos.
-    apply real_2_pos.
-  Qed.
+  (* The vertices of the triangle hull *)
 
   Definition ST_v1 := make_euclidean2 (- real_1) real_1.
   Definition ST_v2 := make_euclidean2 (- real_1) (- real_1).
@@ -44,6 +37,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Definition has_ST_v123 (s : euclidean_subset 2) : Prop :=
     (s ST_v1) /\ (s ST_v2) /\ (s ST_v3).
+
+  (* The convex hull of the vertices defined using weights *)
 
   Definition ST_weighted_pt (c1 c2 c3 : ^Real) : ^euclidean 2.
     destruct (split_euclidean2 ST_v1) as [x1 [y1 _]].
@@ -62,6 +57,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   
   Definition inside_ST_hull (s : euclidean_subset 2) : Prop :=
     forall pt : ^euclidean 2, s pt -> inside_ST_hull_pt pt.
+
+  (* Lemmas about the weights of points *)
 
   Lemma weights12_c1_le_1 c1 c2 : 
     real_0 <= c1 /\ real_0 <= c2 /\ c1 + c2 <= real_1
@@ -116,6 +113,17 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite <- (real_plus_unit real_0).
     apply real_le_le_plus_le; auto.
     split; auto; split; auto.
+  Qed.
+
+  (* Self-similarity with ratio 1/2*)
+
+  Definition one_half := / real_2_neq_0.
+
+  Lemma one_half_pos : one_half > real_0.
+  Proof.
+    unfold one_half.
+    apply real_pos_inv_pos.
+    apply real_2_pos.
   Qed.
 
   Definition point_point_mid (p1 : ^euclidean 2) (p2 : ^euclidean 2) : ^euclidean 2.
