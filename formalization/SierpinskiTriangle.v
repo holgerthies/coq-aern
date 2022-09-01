@@ -57,8 +57,11 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Definition weights123_valid (c1 c2 c3 : ^Real) : Prop :=
     c1 >= real_0 /\ c2 >= real_0 /\ c3 >= real_0 /\ c1 + c2 + c3 = real_1.
 
+  Definition inside_ST_hull_pt (pt : ^euclidean 2) : Prop :=
+    exists c1 c2 c3 : ^Real, pt = (ST_weighted_pt c1 c2 c3) /\ weights123_valid c1 c2 c3.
+  
   Definition inside_ST_hull (s : euclidean_subset 2) : Prop :=
-    forall pt : ^euclidean 2, s pt -> exists c1 c2 c3 : ^Real, pt = (ST_weighted_pt c1 c2 c3) /\ weights123_valid c1 c2 c3.
+    forall pt : ^euclidean 2, s pt -> inside_ST_hull_pt pt.
 
   Lemma weights12_c1_le_1 c1 c2 : 
     real_0 <= c1 /\ real_0 <= c2 /\ c1 + c2 <= real_1
@@ -128,6 +131,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Definition ST_selfSimilar (s : euclidean_subset 2) : Prop :=
     forall pt : ^euclidean 2, 
+    inside_ST_hull_pt pt ->
     s pt = s (point_point_mid ST_v1 pt)
     /\ 
     s pt = s (point_point_mid ST_v2 pt)
@@ -302,6 +306,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
           auto.
 
           destruct (selfSimilar pt) as [spt1 _].
+          apply insideHull; auto.
           rewrite <-spt1; auto.
 
         * apply Forall_cons.
@@ -311,6 +316,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
           auto.
 
           destruct (selfSimilar pt) as [_ [spt2 _]].
+          apply insideHull; auto.
           rewrite <-spt2; auto.
         
           apply Forall_cons.
@@ -320,6 +326,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
           auto.
 
           destruct (selfSimilar pt) as [_ [_ spt3]].
+          apply insideHull; auto.
           rewrite <-spt3; auto.
 
           apply Forall_nil.
