@@ -830,6 +830,44 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       exact X1.
    + exact X.
 Defined.
+
+  
+  Lemma euclidean_minus_plus {d} (x y : euclidean d) : (euclidean_minus (euclidean_plus  x y) y) = x. 
+  Proof.
+    induction d.
+    unfold euclidean_minus.
+    rewrite (dim_zero_destruct x).
+    rewrite (dim_zero_destruct y).
+    auto.
+    destruct (dim_succ_destruct x).
+    destruct (dim_succ_destruct y).
+    destruct s.
+    destruct s0.
+    rewrite e.
+    rewrite e0.
+    unfold euclidean_minus.
+    simpl.
+    f_equal.
+    ring.
+    apply IHd.
+Qed.
+
+  Lemma euclidean_max_dist_minus_plus {d} (x y z : euclidean d) : (euclidean_max_dist x (euclidean_minus y z)) = (euclidean_max_dist (euclidean_plus x z) y).
+  Proof.
+    induction d;unfold euclidean_minus.
+    rewrite (dim_zero_destruct x), (dim_zero_destruct y), (dim_zero_destruct z); simpl;auto.
+    destruct (dim_succ_destruct x) as [x0 s]; destruct s as [x' xr].
+    destruct (dim_succ_destruct y) as [y0 s]; destruct s as [y' yr].
+    destruct (dim_succ_destruct z) as [z0 s]; destruct s as [z' zr].
+    rewrite xr,yr, zr.
+    simpl.
+    rewrite !euclidean_max_dist_cons.
+    f_equal.
+    unfold dist.
+    f_equal.
+    ring.
+    apply IHd.
+ Qed.
 End Euclidean.
 
 Section Euclidean2.

@@ -21,6 +21,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Definition union (A B : euclidean_subset) := fun x => A x \/ B x.
   Definition intersection (A B : euclidean_subset) := fun x => A x /\ B x.
   Definition intersects (A B : euclidean_subset) := exists x, intersection A B x.
+
+  Definition translation (A : euclidean_subset) (a : euclidean d ) := fun x => A (euclidean_minus x a).
+
   Definition is_subset (A B : euclidean_subset) := forall x, A x -> B x.
 
   Definition empty_set : euclidean_subset := fun x => False.
@@ -120,6 +123,26 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply real_max_snd_ge.
   Qed.
 
+  Lemma diam_prec_spec L p : diam L <= prec p <-> forall b, In b L -> (snd b <= prec p).
+  Proof.
+    split.
+    intros.
+    apply (real_le_le_le _ (diam L));auto.
+    apply diam_forall;auto.
+    intros.
+    induction L.
+    simpl.
+    apply real_lt_le.
+    apply prec_pos.
+    simpl.
+    apply real_max_le_le_le.
+    apply H.
+    left;auto.
+    apply IHL.
+    intros b inb.
+    apply H.
+    right;auto.
+  Qed.
   Lemma is_compact_lim :
     forall K : euclidean_subset,
       (forall n : nat, {X :  euclidean_subset & prod (is_compact X) (Hausdorff_dist_bound X K (prec n))})
@@ -202,8 +225,94 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply (real_le_le_le _ (diam L)); auto.
     apply diam_forall; auto.
   Defined.
+  Lemma intersects_union A B b: intersects b (union A B) <-> intersects b A \/ intersects b B. 
+  Proof.
+    split; intros.
+    destruct H.
+    destruct H.
+    destruct H0; [left | right]; exists x; split;auto.
+    destruct H;destruct H;exists x;split; [|left| | right];apply H.
+  Qed.
+
+  Lemma is_compact_union K1 K2 : is_compact K1 -> is_compact K2 -> is_compact (union K1 K2).
+  Proof.
+    intros H1 H2 n.
+    destruct (H1 n) as [L1 [D1 [int1 cov1]]].
+    destruct (H2 n) as [L2 [D2 [int2 cov2]]].
+    exists (L1 ++ L2).
+    split; [| split].
+    - apply diam_prec_spec.
+      intros b inb.
+      apply in_app_or in inb.
+      destruct inb;[apply (diam_prec_spec L1 n) | apply (diam_prec_spec L2 n)];auto.
+  - apply Forall_app.
+    rewrite Forall_forall in int1.
+    rewrite Forall_forall in int2.
+    assert (forall b, intersects (ball_to_subset b) K1 \/ intersects (ball_to_subset b) K2 -> intersects (ball_to_subset b) (union K1 K2)) by (intros; apply intersects_union;auto).
+    split;apply (Forall_impl _ H);apply Forall_forall;intros b inb; [left;apply int1 | right;apply int2];auto.
+ - intros x cx.
+   apply Exists_app.
+   destruct cx; [left;apply cov1 | right;apply cov2];auto.
+  Defined.
 
 
+  Lemma is_compact_translation K a : is_compact K -> is_compact (translation K a).
+  Proof.
+    intros H n.
+    destruct (H n) as [L [D [int cov]]].
+    exists (map (fun (b : ball) => ((euclidean_plus (fst b) a),(snd b))) L).
+    split; [|split].
+    - apply diam_prec_spec.
+      intros b inb.
+      apply in_map_iff in inb.
+      destruct inb as [x [Hx Hx']].
+      destruct b.
+      simpl.
+      injection Hx.
+      intros <- _.
+      apply (real_le_le_le _ (diam L));auto.
+      apply diam_forall;auto.
+  -  apply Forall_forall.
+     intros b inb.
+     rewrite Forall_forall in int.
+     assert (In ((euclidean_minus (fst b) a), snd b) L).
+     {
+       rewrite in_map_iff in inb.
+       destruct inb as [x [P1 P2]].
+       destruct b.
+       injection P1; intros <- <-;simpl.
+       rewrite euclidean_minus_plus.
+       destruct x; auto.
+     }
+     destruct (int _ H0) as [x [xp1 xp2]].
+     exists (euclidean_plus x a).
+     split.
+     destruct b.
+     unfold ball_to_subset.
+     unfold ball_to_subset in xp1.
+     simpl in xp1;simpl.
+     rewrite <-euclidean_max_dist_minus_plus;auto.
+     unfold translation;rewrite euclidean_minus_plus;auto.
+ - intros x Tx.
+   apply Exists_exists.
+   pose proof (cov _ Tx).
+   rewrite Exists_exists in H0.
+   destruct H0 as [b [inb P]].
+   destruct b as [cb rb].
+   exists ((euclidean_plus cb a, rb)).
+   split.
+   apply in_map_iff.
+   exists (cb, rb).
+   split; auto.
+   unfold ball_to_subset.
+   rewrite euclidean_max_dist_sym.
+   simpl.
+   rewrite <-euclidean_max_dist_minus_plus.
+   rewrite euclidean_max_dist_sym.
+   apply P.
+Defined.
+  
 End Subsets.
+
 
  
