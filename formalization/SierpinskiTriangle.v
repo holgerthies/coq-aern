@@ -1,6 +1,7 @@
 (* this file proves various properties of subsets of real numbers *)
 Require Import Lia.
 Require Import Real Euclidean List Minmax Subsets.
+Require Import simpletriangle.
 
 Section SierpinskiTriangle.
 
@@ -130,6 +131,11 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply real_2_pos.
   Qed.
 
+  Lemma one_half_neq0 : one_half <> real_0.
+    apply real_gt_neq.
+    apply one_half_pos.
+  Qed.
+
   Definition point_point_mid (p1 : ^euclidean 2) (p2 : ^euclidean 2) : ^euclidean 2.
     destruct (split_euclidean2 p1) as [x1 [y1 _]].
     destruct (split_euclidean2 p2) as [x2 [y2 _]].
@@ -194,7 +200,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Qed.
 
   Lemma point_point_mid_in_ball_mid v b pt : 
-    ball_to_subset 2 b pt -> 
+    ball_to_subset 2 b pt <-> 
     ball_to_subset 2 (point_ball_mid v b) (point_point_mid v pt).
   Proof.
     destruct b as [bc br].
@@ -207,6 +213,23 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     unfold euclidean_max_dist, euclidean_minus.
     unfold euclidean_opp. rewrite bcxy, pxy. simpl.
 
+    assert ((vx + px) * one_half + - ((vx + bcx) * one_half) = (px + - bcx)*one_half) as Temp.
+    ring. rewrite Temp; clear Temp.
+    assert ((vy + py) * one_half + - ((vy + bcy) * one_half) = (py + - bcy)*one_half) as Temp.
+    ring. rewrite Temp; clear Temp.
+
+    assert (abs ((px + - bcx) * one_half) = abs(px + - bcx) * one_half) as Temp.
+    rewrite <- (abs_pos_id one_half) at 2.
+    apply abs_mult. left. apply one_half_pos.
+    rewrite Temp; clear Temp.
+
+    assert (abs ((py + - bcy) * one_half) = abs(py + - bcy) * one_half) as Temp.
+    rewrite <- (abs_pos_id one_half) at 2.
+    apply abs_mult. left. apply one_half_pos.
+    rewrite Temp; clear Temp.
+
+    split.
+
     (* process the assumption *)
     intro.
     pose proof H as H2.
@@ -216,16 +239,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply real_max_le_fst_le in H2.
     apply real_max_le_snd_le in H3.
 
-    assert ((vx + px) * one_half + - ((vx + bcx) * one_half) = (px + - bcx)*one_half) as Temp.
-    ring. rewrite Temp; clear Temp.
-    assert ((vy + py) * one_half + - ((vy + bcy) * one_half) = (py + - bcy)*one_half) as Temp.
-    ring. rewrite Temp; clear Temp.
-
     apply real_max_le_le_le.
-    assert (abs ((px + - bcx) * one_half) = abs(px + - bcx) * one_half) as Temp.
-    rewrite <- (abs_pos_id one_half) at 2.
-    apply abs_mult. left. apply one_half_pos.
-    rewrite Temp; clear Temp.
     rewrite real_mult_comm.
     rewrite (real_mult_comm br).
     apply real_le_mult_pos_le.
@@ -233,10 +247,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     auto.
 
     apply real_max_le_le_le.
-    assert (abs ((py + - bcy) * one_half) = abs(py + - bcy) * one_half) as Temp.
-    rewrite <- (abs_pos_id one_half) at 2.
-    apply abs_mult. left. apply one_half_pos.
-    rewrite Temp; clear Temp.
     rewrite real_mult_comm.
     rewrite (real_mult_comm br).
     apply real_le_mult_pos_le.
@@ -246,6 +256,45 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply real_0_mult_le.
     auto.
     left; apply one_half_pos.
+
+    (* Now, the other way round. *)
+    intro.
+    pose proof H as H2.
+    apply real_max_le_fst_le in H.
+    apply real_max_le_snd_le in H2.
+    pose proof H2 as H3.
+    apply real_max_le_fst_le in H2.
+    apply real_max_le_snd_le in H3.
+
+    apply real_max_le_le_le.
+    destruct H.
+    left.
+    apply (real_lt_mult_pos_cancel one_half).
+    apply one_half_pos.
+    auto.
+    right.
+    apply real_eq_mult_cancel in H. auto.
+    apply one_half_neq0.
+    
+    apply real_max_le_le_le.
+    destruct H2.
+    left.
+    apply (real_lt_mult_pos_cancel one_half).
+    apply one_half_pos.
+    auto.
+    right.
+    apply real_eq_mult_cancel in H0. auto.
+    apply one_half_neq0.
+
+    assert (real_0 * one_half = real_0) as Temp.
+    ring. rewrite <- Temp in H3; clear Temp.
+    destruct H3.
+    left.
+    apply (real_lt_mult_pos_cancel one_half) in H0; auto.
+    apply one_half_pos.
+    right.
+    apply real_eq_mult_cancel in H0. auto.
+    apply one_half_neq0.
   Qed.
 
   Definition ST_selfSimilar (s : euclidean_subset 2) : Prop :=
