@@ -7,11 +7,11 @@ Unset Extraction SafeImplicits.
 
 Require Import ZArith_base.
 
-Extract Inlined Constant Z.of_nat => "".
-Extract Inlined Constant Z.add => "(Prelude.+)".
-Extract Inlined Constant Z.sub => "(Prelude.-)".
-Extract Inlined Constant Z.succ => "(Prelude.+ 1)".
-Extract Inlined Constant Z.opp => "Prelude.negate".
+Extract Inlined Constant Z.of_nat => "P.id".
+Extract Inlined Constant Z.add => "(P.+)".
+Extract Inlined Constant Z.sub => "(P.-)".
+Extract Inlined Constant Z.succ => "(P.+ 1)".
+Extract Inlined Constant Z.opp => "P.negate".
 
 Require Import Base.
 
@@ -29,10 +29,10 @@ Extract Inlined Constant K => "AERN2.CKleenean".
 
 (* Erase the type class parameter and map to concrete types in Haskell. *)
 Extraction Implicit lazy_bool_true [ types LazyBool_K ].
-Extract Constant lazy_bool_true => "(AERN2.ckleenean Prelude.True)".
+Extract Constant lazy_bool_true => "(AERN2.ckleenean P.True)".
 
 Extraction Implicit lazy_bool_false [ types LazyBool_K ].
-Extract Constant lazy_bool_false => "(AERN2.ckleenean Prelude.False)".
+Extract Constant lazy_bool_false => "(AERN2.ckleenean P.False)".
 
 Extraction Implicit lazy_bool_neg [ types LazyBool_K ].
 Extract Constant lazy_bool_neg => "OGB.not".
@@ -44,7 +44,7 @@ Extraction Implicit lazy_bool_and [ types LazyBool_K ].
 Extract Constant lazy_bool_and => "(OGB.&&)".
 
 Extraction Implicit lazy_bool_defined_is_bool [ types LazyBool_K ].
-Extract Inlined Constant lazy_bool_defined_is_bool => "(Prelude.error ""UNREALIZED lazy_bool_defined_is_bool"")".
+Extract Inlined Constant lazy_bool_defined_is_bool => "(P.error ""UNREALIZED lazy_bool_defined_is_bool"")".
 
 (* Test extraction of Kleeneans *)
 
@@ -77,22 +77,22 @@ Extract Constant M "a" => "a".
 Extraction Implicit M_Monad [ types MultivalueMonad_M ].
 
 Extraction Implicit M_lift [ types mvmM ].
-Extract Constant M_lift => "Prelude.id".
+Extract Constant M_lift => "P.id".
 
 Extraction Implicit M_unit [ types mvmM ].
-Extract Constant M_unit => "Prelude.id".
+Extract Constant M_unit => "P.id".
 
 Extraction Implicit M_mult [ types mvmM ].
-Extract Constant M_mult => "Prelude.id".
+Extract Constant M_mult => "P.id".
 
 (* Shortcut extractions for improved readability. *)
 Extraction Implicit M_lift_dom [ types mvmM ].
-Extract Constant M_lift_dom => "Prelude.id".
+Extract Constant M_lift_dom => "P.id".
 Extraction Implicit mjoin [ types mvmM ].
-Extract Constant mjoin => "Prelude.id".
+Extract Constant mjoin => "P.id".
 
 Extraction Implicit M_base_monad_traces_lift [ types MultivalueMonad_M ].
-Extract Constant M_base_monad_traces_lift => "(\ x0 f -> (\n -> Prelude.foldl (Prelude.flip f) (x0) [0 .. ((n :: Prelude.Integer) Prelude.- 1)]))".
+Extract Constant M_base_monad_traces_lift => "(\ x0 f -> (\n -> P.foldl (P.flip f) (x0) [0 .. ((n :: P.Integer) P.- 1)]))".
 
 (* Extraction Implicit M_base_monad_hprop_elim [ types MultivalueMonad_M ]. *)
 (* Extract Inlined Constant M_base_monad_hprop_elim => "__uc". *)
@@ -101,7 +101,7 @@ Extraction Implicit multivalued_choice [ types MultivalueMonad_M ].
 Extract Constant multivalued_choice => "AERN2.select".
 
 Extraction Implicit M_hprop_elim_f [ types mvmM ].
-Extract Constant M_hprop_elim_f => "Prelude.id".
+Extract Constant M_hprop_elim_f => "P.id".
 
 Extraction Implicit choose [ types mvmM ].
 
@@ -120,7 +120,7 @@ Extraction Implicit select  [ types mvmM ].
 
 (* Some shortcuts for efficiency. *)
 Extraction Implicit M_countable_lift [ types mvmM ].
-Extract Constant M_countable_lift => "Prelude.id". 
+Extract Constant M_countable_lift => "P.id". 
 
 (* Test extraction of multivaluemonad *)
 Definition m_test := @select _ mvmM.
@@ -150,13 +150,13 @@ Extraction Implicit real_plus [ types SemiDecOrderedField_Real ].
 Extract Inlined Constant real_plus => "(+)".
 
 Extraction Implicit real_mult [ types SemiDecOrderedField_Real ].
-Extract Inlined Constant real_mult => "(*)".
+Extract Inlined Constant real_mult => "(P.*)".
 
 Extraction Implicit real_opp [ types SemiDecOrderedField_Real ].
-Extract Inlined Constant real_opp => "Prelude.negate".
+Extract Inlined Constant real_opp => "P.negate".
 
 Extraction Implicit real_inv [ types SemiDecOrderedField_Real ].
-Extract Inlined Constant real_inv => "Prelude.recip".
+Extract Inlined Constant real_inv => "P.recip".
 
 Extraction Implicit real_lt_semidec [ types SemiDecOrderedField_Real ].
 Extract Inlined Constant real_lt_semidec => "(OGB.<)".
@@ -179,12 +179,14 @@ Extraction Implicit M_split  [ types casofReal ].
 (* Some optional shortcuts for increased efficiency. *)
 Extraction Implicit IZreal [ types sofReal ].
 Extract Constant IZreal => "AERN2.creal".
+Extraction Implicit Nreal [ types sofReal ].
+Extract Constant Nreal => "AERN2.creal".
 Extraction Implicit real_minus [ types sofReal ].
 Extract Inlined Constant real_minus => "(-)".
 Extraction Implicit real_div [ types sofReal ].
 Extract Inlined Constant real_div => "(/)".
 Extraction Implicit prec [ types sofReal ].
-Extract Constant prec => "((0.5 :: AERN2.CReal) Prelude.^)".
+Extract Constant prec => "((0.5 :: AERN2.CReal) P.^)".
 
 Extraction Implicit abs [ types casofReal ].
 
@@ -205,15 +207,15 @@ Extraction Implicit real_test1 [ types casofReal ].
 (* Extraction "R_Test1" real_test1. *)
 
 Definition R_test2 := @real_limit_p _ casofReal.
-Extraction "R_Test2" R_test2.
+(* Extraction "R_Test2" R_test2. *)
 
-Extract Inductive bool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
-Extract Inductive sumbool => "Prelude.Bool" [ "Prelude.True" "Prelude.False" ].
+Extract Inductive bool => "P.Bool" [ "P.True" "P.False" ].
+Extract Inductive sumbool => "P.Bool" [ "P.True" "P.False" ].
 
 Extract Inductive sigT => "(,)" ["(,)"].
 Extract Inductive prod => "(,)"  [ "(,)" ].
 
-Extract Constant Nat.log2 => "(MNP.integer Prelude.. Logs.integerLog2)".
+Extract Constant Nat.log2 => "(MNP.integer P.. Logs.integerLog2)".
 
 (* Sewon's lab seminar talk material*)
 (* Maximum *)
@@ -299,9 +301,12 @@ Extraction Implicit complex_nonzero_cases [ types casofReal ].
 
 (* Extraction "CSqrt" csqrt. *)
 
-(* Require Import Subsets.
+Require Import Subsets.
+Extraction Implicit Tn_ball [ types casofReal ].
+Extraction Implicit Tn_col [ types casofReal ].
+Extraction Implicit Tn_row [ types casofReal ].
 Extraction Implicit Tn [ types casofReal ].
-Extraction "Tn" Tn. *)
+Extraction "Tn" Tn.
 
                
 (* Require Import Nabla. *)
@@ -315,7 +320,8 @@ The Haskell module will require the packages specified in stack.yaml in folder e
  
 In the generated Haskell files, add the following imports:
 
-import Prelude ((*),(+),(-),(/))
+import Prelude ((+),(-),(/))
+import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
 import qualified Numeric.OrdGenericBool as OGB
 import qualified Unsafe.Coerce as UC
