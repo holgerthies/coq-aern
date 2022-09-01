@@ -18,11 +18,11 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Definition euclidean_subset :=  (^euclidean d) -> Prop.
 
-  Definition union (A B : euclidean_subset) := fun x => A x \/ B x.
-  Definition intersection (A B : euclidean_subset) := fun x => A x /\ B x.
+  Definition union (A B : euclidean_subset) : euclidean_subset := fun x => A x \/ B x.
+  Definition intersection (A B : euclidean_subset) : euclidean_subset:= fun x => A x /\ B x.
   Definition intersects (A B : euclidean_subset) := exists x, intersection A B x.
 
-  Definition translation (A : euclidean_subset) (a : euclidean d ) := fun x => A (euclidean_minus x a).
+  Definition translation (A : euclidean_subset) (a : euclidean d ): euclidean_subset := fun x => A (euclidean_minus x a).
 
   Definition is_subset (A B : euclidean_subset) := forall x, A x -> B x.
 
@@ -310,7 +310,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    rewrite <-euclidean_max_dist_minus_plus.
    rewrite euclidean_max_dist_sym.
    apply P.
-Defined.
+  Defined.
   
 End Subsets.
 

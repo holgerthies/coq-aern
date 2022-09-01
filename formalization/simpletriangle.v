@@ -550,4 +550,39 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply (prec_pos (S n)).
  Qed.
 
+  Definition multi_triangles (n : nat) : (@euclidean_subset types 2).
+  Proof.
+    induction n.
+    apply empty_set.
+    apply union.
+    apply T.
+    apply translation.
+    apply IHn.
+    apply (make_euclidean2 real_2 real_2).
+ Defined.
+
+ Lemma empty_set_is_compact : is_compact 2 (empty_set 2).
+ Proof.
+    intro n.
+    exists nil.
+    simpl.
+    split; [|split].
+    apply real_lt_le.
+    apply prec_pos.
+    apply Forall_forall.
+    intros.
+    contradict H.
+    intros.
+    apply Exists_exists.
+    contradict H.
+ Qed.
+ Lemma multi_triangles_compact (n : nat) : is_compact 2 (multi_triangles n).
+ Proof.
+   induction n.
+   apply empty_set_is_compact.
+   apply is_compact_union.
+   apply T_is_compact.
+   apply is_compact_translation.
+   apply IHn.
+ Defined.
 End SimpleTriangle.
