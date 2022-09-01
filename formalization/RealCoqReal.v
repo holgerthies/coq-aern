@@ -827,7 +827,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     destruct H0.
     left.
     apply (transport_lt2 _ _ _ _ jj hh H0).
-    right; apply (transport_eq2 _ _ _ _ hh jj H0).
+    right; apply eq_sym; apply (transport_eq2 _ _ _ _ hh jj H0).
   Qed.
 
   Definition transport_neq : forall a b : Real, (forall x y, relate a x -> relate b y -> (x <> y)%R) -> a <> b.

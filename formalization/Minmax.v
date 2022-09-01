@@ -313,7 +313,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     induction (eq_sym H1).
     destruct H.
     left; apply (real_lt_lt_lt _ _ _ H H0).
-    left; rewrite <- H; exact H0.
+    left; rewrite H; exact H0.
     destruct H0.
     induction H0.
     rewrite (e0 eq_refl).

@@ -64,7 +64,7 @@ Section Real_Defs2.
 
   Definition real_gt (x y : Real) : Prop := y < x.
   Definition real_le (x y : Real) : Prop := x < y \/ x = y.
-  Definition real_ge (x y : Real) : Prop := real_gt x y \/ x = y.
+  Definition real_ge (x y : Real) : Prop := y < x \/ y = x.
   Definition real_minus (x y : Real) : Real := x + - y.
 
   Definition real_div (x : Real) {y : Real} (p:y <> real_0) : Real := x * (/ p).

@@ -588,7 +588,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     left; split.
     replace (z2 - z2) with real_0 by ring. 
     exact (l2 r2).
-    right; exact r2.
+    right; apply eq_sym; exact r2.
     left; rewrite (l1 r3); exact (conj eq_refl (real_gt_ge  z1 z2 r3)).
   Qed.
   Local Hint Resolve real_metric_Or: real.

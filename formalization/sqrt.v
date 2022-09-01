@@ -600,12 +600,15 @@ Proof.
     apply real_lt_nlt in P2'.
     exact (P2' yprp).
 
+  apply Logic.eq_sym in H1.
   apply euclidean_max_dist_id in H1.
   induction H1.
   contradiction (Cx Px2).
+  apply Logic.eq_sym in H0.
   apply euclidean_max_dist_id in H0.
   induction H0.
   contradiction (Cx Px1).
+  apply Logic.eq_sym in H0.
   apply euclidean_max_dist_id in H0.
   induction H0.
   contradiction (Cx Px1).

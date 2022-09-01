@@ -149,9 +149,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     intuition.
     destruct (real_total_order z1 z2).
     contradict (q H).
-    unfold ge.
-    apply or_comm.
-    auto.
+    destruct H.
+    right; apply eq_sym; auto.
+    left; auto.
   Qed.
 
   Lemma real_div_distr : forall z1 z2 z3 : Real, forall p : z3<>real_0,  z1/p + z2/p = (z1+z2)/p.
@@ -286,6 +286,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     destruct o1.
     contradict o2.
     auto with real.
+    apply eq_sym.
     exact H.
   Qed.
 
@@ -313,6 +314,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     destruct o1.
     contradict o2.
     auto with real.
+    apply eq_sym.
     exact H.
   Qed.
 
