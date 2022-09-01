@@ -4,7 +4,8 @@
 module IVT where
 
 import qualified Prelude
-import Prelude ((*),(+),(-),(/))
+import Prelude ((+),(-),(/))
+import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
 import qualified Numeric.OrdGenericBool as OGB
 import qualified Unsafe.Coerce as UC
@@ -46,34 +47,34 @@ type Sig a = a
   
 type M a = a
 
-multivalued_choice :: AERN2.CKleenean -> AERN2.CKleenean -> M Prelude.Bool
+multivalued_choice :: AERN2.CKleenean -> AERN2.CKleenean -> M P.Bool
 multivalued_choice = AERN2.select
 
 m_lift :: (a1 -> a2) -> (M a1) -> M a2
-m_lift = Prelude.id
+m_lift = P.id
 
 m_unit :: a1 -> M a1
-m_unit = Prelude.id
+m_unit = P.id
 
 m_lift_dom :: (a1 -> M a2) -> (M a1) -> M a2
-m_lift_dom = Prelude.id
+m_lift_dom = P.id
 
 m_hprop_elim_f :: (M a1) -> a1
-m_hprop_elim_f = Prelude.id
+m_hprop_elim_f = P.id
 
 m_countable_lift :: (Prelude.Integer -> M a1) -> M (Prelude.Integer -> a1)
-m_countable_lift = Prelude.id
+m_countable_lift = P.id
 
-select :: AERN2.CKleenean -> AERN2.CKleenean -> M Prelude.Bool
+select :: AERN2.CKleenean -> AERN2.CKleenean -> M P.Bool
 select =
   multivalued_choice
 
-mjoin :: (Prelude.Bool -> a1) -> (M Prelude.Bool) -> M a1
-mjoin = Prelude.id
+mjoin :: (P.Bool -> a1) -> (M P.Bool) -> M a1
+mjoin = P.id
 
 type Semidec = AERN2.CKleenean
 
-choose :: Semidec -> Semidec -> M Prelude.Bool
+choose :: Semidec -> Semidec -> M P.Bool
 choose x x0 =
   m_lift (\h4 -> h4) (select x x0)
 
@@ -93,7 +94,7 @@ real_mslimit_P x =
   let {x0 = m_countable_lift x} in m_hprop_elim_f (m_lift real_limit_P x0)
 
 m_uniq_pick :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal -> AERN2.CReal ->
-               AERN2.CReal -> AERN2.CReal -> M Prelude.Bool
+               AERN2.CReal -> AERN2.CReal -> M P.Bool
 m_uniq_pick f _ b c _ =
   choose ((OGB.<) (f b) (0 :: AERN2.CReal))
     ((OGB.<) (0 :: AERN2.CReal) (f c))
@@ -106,10 +107,10 @@ trisect :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal -> AERN2.CReal -> M
 trisect f a b =
   mjoin (\h0 ->
     case h0 of {
-     Prelude.True -> (,) ((/) ((+) ((*) (2 :: AERN2.CReal) a) b) real_3) b;
-     Prelude.False -> (,) a ((/) ((+) a ((*) (2 :: AERN2.CReal) b)) real_3)})
-    (m_uniq_pick f a ((/) ((+) ((*) (2 :: AERN2.CReal) a) b) real_3)
-      ((/) ((+) a ((*) (2 :: AERN2.CReal) b)) real_3) b)
+     P.True -> (,) ((/) ((+) ((P.*) (2 :: AERN2.CReal) a) b) real_3) b;
+     P.False -> (,) a ((/) ((+) a ((P.*) (2 :: AERN2.CReal) b)) real_3)})
+    (m_uniq_pick f a ((/) ((+) ((P.*) (2 :: AERN2.CReal) a) b) real_3)
+      ((/) ((+) a ((P.*) (2 :: AERN2.CReal) b)) real_3) b)
 
 halving :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal -> AERN2.CReal -> M
            ((,) AERN2.CReal AERN2.CReal)

@@ -4,7 +4,8 @@
 module Sqrt where
 
 import qualified Prelude
-import Prelude ((*),(+),(-),(/))
+import Prelude ((+),(-),(/))
+import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
 import qualified Numeric.OrdGenericBool as OGB
 import qualified Unsafe.Coerce as UC
@@ -80,7 +81,7 @@ log2_iter k p q r =
     k
 
 log2 :: Prelude.Integer -> Prelude.Integer
-log2 = (MNP.integer Prelude.. Logs.integerLog2)
+log2 = (MNP.integer P.. Logs.integerLog2)
 
 succ :: Prelude.Integer -> Prelude.Integer
 succ x =
@@ -343,17 +344,17 @@ compare0 x y =
       y)
     x
 
-leb :: Prelude.Integer -> Prelude.Integer -> Prelude.Bool
+leb :: Prelude.Integer -> Prelude.Integer -> P.Bool
 leb x y =
   case compare0 x y of {
-   Gt -> Prelude.False;
-   _ -> Prelude.True}
+   Gt -> P.False;
+   _ -> P.True}
 
-ltb :: Prelude.Integer -> Prelude.Integer -> Prelude.Bool
+ltb :: Prelude.Integer -> Prelude.Integer -> P.Bool
 ltb x y =
   case compare0 x y of {
-   Lt -> Prelude.True;
-   _ -> Prelude.False}
+   Lt -> P.True;
+   _ -> P.False}
 
 pos_div_eucl :: Prelude.Integer -> Prelude.Integer -> (,) Prelude.Integer
                 Prelude.Integer
@@ -366,29 +367,27 @@ pos_div_eucl a b =
     case pos_div_eucl a' b of {
      (,) q r ->
       let {
-       r' = (Prelude.+) ((Prelude.*) ((\x -> x) ((\x -> 2 Prelude.* x) 1)) r)
+       r' = (P.+) ((Prelude.*) ((\x -> x) ((\x -> 2 Prelude.* x) 1)) r)
               ((\x -> x) 1)}
       in
       case ltb r' b of {
-       Prelude.True -> (,)
-        ((Prelude.*) ((\x -> x) ((\x -> 2 Prelude.* x) 1)) q) r';
-       Prelude.False -> (,)
-        ((Prelude.+) ((Prelude.*) ((\x -> x) ((\x -> 2 Prelude.* x) 1)) q)
-          ((\x -> x) 1)) ((Prelude.-) r' b)}})
+       P.True -> (,) ((Prelude.*) ((\x -> x) ((\x -> 2 Prelude.* x) 1)) q) r';
+       P.False -> (,)
+        ((P.+) ((Prelude.*) ((\x -> x) ((\x -> 2 Prelude.* x) 1)) q)
+          ((\x -> x) 1)) ((P.-) r' b)}})
     (\a' ->
     case pos_div_eucl a' b of {
      (,) q r ->
       let {r' = (Prelude.*) ((\x -> x) ((\x -> 2 Prelude.* x) 1)) r} in
       case ltb r' b of {
-       Prelude.True -> (,)
-        ((Prelude.*) ((\x -> x) ((\x -> 2 Prelude.* x) 1)) q) r';
-       Prelude.False -> (,)
-        ((Prelude.+) ((Prelude.*) ((\x -> x) ((\x -> 2 Prelude.* x) 1)) q)
-          ((\x -> x) 1)) ((Prelude.-) r' b)}})
+       P.True -> (,) ((Prelude.*) ((\x -> x) ((\x -> 2 Prelude.* x) 1)) q) r';
+       P.False -> (,)
+        ((P.+) ((Prelude.*) ((\x -> x) ((\x -> 2 Prelude.* x) 1)) q)
+          ((\x -> x) 1)) ((P.-) r' b)}})
     (\_ ->
     case leb ((\x -> x) ((\x -> 2 Prelude.* x) 1)) b of {
-     Prelude.True -> (,) 0 ((\x -> x) 1);
-     Prelude.False -> (,) ((\x -> x) 1) 0})
+     P.True -> (,) 0 ((\x -> x) 1);
+     P.False -> (,) ((\x -> x) 1) 0})
     a
 
 div_eucl :: Prelude.Integer -> Prelude.Integer -> (,) Prelude.Integer
@@ -410,11 +409,9 @@ div_eucl a b =
         (\fO fP fN n -> if n Prelude.== 0 then fO () else
                    if n Prelude.> 0 then fP n else
                    fN (Prelude.negate n))
-          (\_ -> (,) (Prelude.negate q) 0)
-          (\_ -> (,) (Prelude.negate ((Prelude.+) q ((\x -> x) 1)))
-          ((Prelude.+) b r))
-          (\_ -> (,) (Prelude.negate ((Prelude.+) q ((\x -> x) 1)))
-          ((Prelude.+) b r))
+          (\_ -> (,) (P.negate q) 0)
+          (\_ -> (,) (P.negate ((P.+) q ((\x -> x) 1))) ((P.+) b r))
+          (\_ -> (,) (P.negate ((P.+) q ((\x -> x) 1))) ((P.+) b r))
           r})
       b)
     (\a' ->
@@ -428,15 +425,13 @@ div_eucl a b =
         (\fO fP fN n -> if n Prelude.== 0 then fO () else
                    if n Prelude.> 0 then fP n else
                    fN (Prelude.negate n))
-          (\_ -> (,) (Prelude.negate q) 0)
-          (\_ -> (,) (Prelude.negate ((Prelude.+) q ((\x -> x) 1)))
-          ((Prelude.-) b r))
-          (\_ -> (,) (Prelude.negate ((Prelude.+) q ((\x -> x) 1)))
-          ((Prelude.-) b r))
+          (\_ -> (,) (P.negate q) 0)
+          (\_ -> (,) (P.negate ((P.+) q ((\x -> x) 1))) ((P.-) b r))
+          (\_ -> (,) (P.negate ((P.+) q ((\x -> x) 1))) ((P.-) b r))
           r})
       (\b' ->
       case pos_div_eucl a' ((\x -> x) b') of {
-       (,) q r -> (,) q (Prelude.negate r)})
+       (,) q r -> (,) q (P.negate r)})
       b)
     a
 
@@ -445,31 +440,31 @@ div = (\n m -> if m Prelude.== 0 then 0 else Prelude.div n m)
 
 type M a = a
 
-multivalued_choice :: AERN2.CKleenean -> AERN2.CKleenean -> M Prelude.Bool
+multivalued_choice :: AERN2.CKleenean -> AERN2.CKleenean -> M P.Bool
 multivalued_choice = AERN2.select
 
 m_lift :: (a1 -> a2) -> (M a1) -> M a2
-m_lift = Prelude.id
+m_lift = P.id
 
 m_lift_dom :: (a1 -> M a2) -> (M a1) -> M a2
-m_lift_dom = Prelude.id
+m_lift_dom = P.id
 
 m_hprop_elim_f :: (M a1) -> a1
-m_hprop_elim_f = Prelude.id
+m_hprop_elim_f = P.id
 
 m_countable_lift :: (Prelude.Integer -> M a1) -> M (Prelude.Integer -> a1)
-m_countable_lift = Prelude.id
+m_countable_lift = P.id
 
-select :: AERN2.CKleenean -> AERN2.CKleenean -> M Prelude.Bool
+select :: AERN2.CKleenean -> AERN2.CKleenean -> M P.Bool
 select =
   multivalued_choice
 
-mjoin :: (Prelude.Bool -> a1) -> (M Prelude.Bool) -> M a1
-mjoin = Prelude.id
+mjoin :: (P.Bool -> a1) -> (M P.Bool) -> M a1
+mjoin = P.id
 
 type Semidec = AERN2.CKleenean
 
-choose :: Semidec -> Semidec -> M Prelude.Bool
+choose :: Semidec -> Semidec -> M P.Bool
 choose x x0 =
   m_lift (\h4 -> h4) (select x x0)
 
@@ -477,7 +472,7 @@ iZreal :: Prelude.Integer -> AERN2.CReal
 iZreal = AERN2.creal
 
 prec :: Prelude.Integer -> AERN2.CReal
-prec = ((0.5 :: AERN2.CReal) Prelude.^)
+prec = ((0.5 :: AERN2.CReal) P.^)
 
 real_limit_p :: (Prelude.Integer -> AERN2.CReal) -> AERN2.CReal
 real_limit_p = AERN2.limit
@@ -486,26 +481,26 @@ pow :: AERN2.CReal -> Prelude.Integer -> AERN2.CReal
 pow r n =
   (\fO fS n -> if n Prelude.== 0 then fO () else fS (n Prelude.- 1))
     (\_ -> (1 :: AERN2.CReal))
-    (\m -> (*) r (pow r m))
+    (\m -> (P.*) r (pow r m))
     n
 
-linear_search_conform :: (Prelude.Integer -> Prelude.Bool) -> Prelude.Integer
-                         -> Prelude.Integer
+linear_search_conform :: (Prelude.Integer -> P.Bool) -> Prelude.Integer ->
+                         Prelude.Integer
 linear_search_conform p_dec start =
   case p_dec start of {
-   Prelude.True -> start;
-   Prelude.False -> linear_search_conform p_dec (Prelude.succ start)}
+   P.True -> start;
+   P.False -> linear_search_conform p_dec (Prelude.succ start)}
 
-linear_search_from_0_conform :: (Prelude.Integer -> Prelude.Bool) ->
+linear_search_from_0_conform :: (Prelude.Integer -> P.Bool) ->
                                 Prelude.Integer
 linear_search_from_0_conform p_dec =
   linear_search_conform p_dec 0
 
-epsilon_smallest :: (Prelude.Integer -> Prelude.Bool) -> Prelude.Integer
+epsilon_smallest :: (Prelude.Integer -> P.Bool) -> Prelude.Integer
 epsilon_smallest =
   linear_search_from_0_conform
 
-m_split :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> M Prelude.Bool
+m_split :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> M P.Bool
 m_split x y _UU03b5_ =
   choose ((OGB.<) ((-) y _UU03b5_) x) ((OGB.<) ((-) x _UU03b5_) y)
 
@@ -545,28 +540,27 @@ muln :: Prelude.Integer -> Prelude.Integer -> Prelude.Integer
 muln =
   muln_rec
 
-epsilon_smallest_PQ :: (Prelude.Integer -> Prelude.Bool) -> Prelude.Integer
+epsilon_smallest_PQ :: (Prelude.Integer -> P.Bool) -> Prelude.Integer
 epsilon_smallest_PQ =
   epsilon_smallest
 
-epsilon_smallest_PQ_M :: (Prelude.Integer -> M Prelude.Bool) -> M
-                         Prelude.Integer
+epsilon_smallest_PQ_M :: (Prelude.Integer -> M P.Bool) -> M Prelude.Integer
 epsilon_smallest_PQ_M x =
   let {x0 = m_countable_lift x} in m_lift epsilon_smallest_PQ x0
 
-epsilon_smallest_choose_M :: (Prelude.Integer -> M Prelude.Bool) -> M
+epsilon_smallest_choose_M :: (Prelude.Integer -> M P.Bool) -> M
                              Prelude.Integer
 epsilon_smallest_choose_M =
   epsilon_smallest_PQ_M
 
-weaken_orM_r :: (M Prelude.Bool) -> M Prelude.Bool
+weaken_orM_r :: (M P.Bool) -> M P.Bool
 weaken_orM_r =
   m_lift (\__top_assumption_ ->
-    let {_evar_0_ = \_ -> Prelude.True} in
-    let {_evar_0_0 = \_ -> Prelude.False} in
+    let {_evar_0_ = \_ -> P.True} in
+    let {_evar_0_0 = \_ -> P.False} in
     case __top_assumption_ of {
-     Prelude.True -> _evar_0_ __;
-     Prelude.False -> _evar_0_0 __})
+     P.True -> _evar_0_ __;
+     P.False -> _evar_0_0 __})
 
 magnitude1 :: AERN2.CReal -> M Prelude.Integer
 magnitude1 x =
@@ -584,20 +578,19 @@ zpow x z =
                    fN (Prelude.negate n))
     (\_ -> (1 :: AERN2.CReal))
     (\p -> pow x (to_nat p))
-    (\p -> pow (Prelude.recip x) (to_nat p))
+    (\p -> pow (P.recip x) (to_nat p))
     z
 
-dec_x_lt_2 :: AERN2.CReal -> M Prelude.Bool
+dec_x_lt_2 :: AERN2.CReal -> M P.Bool
 dec_x_lt_2 x =
   let {
    h = m_split x
          ((/) (iZreal ((\x -> x) ((\x -> 2 Prelude.* x Prelude.+ 1) 1)))
-           (2 :: AERN2.CReal)) (Prelude.recip (2 :: AERN2.CReal))}
+           (2 :: AERN2.CReal)) (P.recip (2 :: AERN2.CReal))}
   in
-  mjoin (\h0 ->
-    case h0 of {
-     Prelude.True -> Prelude.False;
-     Prelude.False -> Prelude.True}) h
+  mjoin (\h0 -> case h0 of {
+                 P.True -> P.False;
+                 P.False -> P.True}) h
 
 magnitude2 :: AERN2.CReal -> M Prelude.Integer
 magnitude2 x =
@@ -610,9 +603,9 @@ magnitude2 x =
     ssr_have __ (\_ ->
       ssr_suff
         (m_lift (\_top_assumption_ ->
-          (Prelude.+) _top_assumption_ ((\x -> x) ((\x -> 2 Prelude.* x) 1))))
+          (P.+) _top_assumption_ ((\x -> x) ((\x -> 2 Prelude.* x) 1))))
         (ssr_have (magnitude1 y)
-          (m_lift (\_top_assumption_ -> Prelude.negate ( _top_assumption_))))))
+          (m_lift (\_top_assumption_ -> P.negate (P.id _top_assumption_))))))
 
 magnitude :: AERN2.CReal -> M Prelude.Integer
 magnitude x =
@@ -622,20 +615,20 @@ magnitude x =
       let {
        _evar_0_0 = \_ ->
         ssr_have __ (\_ ->
-          ssr_have (magnitude2 (Prelude.recip x))
+          ssr_have (magnitude2 (P.recip x))
             (m_lift (\_top_assumption_0 ->
-              (Prelude.+) (Prelude.negate _top_assumption_0) ((\x -> x)
+              (P.+) (P.negate _top_assumption_0) ((\x -> x)
                 ((\x -> 2 Prelude.* x) 1)))))}
       in
       case _top_assumption_ of {
-       Prelude.True -> _evar_0_ __;
-       Prelude.False -> _evar_0_0 __}))
+       P.True -> _evar_0_ __;
+       P.False -> _evar_0_0 __}))
 
 sqrt_approx :: AERN2.CReal -> Prelude.Integer -> AERN2.CReal
 sqrt_approx x n =
   nat_rect (1 :: AERN2.CReal) (\_ __top_assumption_ ->
     ssr_have __ (\_ ->
-      (*) (Prelude.recip (2 :: AERN2.CReal))
+      (P.*) (P.recip (2 :: AERN2.CReal))
         ((+) __top_assumption_ ((/) x __top_assumption_)))) n
 
 sqrt_approx_fast :: AERN2.CReal -> Prelude.Integer -> AERN2.CReal
@@ -656,7 +649,7 @@ scale x =
   m_lift (\_top_assumption_ ->
     ssr_have (div _top_assumption_ ((\x -> x) ((\x -> 2 Prelude.* x) 1)))
       (\_top_assumption_0 -> (,) _top_assumption_0
-      ((*)
+      ((P.*)
         (zpow (2 :: AERN2.CReal)
           ((Prelude.*) (Prelude.negate ((\x -> 2 Prelude.* x) 1))
             _top_assumption_0)) x))) x0
@@ -667,7 +660,7 @@ sqrt_pos x =
     (ssr_have (scale x)
       (m_lift (\_top_assumption_ ->
         let {
-         _evar_0_ = \z y -> (*) (zpow (2 :: AERN2.CReal) z) (restr_sqrt y)}
+         _evar_0_ = \z y -> (P.*) (zpow (2 :: AERN2.CReal) z) (restr_sqrt y)}
         in
         case _top_assumption_ of {
          (,) a b -> _evar_0_ a b})))
@@ -689,14 +682,14 @@ sqrt x =
                   let {_evar_0_ = \_ -> sqrt_pos x} in
                   let {_evar_0_0 = \_ -> (0 :: AERN2.CReal)} in
                   case _top_assumption_ of {
-                   Prelude.True -> _evar_0_ __;
-                   Prelude.False -> _evar_0_0 __})}
+                   P.True -> _evar_0_ __;
+                   P.False -> _evar_0_0 __})}
     in
     eq_rect_r (0 :: AERN2.CReal) _evar_0_
       ((+)
         (prec
           (addn (muln (Prelude.succ (Prelude.succ 0)) n) (Prelude.succ 0)))
-        (Prelude.negate
+        (P.negate
           (prec
             (addn (muln (Prelude.succ (Prelude.succ 0)) n) (Prelude.succ 0)))))
       x0)

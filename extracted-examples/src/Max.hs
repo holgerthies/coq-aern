@@ -4,7 +4,8 @@
 module Max where
 
 import qualified Prelude
-import Prelude ((*),(+),(-),(/))
+import Prelude ((+),(-),(/))
+import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
 import qualified Numeric.OrdGenericBool as OGB
 import qualified Unsafe.Coerce as UC
@@ -39,38 +40,38 @@ type Sig a = a
   
 type M a = a
 
-multivalued_choice :: AERN2.CKleenean -> AERN2.CKleenean -> M Prelude.Bool
+multivalued_choice :: AERN2.CKleenean -> AERN2.CKleenean -> M P.Bool
 multivalued_choice = AERN2.select
 
 m_lift :: (a1 -> a2) -> (M a1) -> M a2
-m_lift = Prelude.id
+m_lift = P.id
 
 m_hprop_elim_f :: (M a1) -> a1
-m_hprop_elim_f = Prelude.id
+m_hprop_elim_f = P.id
 
 m_countable_lift :: (Prelude.Integer -> M a1) -> M (Prelude.Integer -> a1)
-m_countable_lift = Prelude.id
+m_countable_lift = P.id
 
-select :: AERN2.CKleenean -> AERN2.CKleenean -> M Prelude.Bool
+select :: AERN2.CKleenean -> AERN2.CKleenean -> M P.Bool
 select =
   multivalued_choice
 
-mjoin :: (Prelude.Bool -> a1) -> (M Prelude.Bool) -> M a1
-mjoin = Prelude.id
+mjoin :: (P.Bool -> a1) -> (M P.Bool) -> M a1
+mjoin = P.id
 
 type Semidec = AERN2.CKleenean
 
-choose :: Semidec -> Semidec -> M Prelude.Bool
+choose :: Semidec -> Semidec -> M P.Bool
 choose x x0 =
   m_lift (\h4 -> h4) (select x x0)
 
 prec :: Prelude.Integer -> AERN2.CReal
-prec = ((0.5 :: AERN2.CReal) Prelude.^)
+prec = ((0.5 :: AERN2.CReal) P.^)
 
 real_limit_p :: (Prelude.Integer -> AERN2.CReal) -> AERN2.CReal
 real_limit_p = AERN2.limit
 
-m_split :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> M Prelude.Bool
+m_split :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> M P.Bool
 m_split x y _UU03b5_ =
   choose ((OGB.<) ((-) y _UU03b5_) x) ((OGB.<) ((-) x _UU03b5_) y)
 
@@ -90,8 +91,8 @@ real_max_prop :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal
 real_max_prop x y =
   real_mslimit_P_lt (\n ->
     mjoin (\h -> case h of {
-                  Prelude.True -> x;
-                  Prelude.False -> y}) (m_split x y (prec n)))
+                  P.True -> x;
+                  P.False -> y}) (m_split x y (prec n)))
 
 real_max :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal
 real_max x y =

@@ -4,7 +4,8 @@
 module Magnitude where
 
 import qualified Prelude
-import Prelude ((*),(+),(-),(/))
+import Prelude ((+),(-),(/))
+import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
 import qualified Numeric.OrdGenericBool as OGB
 import qualified Unsafe.Coerce as UC
@@ -203,28 +204,28 @@ pos_sub x y =
 
 type M a = a
 
-multivalued_choice :: AERN2.CKleenean -> AERN2.CKleenean -> M Prelude.Bool
+multivalued_choice :: AERN2.CKleenean -> AERN2.CKleenean -> M P.Bool
 multivalued_choice = AERN2.select
 
 m_lift :: (a1 -> a2) -> (M a1) -> M a2
-m_lift = Prelude.id
+m_lift = P.id
 
 m_lift_dom :: (a1 -> M a2) -> (M a1) -> M a2
-m_lift_dom = Prelude.id
+m_lift_dom = P.id
 
 m_countable_lift :: (Prelude.Integer -> M a1) -> M (Prelude.Integer -> a1)
-m_countable_lift = Prelude.id
+m_countable_lift = P.id
 
-select :: AERN2.CKleenean -> AERN2.CKleenean -> M Prelude.Bool
+select :: AERN2.CKleenean -> AERN2.CKleenean -> M P.Bool
 select =
   multivalued_choice
 
-mjoin :: (Prelude.Bool -> a1) -> (M Prelude.Bool) -> M a1
-mjoin = Prelude.id
+mjoin :: (P.Bool -> a1) -> (M P.Bool) -> M a1
+mjoin = P.id
 
 type Semidec = AERN2.CKleenean
 
-choose :: Semidec -> Semidec -> M Prelude.Bool
+choose :: Semidec -> Semidec -> M P.Bool
 choose x x0 =
   m_lift (\h4 -> h4) (select x x0)
 
@@ -232,25 +233,25 @@ iZreal :: Prelude.Integer -> AERN2.CReal
 iZreal = AERN2.creal
 
 prec :: Prelude.Integer -> AERN2.CReal
-prec = ((0.5 :: AERN2.CReal) Prelude.^)
+prec = ((0.5 :: AERN2.CReal) P.^)
 
-linear_search_conform :: (Prelude.Integer -> Prelude.Bool) -> Prelude.Integer
-                         -> Prelude.Integer
+linear_search_conform :: (Prelude.Integer -> P.Bool) -> Prelude.Integer ->
+                         Prelude.Integer
 linear_search_conform p_dec start =
   case p_dec start of {
-   Prelude.True -> start;
-   Prelude.False -> linear_search_conform p_dec (Prelude.succ start)}
+   P.True -> start;
+   P.False -> linear_search_conform p_dec (Prelude.succ start)}
 
-linear_search_from_0_conform :: (Prelude.Integer -> Prelude.Bool) ->
+linear_search_from_0_conform :: (Prelude.Integer -> P.Bool) ->
                                 Prelude.Integer
 linear_search_from_0_conform p_dec =
   linear_search_conform p_dec 0
 
-epsilon_smallest :: (Prelude.Integer -> Prelude.Bool) -> Prelude.Integer
+epsilon_smallest :: (Prelude.Integer -> P.Bool) -> Prelude.Integer
 epsilon_smallest =
   linear_search_from_0_conform
 
-m_split :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> M Prelude.Bool
+m_split :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> M P.Bool
 m_split x y _UU03b5_ =
   choose ((OGB.<) ((-) y _UU03b5_) x) ((OGB.<) ((-) x _UU03b5_) y)
 
@@ -262,28 +263,27 @@ ssr_suff :: (a1 -> a2) -> a1 -> a2
 ssr_suff step =
   step
 
-epsilon_smallest_PQ :: (Prelude.Integer -> Prelude.Bool) -> Prelude.Integer
+epsilon_smallest_PQ :: (Prelude.Integer -> P.Bool) -> Prelude.Integer
 epsilon_smallest_PQ =
   epsilon_smallest
 
-epsilon_smallest_PQ_M :: (Prelude.Integer -> M Prelude.Bool) -> M
-                         Prelude.Integer
+epsilon_smallest_PQ_M :: (Prelude.Integer -> M P.Bool) -> M Prelude.Integer
 epsilon_smallest_PQ_M x =
   let {x0 = m_countable_lift x} in m_lift epsilon_smallest_PQ x0
 
-epsilon_smallest_choose_M :: (Prelude.Integer -> M Prelude.Bool) -> M
+epsilon_smallest_choose_M :: (Prelude.Integer -> M P.Bool) -> M
                              Prelude.Integer
 epsilon_smallest_choose_M =
   epsilon_smallest_PQ_M
 
-weaken_orM_r :: (M Prelude.Bool) -> M Prelude.Bool
+weaken_orM_r :: (M P.Bool) -> M P.Bool
 weaken_orM_r =
   m_lift (\__top_assumption_ ->
-    let {_evar_0_ = \_ -> Prelude.True} in
-    let {_evar_0_0 = \_ -> Prelude.False} in
+    let {_evar_0_ = \_ -> P.True} in
+    let {_evar_0_0 = \_ -> P.False} in
     case __top_assumption_ of {
-     Prelude.True -> _evar_0_ __;
-     Prelude.False -> _evar_0_0 __})
+     P.True -> _evar_0_ __;
+     P.False -> _evar_0_0 __})
 
 magnitude1 :: AERN2.CReal -> M Prelude.Integer
 magnitude1 x =
@@ -294,17 +294,16 @@ magnitude1 x =
           (choose ((OGB.<) (prec (Prelude.succ (Prelude.succ n))) x)
             ((OGB.<) x (prec (Prelude.succ n)))))))
 
-dec_x_lt_2 :: AERN2.CReal -> M Prelude.Bool
+dec_x_lt_2 :: AERN2.CReal -> M P.Bool
 dec_x_lt_2 x =
   let {
    h = m_split x
          ((/) (iZreal ((\x -> x) ((\x -> 2 Prelude.* x Prelude.+ 1) 1)))
-           (2 :: AERN2.CReal)) (Prelude.recip (2 :: AERN2.CReal))}
+           (2 :: AERN2.CReal)) (P.recip (2 :: AERN2.CReal))}
   in
-  mjoin (\h0 ->
-    case h0 of {
-     Prelude.True -> Prelude.False;
-     Prelude.False -> Prelude.True}) h
+  mjoin (\h0 -> case h0 of {
+                 P.True -> P.False;
+                 P.False -> P.True}) h
 
 magnitude2 :: AERN2.CReal -> M Prelude.Integer
 magnitude2 x =
@@ -317,9 +316,9 @@ magnitude2 x =
     ssr_have __ (\_ ->
       ssr_suff
         (m_lift (\_top_assumption_ ->
-          (Prelude.+) _top_assumption_ ((\x -> x) ((\x -> 2 Prelude.* x) 1))))
+          (P.+) _top_assumption_ ((\x -> x) ((\x -> 2 Prelude.* x) 1))))
         (ssr_have (magnitude1 y)
-          (m_lift (\_top_assumption_ -> Prelude.negate ( _top_assumption_))))))
+          (m_lift (\_top_assumption_ -> P.negate (P.id _top_assumption_))))))
 
 magnitude :: AERN2.CReal -> M Prelude.Integer
 magnitude x =
@@ -329,12 +328,12 @@ magnitude x =
       let {
        _evar_0_0 = \_ ->
         ssr_have __ (\_ ->
-          ssr_have (magnitude2 (Prelude.recip x))
+          ssr_have (magnitude2 (P.recip x))
             (m_lift (\_top_assumption_0 ->
-              (Prelude.+) (Prelude.negate _top_assumption_0) ((\x -> x)
+              (P.+) (P.negate _top_assumption_0) ((\x -> x)
                 ((\x -> 2 Prelude.* x) 1)))))}
       in
       case _top_assumption_ of {
-       Prelude.True -> _evar_0_ __;
-       Prelude.False -> _evar_0_0 __}))
+       P.True -> _evar_0_ __;
+       P.False -> _evar_0_0 __}))
 

@@ -306,7 +306,7 @@ Extraction Implicit Tn_ball [ types casofReal ].
 Extraction Implicit Tn_col [ types casofReal ].
 Extraction Implicit Tn_row [ types casofReal ].
 Extraction Implicit Tn [ types casofReal ].
-Extraction "Tn" Tn.
+(* Extraction "Tn" Tn. *)
 
                
 (* Require Import Nabla. *)
