@@ -417,6 +417,38 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     left. auto.
   Qed.
   
+  Lemma real_abs_le_pos_le : forall a b : Real, abs a <= b -> a <= b.
+  Proof.
+    intros a b absa_le_b.
+    destruct (real_total_order a real_0).
+    - left.
+      apply (real_lt_le_lt _ real_0); auto.
+      apply (real_le_le_le _ (abs a)); auto.
+      apply abs_pos.
+    - destruct H. 
+      rewrite H. 
+      apply (real_le_le_le _ (abs a)); auto. apply abs_pos.
+      rewrite abs_pos_id in absa_le_b; auto.
+      left; auto.
+  Qed.
+  
+  Lemma real_abs_le_neg_le : forall a b : Real, abs a <= b -> -a <= b.
+  Proof.
+    intros a b absa_le_b.
+    destruct (real_total_order a real_0).
+    - 
+      apply (real_le_le_le _ (abs a)); auto.
+      rewrite abs_neg_id_neg.
+      apply real_le_triv. auto.
+    - destruct H.
+      rewrite H. 
+      apply (real_le_le_le _ (abs a)); auto.
+      ring_simplify; apply abs_pos.
+      apply (real_le_le_le _ real_0); auto.
+      left. apply real_lt_anti in H. ring_simplify in H; auto.
+      apply (real_le_le_le _ (abs a)); auto. apply abs_pos.
+  Qed.
+  
   Lemma real_max_plus_eq : forall a b c : Real, c + real_max a b = real_max (a + c) (b + c).
   Proof.
     intros.
