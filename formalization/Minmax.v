@@ -406,6 +406,17 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     exact (proj1 (abs_zero x) H ). 
   Qed.  
 
+  Lemma real_abs_le_le_le : forall a b : Real, a <= b -> -a <= b -> abs a <= b.
+  Proof.
+    intros a b a_le_b nega_le_b.
+    destruct (real_total_order a real_0).
+    rewrite abs_neg_id_neg; auto.
+    rewrite abs_pos_id; auto.
+    destruct H; auto.
+    rewrite <- (eq_sym H). apply real_le_triv. 
+    left. auto.
+  Qed.
+  
   Lemma real_max_plus_eq : forall a b c : Real, c + real_max a b = real_max (a + c) (b + c).
   Proof.
     intros.
