@@ -31,8 +31,42 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
-  Lemma real_0_neg_eq : - real_0 = real_0.
+  (* TODO: remove and replace with ring_simplify *)
+  Lemma real_0_neg_eq : - real_0 = real_0. 
   Proof. ring. Qed.
+
+  Definition one_half := / real_2_neq_0.
+
+  Lemma one_half_pos : one_half > real_0.
+  Proof.
+    unfold one_half.
+    apply real_pos_inv_pos.
+    apply real_2_pos.
+  Qed.
+
+  Lemma one_half_neq0 : one_half <> real_0.
+    apply real_gt_neq.
+    apply one_half_pos.
+  Qed.
+
+  Lemma one_half_plus_one_half : one_half + one_half = real_1.
+  Proof.
+    apply (real_eq_mult_cancel real_2).
+    apply real_2_neq_0.
+    rewrite real_mult_comm, real_mult_plus_distr.
+    unfold one_half.
+    rewrite real_mult_comm.
+    rewrite real_mult_inv.
+    ring.
+  Qed.
+
+  Lemma one_minus_one_half : real_1 + (- one_half) = one_half.
+  Proof.
+    apply (real_eq_plus_cancel one_half).
+    ring_simplify (real_1 + - one_half + one_half).
+    rewrite one_half_plus_one_half. auto.
+  Qed.
+
 
   (* The vertices of the triangle hull *)
 
@@ -57,11 +91,11 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Definition weights123_valid (c1 c2 c3 : ^Real) : Prop :=
     c1 >= real_0 /\ c2 >= real_0 /\ c3 >= real_0 /\ c1 + c2 + c3 = real_1.
 
-  Definition inside_ST_hull_pt (pt : ^euclidean 2) : Prop :=
+  Definition ST_inside_hull_pt (pt : ^euclidean 2) : Prop :=
     exists c1 c2 c3 : ^Real, pt = (ST_weighted_pt c1 c2 c3) /\ weights123_valid c1 c2 c3.
   
-  Definition inside_ST_hull (s : euclidean_subset 2) : Prop :=
-    forall pt : ^euclidean 2, s pt -> inside_ST_hull_pt pt.
+  Definition ST_inside_hull (s : euclidean_subset 2) : Prop :=
+    forall pt : ^euclidean 2, s pt -> ST_inside_hull_pt pt.
 
   (* Lemmas about the weights of points *)
 
@@ -121,20 +155,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Qed.
 
   (* Self-similarity with ratio 1/2 *)
-
-  Definition one_half := / real_2_neq_0.
-
-  Lemma one_half_pos : one_half > real_0.
-  Proof.
-    unfold one_half.
-    apply real_pos_inv_pos.
-    apply real_2_pos.
-  Qed.
-
-  Lemma one_half_neq0 : one_half <> real_0.
-    apply real_gt_neq.
-    apply one_half_pos.
-  Qed.
 
   Definition point_point_mid (p1 : ^euclidean 2) (p2 : ^euclidean 2) : ^euclidean 2.
     destruct (split_euclidean2 p1) as [x1 [y1 _]].
@@ -299,7 +319,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Definition ST_selfSimilar (s : euclidean_subset 2) : Prop :=
     forall pt : ^euclidean 2, 
-    inside_ST_hull_pt pt ->
+    ST_inside_hull_pt pt ->
     s pt = s (point_point_mid ST_v1 pt)
     /\ 
     s pt = s (point_point_mid ST_v2 pt)
@@ -309,7 +329,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   (* Characterisation of the Sierpinski triangle (except being closed) *)
 
   Definition ST (s : euclidean_subset 2) : Prop :=
-    has_ST_v123 s /\ inside_ST_hull s /\ ST_selfSimilar s.
+    has_ST_v123 s /\ ST_inside_hull s /\ ST_selfSimilar s.
 
   (* Constructive definition of the Sierpinski triangle using covers *)
 
@@ -319,13 +339,122 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     (point_ball_mid ST_v3 b) :: nil.
 
   (* the square ([-1,1],[-1,1]) *) 
-  Definition initial_ball := make_ball real_0 real_0 real_1.
+  Definition ST_initial_ball := make_ball real_0 real_0 real_1.
 
   Fixpoint STn n : list (ball 2) := 
     match n with
-    | 0 => initial_ball :: nil 
+    | 0 => ST_initial_ball :: nil 
     | (S n') => List.concat (List.map ST_split_ball (STn n'))
     end.
+
+  (* Tools for coverage derived from self-similarity *)
+
+  Definition ST_initial_ball_split_1 := point_ball_mid ST_v1 ST_initial_ball.
+  Definition ST_initial_ball_split_2 := point_ball_mid ST_v2 ST_initial_ball.
+  Definition ST_initial_ball_split_3 := point_ball_mid ST_v3 ST_initial_ball.
+
+  Lemma ST_inside_first_split pt :
+    ST_inside_hull_pt pt ->
+    ball_to_subset 2 ST_initial_ball pt -> 
+    ball_to_subset 2 ST_initial_ball_split_1 pt
+    \/
+    ball_to_subset 2 ST_initial_ball_split_2 pt
+    \/
+    ball_to_subset 2 ST_initial_ball_split_3 pt.
+  Proof.
+    intros ptInHull ptInInit.
+    destruct ptInHull as [c1 [c2 [c3 [ptWeighted [c1Pos [c2Pos [c3Pos c123sum]]]]]]].
+    destruct (split_euclidean2 pt) as [px [py pxy]].
+    rewrite pxy.
+
+    (* simplify ptWeighted to basic arithmetic *)
+    rewrite pxy in ptWeighted.
+    unfold ST_weighted_pt, make_euclidean2 in ptWeighted.
+    simpl in ptWeighted.
+    injection ptWeighted.
+    intros pyWeighted pxWeighted.
+    clear ptWeighted.
+    ring_simplify in pxWeighted.
+    ring_simplify in pyWeighted.
+
+    (* simplify ptInInit to basic arithmetic *)
+    rewrite pxy in ptInInit.
+    unfold ball_to_subset, ST_initial_ball, make_ball, euclidean_max_dist, make_euclidean2, euclidean_minus, euclidean_plus, euclidean_max_norm in ptInInit.
+    simpl in ptInInit.
+    clear pxy pt.
+    ring_simplify (px + - real_0) in ptInInit.
+    ring_simplify (py + - real_0) in ptInInit.
+    pose proof ptInInit as ptInInitX.
+    apply real_max_le_fst_le in ptInInitX.
+    pose proof ptInInit as ptInInitY.
+    apply real_max_le_snd_le, real_max_le_fst_le in ptInInitY.
+    clear ptInInit.
+    pose proof ptInInitX as ptInInitXle.
+    apply real_abs_le_pos_le in ptInInitXle.
+    pose proof ptInInitX as ptInInitXge.
+    apply real_abs_le_neg_le in ptInInitXge.
+    clear ptInInitX.
+    pose proof ptInInitY as ptInInitYle.
+    apply real_abs_le_pos_le in ptInInitYle.
+    pose proof ptInInitY as ptInInitYge.
+    apply real_abs_le_neg_le in ptInInitYge.
+    clear ptInInitY.
+
+    (* pick a maximal among c1, c2, c3 *)
+    destruct (real_total_order c1 c2) as [c1_le_c2|c2_le_c1].
+    apply real_lt_le in c1_le_c2.
+    (* c1 <= c2 *)
+    destruct (real_total_order c2 c3) as [c2_le_c3|c3_le_c2].
+    apply real_lt_le in c2_le_c3.
+    (* c1 <= c2 <= c3, c3 is maximal *)
+    - right. right.
+      (* simplify to basic arithmetic *)
+      unfold ST_initial_ball_split_3, ball_to_subset, ST_initial_ball, make_ball, euclidean_max_dist, make_euclidean2, euclidean_minus, euclidean_plus, euclidean_max_norm.
+      simpl.
+      ring_simplify (px + - ((real_1 + real_0) * one_half)).
+      ring_simplify (py + - ((- real_1 + real_0) * one_half)).
+      ring_simplify.
+      
+      (* branch into real_max and abs cases *)
+      apply real_max_le_le_le.
+      apply real_abs_le_le_le.
+
+      unfold real_minus.
+      apply (real_le_plus_le (- one_half)) in ptInInitXle.
+      rewrite real_plus_comm in ptInInitXle.
+      rewrite (real_plus_comm (- one_half)) in ptInInitXle.
+      rewrite one_minus_one_half in ptInInitXle.
+      auto.
+
+      ring_simplify.
+
+      Search (abs _ <= _).
+
+      admit.
+    (* c1 < c2 >= c3, c2 is maximal *)
+    - right. left.
+      admit.
+    (* c2 <= c1 *)
+    - destruct (real_total_order c1 c3) as [c1_le_c3|c3_le_c1].
+      (* c2 <= c1 < c3, c3 is largest *)
+      + right. right.
+        admit.
+      (* c2 <= c1 >= c3, c1 is maximal *)
+      + left.
+      admit. 
+  Admitted.
+
+  Lemma ST_selfSimilar_inverse s pt :
+    ST_selfSimilar s -> ST_inside_hull s -> s pt -> 
+    (s (point_point_away ST_v1 pt))
+    \/
+    (s (point_point_away ST_v2 pt))
+    \/
+    (s (point_point_away ST_v3 pt)).
+  Proof.
+    intros selfSimilar insideHull spt.
+
+  Admitted.
 
   (* The diameter shrinks exponentially with n *)
 
