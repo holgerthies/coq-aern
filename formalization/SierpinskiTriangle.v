@@ -93,13 +93,14 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Defined.
 
   Definition ST_weights123_valid (c1 c2 c3 : ^Real) : Prop :=
-    c1 >= real_0 /\ c2 >= real_0 /\ c3 >= real_0 /\ c1 + c2 + c3 = real_1.
+    c1 >= real_0 /\ c2 >= real_0 /\ c3 >= real_0 /\ c1 + c2 + c3 = real_1 
+    /\ (c1 >= one_half \/ c2 >= one_half \/ c3 >= one_half).
 
-  Definition ST_inside_hull_pt (pt : ^euclidean 2) : Prop :=
+  Definition ST_inside_hull_no_middle_pt (pt : ^euclidean 2) : Prop :=
     exists c1 c2 c3 : ^Real, pt = (ST_weighted_pt c1 c2 c3) /\ ST_weights123_valid c1 c2 c3.
   
-  Definition ST_inside_hull (s : euclidean_subset 2) : Prop :=
-    forall pt : ^euclidean 2, s pt -> ST_inside_hull_pt pt.
+  Definition ST_inside_hull_no_middle (s : euclidean_subset 2) : Prop :=
+    forall pt : ^euclidean 2, s pt -> ST_inside_hull_no_middle_pt pt.
 
   (* Lemmas about the weights of points *)
 
@@ -132,7 +133,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     ST_weights123_valid c1 c2 c3 -> 
     c1 <= real_1 /\ c2 <= real_1 /\ c3 <= real_1.
   Proof.
-    intros [c1pos [c2pos [c3pos c123sum]]].
+    intros [c1pos [c2pos [c3pos [c123sum _]]]].
     apply real_eq_le in c123sum.
 
     assert (real_0 <= c1 + c2) as c12pos.
@@ -323,7 +324,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Definition ST_selfSimilar (s : euclidean_subset 2) : Prop :=
     forall pt : ^euclidean 2, 
-    ST_inside_hull_pt pt ->
+    ST_inside_hull_no_middle_pt pt ->
     s pt = s (point_point_mid ST_v1 pt)
     /\ 
     s pt = s (point_point_mid ST_v2 pt)
@@ -333,7 +334,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   (* Characterisation of the Sierpinski triangle (except being closed) *)
 
   Definition ST (s : euclidean_subset 2) : Prop :=
-    ST_has_v123 s /\ ST_inside_hull s /\ ST_selfSimilar s.
+    ST_has_v123 s /\ ST_inside_hull_no_middle s /\ ST_selfSimilar s.
 
   (* Constructive definition of the Sierpinski triangle using covers *)
 
@@ -355,7 +356,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Definition ST_initial_ball_split_3 := point_ball_mid ST_v3 ST_initial_ball.
 
   Lemma ST_inside_first_split pt :
-    ST_inside_hull_pt pt ->
+    ST_inside_hull_no_middle_pt pt ->
     ball_to_subset 2 ST_initial_ball pt -> 
     ball_to_subset 2 ST_initial_ball_split_1 pt
     \/
@@ -364,7 +365,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     ball_to_subset 2 ST_initial_ball_split_3 pt.
   Proof.
     intros ptInHull ptInInit.
-    destruct ptInHull as [c1 [c2 [c3 [ptWeighted [c1Pos [c2Pos [c3Pos c123sum]]]]]]].
+    destruct ptInHull as [c1 [c2 [c3 [ptWeighted [c1Pos [c2Pos [c3Pos [c123sum c123noMiddle]]]]]]]].
     destruct (split_euclidean2 pt) as [px [py pxy]].
     rewrite pxy.
 
@@ -429,8 +430,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
       ring_simplify.
 
-      Search (abs _ <= _).
+      (* Search (abs _ <= _). *)
 
+      admit.
       admit.
     (* c1 < c2 >= c3, c2 is maximal *)
     - right. left.
@@ -446,7 +448,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Admitted.
 
   Lemma ST_selfSimilar_inverse s pt :
-    ST_selfSimilar s -> ST_inside_hull s -> s pt -> 
+    ST_selfSimilar s -> ST_inside_hull_no_middle s -> s pt -> 
     (s (point_point_away ST_v1 pt))
     \/
     (s (point_point_away ST_v2 pt))
@@ -592,7 +594,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       apply Exists_cons_hd.
       destruct (insideHull pt) as [c1 [c2 [c3 [ptc123 valid123]]]]. auto.
       pose proof (weights123_le_1 _ _ _ valid123) as [c1le1 [c2le1 c3le1]].
-      destruct valid123 as [c1pos [c2pos [c3pos c123sum]]].
+      destruct valid123 as [c1pos [c2pos [c3pos [c123sum c123noMiddle]]]].
 
       assert (real_0 <= c1 + c2) as c12pos.
       rewrite <- (real_plus_unit real_0).
