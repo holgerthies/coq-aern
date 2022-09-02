@@ -70,11 +70,15 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   (* The vertices of the triangle hull *)
 
+  (* TODO: make the canvas and vertices and their containment in the canvas parameters *)
+  (* the square ([-1,1],[-1,1]) *) 
+  Definition ST_initial_ball := make_ball real_0 real_0 real_1.
+
   Definition ST_v1 := make_euclidean2 (- real_1) real_1.
   Definition ST_v2 := make_euclidean2 (- real_1) (- real_1).
   Definition ST_v3 := make_euclidean2 real_1 (- real_1).
 
-  Definition has_ST_v123 (s : euclidean_subset 2) : Prop :=
+  Definition ST_has_v123 (s : euclidean_subset 2) : Prop :=
     (s ST_v1) /\ (s ST_v2) /\ (s ST_v3).
 
   (* The convex hull of the vertices defined using weights *)
@@ -88,11 +92,11 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply (make_euclidean2 x y).
   Defined.
 
-  Definition weights123_valid (c1 c2 c3 : ^Real) : Prop :=
+  Definition ST_weights123_valid (c1 c2 c3 : ^Real) : Prop :=
     c1 >= real_0 /\ c2 >= real_0 /\ c3 >= real_0 /\ c1 + c2 + c3 = real_1.
 
   Definition ST_inside_hull_pt (pt : ^euclidean 2) : Prop :=
-    exists c1 c2 c3 : ^Real, pt = (ST_weighted_pt c1 c2 c3) /\ weights123_valid c1 c2 c3.
+    exists c1 c2 c3 : ^Real, pt = (ST_weighted_pt c1 c2 c3) /\ ST_weights123_valid c1 c2 c3.
   
   Definition ST_inside_hull (s : euclidean_subset 2) : Prop :=
     forall pt : ^euclidean 2, s pt -> ST_inside_hull_pt pt.
@@ -125,7 +129,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Qed.
 
   Lemma weights123_le_1 c1 c2 c3 : 
-    weights123_valid c1 c2 c3 -> 
+    ST_weights123_valid c1 c2 c3 -> 
     c1 <= real_1 /\ c2 <= real_1 /\ c3 <= real_1.
   Proof.
     intros [c1pos [c2pos [c3pos c123sum]]].
@@ -329,7 +333,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   (* Characterisation of the Sierpinski triangle (except being closed) *)
 
   Definition ST (s : euclidean_subset 2) : Prop :=
-    has_ST_v123 s /\ ST_inside_hull s /\ ST_selfSimilar s.
+    ST_has_v123 s /\ ST_inside_hull s /\ ST_selfSimilar s.
 
   (* Constructive definition of the Sierpinski triangle using covers *)
 
@@ -337,9 +341,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     (point_ball_mid ST_v1 b) :: 
     (point_ball_mid ST_v2 b) :: 
     (point_ball_mid ST_v3 b) :: nil.
-
-  (* the square ([-1,1],[-1,1]) *) 
-  Definition ST_initial_ball := make_ball real_0 real_0 real_1.
 
   Fixpoint STn n : list (ball 2) := 
     match n with
