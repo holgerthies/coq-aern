@@ -309,7 +309,7 @@ Extraction Implicit Tn [ types casofReal ].
 (* Extraction "Tn" Tn. *)
 
 Extraction Implicit multi_triangles_compact [ types casofReal ].
-Extraction "MTn" multi_triangles_compact.
+(* Extraction "MTn" multi_triangles_compact. *)
 
 Require Import SierpinskiTriangle.
 Extraction Implicit caseS' [ types ].
@@ -318,14 +318,17 @@ Extraction Implicit split_euclidean2 [ types ].
 Extraction Implicit make_euclidean2 [ types ].
 Extraction Implicit make_ball [ types ].
 Extraction Implicit one_half [ types casofReal ].
-Extraction Implicit ST_v1 [ types casofReal ].
-Extraction Implicit ST_v2 [ types casofReal ].
-Extraction Implicit ST_v3 [ types casofReal ].
 Extraction Implicit point_point_mid [ types casofReal ].
 Extraction Implicit point_ball_mid [ types casofReal ].
 Extraction Implicit ST_split_ball [ types casofReal ].
 Extraction Implicit STn [ types casofReal ].
-(* Extraction "STn" STn. *)
+
+Extraction Implicit STR_initial_ball [ types casofReal ].
+Extraction Implicit STR_v1 [ types casofReal ].
+Extraction Implicit STR_v2 [ types casofReal ].
+Extraction Implicit STR_v3 [ types casofReal ].
+Extraction Implicit STRn [ types casofReal ].
+Extraction "STRn" STRn.
                
 (* Require Import Nabla. *)
 

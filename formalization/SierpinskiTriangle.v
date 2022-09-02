@@ -15,23 +15,22 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
 #[local] Notation "^ball" := (@ball types) (at level 0).
 
-  (* ring structure on Real *)
-  Ltac IZReal_tac t :=
-    match t with
-    | real_0 => constr:(0%Z)
-    | real_1 => constr:(1%Z)
-    | real_2 => constr:(2%Z)
-    | IZreal ?u =>
-      match isZcst u with
-      | true => u
-      | _ => constr:(InitialRing.NotConstant)
-      end
+(* ring structure on Real *)
+Ltac IZReal_tac t :=
+  match t with
+  | real_0 => constr:(0%Z)
+  | real_1 => constr:(1%Z)
+  | real_2 => constr:(2%Z)
+  | IZreal ?u =>
+    match isZcst u with
+    | true => u
     | _ => constr:(InitialRing.NotConstant)
-    end.
+    end
+  | _ => constr:(InitialRing.NotConstant)
+  end.
 
-  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
+Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
-  (* TODO: remove and replace with ring_simplify *)
   Lemma real_0_neg_eq : - real_0 = real_0. 
   Proof. ring. Qed.
 
@@ -67,16 +66,16 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite one_half_plus_one_half. auto.
   Qed.
 
-
   (* The vertices of the triangle hull *)
-
-  (* TODO: make the canvas and vertices and their containment in the canvas parameters *)
-  (* the square ([-1,1],[-1,1]) *) 
-  Definition ST_initial_ball := make_ball real_0 real_0 real_1.
-
-  Definition ST_v1 := make_euclidean2 (- real_1) real_1.
-  Definition ST_v2 := make_euclidean2 (- real_1) (- real_1).
-  Definition ST_v3 := make_euclidean2 real_1 (- real_1).
+  Variables ST_v1 ST_v2 ST_v3 : ^euclidean 2.
+  Variable ST_initial_ball : ^ball 2.
+  Variable ST_initial_ball_radius_bound : snd ST_initial_ball <= real_1.
+  Variable ST_initial_ball_contains_v1 : 
+    ball_to_subset 2 ST_initial_ball ST_v1.
+  Variable ST_initial_ball_contains_v2 : 
+    ball_to_subset 2 ST_initial_ball ST_v2.
+  Variable ST_initial_ball_contains_v3 : 
+    ball_to_subset 2 ST_initial_ball ST_v3.
 
   Definition ST_has_v123 (s : euclidean_subset 2) : Prop :=
     (s ST_v1) /\ (s ST_v2) /\ (s ST_v3).
@@ -93,11 +92,14 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Defined.
 
   Definition ST_weights123_valid (c1 c2 c3 : ^Real) : Prop :=
-    c1 >= real_0 /\ c2 >= real_0 /\ c3 >= real_0 /\ c1 + c2 + c3 = real_1 
-    /\ (c1 >= one_half \/ c2 >= one_half \/ c3 >= one_half).
+    c1 >= real_0 /\ c2 >= real_0 /\ c3 >= real_0 /\ c1 + c2 + c3 = real_1.
+
+  Definition ST_weights123_no_middle (c1 c2 c3 : ^Real) : Prop :=
+    (c1 >= one_half \/ c2 >= one_half \/ c3 >= one_half).
 
   Definition ST_inside_hull_no_middle_pt (pt : ^euclidean 2) : Prop :=
-    exists c1 c2 c3 : ^Real, pt = (ST_weighted_pt c1 c2 c3) /\ ST_weights123_valid c1 c2 c3.
+    exists c1 c2 c3 : ^Real, 
+    pt = (ST_weighted_pt c1 c2 c3) /\ ST_weights123_valid c1 c2 c3 /\ ST_weights123_no_middle c1 c2 c3.
   
   Definition ST_inside_hull_no_middle (s : euclidean_subset 2) : Prop :=
     forall pt : ^euclidean 2, s pt -> ST_inside_hull_no_middle_pt pt.
@@ -133,7 +135,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     ST_weights123_valid c1 c2 c3 -> 
     c1 <= real_1 /\ c2 <= real_1 /\ c3 <= real_1.
   Proof.
-    intros [c1pos [c2pos [c3pos [c123sum _]]]].
+    intros [c1pos [c2pos [c3pos c123sum]]].
     apply real_eq_le in c123sum.
 
     assert (real_0 <= c1 + c2) as c12pos.
@@ -157,6 +159,153 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite <- (real_plus_unit real_0).
     apply real_le_le_plus_le; auto.
     split; auto; split; auto.
+  Qed.
+
+  Lemma ST_weighted_pt_in_init_ball (c1 c2 c3 : ^Real) : 
+    ST_weights123_valid c1 c2 c3 ->
+    ball_to_subset 2 ST_initial_ball (ST_weighted_pt c1 c2 c3).
+  Proof.
+      intro valid123.
+      pose proof (weights123_le_1 _ _ _ valid123) as [c1le1 [c2le1 c3le1]].
+      destruct valid123 as [c1pos [c2pos [c3pos c123sum]]].
+
+      unfold ST_weighted_pt.
+
+      pose proof ST_initial_ball_contains_v1 as v1in.
+      pose proof ST_initial_ball_contains_v2 as v2in.
+      pose proof ST_initial_ball_contains_v3 as v3in.
+
+      destruct (split_euclidean2 ST_v1) as [x1 [y1 xy1]].
+      destruct (split_euclidean2 ST_v2) as [x2 [y2 xy2]].
+      destruct (split_euclidean2 ST_v3) as [x3 [y3 xy3]].
+      rewrite xy1 in v1in.
+      rewrite xy2 in v2in.
+      rewrite xy3 in v3in.
+      clear xy1 xy2 xy3.
+
+      destruct ST_initial_ball as [c r].
+      destruct (split_euclidean2 c) as [xc [yc xyc]].
+      rewrite xyc in v1in, v2in, v3in.
+      rewrite xyc; clear xyc.
+
+      unfold ball_to_subset in v1in, v2in, v3in.
+      simpl in v1in, v2in, v3in.
+      unfold ball_to_subset. simpl.
+
+      unfold euclidean_max_dist, euclidean_minus, euclidean_plus in v1in, v2in, v3in.
+      simpl in v1in, v2in, v3in.
+
+      unfold make_euclidean2, euclidean_max_dist, euclidean_minus, euclidean_plus.
+      simpl.
+
+      pose proof v1in as v1inX.
+      pose proof v2in as v2inX.
+      pose proof v3in as v3inX.
+      apply real_max_le_fst_le in v1inX, v2inX, v3inX.
+      pose proof v1in as v1inY.
+      pose proof v2in as v2inY.
+      pose proof v3in as v3inY.
+      apply real_max_le_snd_le in v1inY, v2inY, v3inY.
+      apply real_max_le_fst_le in v1inY, v2inY, v3inY.
+      clear v1in v2in v3in.
+
+      assert (real_0 <= r) as rpos.
+      apply (real_le_le_le _ (abs (x1 + - xc))); auto.
+      apply abs_pos.
+
+      (* assert (real_0 <= c1 + c2) as c12pos.
+      rewrite <- (real_plus_unit real_0).
+      apply real_le_le_plus_le; auto.
+
+      assert (real_0 <= c2 + c3) as c23pos.
+      rewrite <- (real_plus_unit real_0).
+      apply real_le_le_plus_le; auto.
+
+      assert (c1 + c2 <= real_1) as c12sum.
+      apply (weights12_c1_le_1 (c1+c2) c3).
+      split; auto; split; auto; right; auto.
+  
+      assert (c2 + c3 <= real_1) as c23sum.
+      rewrite real_plus_assoc in c123sum.
+      apply (weights12_c2_le_1 c1 (c2+c3)).
+      split; auto; split; auto; right; auto. *)
+
+      rewrite <- (real_mult_unit xc).
+      rewrite <- (real_mult_unit yc).
+      rewrite <- c123sum.
+      assert ((c1 * x1 + c2 * x2 + c3 * x3 + - ((c1 + c2 + c3) * xc)) = 
+         c1 * (x1 + - xc) + c2 * (x2 + - xc) + c3 * (x3 + - xc)) as Temp. ring.
+      rewrite Temp; clear Temp.
+      assert ((c1 * y1 + c2 * y2 + c3 * y3 + - ((c1 + c2 + c3) * yc)) = 
+         c1 * (y1 + - yc) + c2 * (y2 + - yc) + c3 * (y3 + - yc)) as Temp. ring.
+      rewrite Temp; clear Temp.
+
+      apply real_max_le_le_le.
+      - 
+        (* use triangle inequality to distribute the abs *)
+        apply (real_le_le_le _ (abs (c1 * (x1 + - xc) + c2 * (x2 + - xc)) + abs(c3 * (x3 + - xc)))).
+        apply abs_tri.
+        pose proof (abs_tri (c1 * (x1 + - xc)) (c2 * (x2 + - xc))) as Temp.
+        apply (real_le_plus_le (abs (c3 * (x3 + - xc)))) in Temp.
+        rewrite (real_plus_comm (abs (c3 * (x3 + - xc)))) in Temp.
+        rewrite (real_plus_comm (abs (c3 * (x3 + - xc)))) in Temp.
+        apply (real_le_le_le _ _ _ Temp).
+        clear Temp.
+
+        rewrite abs_mult, abs_mult, abs_mult.
+        rewrite (abs_pos_id c1), (abs_pos_id c2), (abs_pos_id c3); auto.
+    
+        assert (c1 * abs (x1 + - xc) <= c1 * r) as T1.
+        destruct c1pos.
+        apply (real_le_mult_pos_le c1); auto.
+        rewrite <- H; right; ring.
+        assert (c2 * abs (x2 + - xc) <= c2 * r) as T2.
+        destruct c2pos.
+        apply (real_le_mult_pos_le c2); auto.
+        rewrite <- H; right; ring.
+        assert (c3 * abs (x3 + - xc) <= c3 * r) as T3.
+        destruct c3pos.
+        apply (real_le_mult_pos_le c3); auto.
+        rewrite <- H; right; ring.
+
+        rewrite <- (real_mult_unit r).
+        rewrite <- c123sum.
+        ring_simplify.
+        apply (real_le_le_plus_le); auto.
+        apply (real_le_le_plus_le); auto.
+
+      - apply real_max_le_le_le; auto.
+        (* as above but for y instead of x *)
+        apply (real_le_le_le _ (abs (c1 * (y1 + - yc) + c2 * (y2 + - yc)) + abs(c3 * (y3 + - yc)))).
+        apply abs_tri.
+        pose proof (abs_tri (c1 * (y1 + - yc)) (c2 * (y2 + - yc))) as Temp.
+        apply (real_le_plus_le (abs (c3 * (y3 + - yc)))) in Temp.
+        rewrite (real_plus_comm (abs (c3 * (y3 + - yc)))) in Temp.
+        rewrite (real_plus_comm (abs (c3 * (y3 + - yc)))) in Temp.
+        apply (real_le_le_le _ _ _ Temp).
+        clear Temp.
+
+        rewrite abs_mult, abs_mult, abs_mult.
+        rewrite (abs_pos_id c1), (abs_pos_id c2), (abs_pos_id c3); auto.
+    
+        assert (c1 * abs (y1 + - yc) <= c1 * r) as T1.
+        destruct c1pos.
+        apply (real_le_mult_pos_le c1); auto.
+        rewrite <- H; right; ring.
+        assert (c2 * abs (y2 + - yc) <= c2 * r) as T2.
+        destruct c2pos.
+        apply (real_le_mult_pos_le c2); auto.
+        rewrite <- H; right; ring.
+        assert (c3 * abs (y3 + - yc) <= c3 * r) as T3.
+        destruct c3pos.
+        apply (real_le_mult_pos_le c3); auto.
+        rewrite <- H; right; ring.
+
+        rewrite <- (real_mult_unit r).
+        rewrite <- c123sum.
+        ring_simplify.
+        apply (real_le_le_plus_le); auto.
+        apply (real_le_le_plus_le); auto.
   Qed.
 
   (* Self-similarity with ratio 1/2 *)
@@ -365,27 +514,39 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     ball_to_subset 2 ST_initial_ball_split_3 pt.
   Proof.
     intros ptInHull ptInInit.
-    destruct ptInHull as [c1 [c2 [c3 [ptWeighted [c1Pos [c2Pos [c3Pos [c123sum c123noMiddle]]]]]]]].
+    unfold ST_initial_ball_split_1, ST_initial_ball_split_2, ST_initial_ball_split_3.
+
+    destruct ptInHull as [c1 [c2 [c3 [ptWeighted [[c1Pos [c2Pos [c3Pos c123sum]]] c123noMiddle]]]]].
+    unfold ST_weights123_no_middle in c123noMiddle. 
     destruct (split_euclidean2 pt) as [px [py pxy]].
     rewrite pxy.
+
+    destruct (ST_initial_ball) as [c r].
+    destruct (split_euclidean2 c) as [cx [cy cxy]].
+    rewrite cxy in ST_initial_ball_contains_v1, ST_initial_ball_contains_v2, ST_initial_ball_contains_v3, ST_initial_ball_radius_bound.
 
     (* simplify ptWeighted to basic arithmetic *)
     rewrite pxy in ptWeighted.
     unfold ST_weighted_pt, make_euclidean2 in ptWeighted.
-    simpl in ptWeighted.
+    destruct (split_euclidean2 ST_v1) as [v1x [v1y v1xy]].
+    destruct (split_euclidean2 ST_v2) as [v2x [v2y v2xy]].
+    destruct (split_euclidean2 ST_v3) as [v3x [v3y v3xy]].
     injection ptWeighted.
     intros pyWeighted pxWeighted.
     clear ptWeighted.
-    ring_simplify in pxWeighted.
-    ring_simplify in pyWeighted.
+
+    rewrite v1xy, v2xy, v3xy.
+    clear v1xy v2xy v3xy.
 
     (* simplify ptInInit to basic arithmetic *)
     rewrite pxy in ptInInit.
-    unfold ball_to_subset, ST_initial_ball, make_ball, euclidean_max_dist, make_euclidean2, euclidean_minus, euclidean_plus, euclidean_max_norm in ptInInit.
+    rewrite cxy in ptInInit.
+    rewrite cxy.
+    clear cxy c.
+
+    unfold ball_to_subset, make_ball, euclidean_max_dist, make_euclidean2, euclidean_minus, euclidean_plus, euclidean_opp, euclidean_max_norm in ptInInit.
     simpl in ptInInit.
     clear pxy pt.
-    ring_simplify (px + - real_0) in ptInInit.
-    ring_simplify (py + - real_0) in ptInInit.
     pose proof ptInInit as ptInInitX.
     apply real_max_le_fst_le in ptInInitX.
     pose proof ptInInit as ptInInitY.
@@ -402,49 +563,38 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply real_abs_le_neg_le in ptInInitYge.
     clear ptInInitY.
 
-    (* pick a maximal among c1, c2, c3 *)
-    destruct (real_total_order c1 c2) as [c1_le_c2|c2_le_c1].
-    apply real_lt_le in c1_le_c2.
-    (* c1 <= c2 *)
-    destruct (real_total_order c2 c3) as [c2_le_c3|c3_le_c2].
-    apply real_lt_le in c2_le_c3.
-    (* c1 <= c2 <= c3, c3 is maximal *)
-    - right. right.
+    (* pick one among c1, c2, c3 which is over 1/2 *)
+    destruct c123noMiddle as [c1big | [c2big | c3big]].
+    (* 1/2 <= c1 *)
+    - left.
+      admit.
+    (* 1/2 <= c2 *)
+    - right; left.
+      admit.
+    (* 1/2 <= c3 *)
+    - right; right.
       (* simplify to basic arithmetic *)
-      unfold ST_initial_ball_split_3, ball_to_subset, ST_initial_ball, make_ball, euclidean_max_dist, make_euclidean2, euclidean_minus, euclidean_plus, euclidean_max_norm.
+      unfold ST_initial_ball_split_3, ball_to_subset, make_ball, euclidean_max_dist, make_euclidean2, euclidean_minus, euclidean_plus, euclidean_max_norm.
       simpl.
-      ring_simplify (px + - ((real_1 + real_0) * one_half)).
-      ring_simplify (py + - ((- real_1 + real_0) * one_half)).
-      ring_simplify.
-      
+
       (* branch into real_max and abs cases *)
       apply real_max_le_le_le.
       apply real_abs_le_le_le.
 
-      unfold real_minus.
-      apply (real_le_plus_le (- one_half)) in ptInInitXle.
-      rewrite real_plus_comm in ptInInitXle.
+      ring_simplify (px + - ((v3x + cx) * one_half)).
+
+      apply (real_le_mult_pos_le (one_half)) in ptInInitXle.
+      ring_simplify (one_half * (px + - cx)) in ptInInitXle.
+
+      (* rewrite real_plus_comm in ptInInitXle.
       rewrite (real_plus_comm (- one_half)) in ptInInitXle.
       rewrite one_minus_one_half in ptInInitXle.
-      auto.
-
-      ring_simplify.
+      auto. *)
 
       (* Search (abs _ <= _). *)
 
+      (* admit. *)
       admit.
-      admit.
-    (* c1 < c2 >= c3, c2 is maximal *)
-    - right. left.
-      admit.
-    (* c2 <= c1 *)
-    - destruct (real_total_order c1 c3) as [c1_le_c3|c3_le_c1].
-      (* c2 <= c1 < c3, c3 is largest *)
-      + right. right.
-        admit.
-      (* c2 <= c1 >= c3, c1 is maximal *)
-      + left.
-      admit. 
   Admitted.
 
   Lemma ST_selfSimilar_inverse s pt :
@@ -466,8 +616,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     induction n.
     - simpl.
       apply real_max_le_le_le.
-      apply real_le_triv.
-      left. apply real_1_gt_0.
+      apply ST_initial_ball_radius_bound.
+      left; apply real_1_gt_0.
     - simpl.
       induction (STn n).
       + simpl.
@@ -505,7 +655,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       + exists ST_v1.
         unfold intersection.
         split.
-        * unfold ST_v1, ball_to_subset, euclidean_max_dist.
+        * apply ST_initial_ball_contains_v1.
+          (* unfold ST_v1, ball_to_subset, euclidean_max_dist.
           simpl.
           apply real_max_le_le_le.
           assert (- real_1 + (- real_0) = -real_1). ring.
@@ -521,7 +672,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
           right.
           rewrite abs_pos_id. auto.
           left; apply (real_1_gt_0).
-          left; apply (real_1_gt_0).
+          left; apply (real_1_gt_0). *)
         * auto.
       + apply Forall_nil.
     - simpl.
@@ -591,138 +742,10 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       intros pt spt.
 
       (* break down the assumptions *)
-      apply Exists_cons_hd.
-      destruct (insideHull pt) as [c1 [c2 [c3 [ptc123 valid123]]]]. auto.
-      pose proof (weights123_le_1 _ _ _ valid123) as [c1le1 [c2le1 c3le1]].
-      destruct valid123 as [c1pos [c2pos [c3pos [c123sum c123noMiddle]]]].
-
-      assert (real_0 <= c1 + c2) as c12pos.
-      rewrite <- (real_plus_unit real_0).
-      apply real_le_le_plus_le; auto.
-
-      assert (real_0 <= c2 + c3) as c23pos.
-      rewrite <- (real_plus_unit real_0).
-      apply real_le_le_plus_le; auto.
-
-      assert (c1 + c2 <= real_1) as c12sum.
-      apply (weights12_c1_le_1 (c1+c2) c3).
-      split; auto; split; auto; right; auto.
-  
-      assert (c2 + c3 <= real_1) as c23sum.
-      rewrite real_plus_assoc in c123sum.
-      apply (weights12_c2_le_1 c1 (c2+c3)).
-      split; auto; split; auto; right; auto.
-  
-      destruct (split_euclidean2 pt) as [px [py pxy]].
-      (* destruct (split_euclidean2 ST_v1) as [x1 [y1 _]].
-      destruct (split_euclidean2 ST_v2) as [x2 [y2 _]].
-      destruct (split_euclidean2 ST_v3) as [x3 [y3 _]]. *)  
-      rewrite pxy in ptc123.
-      unfold ST_weighted_pt in ptc123.
-      simpl in ptc123.
-      unfold make_euclidean2 in ptc123.
-      injection ptc123.
-      intros py_sum px_sum.
-
-      (* simplify the goal *)
-      rewrite pxy.
-      unfold make_ball, make_euclidean2.
-      unfold ball_to_subset, euclidean_max_dist, euclidean_minus, euclidean_plus.
-      simpl.
-      rewrite px_sum, py_sum.
-      clear px_sum py_sum pxy spt pt ptc123 px py.
-
-      (* simplify ring subexpressions in the goal *)
-      assert (c1 * - real_1 + c2 * - real_1 + c3 * real_1 + - real_0 = (- c1) + (- c2) + c3) as Temp.
-      ring. rewrite Temp; clear Temp.
-      assert (c1 * real_1 + c2 * - real_1 + c3 * - real_1 + - real_0 = c1 + (- c2) + (- c3)) as Temp.
-      ring. rewrite Temp; clear Temp.
-
-      apply real_max_le_le_le.
-      destruct (real_total_order (- c1 + - c2 + c3) real_0).
-      + rewrite abs_neg_id_neg.
-        ring_simplify.
-        unfold real_minus.
-        rewrite <- real_plus_unit.
-        rewrite (real_plus_comm real_0).
-        apply real_le_le_plus_le.
-        auto.
-        destruct c3pos as [c3pos | c3eq0].
-        left.
-        rewrite <- real_0_neg_eq.
-        apply real_lt_anti; auto.
-        right.
-        rewrite <- c3eq0.
-        apply real_0_neg_eq. 
-        auto.
-      + destruct H.
-        rewrite H.
-        assert (abs real_0 = real_0) as Temp.
-        apply abs_zero; auto.
-        rewrite Temp; clear Temp.
-        left.
-        apply real_1_gt_0.
-        rewrite abs_pos_id.
-        ring_simplify.
-        unfold real_minus.
-        rewrite <- real_plus_unit.
-        apply real_le_le_plus_le.
-        assert (- c1 + - c2 = - (c1 + c2)) as Temp.
-        ring. rewrite Temp; clear Temp.
-        destruct c12pos as [c12pos | c12eq0].
-        left.
-        rewrite <- real_0_neg_eq.
-        apply real_lt_anti; auto.
-        right.
-        rewrite <- c12eq0.
-        apply real_0_neg_eq. 
-        auto.
-        left; auto.
-      + apply real_max_le_le_le.
-        destruct (real_total_order (c1 + - c2 + - c3) real_0).
-        * rewrite abs_neg_id_neg.
-          ring_simplify.
-          rewrite real_plus_assoc.
-          rewrite <- real_plus_unit.
-          apply real_le_le_plus_le.
-          destruct c1pos as [c1pos | c1eq0].
-          left.
-          rewrite <- real_0_neg_eq.
-          apply real_lt_anti; auto.
-          right.
-          rewrite <- c1eq0.
-          apply real_0_neg_eq.
-          auto.
-          auto.
-        * destruct H.
-          rewrite H.
-          assert (abs real_0 = real_0) as Temp.
-          apply abs_zero; auto.
-          rewrite Temp; clear Temp.
-          left.
-          apply real_1_gt_0.
-
-          rewrite abs_pos_id.
-          ring_simplify.
-          unfold real_minus.
-          rewrite real_plus_assoc.
-          rewrite <- real_plus_unit.
-          rewrite (real_plus_comm real_0).
-          apply real_le_le_plus_le.
-          auto.
-          assert (- c2 + - c3 = - (c2 + c3)) as Temp.
-          ring. rewrite Temp; clear Temp.
-
-          destruct c23pos as [c23pos | c23eq0].
-          left.
-          rewrite <- real_0_neg_eq.
-          apply real_lt_anti; auto.
-          right.
-          rewrite <- c23eq0.
-          apply real_0_neg_eq. 
-          auto.
-          left; auto.
-        * left. apply real_1_gt_0.
+      apply Exists_cons_hd.      
+      destruct (insideHull pt) as [c1 [c2 [c3 [ptc123 [valid123 noMiddle123]]]]]. auto.
+      rewrite ptc123.
+      apply (ST_weighted_pt_in_init_ball c1 c2 c3). auto.
 
     - intros pt spt.
 
@@ -735,3 +758,119 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Admitted.
   
 End SierpinskiTriangle.
+
+Section ST_RightAngled.
+
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
+#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
+#[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+#[local] Notation "^ball" := (@ball types) (at level 0).
+
+(* ring structure on Real *)
+Ltac IZReal_tac t :=
+  match t with
+  | real_0 => constr:(0%Z)
+  | real_1 => constr:(1%Z)
+  | real_2 => constr:(2%Z)
+  | IZreal ?u =>
+    match isZcst u with
+    | true => u
+    | _ => constr:(InitialRing.NotConstant)
+    end
+  | _ => constr:(InitialRing.NotConstant)
+  end.
+
+Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
+
+  Definition STR_initial_ball := make_ball real_0 real_0 real_1.
+
+  Definition STR_v1 := make_euclidean2 (- real_1) real_1.
+  Definition STR_v2 := make_euclidean2 (- real_1) (- real_1).
+  Definition STR_v3 := make_euclidean2 real_1 (- real_1).
+
+  Lemma STR_initial_ball_radius_bound : snd STR_initial_ball <= real_1.
+  Proof.
+    unfold STR_initial_ball. 
+    simpl. 
+    apply real_le_triv.
+  Qed.
+
+  Definition STRn := STn STR_v1 STR_v2 STR_v3 STR_initial_ball.
+
+  (* bits needed for verification *)
+
+  Lemma STR_initial_ball_contains_v1 : ball_to_subset 2 STR_initial_ball STR_v1.
+  Proof.
+    unfold STR_initial_ball, ball_to_subset, euclidean_max_dist, make_ball, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    simpl.
+    ring_simplify (- real_1 + - real_0).
+    ring_simplify (real_1 + - real_0).
+    rewrite (abs_pos_id real_1).
+    rewrite (abs_neg_id_neg).
+    ring_simplify (- - real_1).
+
+    apply real_max_le_le_le. 
+    apply real_le_triv.
+    apply real_max_le_le_le. 
+    apply real_le_triv.
+    left. apply real_1_gt_0.
+    rewrite <- (real_0_neg_eq).
+    apply real_lt_anti.
+    apply real_1_gt_0.
+    left. apply real_1_gt_0.
+  Qed.
+  
+  Lemma STR_initial_ball_contains_v2 : ball_to_subset 2 STR_initial_ball STR_v2.
+  Proof.
+    unfold STR_initial_ball, ball_to_subset, euclidean_max_dist, make_ball, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    simpl.
+    ring_simplify (- real_1 + - real_0).
+    rewrite (abs_neg_id_neg).
+    ring_simplify (- - real_1).
+
+    apply real_max_le_le_le. 
+    apply real_le_triv.
+    apply real_max_le_le_le. 
+    apply real_le_triv.
+    left. apply real_1_gt_0.
+    rewrite <- (real_0_neg_eq).
+    apply real_lt_anti.
+    apply real_1_gt_0.
+  Qed.
+  
+  Lemma STR_initial_ball_contains_v3 : ball_to_subset 2 STR_initial_ball STR_v3.
+  Proof.
+    unfold STR_initial_ball, ball_to_subset, euclidean_max_dist, make_ball, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    simpl.
+    ring_simplify (- real_1 + - real_0).
+    ring_simplify (real_1 + - real_0).
+    rewrite (abs_pos_id real_1).
+    rewrite (abs_neg_id_neg).
+    ring_simplify (- - real_1).
+
+    apply real_max_le_le_le. 
+    apply real_le_triv.
+    apply real_max_le_le_le. 
+    apply real_le_triv.
+    left. apply real_1_gt_0.
+    rewrite <- (real_0_neg_eq).
+    apply real_lt_anti.
+    apply real_1_gt_0.
+    left. apply real_1_gt_0.
+  Qed.
+
+  Definition STR_compact := 
+    ST_compact 
+      STR_v1 STR_v2 STR_v3 STR_initial_ball
+      STR_initial_ball_radius_bound
+      STR_initial_ball_contains_v1
+      STR_initial_ball_contains_v2
+      STR_initial_ball_contains_v3
+      .
+
+End ST_RightAngled.
+

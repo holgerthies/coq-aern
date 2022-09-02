@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -cpp -XMagicHash #-}
 {- For Hugs, use the option -F"cpp -P -traditional" -}
 
-module STn where
+module STRn where
 
 import qualified Prelude
 import Prelude ((+),(-),(/))
@@ -72,8 +72,6 @@ dim_succ_destruct :: Prelude.Integer -> Euclidean -> (,) AERN2.CReal
 dim_succ_destruct n x =
   caseS' n x (\h t -> (,) h t)
 
-type Ball = (,) Euclidean AERN2.CReal
-
 split_euclidean2 :: Euclidean -> (,) AERN2.CReal AERN2.CReal
 split_euclidean2 p =
   let {x = dim_succ_destruct (Prelude.succ 0) p} in
@@ -86,6 +84,8 @@ make_euclidean2 :: AERN2.CReal -> AERN2.CReal -> Euclidean
 make_euclidean2 x y =
   Cons (Prelude.succ 0) x (Cons 0 y Nil)
 
+type Ball = (,) Euclidean AERN2.CReal
+
 make_ball :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> Ball
 make_ball x y r =
   (,) (make_euclidean2 x y) r
@@ -93,18 +93,6 @@ make_ball x y r =
 one_half :: AERN2.CReal
 one_half =
   P.recip (2 :: AERN2.CReal)
-
-sT_v1 :: Euclidean
-sT_v1 =
-  make_euclidean2 (P.negate (1 :: AERN2.CReal)) (1 :: AERN2.CReal)
-
-sT_v2 :: Euclidean
-sT_v2 =
-  make_euclidean2 (P.negate (1 :: AERN2.CReal)) (P.negate (1 :: AERN2.CReal))
-
-sT_v3 :: Euclidean
-sT_v3 =
-  make_euclidean2 (1 :: AERN2.CReal) (P.negate (1 :: AERN2.CReal))
 
 point_point_mid :: Euclidean -> Euclidean -> Euclidean
 point_point_mid p1 p2 =
@@ -121,17 +109,39 @@ point_ball_mid p b =
   case b of {
    (,) a b0 -> (,) (point_point_mid p a) ((P.*) b0 one_half)}
 
-sT_split_ball :: Ball -> ([]) Ball
-sT_split_ball b =
+sT_split_ball :: Euclidean -> Euclidean -> Euclidean -> Ball -> ([]) Ball
+sT_split_ball sT_v1 sT_v2 sT_v3 b =
   (:) (point_ball_mid sT_v1 b) ((:) (point_ball_mid sT_v2 b) ((:)
     (point_ball_mid sT_v3 b) ([])))
 
-sTn :: Prelude.Integer -> ([]) Ball
-sTn n =
+sTn :: Euclidean -> Euclidean -> Euclidean -> Ball -> Prelude.Integer -> ([])
+       Ball
+sTn sT_v1 sT_v2 sT_v3 sT_initial_ball n =
   (\fO fS n -> if n Prelude.== 0 then fO () else fS (n Prelude.- 1))
-    (\_ -> (:)
-    (make_ball (0 :: AERN2.CReal) (0 :: AERN2.CReal) (1 :: AERN2.CReal))
-    ([]))
-    (\n' -> concat (map sT_split_ball (sTn n')))
+    (\_ -> (:) sT_initial_ball ([]))
+    (\n' ->
+    concat
+      (map (sT_split_ball sT_v1 sT_v2 sT_v3)
+        (sTn sT_v1 sT_v2 sT_v3 sT_initial_ball n')))
     n
+
+sTR_initial_ball :: Ball
+sTR_initial_ball =
+  make_ball (0 :: AERN2.CReal) (0 :: AERN2.CReal) (1 :: AERN2.CReal)
+
+sTR_v1 :: Euclidean
+sTR_v1 =
+  make_euclidean2 (P.negate (1 :: AERN2.CReal)) (1 :: AERN2.CReal)
+
+sTR_v2 :: Euclidean
+sTR_v2 =
+  make_euclidean2 (P.negate (1 :: AERN2.CReal)) (P.negate (1 :: AERN2.CReal))
+
+sTR_v3 :: Euclidean
+sTR_v3 =
+  make_euclidean2 (1 :: AERN2.CReal) (P.negate (1 :: AERN2.CReal))
+
+sTRn :: Prelude.Integer -> ([]) Ball
+sTRn =
+  sTn sTR_v1 sTR_v2 sTR_v3 sTR_initial_ball
 

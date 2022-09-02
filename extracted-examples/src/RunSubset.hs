@@ -9,8 +9,8 @@ import AERN2.Real (CReal, bits, (?))
 import AERN2.MP (IsBall(centre))
 
 -- import qualified Tn as EXTR
-import qualified MTn as EXTR
--- import qualified STn as EXTR
+-- import qualified MTn as EXTR
+import qualified STRn as EXTR
 
 {-
 toJSON :: [Ball AERN2.CReal] -> Prelude.String
