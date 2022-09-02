@@ -23,6 +23,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Definition intersects (A B : euclidean_subset) := exists x, intersection A B x.
 
   Definition translation (A : euclidean_subset) (a : euclidean d ): euclidean_subset := fun x => A (euclidean_minus x a).
+  Definition scaling (l : Real )(A : euclidean_subset) : euclidean_subset := fun x => A (euclidean_scalar_mult l x).
 
   Definition is_subset (A B : euclidean_subset) := forall x, A x -> B x.
 
@@ -311,7 +312,87 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    rewrite euclidean_max_dist_sym.
    apply P.
   Defined.
-  
+
+  Fixpoint scale_list (L : list ball) l := match L with
+                               nil => nil
+                             | b :: L' => (euclidean_scalar_mult l (fst b), l * (snd b)) :: scale_list L' l
+                            end.
+
+
+  Lemma scale_diam L l: (real_0 < l) -> diam (scale_list L l) = l * diam L.
+  Proof.  
+    intros H.
+    induction L as [| b L' IH].
+    simpl;ring.
+    simpl;rewrite IH.
+    rewrite real_max_hom;auto.
+  Qed.
+
+  Lemma scale_list_in L l b: l <> real_0 -> In b L <-> In ((euclidean_scalar_mult l (fst b)),(l * snd b)) (scale_list L l).
+  Proof.
+    intros l0.
+    induction L.
+    split;auto.
+    simpl.
+    split; intros.
+    destruct H.
+    rewrite H.
+    left;auto.
+    right.
+    apply IHL;auto.
+    destruct H.
+    - left.
+      injection H.
+      intros.
+      destruct a;destruct b.
+      simpl in H0.
+      f_equal.
+      apply (euclidean_eq_scalar_mult_cancel l);auto.
+      apply (real_eq_mult_cancel _ r r0 l0);rewrite !(real_mult_comm _ l);auto.
+   - right.
+     apply IHL.
+     apply H.
+  Qed.
+
+  Lemma real_inv_neg0 (x : Real) (xneq0 : x <> real_0) : (/ xneq0) <> real_0.
+  Proof.
+     intros H.
+     apply (real_eq_mult_eq_r x) in H.
+     rewrite real_mult_inv in H.
+     ring_simplify in H.
+     apply real_1_neq_0.
+     apply H.
+  Qed.
+     
+  Lemma scale_list_in_rev L l b (lneq0 : l <> real_0) : In b (scale_list L l) <-> In ((euclidean_scalar_mult (/ lneq0) (fst b)),((/ lneq0) * snd b)) L.
+  Proof.
+
+    pose proof (scale_list_in L l ((euclidean_scalar_mult (/ lneq0) (fst b)),((/ lneq0) * snd b)) lneq0).
+    simpl in H.
+    assert (l * (/ lneq0 * snd b) = snd b) by (rewrite <-real_mult_assoc,(real_mult_comm l), real_mult_inv, real_mult_unit;auto).
+    assert (euclidean_scalar_mult l (euclidean_scalar_mult (/ lneq0) (fst b)) = fst b) by apply euclidean_scalar_mult_inv.
+    rewrite H0,H1 in H.
+    destruct b.
+    split;apply H.
+  Qed.
+
+  Lemma scale_intersects M L l  : (real_0 < l) -> Forall (fun b : ball => intersects (ball_to_subset b) M) L -> Forall (fun b : ball => intersects (ball_to_subset b) M) (scale_list L l).
+  Proof.
+    intros lgt0 H.
+    pose proof (real_gt_neq _ _ lgt0) as lneq0.
+    apply Forall_forall.
+    rewrite Forall_forall in H.
+    intros b inb.
+    pose proof (scale_list_in_rev L l b lneq0).
+    destruct (H (euclidean_scalar_mult (/ lneq0) (fst b), / lneq0 * snd b)) as [x [P1 P2]].
+    apply H0;auto.
+    exists (euclidean_scalar_mult l x).
+    split.
+    unfold ball_to_subset in P1.
+    simpl in P1.
+    unfold ball_to_subset.
+    pose proof (euclidean_max_dist_scalar_mult (euclidean_scalar_mult l x) (fst b) (/ lneq0)).
+  Admitted.
 End Subsets.
 
 
