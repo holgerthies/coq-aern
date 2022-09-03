@@ -31,9 +31,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   apply ((real_0 <= x) /\ (real_0 <= y) /\ ((x + y) <= real_1)).
   Defined.
 
-  Definition make_ball (x y r : ^Real) : ball 2 := ((make_euclidean2 x y), r).
-  
-  Definition Tn_ball (n k j :nat) : (ball 2) := make_ball (Nreal (2*k+1) * prec (S n)) (Nreal (2*j+1) * prec (S n)) (prec (S n)).
+  Definition Tn_ball (n k j :nat) : (ball 2) := make_ball2 (Nreal (2*k+1) * prec (S n)) (Nreal (2*j+1) * prec (S n)) (prec (S n)).
 
   Fixpoint Tn_col n k j l :=
   match j with
@@ -403,17 +401,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply real_eq_le; auto.
   Qed.
 
-
-  Lemma real_0_mult_le x y : real_0 <= x -> real_0 <= y -> real_0 <= x * y.
-  Proof.
-    intros.
-    destruct H.
-    replace real_0 with (x * real_0) by ring.
-    apply (real_le_mult_pos_le x real_0 y H H0).
-    rewrite <-H.
-    apply real_eq_le.
-    ring.
-  Qed.
   Lemma T_is_compact : is_compact 2 T.
   Proof.
    intro n.
@@ -499,7 +486,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply real_lt_le.
    apply (prec_pos (S n)).
    assert (real_0 <= Nreal k * prec n).
-   apply real_0_mult_le; [destruct k; [apply real_eq_le;auto |apply real_lt_le; apply Nreal_pos;lia ] | apply real_lt_le; apply prec_pos].
+   apply real_le_pos_mult_pos_pos; [destruct k; [apply real_eq_le;auto |apply real_lt_le; apply Nreal_pos;lia ] | apply real_lt_le; apply prec_pos].
    assert (Nreal k * prec n <= x).
    apply real_lt_le;apply H.
    assert (x <= Nreal (S k) * prec n).
@@ -527,7 +514,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply real_lt_le.
    apply (prec_pos (S n)).
    assert (real_0 <= Nreal j * prec n).
-   apply real_0_mult_le; [destruct j; [apply real_eq_le;auto |apply real_lt_le; apply Nreal_pos;lia ] | apply real_lt_le; apply prec_pos].
+   apply real_le_pos_mult_pos_pos; [destruct j; [apply real_eq_le;auto |apply real_lt_le; apply Nreal_pos;lia ] | apply real_lt_le; apply prec_pos].
    assert (Nreal j * prec n <= y).
    apply real_lt_le;apply H.
    assert (y <= Nreal (S j) * prec n).

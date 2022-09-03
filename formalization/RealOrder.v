@@ -1087,7 +1087,16 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     replace (z1*real_0) with (real_0) in H1 by ring; auto.
   Qed.
 
-  
+  Lemma real_le_pos_mult_pos_pos x y : real_0 <= x -> real_0 <= y -> real_0 <= x * y.
+  Proof.
+    intros.
+    destruct H, H0.
+    left; apply real_lt_pos_mult_pos_pos; auto.
+    right. rewrite <- H0. ring.
+    right. rewrite <- H. ring.
+    right. rewrite <- H. ring.
+  Qed.
+    
   Lemma real_pos_square_gt_gt : forall z1 z2 : Real, z1 > real_0 -> z2 > real_0 -> z1*z1 > z2*z2 -> z1 > z2.
   Proof.
     intros z1 z2 q p r.
@@ -1535,5 +1544,3 @@ Global Hint Resolve W_split : real.
 
 
 Global Hint Resolve Nreal_Npow2_pos prec_Npow2_unit precinv nat_bound_above IZreal_Nreal overlapping IZreal_opp IZreal_strict_monotone Nreal_monotone Nreal_strict_monotone : real.
-
-Search _ (Real -> Real).

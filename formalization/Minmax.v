@@ -449,6 +449,15 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       apply (real_le_le_le _ (abs a)); auto. apply abs_pos.
   Qed.
   
+  Lemma real_abs_cand : forall a b : Real, abs a <= b -> a <= b /\ -a <= b.
+  Proof.
+    intros a b H1.
+    pose proof H1 as H2.
+    apply real_abs_le_pos_le in H1.
+    apply real_abs_le_neg_le in H2.
+    split; auto.
+  Qed.
+  
   Lemma real_max_plus_eq : forall a b c : Real, c + real_max a b = real_max (a + c) (b + c).
   Proof.
     intros.
