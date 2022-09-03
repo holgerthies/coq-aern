@@ -362,6 +362,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     auto.
   Qed.
 
+
   Definition point_ball_mid (p : ^euclidean 2) (b : ^ball 2) : ^ball 2.
     destruct b as [bc br].
     apply (pair (point_point_mid p bc) (br * one_half)).
@@ -513,9 +514,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Definition ST_initial_ball_split_2 := point_ball_mid ST_v2 ST_initial_ball.
   Definition ST_initial_ball_split_3 := point_ball_mid ST_v3 ST_initial_ball.
 
-  Lemma ST_inside_first_split pt :
+  Lemma ST_inside_first_split' pt :
     ST_inside_hull_no_middle_pt pt ->
-    ball_to_subset 2 ST_initial_ball pt -> 
+    (* ball_to_subset 2 ST_initial_ball pt ->  *)
     ball_to_subset 2 ST_initial_ball_split_1 pt
     \/
     ball_to_subset 2 ST_initial_ball_split_2 pt
@@ -525,15 +526,14 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     (* Capture the following lemma to the context because it will not be available later directly, 
       as its variables will no longer be available after we transform the context. *)
     pose proof (ST_weighted_pt_in_init_ball) as weighted_pt_in_init_ball.
-    unfold ST_weighted_pt in weighted_pt_in_init_ball.
+    (* unfold ST_weighted_pt in weighted_pt_in_init_ball. *)
 
-    (* split pt *)
-    destruct (split_euclidean2 pt) as [px [py pxy]].
-    rewrite pxy; clear pxy pt.
 
     (* split ST_v1, ST_v2, ST_v3 *)
     unfold ST_initial_ball_split_1, ST_initial_ball_split_2, ST_initial_ball_split_3.
     unfold ST_inside_hull_no_middle_pt, ST_weighted_pt.
+
+    intro ptInHull.
 
     destruct (split_euclidean2 ST_v1) as [v1x [v1y v1xy]].
     destruct (split_euclidean2 ST_v2) as [v2x [v2y v2xy]].
@@ -541,86 +541,137 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     rewrite v1xy in ST_initial_ball_contains_v1.
     rewrite v2xy in ST_initial_ball_contains_v2.
     rewrite v3xy in ST_initial_ball_contains_v3.
-    rewrite v1xy, v2xy, v3xy.
-    clear v1xy v2xy v3xy ST_v1 ST_v2 ST_v3.
 
-    (* split ST_initial_ball *)
-    destruct (ST_initial_ball) as [c r].
-    clear ST_initial_ball.
-
-    rename ST_initial_ball_radius_bound into rLe1.
-    simpl in rLe1.
-
-    (* split c *)
-    destruct (split_euclidean2 c) as [cx [cy cxy]].
-    rewrite cxy in ST_initial_ball_contains_v1, ST_initial_ball_contains_v2, ST_initial_ball_contains_v3.
-    rewrite cxy in weighted_pt_in_init_ball.
-    rewrite cxy.
-    clear cxy c.
-
-    (* simplify: cx cy inside initial ball *)
-    destruct (split_ball_to_subset2 _ _ _ _ _ ST_initial_ball_contains_v1) as [v1cx v1cy].
-    destruct (split_ball_to_subset2 _ _ _ _ _ ST_initial_ball_contains_v2) as [v2cx v2cy].
-    destruct (split_ball_to_subset2 _ _ _ _ _ ST_initial_ball_contains_v3) as [v3cx v3cy].
-    clear ST_initial_ball_contains_v1 ST_initial_ball_contains_v2 
-ST_initial_ball_contains_v3.
+    (* split pt *)
+    destruct (split_euclidean2 pt) as [px [py pxy]].
+    rewrite pxy in ptInHull.
 
     (* process hypothesis: pt in hull *)
-    intro ptInHull.
     destruct ptInHull as [c1 [c2 [c3 [ptWeighted [[c1Pos [c2Pos [c3Pos c123sum]]] c123noMiddle]]]]].
     injection ptWeighted.
     intros pyWeighted pxWeighted.
     clear ptWeighted.
 
-    unfold ST_weights123_no_middle in c123noMiddle. 
-
-    intros ptInInit.
-    destruct (split_ball_to_subset2 _ _ _ _ _ ptInInit) as [ptInInitX ptInInitY].
-    clear ptInInit.
-
-    (* simplify goal *)
-    unfold ball_to_subset, point_ball_mid, euclidean_max_dist.
-    simpl.
-
-    (* pose proof ptInInitX as ptInInitXle.
-    apply real_abs_le_pos_le in ptInInitXle.
-    pose proof ptInInitX as ptInInitXge.
-    apply real_abs_le_neg_le in ptInInitXge.
-    clear ptInInitX.
-    pose proof ptInInitY as ptInInitYle.
-    apply real_abs_le_pos_le in ptInInitYle.
-    pose proof ptInInitY as ptInInitYge.
-    apply real_abs_le_neg_le in ptInInitYge.
-    clear ptInInitY. *)
-
-    (* some mini helpers *)
-    assert (real_0 <= r) as rPos.
-    apply (real_le_le_le _ (abs (py + - cy))); auto.
-    apply abs_pos.
-
-    assert (forall t, t * one_half * real_2 = t) as th2.
-    intro t. rewrite real_mult_assoc. rewrite one_half_times_2. ring.
-
     (* pick one among c1, c2, c3 which is over 1/2 *)
     destruct c123noMiddle as [c1big | [c2big | c3big]].
+
     (* 1/2 <= c1 *)
     - left.
-      admit.
+      (* define pt' and pt shifted away from ST_v1 by 2 *)
+      pose (real_2 * c1 - real_1) as c1'.
+      pose (real_2 * c2) as c2'.
+      pose (real_2 * c3) as c3'.
+      pose (ST_weighted_pt c1' c2' c3') as pt'.
+
+      assert (ST_weights123_valid c1' c2' c3') as pt'Valid.
+        split.       
+        unfold c1', real_minus.
+        rewrite real_plus_comm.
+        assert (real_0 = - real_1 + real_1) as Temp.
+        ring. rewrite Temp. clear Temp.
+        apply real_le_plus_le.
+        rewrite <- one_half_times_2.
+        rewrite real_mult_comm.
+        apply real_le_mult_pos_le.
+        apply real_2_pos.
+        auto.
+
+        split. apply real_le_pos_mult_pos_pos; auto.
+        left; apply real_2_pos.
+        split.
+        apply real_le_pos_mult_pos_pos; auto.
+        left; apply real_2_pos.
+
+        unfold c1', c2', c3', real_2.
+        rewrite <- c123sum.
+        ring.
+
+      pose proof (weighted_pt_in_init_ball _ _ _ pt'Valid) as pt'inInit.
+      fold pt' in pt'inInit.
+
+      assert (pt' = point_point_away ST_v1 pt) as ptpt'.
+      unfold point_point_away. 
+      unfold pt', ST_weighted_pt, make_euclidean2. simpl.
+      rewrite pxy, v1xy, v2xy, v3xy. simpl.
+      rewrite pxWeighted, pyWeighted.
+      unfold c1', c2', c3', real_2, real_minus.
+      f_equal. ring.
+      f_equal. ring.
+
+      rewrite (point_point_away_mid_id ST_v1 pt).
+      rewrite <- ptpt'.
+
+      apply (point_point_mid_in_ball_mid ST_v1 ST_initial_ball pt').
+      auto.
+
     (* 1/2 <= c2 *)
     - right; left.
-      admit.
+
+      (* define pt' and pt shifted away from ST_v2 by 2 *)
+      pose (real_2 * c1) as c1'.
+      pose (real_2 * c2 - real_1) as c2'.
+      pose (real_2 * c3) as c3'.
+      pose (ST_weighted_pt c1' c2' c3') as pt'.
+
+      assert (ST_weights123_valid c1' c2' c3') as pt'Valid.
+        split. apply real_le_pos_mult_pos_pos; auto.
+        left; apply real_2_pos.
+        split.
+
+        unfold c2', real_minus.
+        rewrite real_plus_comm.
+        assert (real_0 = - real_1 + real_1) as Temp.
+        ring. rewrite Temp. clear Temp.
+        apply real_le_plus_le.
+        rewrite <- one_half_times_2.
+        rewrite real_mult_comm.
+        apply real_le_mult_pos_le.
+        apply real_2_pos.
+        auto.
+
+        split.
+        apply real_le_pos_mult_pos_pos; auto.
+        left; apply real_2_pos.
+
+        unfold c1', c2', c3', real_2.
+        rewrite <- c123sum.
+        ring.
+
+      pose proof (weighted_pt_in_init_ball _ _ _ pt'Valid) as pt'inInit.
+      fold pt' in pt'inInit.
+
+      assert (pt' = point_point_away ST_v2 pt) as ptpt'.
+      unfold point_point_away. 
+      unfold pt', ST_weighted_pt, make_euclidean2. simpl.
+      rewrite pxy, v1xy, v2xy, v3xy. simpl.
+      rewrite pxWeighted, pyWeighted.
+      unfold c1', c2', c3', real_2, real_minus.
+      f_equal. ring.
+      f_equal. ring.
+
+      rewrite (point_point_away_mid_id ST_v2 pt).
+      rewrite <- ptpt'.
+
+      apply (point_point_mid_in_ball_mid ST_v2 ST_initial_ball pt').
+      auto.
+
     (* 1/2 <= c3 *)
     - right; right.
 
-      (* define pt2 and pt shifted away from ST_v3 by 2 *)
-      assert (ST_weights123_valid (real_2 * c1) (real_2 * c2) (real_2*c3 - real_1)) as pt2Valid.
+      (* define pt' and pt shifted away from ST_v3 by 2 *)
+      pose (real_2 * c1) as c1'.
+      pose (real_2 * c2) as c2'.
+      pose (real_2 * c3 - real_1) as c3'.
+      pose (ST_weighted_pt c1' c2' c3') as pt'.
+
+      assert (ST_weights123_valid c1' c2' c3') as pt'Valid.
       split. apply real_le_pos_mult_pos_pos; auto.
       left; apply real_2_pos.
       split.
       apply real_le_pos_mult_pos_pos; auto.
       left; apply real_2_pos.
       split.
-      unfold real_minus.
+      unfold c3', real_minus.
       rewrite real_plus_comm.
       assert (real_0 = - real_1 + real_1) as Temp.
       ring. rewrite Temp. clear Temp.
@@ -630,52 +681,29 @@ ST_initial_ball_contains_v3.
       apply real_le_mult_pos_le.
       apply real_2_pos.
       auto.
+      unfold c1', c2', c3', real_2.
       rewrite <- c123sum.
-      unfold real_2.
       ring.
 
-      pose proof (weighted_pt_in_init_ball _ _ _ pt2Valid) as pt2inInit.
-      destruct (split_ball_to_subset2 _ _ _ _ _ pt2inInit) as [pt2InInitX pt2InInitY].
-      clear pt2inInit weighted_pt_in_init_ball pt2Valid.
+      pose proof (weighted_pt_in_init_ball _ _ _ pt'Valid) as pt'inInit.
+      fold pt' in pt'inInit.
 
-      (* branch into real_max cases *)
-      apply real_max_le_le_le.
-      ring_simplify (px + - ((v3x + cx) * one_half)).
-      rewrite pxWeighted.
-      assert (c1 * v1x + c2 * v2x + c3 * v3x - v3x * one_half - cx * one_half 
-           =  ((real_2 * c1) * v1x + (real_2 * c2) * v2x + (real_2 * c3 - real_1) * v3x + - cx) * one_half) as Temp.
-      + ring_simplify.
-        repeat rewrite th2. auto.
-      + rewrite Temp; clear Temp. 
-        rewrite abs_mult.
-        rewrite (abs_pos_id one_half).
-        rewrite (real_mult_comm _ one_half).
-        rewrite (real_mult_comm _ one_half).
-        apply real_le_mult_pos_le.
-        apply one_half_pos.
+      assert (pt' = point_point_away ST_v3 pt) as ptpt'.
+      unfold point_point_away. 
+      unfold pt', ST_weighted_pt, make_euclidean2. simpl.
+      rewrite pxy, v1xy, v2xy, v3xy. simpl.
+      rewrite pxWeighted, pyWeighted.
+      unfold c1', c2', c3', real_2, real_minus.
+      f_equal. ring.
+      f_equal. ring.
 
-        auto.
-        left. apply one_half_pos.
-      + apply real_max_le_le_le.
-        ring_simplify (py + - ((v3y + cy) * one_half)).
-        rewrite pyWeighted.
-        assert (c1 * v1y + c2 * v2y + c3 * v3y - v3y * one_half - cy * one_half 
-            =  ((real_2 * c1) * v1y + (real_2 * c2) * v2y + (real_2 * c3 - real_1) * v3y + - cy) * one_half) as Temp.
-        * ring_simplify.
-          repeat rewrite th2. auto.
-        * rewrite Temp; clear Temp. 
-          rewrite abs_mult.
-          rewrite (abs_pos_id one_half).
-          rewrite (real_mult_comm _ one_half).
-          rewrite (real_mult_comm _ one_half).
-          apply real_le_mult_pos_le.
-          apply one_half_pos.
+      rewrite (point_point_away_mid_id ST_v3 pt).
+      rewrite <- ptpt'.
 
-          auto.
-          left. apply one_half_pos.
-        * apply real_le_pos_mult_pos_pos; auto.
-          left; apply one_half_pos.
-  Admitted.
+      apply (point_point_mid_in_ball_mid ST_v3 ST_initial_ball pt').
+      auto.
+  Qed.
+    
 
   Lemma ST_selfSimilar_inverse s pt :
     ST_selfSimilar s -> ST_inside_hull_no_middle s -> s pt -> 
