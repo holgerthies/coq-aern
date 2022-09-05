@@ -31,7 +31,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   apply ((real_0 <= x) /\ (real_0 <= y) /\ ((x + y) <= real_1)).
   Defined.
 
-  Definition make_ball2 (x y radius : ^Real) : (@ball types 2) := ((make_euclidean2 x y), radius).
 
   Definition Tn_ball (n k j :nat) : (ball 2) := make_ball2 (Nreal (2*k+1) * prec (S n)) (Nreal (2*j+1) * prec (S n)) (prec (S n)).
 
@@ -594,3 +593,5 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply is_compact_union;[apply is_compact_union |];(apply is_compact_translation;apply is_compact_scale_down;apply IHn).
  Defined.
 End SimpleTriangle.
+
+
