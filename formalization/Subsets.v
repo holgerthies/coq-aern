@@ -23,7 +23,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Definition intersects (A B : euclidean_subset) := exists x, intersection A B x.
 
   Definition translation (A : euclidean_subset) (a : euclidean d ): euclidean_subset := fun x => A (euclidean_minus x a).
-  Definition scaling (l : Real )(A : euclidean_subset) : euclidean_subset := fun x => A (euclidean_scalar_mult l x).
+  Definition scaling (l : Real )(A : euclidean_subset) : euclidean_subset := fun x => exists y, x = (euclidean_scalar_mult l y) /\ A y.
 
   Definition is_subset (A B : euclidean_subset) := forall x, A x -> B x.
 
@@ -354,16 +354,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      apply H.
   Qed.
 
-  Lemma real_inv_neg0 (x : Real) (xneq0 : x <> real_0) : (/ xneq0) <> real_0.
-  Proof.
-     intros H.
-     apply (real_eq_mult_eq_r x) in H.
-     rewrite real_mult_inv in H.
-     ring_simplify in H.
-     apply real_1_neq_0.
-     apply H.
-  Qed.
-     
   Lemma scale_list_in_rev L l b (lneq0 : l <> real_0) : In b (scale_list L l) <-> In ((euclidean_scalar_mult (/ lneq0) (fst b)),((/ lneq0) * snd b)) L.
   Proof.
 
@@ -376,7 +366,28 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     split;apply H.
   Qed.
 
-  Lemma scale_intersects M L l  : (real_0 < l) -> Forall (fun b : ball => intersects (ball_to_subset b) M) L -> Forall (fun b : ball => intersects (ball_to_subset b) M) (scale_list L l).
+  Lemma real_inv_neq0 (x : Real) (xneq0 : x <> real_0) : (/ xneq0) <> real_0.
+  Proof.
+     intros H.
+     apply (real_eq_mult_eq_r x) in H.
+     rewrite real_mult_inv in H.
+     ring_simplify in H.
+     apply real_1_neq_0.
+     apply H.
+  Qed.
+     
+  Lemma real_le_mult_pos_cancel z z1 z2 : z > real_0 -> z1*z <= z2*z ->  z1 <= z2.
+  Proof.
+    intros.
+    destruct H0.
+    apply real_lt_le.
+    apply (real_lt_mult_pos_cancel z);auto.
+    apply real_eq_le.
+    apply (real_eq_mult_cancel z);auto.
+    apply real_gt_neq;auto.
+  Qed.
+
+  Lemma scale_intersects M L l  : (real_0 < l) -> Forall (fun b : ball => intersects (ball_to_subset b) M) L -> Forall (fun b : ball => intersects (ball_to_subset b) (scaling l M)) (scale_list L l).
   Proof.
     intros lgt0 H.
     pose proof (real_gt_neq _ _ lgt0) as lneq0.
@@ -388,31 +399,119 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply H0;auto.
     exists (euclidean_scalar_mult l x).
     split.
-    unfold ball_to_subset in P1.
-    simpl in P1.
-    unfold ball_to_subset.
-    pose proof (euclidean_max_dist_scalar_mult (euclidean_scalar_mult l x) (fst b) (/ lneq0)).
-  Admitted.
+    - unfold ball_to_subset in P1.
+      simpl in P1.
+      unfold ball_to_subset.
+      pose proof (euclidean_max_dist_scalar_mult (euclidean_scalar_mult l x) (fst b) (/ lneq0)).
+      assert (/ lneq0 > real_0) by  (apply real_pos_inv_pos;auto).
+      apply (real_le_mult_pos_cancel (/ lneq0));auto.
+      rewrite real_mult_comm.
+      rewrite <-H1;auto.
+      pose proof (real_gt_neq _ _ H2) as dlneq0.
+      assert (l = / dlneq0 ).
+      {
+        apply (real_eq_mult_cancel _ _ _ dlneq0).
+        rewrite real_mult_inv, real_mult_comm, real_mult_inv.
+        auto.
+      }
+      replace (euclidean_scalar_mult l x) with (euclidean_scalar_mult (/ dlneq0) x) by (rewrite <-H3;auto).
+      rewrite euclidean_scalar_mult_inv.
+      rewrite real_mult_comm;auto.
+   - exists x;auto.
+  Qed.
+
+
+  Lemma is_compact_scale_down M k : is_compact M -> is_compact (scaling (prec k) M).
+  Proof.
+    intros Mc n.
+    destruct (Mc (n-k)%nat) as [L [Lp1 [Lp2 Lp3]]].
+    exists (scale_list L (prec k)).
+    split; [|split].
+    - rewrite scale_diam; [|apply prec_pos].
+      apply (real_le_le_le _ ((prec k) * prec (n - k))).
+      apply real_le_mult_pos_le; [apply prec_pos | auto].
+      rewrite <- prec_hom.
+      destruct (Nat.lt_ge_cases n k).
+      pose proof (Nat.sub_0_le n k) as [H1 H2].
+      rewrite H2; [|lia].
+      apply real_lt_le.
+      apply prec_monotone.
+      lia.
+      rewrite le_plus_minus_r; [apply real_eq_le;auto|lia].
+  - apply scale_intersects;auto.
+    apply prec_pos.
+  - intros x H.
+    assert (M (euclidean_scalar_mult (Nreal (Npow2 k)) x)) as My.
+    {
+      destruct H as [y [P1 P2]].
+      rewrite P1.
+      rewrite euclidean_scalar_mult_mult.
+      rewrite real_mult_comm.
+      rewrite prec_Npow2_unit.
+      rewrite euclidean_scalar_mult_unit;auto.
+    }
+    pose proof (Lp3 (euclidean_scalar_mult (Nreal (Npow2 k)) x) My) as Lp3'.
+    rewrite Exists_exists in Lp3'.
+    destruct Lp3' as [b [inb B]].
+    apply Exists_exists.
+    exists (((euclidean_scalar_mult (prec k) (fst b))), (prec k * snd b)).
+    split.
+    apply scale_list_in;auto.
+    apply real_gt_neq.
+    apply prec_pos.
+    unfold ball_to_subset;simpl.
+    replace x with (euclidean_scalar_mult (prec k) (euclidean_scalar_mult (Nreal (Npow2 k)) x)).
+    rewrite euclidean_max_dist_scalar_mult; [|apply prec_pos].
+    apply real_le_mult_pos_le;auto;apply prec_pos.
+    rewrite euclidean_scalar_mult_mult.
+    rewrite prec_Npow2_unit.
+    apply euclidean_scalar_mult_unit.
+ Defined.
+
+
+  Lemma is_compact_scale_up M k : is_compact M -> is_compact (scaling (Nreal (Npow2 k)) M).
+  Proof.
+    intros Mc n.
+    destruct (Mc (n+k)%nat) as [L [Lp1 [Lp2 Lp3]]].
+    exists (scale_list L (Nreal (Npow2 k))).
+    split; [|split].
+    - rewrite scale_diam; [|apply Nreal_Npow2_pos].
+      apply (real_le_le_le _ (Nreal (Npow2 k) * prec (n + k))).
+      apply real_le_mult_pos_le; [apply Nreal_Npow2_pos | auto].
+      rewrite prec_hom.
+      rewrite (real_mult_comm (prec n)), <-real_mult_assoc, (real_mult_comm _ (prec k)).
+      rewrite prec_Npow2_unit, real_mult_unit.
+      apply real_eq_le;auto.
+  - apply scale_intersects;auto.
+    apply Nreal_Npow2_pos.
+  - intros x H.
+    assert (M (euclidean_scalar_mult (prec k) x)) as My.
+    {
+      destruct H as [y [P1 P2]].
+      rewrite P1.
+      rewrite euclidean_scalar_mult_mult.
+      rewrite prec_Npow2_unit.
+      rewrite euclidean_scalar_mult_unit;auto.
+    }
+    pose proof (Lp3 (euclidean_scalar_mult (prec k) x) My) as Lp3'.
+    rewrite Exists_exists in Lp3'.
+    destruct Lp3' as [b [inb B]].
+    apply Exists_exists.
+    exists (((euclidean_scalar_mult (Nreal (Npow2 k)) (fst b))), ((Nreal (Npow2 k)) * snd b)).
+    split.
+    apply scale_list_in;auto.
+    apply real_gt_neq.
+    apply Nreal_Npow2_pos.
+    unfold ball_to_subset;simpl.
+    replace x with (euclidean_scalar_mult (Nreal (Npow2 k)) (euclidean_scalar_mult (prec k) x)).
+    rewrite euclidean_max_dist_scalar_mult; [|apply Nreal_Npow2_pos].
+    apply real_le_mult_pos_le;auto;apply Nreal_Npow2_pos.
+    rewrite euclidean_scalar_mult_mult.
+    rewrite real_mult_comm.
+    rewrite prec_Npow2_unit.
+    apply euclidean_scalar_mult_unit.
+Defined.
 End Subsets.
 
-Section SubsetsR2.
-
-Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
-#[local] Notation "^Real" := (@Real types) (at level 0).
-
-  Definition make_ball2 (x y r : ^Real) : ball 2 := ((make_euclidean2 x y), r).
-  
-  Lemma split_ball_to_subset2 (b_x b_y r x y : ^Real) : 
-    ball_to_subset 2 (Euclidean.cons b_x (Euclidean.cons b_y Euclidean.nil), r) (Euclidean.cons x (Euclidean.cons y Euclidean.nil)) -> 
-    abs(x + - b_x) <= r /\
-    abs(y + - b_y) <= r.
-  Proof.
-    intro HX.
-    pose proof HX as HY.
-    apply real_max_le_fst_le in HX.
-    apply real_max_le_snd_le, real_max_le_fst_le in HY.
-    split; auto. 
-  Qed.  
-End SubsetsR2.
 
  

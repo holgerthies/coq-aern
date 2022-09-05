@@ -170,6 +170,26 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      exact (cons (l * x0) (IHn x1)).
   Defined.
 
+  Lemma euclidean_scalar_mult_mult {n : nat} (l1 : ^Real) (l2 : ^Real) (x : euclidean n) : euclidean_scalar_mult l1 (euclidean_scalar_mult l2 x) = euclidean_scalar_mult (l1*l2) x.
+  Proof.
+    induction n; auto.
+    destruct (dim_succ_destruct x) as [hx [tx ex]].
+    rewrite ex.
+    simpl.
+    f_equal.
+    ring.
+    apply IHn.
+
+  Qed.
+  Lemma euclidean_scalar_mult_unit {n : nat} (x : euclidean n) : euclidean_scalar_mult real_1 x = x.
+  Proof.
+    induction n.
+    rewrite (dim_zero_destruct x);auto.
+    destruct (dim_succ_destruct x) as [hx [tx ->]].
+    simpl;f_equal.
+    ring.
+    apply IHn.
+  Qed.
   Lemma euclidean_eq_scalar_mult_cancel {n : nat} l (x y : euclidean n) : l <> real_0 -> euclidean_scalar_mult l x = euclidean_scalar_mult l y -> x = y.
   Proof.
     intros lneq0.
