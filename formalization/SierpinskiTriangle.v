@@ -917,7 +917,7 @@ Ltac IZReal_tac t :=
   match t with
   | real_0 => constr:(0%Z)
   | real_1 => constr:(1%Z)
-  | real_2 => constr:(2%Z)
+  | IZreal 2%Z => constr:(2%Z)
   | IZreal ?u =>
     match isZcst u with
     | true => u
@@ -1015,4 +1015,135 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
       .
 
 End ST_RightAngled.
+
+Section ST_Equilateral.
+
+Require Import sqrt.
+
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+#[local] Notation "^Real" := (@Real types) (at level 0).
+#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
+#[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+#[local] Notation "^ball" := (@ball types) (at level 0).
+
+(* ring structure on Real *)
+Ltac IZReal_tac t :=
+  match t with
+  | real_0 => constr:(0%Z)
+  | real_1 => constr:(1%Z)
+  | real_2 => constr:(2%Z)
+  | IZreal ?u =>
+    match isZcst u with
+    | true => u
+    | _ => constr:(InitialRing.NotConstant)
+    end
+  | _ => constr:(InitialRing.NotConstant)
+  end.
+
+Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
+
+  Definition STE_initial_ball := make_ball2 real_0 real_0 real_1.
+
+  Lemma real_lt_0_3 : (IZreal 3) > real_0.
+  Proof.
+    assert (IZreal 3 = IZreal 2 + real_1) as Temp. ring.
+    rewrite Temp; clear Temp.
+    rewrite <- (real_plus_unit real_0).
+    apply real_lt_lt_plus_lt.
+    apply real_lt_0_2.
+    apply real_1_gt_0.
+  Qed.
+
+  Definition real_sqrt_3 : ^Real.
+    assert (IZreal 3 >= real_0) as ge0.
+    left. apply real_lt_0_3.
+    pose proof (sqrt (IZreal 3) ge0) as Res.
+    destruct Res as [R _].
+    apply R.
+  Qed.
+
+  Definition STE_v1 := make_euclidean2 (- real_1) (- real_1).
+  Definition STE_v2 := make_euclidean2 (real_1) (- real_1).
+  Definition STE_v3 := make_euclidean2 real_0 (real_sqrt_3 - real_1).
+
+  Lemma STE_initial_ball_radius_bound : snd STE_initial_ball <= real_1.
+  Proof.
+    unfold STR_initial_ball. 
+    simpl. 
+    apply real_le_triv.
+  Qed.
+
+  Definition STEn := STn STE_v1 STE_v2 STE_v3 STE_initial_ball.
+
+  (* bits needed for verification *)
+
+  Lemma STE_initial_ball_contains_v1 : ball_to_subset 2 STE_initial_ball STE_v1.
+  Proof.
+    unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    simpl.
+    ring_simplify (- real_1 + - real_0).
+    rewrite (abs_neg_id_neg).
+    ring_simplify (- - real_1).
+
+    apply real_max_le_le_le. 
+    apply real_le_triv.
+    apply real_max_le_le_le. 
+    apply real_le_triv.
+    left. apply real_1_gt_0.
+    rewrite <- (real_0_neg_eq).
+    apply real_lt_anti.
+    apply real_1_gt_0.
+  Qed.
+  
+  Lemma STE_initial_ball_contains_v2 : ball_to_subset 2 STE_initial_ball STE_v2.
+  Proof.
+    unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    simpl.
+    ring_simplify (- real_1 + - real_0).
+    ring_simplify (real_1 + - real_0).
+    rewrite (abs_pos_id real_1).
+    rewrite (abs_neg_id_neg).
+    ring_simplify (- - real_1).
+
+    apply real_max_le_le_le. 
+    apply real_le_triv.
+    apply real_max_le_le_le. 
+    apply real_le_triv.
+    left. apply real_1_gt_0.
+    rewrite <- (real_0_neg_eq).
+    apply real_lt_anti.
+    apply real_1_gt_0.
+    left. apply real_1_gt_0.
+  Qed.
+  
+  Lemma STE_initial_ball_contains_v3 : ball_to_subset 2 STE_initial_ball STE_v3.
+  Proof.
+    unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    simpl.
+    apply real_max_le_le_le.
+    rewrite abs_pos_id.
+    left.
+    ring_simplify (real_0 + - real_0).
+    apply real_1_gt_0.
+    right.
+    ring.
+
+    ring_simplify (real_sqrt_3 - real_1 + - real_0). 
+    apply real_max_le_le_le.
+    rewrite abs_pos_id.
+  Admitted.
+
+  Definition STE_compact := 
+    ST_compact 
+      STE_v1 STE_v2 STE_v3 STE_initial_ball
+      STE_initial_ball_radius_bound
+      STE_initial_ball_contains_v1
+      STE_initial_ball_contains_v2
+      STE_initial_ball_contains_v3
+      .
+
+End ST_Equilateral.
 

@@ -280,6 +280,8 @@ Extraction Implicit euclidean_zero [ types casofReal ].
 Extraction Implicit euclidean_opp [ types casofReal ].
 Extraction Implicit euclidean_plus [ types casofReal ].
 Extraction Implicit euclidean_minus [ types casofReal ].
+Extraction Implicit caseS' [ types ].
+Extraction Implicit dim_succ_destruct [ types ].
 
 (* sqrt *)
 Require Import sqrt.
@@ -301,6 +303,12 @@ Extraction Implicit complex_nonzero_cases [ types casofReal ].
 
 (* Extraction "CSqrt" csqrt. *)
 
+Require Import Subsets.
+
+Extraction Implicit split_euclidean2 [ types ].
+Extraction Implicit make_euclidean2 [ types ].
+Extraction Implicit make_ball2 [ types ].
+
 Require Import simpletriangle.
 Extraction Implicit Tn_ball [ types casofReal ].
 Extraction Implicit Tn_col [ types casofReal ].
@@ -312,11 +320,6 @@ Extraction Implicit multi_triangles_compact [ types casofReal ].
 (* Extraction "MTn" multi_triangles_compact. *)
 
 Require Import SierpinskiTriangle.
-Extraction Implicit caseS' [ types ].
-Extraction Implicit dim_succ_destruct [ types ].
-Extraction Implicit split_euclidean2 [ types ].
-Extraction Implicit make_euclidean2 [ types ].
-Extraction Implicit make_ball [ types ].
 Extraction Implicit one_half [ types casofReal ].
 Extraction Implicit point_point_mid [ types casofReal ].
 Extraction Implicit point_ball_mid [ types casofReal ].
@@ -328,7 +331,15 @@ Extraction Implicit STR_v1 [ types casofReal ].
 Extraction Implicit STR_v2 [ types casofReal ].
 Extraction Implicit STR_v3 [ types casofReal ].
 Extraction Implicit STRn [ types casofReal ].
-Extraction "STRn" STRn.
+(* Extraction "STRn" STRn. *)
+
+Extraction Implicit real_sqrt_3 [ types casofReal ].
+Extraction Implicit STE_initial_ball [ types casofReal ].
+Extraction Implicit STE_v1 [ types casofReal ].
+Extraction Implicit STE_v2 [ types casofReal ].
+Extraction Implicit STE_v3 [ types casofReal ].
+Extraction Implicit STEn [ types casofReal ].
+Extraction "STEn" STEn.
                
 (* Require Import Nabla. *)
 
