@@ -524,10 +524,6 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* Tools for coverage derived from self-similarity *)
 
-  Definition ST_initial_ball_split_1 := point_ball_mid ST_v1 ST_initial_ball.
-  Definition ST_initial_ball_split_2 := point_ball_mid ST_v2 ST_initial_ball.
-  Definition ST_initial_ball_split_3 := point_ball_mid ST_v3 ST_initial_ball.
-
   Lemma ST_selfSimilar_inverse_pt pt :
     ST_inside_hull_no_middle_pt pt ->
     (* ball_to_subset 2 ST_initial_ball pt ->  *)
@@ -538,7 +534,6 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     ST_inside_hull_pt (point_point_away ST_v3 pt).
   Proof.
     (* split ST_v1, ST_v2, ST_v3 *)
-    unfold ST_initial_ball_split_1, ST_initial_ball_split_2, ST_initial_ball_split_3.
     unfold ST_inside_hull_no_middle_pt, ST_weighted_pt.
 
     intro ptInHull.
@@ -1047,27 +1042,73 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   Definition STE_initial_ball := make_ball2 real_0 real_0 real_1.
 
-  Lemma real_lt_0_3 : (IZreal 3) > real_0.
+  Lemma real_3_pos : (IZreal 3) > real_0.
   Proof.
     assert (IZreal 3 = IZreal 2 + real_1) as Temp. ring.
     rewrite Temp; clear Temp.
     rewrite <- (real_plus_unit real_0).
     apply real_lt_lt_plus_lt.
-    apply real_lt_0_2.
+    apply real_2_pos.
     apply real_1_gt_0.
   Qed.
 
-  Definition real_sqrt_3 : ^Real.
+   
+
+  Definition sqrt_3_exists : {y : ^Real | real_0 <= y /\ y * y = IZreal 3}.
     assert (IZreal 3 >= real_0) as ge0.
-    left. apply real_lt_0_3.
-    pose proof (sqrt (IZreal 3) ge0) as Res.
+    left. apply real_3_pos.
+    apply (sqrt (IZreal 3) ge0).
+  Defined.
+
+  Definition sqrt_3 : ^Real.
+    pose proof sqrt_3_exists as Res.
     destruct Res as [R _].
     apply R.
+  Defined.
+
+  Lemma sqrt_3_pos : sqrt_3 > real_0.
+  Proof.
+    unfold sqrt_3.
+    destruct sqrt_3_exists as [s3 [leq sqr]].
+    destruct leq; auto.
+    rewrite <- H in sqr.
+    contradict sqr.
+    ring_simplify (real_0 * real_0).
+    apply real_lt_neq.
+    apply real_3_pos.
+  Qed.
+
+  Lemma sqrt_3_lt_2 : sqrt_3 < real_2.
+  Proof.
+    apply real_pos_square_gt_gt.
+    apply real_2_pos.
+    apply sqrt_3_pos.
+    unfold sqrt_3.
+    destruct sqrt_3_exists as [s3 [leq sqr]].
+    rewrite sqr.
+    unfold real_2.
+    rewrite <- IZreal_mult_hom.
+    apply IZreal_strict_monotone.
+    lia.
+  Qed.
+
+  Lemma sqrt_3_gt_1 : real_1 < sqrt_3.
+  Proof.
+    apply real_pos_square_gt_gt.
+    apply sqrt_3_pos.
+    apply real_1_gt_0.
+    unfold sqrt_3.
+    destruct sqrt_3_exists as [s3 [leq sqr]].
+    rewrite sqr.
+    assert (real_1 * real_1 = IZreal 1) as T.
+    ring. rewrite T; clear T.
+    apply IZreal_strict_monotone.
+    lia.
   Qed.
 
   Definition STE_v1 := make_euclidean2 (- real_1) (- real_1).
   Definition STE_v2 := make_euclidean2 (real_1) (- real_1).
-  Definition STE_v3 := make_euclidean2 real_0 (real_sqrt_3 - real_1).
+  Definition STE_v3 := make_euclidean2 real_0 (sqrt_3 - real_1).
 
   Lemma STE_initial_ball_radius_bound : snd STE_initial_ball <= real_1.
   Proof.
@@ -1131,11 +1172,20 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     right.
     ring.
 
-    ring_simplify (real_sqrt_3 - real_1 + - real_0). 
+    ring_simplify (sqrt_3 - real_1 + - real_0). 
     apply real_max_le_le_le.
     rewrite abs_pos_id.
-  Admitted.
+    apply (real_le_add_r real_1).
+    left.
+    ring_simplify; apply sqrt_3_lt_2.
 
+    apply (real_le_add_r real_1).
+    ring_simplify.
+    left. apply sqrt_3_gt_1.
+
+    left. apply real_1_gt_0.
+  Qed.
+  
   Definition STE_compact := 
     ST_compact 
       STE_v1 STE_v2 STE_v3 STE_initial_ball
