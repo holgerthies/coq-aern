@@ -581,7 +581,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    pose proof (scaling 2 (prec 1) IHn) as T.
    apply union.
    apply union.
-   apply (translation 2 T (make_euclidean2 (- (prec 1)) real_0)).
+   apply T.
    apply (translation 2 T (make_euclidean2 ((prec 1)) real_0)).
    apply (translation 2 T (make_euclidean2 real_0 (prec 1))).
  Defined.
@@ -590,7 +590,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
  Proof.
    induction n.
    apply T_is_compact.
-   apply is_compact_union;[apply is_compact_union |];(apply is_compact_translation;apply is_compact_scale_down;apply IHn).
+
+   apply is_compact_union;[apply is_compact_union |];(try apply is_compact_translation;apply is_compact_scale_down;apply IHn).
  Defined.
 End SimpleTriangle.
 
