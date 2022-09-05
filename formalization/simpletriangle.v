@@ -31,6 +31,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   apply ((real_0 <= x) /\ (real_0 <= y) /\ ((x + y) <= real_1)).
   Defined.
 
+  Definition make_ball2 (x y radius : ^Real) : (@ball types 2) := ((make_euclidean2 x y), radius).
+
   Definition Tn_ball (n k j :nat) : (ball 2) := make_ball2 (Nreal (2*k+1) * prec (S n)) (Nreal (2*j+1) * prec (S n)) (prec (S n)).
 
   Fixpoint Tn_col n k j l :=
@@ -571,5 +573,24 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply T_is_compact.
    apply is_compact_translation.
    apply IHn.
+ Defined.
+
+ Definition sierpinski_approx (n : nat) : (@euclidean_subset types 2).
+ Proof.
+   induction n.
+   apply T.
+   pose proof (scaling 2 (prec 1) IHn) as T.
+   apply union.
+   apply union.
+   apply (translation 2 T (make_euclidean2 (- (prec 1)) real_0)).
+   apply (translation 2 T (make_euclidean2 ((prec 1)) real_0)).
+   apply (translation 2 T (make_euclidean2 real_0 (prec 1))).
+ Defined.
+
+ Lemma sierpinski_approx_is_compact n : is_compact 2 (sierpinski_approx n).
+ Proof.
+   induction n.
+   apply T_is_compact.
+   apply is_compact_union;[apply is_compact_union |];(apply is_compact_translation;apply is_compact_scale_down;apply IHn).
  Defined.
 End SimpleTriangle.
