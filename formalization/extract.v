@@ -307,7 +307,7 @@ Require Import Subsets.
 
 Extraction Implicit split_euclidean2 [ types ].
 Extraction Implicit make_euclidean2 [ types ].
-Extraction Implicit make_ball2 [ types ].
+(* Extraction Implicit make_ball2 [ types ]. *)
 
 Require Import simpletriangle.
 Extraction Implicit Tn_ball [ types casofReal ].
@@ -318,6 +318,10 @@ Extraction Implicit Tn [ types casofReal ].
 
 Extraction Implicit multi_triangles_compact [ types casofReal ].
 (* Extraction "MTn" multi_triangles_compact. *)
+
+Extraction Implicit sierpinski_approx_is_compact [ types casofReal ].
+Extraction Implicit make_ball2 [ types ].
+Extraction "STARn" sierpinski_approx_is_compact.
 
 Require Import SierpinskiTriangle.
 Extraction Implicit one_half [ types casofReal ].
