@@ -1,6 +1,6 @@
 (* this file proves various properties of subsets of real numbers *)
 Require Import Lia.
-Require Import Real Euclidean List Minmax Subsets.
+Require Import Real Euclidean List Vector Minmax Subsets.
 
 Section SierpinskiTriangle.
 
@@ -74,52 +74,41 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
 
   (* The vertices of the triangle hull *)
-  Variables ST_v1 ST_v2 ST_v3 : ^euclidean 2.
+  Variable ST_vs_size : nat.
+  Variable ST_vs : t (^euclidean 2) ST_vs_size.
   Variable ST_initial_ball : ^ball 2.
   Variable ST_initial_ball_radius_bound : snd ST_initial_ball <= real_1.
-  Variable ST_initial_ball_contains_v1 : 
-    ball_to_subset 2 ST_initial_ball ST_v1.
-  Variable ST_initial_ball_contains_v2 : 
-    ball_to_subset 2 ST_initial_ball ST_v2.
-  Variable ST_initial_ball_contains_v3 : 
-    ball_to_subset 2 ST_initial_ball ST_v3.
+  Variable ST_initial_ball_contains_vs : 
+    Forall (ball_to_subset 2 ST_initial_ball) ST_vs.
 
-  Definition ST_has_v123 (S : euclidean_subset 2) : Prop :=
-    (S ST_v1) /\ (S ST_v2) /\ (S ST_v3).
+  Definition ST_has_vs (S : euclidean_subset 2) : Prop :=
+    Forall S ST_vs.
 
   (* The convex hull of the vertices defined using weights *)
 
-  Definition ST_weighted_pt (c1 c2 c3 : ^Real) : ^euclidean 2.
-    destruct (split_euclidean2 ST_v1) as [x1 [y1 _]].
-    destruct (split_euclidean2 ST_v2) as [x2 [y2 _]].
-    destruct (split_euclidean2 ST_v3) as [x3 [y3 _]].
-    pose (c1 * x1 + c2 * x2 + c3 * x3) as x.
-    pose (c1 * y1 + c2 * y2 + c3 * y3) as y.
-    apply (make_euclidean2 x y).
-  Defined.
+  Definition ST_weighted_pt (cs : t ^Real ST_vs_size) : ^euclidean 2 :=
+    fold_left euclidean_plus (euclidean_zero 2) 
+      (map2 euclidean_scalar_mult cs ST_vs).
 
-  Definition ST_weights123_valid (c1 c2 c3 : ^Real) : Prop :=
-    c1 >= real_0 /\ c2 >= real_0 /\ c3 >= real_0 /\ c1 + c2 + c3 = real_1.
+  Definition ST_weights_valid (cs : t ^Real ST_vs_size) : Prop :=
+    (Forall (fun c => c >= real_0) cs) 
+    /\ fold_left real_plus real_0 cs = real_1.
 
   Definition ST_inside_hull_pt (pt : ^euclidean 2) : Prop :=
-    exists c1 c2 c3 : ^Real, 
-    pt = (ST_weighted_pt c1 c2 c3) /\ ST_weights123_valid c1 c2 c3.
+    exists cs : t ^Real ST_vs_size, 
+    pt = (ST_weighted_pt cs) /\ ST_weights_valid cs.
   
   Definition ST_inside_hull (S : euclidean_subset 2) : Prop :=
     forall pt : ^euclidean 2, S pt -> ST_inside_hull_pt pt.
 
-  Lemma ST_weighted_pt_in_init_ball (c1 c2 c3 : ^Real) : 
-    ST_weights123_valid c1 c2 c3 ->
-    ball_to_subset 2 ST_initial_ball (ST_weighted_pt c1 c2 c3).
+  Lemma ST_weighted_pt_in_init_ball (cs : t ^Real ST_vs_size) : 
+    ST_weights_valid cs ->
+    ball_to_subset 2 ST_initial_ball (ST_weighted_pt cs).
   Proof.
-      intro valid123.
-      destruct valid123 as [c1pos [c2pos [c3pos c123sum]]].
+      intros [pos sum1].
 
-      unfold ST_weighted_pt.
+      pose proof ST_initial_ball_contains_vs as vsin.
 
-      pose proof ST_initial_ball_contains_v1 as v1in.
-      pose proof ST_initial_ball_contains_v2 as v2in.
-      pose proof ST_initial_ball_contains_v3 as v3in.
 
       destruct (split_euclidean2 ST_v1) as [x1 [y1 xy1]].
       destruct (split_euclidean2 ST_v2) as [x2 [y2 xy2]].
