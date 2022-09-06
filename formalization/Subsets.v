@@ -510,7 +510,65 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite real_mult_comm.
     rewrite prec_Npow2_unit.
     apply euclidean_scalar_mult_unit.
-Defined.
+  Defined.
+
+  Definition is_open (M : euclidean_subset) := forall x, {k : K | k = lazy_bool_true <-> M x}.
+
+  Definition is_compact (M : euclidean_subset) := forall A, is_open A -> {k : K | k = lazy_bool_true <-> is_subset M A}.
+
+  Definition is_overt (M : euclidean_subset) := forall A, is_open A -> {k : K | k = lazy_bool_true <-> exists x, (intersection M A) x}.
+
+  Lemma is_open_union (M1 M2 : euclidean_subset) : is_open M1 -> is_open M2 -> is_open (union M1 M2).
+  Proof.
+    intros H1 H2 x.
+    destruct (H1 x) as [k1 P1].
+    destruct (H2 x) as [k2 P2].
+    exists (lazy_bool_or k1 k2).
+    split; intros.
+    rewrite lazy_bool_or_up in H.
+    destruct H; [left;apply P1 | right; apply P2];auto.
+    rewrite lazy_bool_or_up.
+    destruct H; [left;apply P1 | right; apply P2];auto.
+  Defined.
+
+  Lemma is_open_intersection (M1 M2 : euclidean_subset) : is_open M1 -> is_open M2 -> is_open (intersection M1 M2).
+  Proof.
+    intros H1 H2 x.
+    destruct (H1 x) as [k1 P1].
+    destruct (H2 x) as [k2 P2].
+    exists (lazy_bool_and k1 k2).
+    split; intros.
+    rewrite lazy_bool_and_up in H.
+    split; [apply P1 | apply P2];apply H.
+    rewrite lazy_bool_and_up.
+    split; [apply P1 | apply P2]; apply H.
+ Defined.
+
+  Lemma union_subset A B C : is_subset (union A B) C <-> is_subset A C /\ is_subset B C.
+  Proof.
+    split; intros.
+    split; intros x H';apply H; [left | right]; auto.
+    intros x H'.
+    destruct H.
+    destruct H';[apply H | apply H0];auto.
+  Qed.    
+
+  Lemma is_compact_union M1 M2 : is_compact M1 -> is_compact M2 -> is_compact (union M1 M2).
+  Proof.
+    intros H1 H2 A Aopen.
+    destruct (H1 A Aopen) as [k1 P1].
+    destruct (H2 A Aopen) as [k2 P2].
+    exists (lazy_bool_and k1 k2).
+    split; intros.
+    rewrite lazy_bool_and_up in H.
+    intros x P.
+    destruct P; [apply P1| apply P2];auto;apply H;auto.
+    rewrite lazy_bool_and_up.
+    rewrite union_subset in H.
+    split;[apply P1 | apply P2];apply H.
+ Defined.
+
+    
 End Subsets.
 
 Section SubsetsR2.
