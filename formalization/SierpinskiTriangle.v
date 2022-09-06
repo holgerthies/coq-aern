@@ -569,7 +569,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     auto.
   Qed.
 
-  Lemma ST_compact : forall S, (ST S) -> is_compact 2 S.
+  Lemma ST_compact : forall S, (ST S) -> is_covert 2 S.
   Proof.
     intros S STs n.
     exists (STn n).

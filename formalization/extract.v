@@ -319,9 +319,9 @@ Extraction Implicit Tn [ types casofReal ].
 Extraction Implicit multi_triangles_compact [ types casofReal ].
 (* Extraction "MTn" multi_triangles_compact. *)
 
-Extraction Implicit sierpinski_approx_is_compact [ types casofReal ].
+Extraction Implicit sierpinski_approx_is_covert [ types casofReal ].
 Extraction Implicit make_ball2 [ types ].
-Extraction "STARn" sierpinski_approx_is_compact.
+Extraction "STARn" sierpinski_approx_is_covert.
 
 Require Import SierpinskiTriangle.
 Extraction Implicit one_half [ types casofReal ].

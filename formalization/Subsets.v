@@ -40,7 +40,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     (forall x, S x -> exists y, T y /\ euclidean_max_dist x y <= n) /\
       (forall y, T y -> exists x, S x /\ euclidean_max_dist x y <= n).
 
-  Definition is_compact (M : euclidean_subset) := 
+  Definition is_covert (M : euclidean_subset) := 
     forall n, {Ln : list ball |
                 diam Ln <= prec n /\
                 Forall (fun b => intersects (ball_to_subset b) M) Ln /\
@@ -144,10 +144,10 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply H.
     right;auto.
   Qed.
-  Lemma is_compact_lim :
+  Lemma is_covert_lim :
     forall K : euclidean_subset,
-      (forall n : nat, {X :  euclidean_subset & prod (is_compact X) (Hausdorff_dist_bound X K (prec n))})
-      -> is_compact K.
+      (forall n : nat, {X :  euclidean_subset & prod (is_covert X) (Hausdorff_dist_bound X K (prec n))})
+      -> is_covert K.
   Proof.
     intros.
     intro p.
@@ -235,7 +235,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     destruct H;destruct H;exists x;split; [|left| | right];apply H.
   Qed.
 
-  Lemma is_compact_union K1 K2 : is_compact K1 -> is_compact K2 -> is_compact (union K1 K2).
+  Lemma is_covert_union K1 K2 : is_covert K1 -> is_covert K2 -> is_covert (union K1 K2).
   Proof.
     intros H1 H2 n.
     destruct (H1 n) as [L1 [D1 [int1 cov1]]].
@@ -257,7 +257,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Defined.
 
 
-  Lemma is_compact_translation K a : is_compact K -> is_compact (translation K a).
+  Lemma is_covert_translation K a : is_covert K -> is_covert (translation K a).
   Proof.
     intros H n.
     destruct (H n) as [L [D [int cov]]].
@@ -421,7 +421,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Qed.
 
 
-  Lemma is_compact_scale_down M k : is_compact M -> is_compact (scaling (prec k) M).
+  Lemma is_covert_scale_down M k : is_covert M -> is_covert (scaling (prec k) M).
   Proof.
     intros Mc n.
     destruct (Mc (n-k)%nat) as [L [Lp1 [Lp2 Lp3]]].
@@ -469,7 +469,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
  Defined.
 
 
-  Lemma is_compact_scale_up M k : is_compact M -> is_compact (scaling (Nreal (Npow2 k)) M).
+  Lemma is_covert_scale_up M k : is_covert M -> is_covert (scaling (Nreal (Npow2 k)) M).
   Proof.
     intros Mc n.
     destruct (Mc (n+k)%nat) as [L [Lp1 [Lp2 Lp3]]].

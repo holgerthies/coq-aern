@@ -402,7 +402,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply real_eq_le; auto.
   Qed.
 
-  Lemma T_is_compact : is_compact 2 T.
+  Lemma T_is_covert : is_covert 2 T.
   Proof.
    intro n.
    exists (Tn n).
@@ -549,7 +549,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply (make_euclidean2 (- /real_2_neq_0) (- /real_2_neq_0)).
  Defined.
 
- Lemma empty_set_is_compact : is_compact 2 (empty_set 2).
+ Lemma empty_set_is_covert : is_covert 2 (empty_set 2).
  Proof.
     intro n.
     exists nil.
@@ -564,13 +564,13 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply Exists_exists.
     contradict H.
  Qed.
- Lemma multi_triangles_compact (n : nat) : is_compact 2 (multi_triangles n).
+ Lemma multi_triangles_compact (n : nat) : is_covert 2 (multi_triangles n).
  Proof.
    induction n.
-   apply empty_set_is_compact.
-   apply is_compact_union.
-   apply T_is_compact.
-   apply is_compact_translation.
+   apply empty_set_is_covert.
+   apply is_covert_union.
+   apply T_is_covert.
+   apply is_covert_translation.
    apply IHn.
  Defined.
 
@@ -586,12 +586,12 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply (translation 2 T (make_euclidean2 real_0 (prec 1))).
  Defined.
 
- Lemma sierpinski_approx_is_compact n : is_compact 2 (sierpinski_approx n).
+ Lemma sierpinski_approx_is_covert n : is_covert 2 (sierpinski_approx n).
  Proof.
    induction n.
-   apply T_is_compact.
+   apply T_is_covert.
 
-   apply is_compact_union;[apply is_compact_union |];(try apply is_compact_translation;apply is_compact_scale_down;apply IHn).
+   apply is_covert_union;[apply is_covert_union |];(try apply is_covert_translation;apply is_covert_scale_down;apply IHn).
  Defined.
 End SimpleTriangle.
 
