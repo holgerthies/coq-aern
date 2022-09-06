@@ -84,8 +84,8 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Variable ST_initial_ball_contains_v3 : 
     ball_to_subset 2 ST_initial_ball ST_v3.
 
-  Definition ST_has_v123 (s : euclidean_subset 2) : Prop :=
-    (s ST_v1) /\ (s ST_v2) /\ (s ST_v3).
+  Definition ST_has_v123 (S : euclidean_subset 2) : Prop :=
+    (S ST_v1) /\ (S ST_v2) /\ (S ST_v3).
 
   (* The convex hull of the vertices defined using weights *)
 
@@ -112,13 +112,13 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     exists c1 c2 c3 : ^Real, 
     (pt = (ST_weighted_pt c1 c2 c3) /\ ST_weights123_valid c1 c2 c3) /\ ST_weights123_no_middle c1 c2 c3.
   
-  Definition ST_inside_hull (s : euclidean_subset 2) : Prop :=
-    forall pt : ^euclidean 2, s pt -> ST_inside_hull_pt pt.
+  Definition ST_inside_hull (S : euclidean_subset 2) : Prop :=
+    forall pt : ^euclidean 2, S pt -> ST_inside_hull_pt pt.
 
-  Definition ST_inside_hull_no_middle (s : euclidean_subset 2) : Prop :=
-    forall pt : ^euclidean 2, s pt -> ST_inside_hull_no_middle_pt pt.
+  Definition ST_inside_hull_no_middle (S : euclidean_subset 2) : Prop :=
+    forall pt : ^euclidean 2, S pt -> ST_inside_hull_no_middle_pt pt.
 
-  Lemma ST_inside_hull_remove_no_middle s : (ST_inside_hull_no_middle s) -> (ST_inside_hull s).
+  Lemma ST_inside_hull_remove_no_middle S : (ST_inside_hull_no_middle S) -> (ST_inside_hull S).
   Proof.
     intros H pt spt.
     destruct (H _ spt) as [c1 [c2 [c3 [inHull _]]]].
@@ -513,21 +513,21 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply one_half_neq0.
   Qed.
 
-  Definition ST_equal_union (s : euclidean_subset 2) : Prop :=
+  Definition ST_equal_union (S : euclidean_subset 2) : Prop :=
     forall pt : ^euclidean 2, 
-    s pt = 
+    S pt = 
       (
-        s (point_point_away ST_v1 pt)
+        S (point_point_away ST_v1 pt)
         \/
-        s (point_point_away ST_v2 pt)
+        S (point_point_away ST_v2 pt)
         \/
-        s (point_point_away ST_v3 pt)
+        S (point_point_away ST_v3 pt)
       ).
 
   (* Characterisation of the Sierpinski triangle (except being closed) *)
 
-  Definition ST (s : euclidean_subset 2) : Prop :=
-    ST_has_v123 s /\ ST_inside_hull s /\ ST_equal_union s.
+  Definition ST (S : euclidean_subset 2) : Prop :=
+    ST_has_v123 S /\ ST_inside_hull S /\ ST_equal_union S.
 
   (* Constructive definition of the Sierpinski triangle using covers *)
 
@@ -578,7 +578,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* Intersection of cover and ST *)
 
-  Lemma STn_intersects n s: (ST s) -> Forall (fun b : ^ball 2 => intersects 2 (ball_to_subset 2 b) s) (STn n).
+  Lemma STn_intersects n S: (ST S) -> Forall (fun b : ^ball 2 => intersects 2 (ball_to_subset 2 b) S) (STn n).
   Proof.
     intro STs.
     destruct STs as [[hasV1 _] [insideHull equalsUnion]].
@@ -661,9 +661,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     auto.
   Qed.
 
-  Lemma ST_compact : forall s, (ST s) -> is_compact 2 s.
+  Lemma ST_compact : forall S, (ST S) -> is_compact 2 S.
   Proof.
-    intros s STs n.
+    intros S STs n.
     exists (STn n).
     split.
     exact (STn_diam n).
