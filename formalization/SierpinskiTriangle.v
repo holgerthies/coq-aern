@@ -101,93 +101,18 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Definition ST_weights123_valid (c1 c2 c3 : ^Real) : Prop :=
     c1 >= real_0 /\ c2 >= real_0 /\ c3 >= real_0 /\ c1 + c2 + c3 = real_1.
 
-  Definition ST_weights123_no_middle (c1 c2 c3 : ^Real) : Prop :=
-    (c1 >= one_half \/ c2 >= one_half \/ c3 >= one_half).
-
   Definition ST_inside_hull_pt (pt : ^euclidean 2) : Prop :=
     exists c1 c2 c3 : ^Real, 
     pt = (ST_weighted_pt c1 c2 c3) /\ ST_weights123_valid c1 c2 c3.
   
-  Definition ST_inside_hull_no_middle_pt (pt : ^euclidean 2) : Prop :=
-    exists c1 c2 c3 : ^Real, 
-    (pt = (ST_weighted_pt c1 c2 c3) /\ ST_weights123_valid c1 c2 c3) /\ ST_weights123_no_middle c1 c2 c3.
-  
   Definition ST_inside_hull (S : euclidean_subset 2) : Prop :=
     forall pt : ^euclidean 2, S pt -> ST_inside_hull_pt pt.
-
-  Definition ST_inside_hull_no_middle (S : euclidean_subset 2) : Prop :=
-    forall pt : ^euclidean 2, S pt -> ST_inside_hull_no_middle_pt pt.
-
-  Lemma ST_inside_hull_remove_no_middle S : (ST_inside_hull_no_middle S) -> (ST_inside_hull S).
-  Proof.
-    intros H pt spt.
-    destruct (H _ spt) as [c1 [c2 [c3 [inHull _]]]].
-    exists c1, c2, c3. auto.
-  Qed.
-
-  (* Lemmas about the weights of points *)
-
-  Lemma weights12_c1_le_1 c1 c2 : 
-    real_0 <= c1 /\ real_0 <= c2 /\ c1 + c2 <= real_1
-    -> c1 <= real_1.
-  Proof.
-    intros [c1pos [c2pos c12sum]].
-
-    assert ((c1+real_0) <= (c1+c2)) as Temp.
-    apply real_le_plus_le. apply c2pos.
-    pose proof (real_le_le_le _ _ _ Temp c12sum) as Temp2.
-    rewrite real_plus_comm in Temp2.
-    rewrite real_plus_unit in Temp2.
-    auto.
-  Qed.
-
-  Lemma weights12_c2_le_1 c1 c2 : 
-    real_0 <= c1 /\ real_0 <= c2 /\ c1 + c2 <= real_1
-    -> c2 <= real_1.
-  Proof.
-    intros [c1pos [c2pos c12sum]].
-    rewrite real_plus_comm in c12sum.
-
-    apply (weights12_c1_le_1 c2 c1).
-    split; auto; split; auto.
-  Qed.
-
-  Lemma weights123_le_1 c1 c2 c3 : 
-    ST_weights123_valid c1 c2 c3 -> 
-    c1 <= real_1 /\ c2 <= real_1 /\ c3 <= real_1.
-  Proof.
-    intros [c1pos [c2pos [c3pos c123sum]]].
-    apply real_eq_le in c123sum.
-
-    assert (real_0 <= c1 + c2) as c12pos.
-    rewrite <- (real_plus_unit real_0).
-    apply real_le_le_plus_le; auto.
-
-    assert (c1 + c2 <= real_1) as c12sum.
-    apply (weights12_c1_le_1 (c1+c2) c3).
-    split; auto; split; auto.
-
-    split.
-    apply (weights12_c1_le_1 c1 c2).
-    split; auto; split; auto.
-
-    split.
-    apply (weights12_c2_le_1 c1 c2).
-    split; auto; split; auto.
-
-    apply (weights12_c2_le_1 (c1+c2) c3).
-    split.
-    rewrite <- (real_plus_unit real_0).
-    apply real_le_le_plus_le; auto.
-    split; auto; split; auto.
-  Qed.
 
   Lemma ST_weighted_pt_in_init_ball (c1 c2 c3 : ^Real) : 
     ST_weights123_valid c1 c2 c3 ->
     ball_to_subset 2 ST_initial_ball (ST_weighted_pt c1 c2 c3).
   Proof.
       intro valid123.
-      pose proof (weights123_le_1 _ _ _ valid123) as [c1le1 [c2le1 c3le1]].
       destruct valid123 as [c1pos [c2pos [c3pos c123sum]]].
 
       unfold ST_weighted_pt.
@@ -233,23 +158,6 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
       assert (real_0 <= r) as rpos.
       apply (real_le_le_le _ (abs (x1 + - xc))); auto.
       apply abs_pos.
-
-      (* assert (real_0 <= c1 + c2) as c12pos.
-      rewrite <- (real_plus_unit real_0).
-      apply real_le_le_plus_le; auto.
-
-      assert (real_0 <= c2 + c3) as c23pos.
-      rewrite <- (real_plus_unit real_0).
-      apply real_le_le_plus_le; auto.
-
-      assert (c1 + c2 <= real_1) as c12sum.
-      apply (weights12_c1_le_1 (c1+c2) c3).
-      split; auto; split; auto; right; auto.
-  
-      assert (c2 + c3 <= real_1) as c23sum.
-      rewrite real_plus_assoc in c123sum.
-      apply (weights12_c2_le_1 c1 (c2+c3)).
-      split; auto; split; auto; right; auto. *)
 
       rewrite <- (real_mult_unit xc).
       rewrite <- (real_mult_unit yc).
