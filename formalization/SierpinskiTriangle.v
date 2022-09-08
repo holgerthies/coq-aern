@@ -81,18 +81,71 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Variable ST_initial_ball_contains_vs : 
     Forall (ball_to_subset 2 ST_initial_ball) ST_vs.
 
-  Definition ST_has_vs (S : euclidean_subset 2) : Prop :=
-    Forall S ST_vs.
+  Definition ST_has_vs (S : euclidean_subset 2) : Prop := Forall S ST_vs.
+
+  (* The convex hull of a vector of points defined using weights *)
+
+  Definition sum {sz} (cs : t _ sz) := fold_left real_plus real_0 cs.
+
+  Lemma sum_0 (cs : t _ 0) : sum cs = real_0.
+  Proof.
+    assert (T : sum (nil ^Real) = real_0).
+    auto.
+    apply (case0 (fun v => sum v = real_0) T cs).
+  Qed.
+
+  Lemma fold_left_sum_init_value n a (cs : t _ n) : 
+    fold_left real_plus a cs = a + fold_left real_plus real_0 cs.
+  Proof.
+    revert a.
+    induction n.
+    intro a.
+    assert (T : fold_left real_plus a (nil _) = a + fold_left real_plus real_0 (nil _)).
+    simpl.  rewrite real_plus_comm, real_plus_unit; auto.
+    apply (case0 (fun v => fold_left real_plus a v = a + fold_left real_plus real_0 v) T cs).
+
+    intro a.
+    specialize (IHn (tl cs)).
+    rewrite (eta cs).
+    simpl.
+    rewrite (IHn).
+    rewrite (IHn (real_0 + VectorDef.hd cs)).
+    ring.
+  Qed.
+
+  Lemma sum_S n (cs : t _ (S n)) : sum cs = hd cs + sum (tl cs).
+  Proof.
+    rewrite (eta cs) at 1.
+    unfold sum; simpl.
+    rewrite fold_left_sum_init_value.
+    rewrite real_plus_unit.
+    auto.
+  Qed.
+
+  Definition weighted_pt {sz} (cs : t ^Real sz) (pts : t (^euclidean 2) sz) : ^euclidean 2 
+    := fold_left euclidean_plus (euclidean_zero 2) 
+        (map2 euclidean_scalar_mult cs pts).
+
+  Lemma weighted_pt_in_ball {sz} c r cs pts : 
+    Forall (ball_to_subset 2 (c,r)) pts ->
+    ball_to_subset 2 (c, r * (sum cs)) (@weighted_pt (S sz) cs pts).
+  Proof.
+    intro pts_in.
+    induction sz.
+    - set (c1 := hd cs).
+    rewrite (eta cs).
+    Search (cons).
+    - caseS 
+
 
   (* The convex hull of the vertices defined using weights *)
 
-  Definition ST_weighted_pt (cs : t ^Real ST_vs_size) : ^euclidean 2 :=
-    fold_left euclidean_plus (euclidean_zero 2) 
-      (map2 euclidean_scalar_mult cs ST_vs).
+  Definition ST_weighted_pt (cs : t ^Real ST_vs_size) : ^euclidean 2
+    := weighted_pt _ cs ST_vs.
 
   Definition ST_weights_valid (cs : t ^Real ST_vs_size) : Prop :=
     (Forall (fun c => c >= real_0) cs) 
-    /\ fold_left real_plus real_0 cs = real_1.
+    /\ sum cs = real_1.
 
   Definition ST_inside_hull_pt (pt : ^euclidean 2) : Prop :=
     exists cs : t ^Real ST_vs_size, 
@@ -106,8 +159,25 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     ball_to_subset 2 ST_initial_ball (ST_weighted_pt cs).
   Proof.
       intros [pos sum1].
-
       pose proof ST_initial_ball_contains_vs as vsin.
+
+      unfold ST_weighted_pt, weighted_pt.
+
+      induction ST_vs_size.
+      - contradict sum1.
+        assert (T : fold_left real_plus real_0 cs = real_0).
+        eapply (case0 (fun v => fold_left real_plus real_0 v = real_0) _ cs).
+        rewrite T. apply real_lt_neq. apply real_1_gt_0.
+      - 
+
+      Search "fix".
+      rewrite fold_left
+
+      destruct ST_initial_ball as [c r].
+      destruct (split_euclidean2 c) as [xc [yc xyc]].
+      (* rewrite xyc in v1in, v2in, v3in. *)
+      rewrite xyc; clear xyc.
+
 
 
       destruct (split_euclidean2 ST_v1) as [x1 [y1 xy1]].
