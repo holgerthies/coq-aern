@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -cpp -XMagicHash #-}
 {- For Hugs, use the option -F"cpp -P -traditional" -}
 
-module STEn where
+module STE4n where
 
 import qualified Prelude
 import Prelude ((+),(-),(/))
@@ -800,10 +800,10 @@ sTn sT_vs_size_pred sT_vs sT_initial_ball n =
         (sTn sT_vs_size_pred sT_vs sT_initial_ball n')))
     n
 
-t3_new :: a1 -> a1 -> a1 -> T a1
-t3_new a b c =
-  Cons a (Prelude.succ (Prelude.succ 0)) (Cons b (Prelude.succ 0) (Cons c 0
-    Nil))
+t4_new :: a1 -> a1 -> a1 -> a1 -> T a1
+t4_new a b c d =
+  Cons a (Prelude.succ (Prelude.succ (Prelude.succ 0))) (Cons b (Prelude.succ
+    (Prelude.succ 0)) (Cons c (Prelude.succ 0) (Cons d 0 Nil)))
 
 sTE_initial_ball :: Ball
 sTE_initial_ball =
@@ -829,11 +829,18 @@ sTE_v3 :: Euclidean
 sTE_v3 =
   make_euclidean2 (0 :: AERN2.CReal) ((-) sqrt_3 (1 :: AERN2.CReal))
 
-sTE_vs :: T Euclidean
-sTE_vs =
-  t3_new sTE_v1 sTE_v2 sTE_v3
+sTE_v4 :: Euclidean
+sTE_v4 =
+  make_euclidean2 (0 :: AERN2.CReal)
+    ((-)
+      ((/) sqrt_3 (iZreal ((\x -> x) ((\x -> 2 Prelude.* x Prelude.+ 1) 1))))
+      (1 :: AERN2.CReal))
 
-sTEn :: Prelude.Integer -> ([]) Ball
-sTEn =
-  sTn (Prelude.succ (Prelude.succ 0)) sTE_vs sTE_initial_ball
+sTE4_vs :: T Euclidean
+sTE4_vs =
+  t4_new sTE_v1 sTE_v2 sTE_v3 sTE_v4
+
+sTE4n :: Prelude.Integer -> ([]) Ball
+sTE4n =
+  sTn (Prelude.succ (Prelude.succ (Prelude.succ 0))) sTE4_vs sTE_initial_ball
 

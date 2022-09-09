@@ -38,9 +38,6 @@ __ = Prelude.error "Logical or arity value used"
 sub :: Prelude.Integer -> Prelude.Integer -> Prelude.Integer
 sub = (\n m -> Prelude.max 0 (n Prelude.- m))
 
-data RealTypes =
-   MkRealTypes
-
 nreal :: Prelude.Integer -> AERN2.CReal
 nreal = AERN2.creal
 
@@ -58,19 +55,19 @@ data Euclidean =
    Nil
  | Cons Prelude.Integer AERN2.CReal Euclidean
 
-type Ball = (,) Euclidean AERN2.CReal
-
-make_euclidean2 :: RealTypes -> AERN2.CReal -> AERN2.CReal -> Euclidean
-make_euclidean2 _ x y =
+make_euclidean2 :: AERN2.CReal -> AERN2.CReal -> Euclidean
+make_euclidean2 x y =
   Cons (Prelude.succ 0) x (Cons 0 y Nil)
 
-make_ball :: RealTypes -> AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> Ball
-make_ball types x y r =
-  (,) (make_euclidean2 types x y) r
+type Ball = (,) Euclidean AERN2.CReal
+
+make_ball2 :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> Ball
+make_ball2 x y r =
+  (,) (make_euclidean2 x y) r
 
 tn_ball :: Prelude.Integer -> Prelude.Integer -> Prelude.Integer -> Ball
 tn_ball n k j =
-  make_ball __ {- 1st argument (types) of Tn_ball -}
+  make_ball2
     ((P.*)
       (nreal
         ((Prelude.+) ((Prelude.*) (Prelude.succ (Prelude.succ 0)) k)

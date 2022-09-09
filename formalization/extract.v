@@ -280,7 +280,10 @@ Extraction Implicit euclidean_zero [ types casofReal ].
 Extraction Implicit euclidean_opp [ types casofReal ].
 Extraction Implicit euclidean_plus [ types casofReal ].
 Extraction Implicit euclidean_minus [ types casofReal ].
+Extraction Implicit euclidean_scalar_mult [ types casofReal ].
+Extraction Implicit case0 [ types ].
 Extraction Implicit caseS' [ types ].
+Extraction Implicit rect2 [ types ].
 Extraction Implicit dim_succ_destruct [ types ].
 
 (* sqrt *)
@@ -307,7 +310,7 @@ Require Import Subsets.
 
 Extraction Implicit split_euclidean2 [ types ].
 Extraction Implicit make_euclidean2 [ types ].
-(* Extraction Implicit make_ball2 [ types ]. *)
+Extraction Implicit make_ball2 [ types ].
 
 Require Import simpletriangle.
 Extraction Implicit Tn_ball [ types casofReal ].
@@ -317,11 +320,16 @@ Extraction Implicit Tn [ types casofReal ].
 (* Extraction "Tn" Tn. *)
 
 Extraction Implicit multi_triangles_compact [ types casofReal ].
+Extraction Implicit empty_set_is_covert [ types casofReal ].
+Extraction Implicit T_is_covert [ types casofReal ].
+Extraction Implicit is_covert_translation [ types casofReal ].
+Extraction Implicit is_covert_union [ types casofReal ].
+Extraction Implicit scale_list [ types casofReal ].
+Extraction Implicit is_covert_scale_down [ types casofReal ].
 (* Extraction "MTn" multi_triangles_compact. *)
 
 Extraction Implicit sierpinski_approx_is_covert [ types casofReal ].
-Extraction Implicit make_ball2 [ types ].
-Extraction "STARn" sierpinski_approx_is_covert.
+(* Extraction "STARn" sierpinski_approx_is_covert. *)
 
 Require Import SierpinskiTriangle.
 Extraction Implicit one_half [ types casofReal ].
@@ -334,17 +342,25 @@ Extraction Implicit STR_initial_ball [ types casofReal ].
 Extraction Implicit STR_v1 [ types casofReal ].
 Extraction Implicit STR_v2 [ types casofReal ].
 Extraction Implicit STR_v3 [ types casofReal ].
+Extraction Implicit STR_vs [ types casofReal ].
 Extraction Implicit STRn [ types casofReal ].
 (* Extraction "STRn" STRn. *)
 
-Extraction Implicit real_sqrt_3 [ types casofReal ].
+Extraction Implicit sqrt_3 [ types casofReal ].
+Extraction Implicit sqrt_3_exists [ types casofReal ].
 Extraction Implicit STE_initial_ball [ types casofReal ].
 Extraction Implicit STE_v1 [ types casofReal ].
 Extraction Implicit STE_v2 [ types casofReal ].
 Extraction Implicit STE_v3 [ types casofReal ].
+Extraction Implicit STE_vs [ types casofReal ].
 Extraction Implicit STEn [ types casofReal ].
-Extraction "STEn" STEn.
-               
+(* Extraction "STEn" STEn. *)
+
+Extraction Implicit STE_v4 [ types casofReal ].
+Extraction Implicit STE4_vs [ types casofReal ].
+Extraction Implicit STE4n [ types casofReal ].
+(* Extraction "STE4n" STE4n. *)
+
 (* Require Import Nabla. *)
 
 (* Require Import Coq.Reals.Abstract.ConstructiveMinMax. *)

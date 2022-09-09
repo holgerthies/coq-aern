@@ -1070,6 +1070,8 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   Definition STE4_vs := t4_new STE_v1 STE_v2 STE_v3 STE_v4.
 
+  Definition STE4n := STn _ STE4_vs STE_initial_ball.
+
   Lemma STE_initial_ball_contains_v4 : ball_to_subset 2 STE_initial_ball STE_v4.
   Proof.
     unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 

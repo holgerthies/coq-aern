@@ -56,16 +56,35 @@ map f l =
    ([]) -> ([]);
    (:) a t -> (:) (f a) (map f t)}
 
-data Euclidean =
+data T a =
    Nil
- | Cons Prelude.Integer AERN2.CReal Euclidean
+ | Cons a Prelude.Integer (T a)
+
+map0 :: (a1 -> a2) -> Prelude.Integer -> (T a1) -> T a2
+map0 f _ v =
+  case v of {
+   Nil -> Nil;
+   Cons a n0 v' -> Cons (f a) n0 (map0 f n0 v')}
+
+to_list :: Prelude.Integer -> (T a1) -> ([]) a1
+to_list n v =
+  let {
+   fold_right_fix _ v0 b =
+     case v0 of {
+      Nil -> b;
+      Cons a n0 w -> (:) a (fold_right_fix n0 w b)}}
+  in fold_right_fix n v ([])
+
+data Euclidean =
+   Nil0
+ | Cons0 Prelude.Integer AERN2.CReal Euclidean
 
 caseS' :: Prelude.Integer -> Euclidean -> (AERN2.CReal -> Euclidean -> a1) ->
           a1
 caseS' _ v h =
   case v of {
-   Nil -> __;
-   Cons _ h0 t -> h h0 t}
+   Nil0 -> __;
+   Cons0 _ h0 t -> h h0 t}
 
 dim_succ_destruct :: Prelude.Integer -> Euclidean -> (,) AERN2.CReal
                      Euclidean
@@ -82,12 +101,12 @@ split_euclidean2 p =
 
 make_euclidean2 :: AERN2.CReal -> AERN2.CReal -> Euclidean
 make_euclidean2 x y =
-  Cons (Prelude.succ 0) x (Cons 0 y Nil)
+  Cons0 (Prelude.succ 0) x (Cons0 0 y Nil0)
 
 type Ball = (,) Euclidean AERN2.CReal
 
-make_ball :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> Ball
-make_ball x y r =
+make_ball2 :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> Ball
+make_ball2 x y r =
   (,) (make_euclidean2 x y) r
 
 one_half :: AERN2.CReal
@@ -109,39 +128,48 @@ point_ball_mid p b =
   case b of {
    (,) a b0 -> (,) (point_point_mid p a) ((P.*) b0 one_half)}
 
-sT_split_ball :: Euclidean -> Euclidean -> Euclidean -> Ball -> ([]) Ball
-sT_split_ball sT_v1 sT_v2 sT_v3 b =
-  (:) (point_ball_mid sT_v1 b) ((:) (point_ball_mid sT_v2 b) ((:)
-    (point_ball_mid sT_v3 b) ([])))
+sT_split_ball :: Prelude.Integer -> (T Euclidean) -> Ball -> ([]) Ball
+sT_split_ball sT_vs_size_pred sT_vs b =
+  to_list (Prelude.succ sT_vs_size_pred)
+    (map0 (\v -> point_ball_mid v b) (Prelude.succ sT_vs_size_pred) sT_vs)
 
-sTn :: Euclidean -> Euclidean -> Euclidean -> Ball -> Prelude.Integer -> ([])
+sTn :: Prelude.Integer -> (T Euclidean) -> Ball -> Prelude.Integer -> ([])
        Ball
-sTn sT_v1 sT_v2 sT_v3 sT_initial_ball n =
+sTn sT_vs_size_pred sT_vs sT_initial_ball n =
   (\fO fS n -> if n Prelude.== 0 then fO () else fS (n Prelude.- 1))
     (\_ -> (:) sT_initial_ball ([]))
     (\n' ->
     concat
-      (map (sT_split_ball sT_v1 sT_v2 sT_v3)
-        (sTn sT_v1 sT_v2 sT_v3 sT_initial_ball n')))
+      (map (sT_split_ball sT_vs_size_pred sT_vs)
+        (sTn sT_vs_size_pred sT_vs sT_initial_ball n')))
     n
+
+t3_new :: a1 -> a1 -> a1 -> T a1
+t3_new a b c =
+  Cons a (Prelude.succ (Prelude.succ 0)) (Cons b (Prelude.succ 0) (Cons c 0
+    Nil))
 
 sTR_initial_ball :: Ball
 sTR_initial_ball =
-  make_ball (0 :: AERN2.CReal) (0 :: AERN2.CReal) (1 :: AERN2.CReal)
+  make_ball2 one_half one_half one_half
 
 sTR_v1 :: Euclidean
 sTR_v1 =
-  make_euclidean2 (P.negate (1 :: AERN2.CReal)) (1 :: AERN2.CReal)
+  make_euclidean2 (0 :: AERN2.CReal) (1 :: AERN2.CReal)
 
 sTR_v2 :: Euclidean
 sTR_v2 =
-  make_euclidean2 (P.negate (1 :: AERN2.CReal)) (P.negate (1 :: AERN2.CReal))
+  make_euclidean2 (0 :: AERN2.CReal) (0 :: AERN2.CReal)
 
 sTR_v3 :: Euclidean
 sTR_v3 =
-  make_euclidean2 (1 :: AERN2.CReal) (P.negate (1 :: AERN2.CReal))
+  make_euclidean2 (1 :: AERN2.CReal) (0 :: AERN2.CReal)
+
+sTR_vs :: T Euclidean
+sTR_vs =
+  t3_new sTR_v1 sTR_v2 sTR_v3
 
 sTRn :: Prelude.Integer -> ([]) Ball
 sTRn =
-  sTn sTR_v1 sTR_v2 sTR_v3 sTR_initial_ball
+  sTn (Prelude.succ (Prelude.succ 0)) sTR_vs sTR_initial_ball
 

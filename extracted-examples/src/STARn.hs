@@ -70,63 +70,11 @@ map f l =
    ([]) -> ([]);
    (:) a t -> (:) (f a) (map f t)}
 
-data RealTypes =
-   MkRealTypes
-
-type M a = a
-
-type Is_equiv a b = (b -> a)
-
-data LazyBool_K =
-   Build_LazyBool_K AERN2.CKleenean AERN2.CKleenean (AERN2.CKleenean ->
-                                                    AERN2.CKleenean) 
- (AERN2.CKleenean -> AERN2.CKleenean -> AERN2.CKleenean) (AERN2.CKleenean ->
-                                                         AERN2.CKleenean ->
-                                                         AERN2.CKleenean) 
- (AERN2.CKleenean -> () -> P.Bool)
-
-data Monad m =
-   Build_Monad (() -> () -> (Any -> Any) -> m -> m) (() -> Any -> m) 
- (() -> m -> m)
-
-type Monoid_hom f g =
-  () -> f -> g
-  -- singleton inductive, whose constructor was Build_Monoid_hom
-  
-type NPset x = ()
-
-type Lifts_lifted_trace =
-  () -> () -> (M Any) -> (Prelude.Integer -> Any -> M Any) ->
-  (M (Prelude.Integer -> Any))
-
-data MultivalueMonad_M =
-   Build_MultivalueMonad_M LazyBool_K (Monad (M Any)) (Monoid_hom (M Any)
-                                                      (NPset Any)) (() -> ()
-                                                                   ->
-                                                                   Is_equiv
-                                                                   Any
-                                                                   (M Any)) 
- Lifts_lifted_trace (AERN2.CKleenean -> AERN2.CKleenean -> () -> M P.Bool) 
- (() -> Is_equiv (M (M Any)) (M (NPset Any))) (() -> (M Any) -> M Any)
-
-type Semidec = AERN2.CKleenean
-
-data SemiDecOrderedField_Real =
-   Build_SemiDecOrderedField_Real MultivalueMonad_M AERN2.CReal AERN2.CReal 
- (AERN2.CReal -> AERN2.CReal -> AERN2.CReal) (AERN2.CReal -> AERN2.CReal ->
-                                             AERN2.CReal) (AERN2.CReal ->
-                                                          AERN2.CReal) 
- (AERN2.CReal -> () -> AERN2.CReal) (AERN2.CReal -> AERN2.CReal -> Semidec)
-
 nreal :: Prelude.Integer -> AERN2.CReal
 nreal = AERN2.creal
 
 prec :: Prelude.Integer -> AERN2.CReal
 prec = ((0.5 :: AERN2.CReal) P.^)
-
-data ComplArchiSemiDecOrderedField_Real =
-   Build_ComplArchiSemiDecOrderedField_Real SemiDecOrderedField_Real 
- ((Prelude.Integer -> AERN2.CReal) -> () -> AERN2.CReal)
 
 npow2 :: Prelude.Integer -> Prelude.Integer
 npow2 n =
@@ -139,8 +87,8 @@ data Euclidean =
    Nil
  | Cons Prelude.Integer AERN2.CReal Euclidean
 
-case0 :: RealTypes -> a1 -> Euclidean -> a1
-case0 _ h v =
+case0 :: a1 -> Euclidean -> a1
+case0 h v =
   case v of {
    Nil -> h;
    Cons _ _ _ -> __}
@@ -152,15 +100,14 @@ caseS' _ v h =
    Nil -> __;
    Cons _ h0 t -> h h0 t}
 
-rect2 :: RealTypes -> a1 -> (Prelude.Integer -> Euclidean -> Euclidean -> a1
-         -> AERN2.CReal -> AERN2.CReal -> a1) -> Prelude.Integer -> Euclidean
-         -> Euclidean -> a1
-rect2 types bas rect _ v1 v2 =
+rect2 :: a1 -> (Prelude.Integer -> Euclidean -> Euclidean -> a1 ->
+         AERN2.CReal -> AERN2.CReal -> a1) -> Prelude.Integer -> Euclidean ->
+         Euclidean -> a1
+rect2 bas rect _ v1 v2 =
   case v1 of {
-   Nil -> case0 types bas v2;
+   Nil -> case0 bas v2;
    Cons n' h1 t1 ->
-    caseS' n' v2 (\h2 t2 ->
-      rect n' t1 t2 (rect2 types bas rect n' t1 t2) h1 h2)}
+    caseS' n' v2 (\h2 t2 -> rect n' t1 t2 (rect2 bas rect n' t1 t2) h1 h2)}
 
 dim_succ_destruct :: Prelude.Integer -> Euclidean -> (,) AERN2.CReal
                      Euclidean
@@ -169,13 +116,11 @@ dim_succ_destruct n x =
 
 euclidean_plus :: Prelude.Integer -> Euclidean -> Euclidean -> Euclidean
 euclidean_plus n x y =
-  rect2 __ {- 1st argument (types) of euclidean_plus -} Nil
-    (\n0 _ _ x0 a b -> Cons n0 ((+) a b) x0) n x y
+  rect2 Nil (\n0 _ _ x0 a b -> Cons n0 ((+) a b) x0) n x y
 
-euclidean_scalar_mult :: RealTypes -> ComplArchiSemiDecOrderedField_Real ->
-                         Prelude.Integer -> AERN2.CReal -> Euclidean ->
+euclidean_scalar_mult :: Prelude.Integer -> AERN2.CReal -> Euclidean ->
                          Euclidean
-euclidean_scalar_mult _ _ n l x =
+euclidean_scalar_mult n l x =
   nat_rect (\_ -> Nil) (\n0 iHn x0 ->
     let {x1 = dim_succ_destruct n0 x0} in
     case x1 of {
@@ -187,33 +132,29 @@ make_euclidean2 x y =
 
 type Ball = (,) Euclidean AERN2.CReal
 
-type Is_compact = Prelude.Integer -> (([]) Ball)
+type Is_covert = Prelude.Integer -> (([]) Ball)
 
-is_compact_union :: RealTypes -> ComplArchiSemiDecOrderedField_Real ->
-                    Prelude.Integer -> Is_compact -> Is_compact -> Is_compact
-is_compact_union _ _ _ h1 h2 n =
+is_covert_union :: Prelude.Integer -> Is_covert -> Is_covert -> Is_covert
+is_covert_union _ h1 h2 n =
   let {s = h1 n} in let {s0 = h2 n} in app s s0
 
-is_compact_translation :: RealTypes -> ComplArchiSemiDecOrderedField_Real ->
-                          Prelude.Integer -> Euclidean -> Is_compact ->
-                          Is_compact
-is_compact_translation _ _ d a h n =
+is_covert_translation :: Prelude.Integer -> Euclidean -> Is_covert ->
+                         Is_covert
+is_covert_translation d a h n =
   let {s = h n} in map (\b -> (,) (euclidean_plus d (fst b) a) (snd b)) s
 
-scale_list :: RealTypes -> ComplArchiSemiDecOrderedField_Real ->
-              Prelude.Integer -> (([]) Ball) -> AERN2.CReal -> ([])
+scale_list :: Prelude.Integer -> (([]) Ball) -> AERN2.CReal -> ([])
               ((,) Euclidean AERN2.CReal)
-scale_list types casofReal d l l0 =
+scale_list d l l0 =
   case l of {
    ([]) -> ([]);
-   (:) b l' -> (:) ((,) (euclidean_scalar_mult types casofReal d l0 (fst b))
-    ((P.*) l0 (snd b))) (scale_list types casofReal d l' l0)}
+   (:) b l' -> (:) ((,) (euclidean_scalar_mult d l0 (fst b))
+    ((P.*) l0 (snd b))) (scale_list d l' l0)}
 
-is_compact_scale_down :: RealTypes -> ComplArchiSemiDecOrderedField_Real ->
-                         Prelude.Integer -> Prelude.Integer -> Is_compact ->
-                         Is_compact
-is_compact_scale_down types casofReal d k mc n =
-  let {s = mc (sub n k)} in scale_list types casofReal d s (prec k)
+is_covert_scale_down :: Prelude.Integer -> Prelude.Integer -> Is_covert ->
+                        Is_covert
+is_covert_scale_down d k mc n =
+  let {s = mc (sub n k)} in scale_list d s (prec k)
 
 make_ball2 :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> Ball
 make_ball2 x y r =
@@ -251,45 +192,23 @@ tn :: Prelude.Integer -> ([]) Ball
 tn n =
   tn_row n (sub (npow2 n) (Prelude.succ 0)) ([])
 
-t_is_compact :: RealTypes -> ComplArchiSemiDecOrderedField_Real -> Is_compact
-t_is_compact _ _ =
+t_is_covert :: Is_covert
+t_is_covert =
   tn
 
-sierpinski_approx_is_compact :: Prelude.Integer -> Is_compact
-sierpinski_approx_is_compact n =
-  nat_rect
-    (t_is_compact __
-      {- 1st argument (types) of sierpinski_approx_is_compact -} __
-      {- 2nd argument (casofReal) of sierpinski_approx_is_compact -})
-    (\_ iHn ->
-    is_compact_union __
-      {- 1st argument (types) of sierpinski_approx_is_compact -} __
-      {- 2nd argument (casofReal) of sierpinski_approx_is_compact -}
-      (Prelude.succ (Prelude.succ 0))
-      (is_compact_union __
-        {- 1st argument (types) of sierpinski_approx_is_compact -} __
-        {- 2nd argument (casofReal) of sierpinski_approx_is_compact -}
-        (Prelude.succ (Prelude.succ 0))
-        (is_compact_scale_down __
-          {- 1st argument (types) of sierpinski_approx_is_compact -} __
-          {- 2nd argument (casofReal) of sierpinski_approx_is_compact -}
-          (Prelude.succ (Prelude.succ 0)) (Prelude.succ 0) iHn)
-        (is_compact_translation __
-          {- 1st argument (types) of sierpinski_approx_is_compact -} __
-          {- 2nd argument (casofReal) of sierpinski_approx_is_compact -}
-          (Prelude.succ (Prelude.succ 0))
+sierpinski_approx_is_covert :: Prelude.Integer -> Is_covert
+sierpinski_approx_is_covert n =
+  nat_rect t_is_covert (\_ iHn ->
+    is_covert_union (Prelude.succ (Prelude.succ 0))
+      (is_covert_union (Prelude.succ (Prelude.succ 0))
+        (is_covert_scale_down (Prelude.succ (Prelude.succ 0)) (Prelude.succ
+          0) iHn)
+        (is_covert_translation (Prelude.succ (Prelude.succ 0))
           (make_euclidean2 (prec (Prelude.succ 0)) (0 :: AERN2.CReal))
-          (is_compact_scale_down __
-            {- 1st argument (types) of sierpinski_approx_is_compact -} __
-            {- 2nd argument (casofReal) of sierpinski_approx_is_compact -}
-            (Prelude.succ (Prelude.succ 0)) (Prelude.succ 0) iHn)))
-      (is_compact_translation __
-        {- 1st argument (types) of sierpinski_approx_is_compact -} __
-        {- 2nd argument (casofReal) of sierpinski_approx_is_compact -}
-        (Prelude.succ (Prelude.succ 0))
+          (is_covert_scale_down (Prelude.succ (Prelude.succ 0)) (Prelude.succ
+            0) iHn)))
+      (is_covert_translation (Prelude.succ (Prelude.succ 0))
         (make_euclidean2 (0 :: AERN2.CReal) (prec (Prelude.succ 0)))
-        (is_compact_scale_down __
-          {- 1st argument (types) of sierpinski_approx_is_compact -} __
-          {- 2nd argument (casofReal) of sierpinski_approx_is_compact -}
-          (Prelude.succ (Prelude.succ 0)) (Prelude.succ 0) iHn))) n
+        (is_covert_scale_down (Prelude.succ (Prelude.succ 0)) (Prelude.succ
+          0) iHn))) n
 
