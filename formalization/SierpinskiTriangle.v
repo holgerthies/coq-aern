@@ -434,11 +434,16 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
         apply real_max_le_snd_le in IHn.
         specialize (IHl IHn).
         apply diam_le.
-        unfold real_div.
+        * unfold real_div.
+          apply real_le_pos_mult_pos_pos.
+          left. apply prec_pos.
+          left. apply one_half_pos.
+        * intros.
+          destruct (in_app_or _ _ _ H) as [Ha|Hl].
+          induction (ST_split_ball a). contradict Ha.
 
-        Search diam.
-        apply diam_exists.
-        Search List.app (forall _, _).
+
+        Search List.app List.In.
 
         unfold ST_split_ball.
         induction ST_vs_size.
@@ -660,16 +665,16 @@ Ltac IZReal_tac t :=
 
 Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
-  Definition STR_initial_ball := make_ball2 real_0 real_0 real_1.
+  Definition STR_initial_ball := make_ball2 one_half one_half one_half.
 
-  Definition STR_v1 := make_euclidean2 (- real_1) real_1.
-  Definition STR_v2 := make_euclidean2 (- real_1) (- real_1).
-  Definition STR_v3 := make_euclidean2 real_1 (- real_1).
+  Definition STR_v1 := make_euclidean2 real_0 real_1.
+  Definition STR_v2 := make_euclidean2 real_0 real_0.
+  Definition STR_v3 := make_euclidean2 real_1 real_0.
 
   Definition STR_vs := 
     cons _ STR_v1 _ (cons _ STR_v2 _ (cons _ STR_v3 _ (nil _))).
 
-  Lemma STR_initial_ball_radius_bound : snd STR_initial_ball <= real_1.
+  Lemma STR_initial_ball_radius_bound : snd STR_initial_ball <= one_half.
   Proof.
     unfold STR_initial_ball. 
     simpl. 
