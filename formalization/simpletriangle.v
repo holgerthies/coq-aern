@@ -379,7 +379,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       destruct (real_total_order x0 real_0) as [T| [T| T]]; [| right; apply real_eq_le | right; apply real_lt_le  ];auto.
     }
     destruct (T (real_2 * x - (y + z))) as [T' | T'].
-    rewrite abs_neg_id_neg; [| auto].
+    rewrite abs_neg_id_neg; [| left; auto].
     apply (real_le_add_r (real_2*x)).
     ring_simplify.
     apply (real_le_le_le _ (real_2*y - y + z)).

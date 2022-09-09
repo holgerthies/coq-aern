@@ -530,7 +530,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
       + rewrite Forall_concat in IHl2.  
         rewrite Forall_map in IHl2.
         auto.
-  Qed.  
+  Qed.
 
   Lemma Exists_concat_map A B l (P : B -> Prop) (fl : A -> list B) (f : A -> B):
     (forall a, List.In (f a) (fl a)) ->
@@ -609,24 +609,45 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
 End SierpinskiTriangle.
 
+Section Known_Sized_Vectors.
 
-Definition t3_new {A} (a b c : A) := 
-  cons _ a _ (cons _ b _ (cons _ c _ (nil _))).
-  
-Definition t3_get {A} (t3 : t A 3) : (A * A * A) :=
-  ((hd t3, hd (tl t3)), hd (tl (tl t3))).
-  
-(* Lemma t3_new_get {A} a b c : @t3_get A (@t3_new A a b c) = ((a, b), c).
-Proof.
-  Admitted. *)
+  Definition t3_new {A} (a b c : A) := 
+    cons _ a _ (cons _ b _ (cons _ c _ (nil _))).
+    
+  Definition t3_get {A} (t3 : t A 3) : (A * A * A) :=
+    ((hd t3, hd (tl t3)), hd (tl (tl t3))).
+    
+  (* Lemma t3_new_get {A} a b c : @t3_get A (@t3_new A a b c) = ((a, b), c).
+  Proof.
+    Admitted. *)
 
-Lemma t3_in {A} e a b c: In e (@t3_new A a b c) -> e = a \/ e = b \/ e = c.
-Proof.
-  rewrite to_list_In.
-  simpl.
-  intro.
-  repeat (destruct H; auto).
-Qed.
+  Lemma t3_in {A} e a b c: In e (@t3_new A a b c) -> e = a \/ e = b \/ e = c.
+  Proof.
+    rewrite to_list_In.
+    simpl.
+    intro.
+    repeat (destruct H; auto).
+  Qed.
+  
+  Definition t4_new {A} (a b c d : A) := 
+    cons _ a _ (cons _ b _ (cons _ c _ (cons _ d _ (nil _)))).
+    
+  (* Definition t4_get {A} (t3 : t A 3) : (A * A * A) :=
+    ((hd t3, hd (tl t3)), hd (tl (tl t3))). *)
+    
+  (* Lemma t3_new_get {A} a b c : @t3_get A (@t3_new A a b c) = ((a, b), c).
+  Proof.
+    Admitted. *)
+
+  Lemma t4_in {A} e a b c d: In e (@t4_new A a b c d) -> e = a \/ e = b \/ e = c \/ e = d.
+  Proof.
+    rewrite to_list_In.
+    simpl.
+    intro.
+    repeat (destruct H; auto).
+  Qed.
+  
+End Known_Sized_Vectors.
 
 Section ST_RightAngled.
 
@@ -697,7 +718,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_le_triv.
     left. apply one_half_pos.
     rewrite <- (real_0_neg_eq).
-    apply real_lt_anti.
+    left; apply real_lt_anti.
     apply one_half_pos.
     left. apply one_half_pos.
   Qed.
@@ -716,7 +737,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_le_triv.
     left. apply one_half_pos.
     rewrite <- (real_0_neg_eq).
-    apply real_lt_anti.
+    left; apply real_lt_anti.
     apply one_half_pos.
   Qed.
   
@@ -737,7 +758,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_le_triv.
     left. apply one_half_pos.
     rewrite <- (real_0_neg_eq).
-    apply real_lt_anti.
+    left; apply real_lt_anti.
     apply one_half_pos.
     left. apply one_half_pos.
   Qed.
@@ -810,7 +831,10 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_1_gt_0.
   Qed.
 
-   
+  Definition real_3_neq_0 : (IZreal 3) <> real_0.
+    apply real_gt_neq.
+    apply real_3_pos.
+  Defined.
 
   Definition sqrt_3_exists : {y : ^Real | real_0 <= y /\ y * y = IZreal 3}.
     assert (IZreal 3 >= real_0) as ge0.
@@ -836,6 +860,25 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_3_pos.
   Qed.
 
+  Lemma sqrt_3_div_3_pos : sqrt_3 / real_3_neq_0 > real_0.
+  Proof.
+    unfold sqrt_3.
+    destruct sqrt_3_exists as [s3 [leq sqr]].
+    destruct leq. 
+    unfold real_div.
+    apply (real_lt_mult_pos_cancel (IZreal 3)).
+    apply real_3_pos.
+    rewrite real_mult_assoc.
+    rewrite real_mult_inv.
+    ring_simplify; auto.
+
+    rewrite <- H in sqr.
+    contradict sqr.
+    ring_simplify (real_0 * real_0).
+    apply real_lt_neq.
+    apply real_3_pos.
+  Qed.
+
   Lemma sqrt_3_lt_2 : sqrt_3 < real_2.
   Proof.
     apply real_pos_square_gt_gt.
@@ -846,6 +889,34 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     rewrite sqr.
     unfold real_2.
     rewrite <- IZreal_mult_hom.
+    apply IZreal_strict_monotone.
+    lia.
+  Qed.
+
+  Lemma sqrt_3_div_3_lt_2 : sqrt_3 / real_3_neq_0 < real_2.
+  Proof.
+    apply real_pos_square_gt_gt.
+    apply real_2_pos.
+    apply sqrt_3_div_3_pos.
+    unfold sqrt_3.
+    destruct sqrt_3_exists as [s3 [leq sqr]].
+    unfold real_div.
+    rewrite (real_mult_comm s3) at 1.
+    rewrite real_mult_assoc.
+    rewrite <- (real_mult_assoc s3).
+    rewrite sqr.
+    rewrite (real_mult_comm (IZreal 3)) at 1.
+    rewrite real_mult_inv.
+    apply (real_lt_mult_pos_cancel (IZreal 3)).
+    apply real_3_pos.
+    rewrite real_mult_comm.
+    rewrite <- real_mult_assoc.
+    rewrite (real_mult_comm (IZreal 3)) at 1.
+    rewrite real_mult_inv.
+    assert (T : real_1 * real_1 = IZreal 1). ring.
+    rewrite T; clear T.
+    assert (T : real_2 * real_2 * IZreal 3 = IZreal 12). ring.
+    rewrite T; clear T.
     apply IZreal_strict_monotone.
     lia.
   Qed.
@@ -863,6 +934,31 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply IZreal_strict_monotone.
     lia.
   Qed.
+
+  Lemma sqrt_3_div_3_le_1 : real_1 >= sqrt_3 / real_3_neq_0.
+  Proof.
+    unfold real_div.
+    rewrite <- (real_mult_inv _ real_3_neq_0).
+    rewrite (real_mult_comm sqrt_3).
+    apply real_le_mult_pos_le.
+    apply (real_le_mult_pos_cancel (IZreal 3)).
+    apply real_3_pos.
+    rewrite real_mult_inv.
+    ring_simplify.
+    left; apply real_1_gt_0.
+
+    left;
+    apply real_pos_square_gt_gt.
+    apply real_3_pos.
+    apply sqrt_3_pos.
+    unfold sqrt_3.
+    destruct sqrt_3_exists as [s3 [leq sqr]].
+    rewrite sqr.
+    replace (IZreal 3 * IZreal 3) with (IZreal 9) by ring.
+    apply IZreal_strict_monotone.
+    lia.
+  Qed.
+  
 
   Definition STE_v1 := make_euclidean2 (- real_1) (- real_1).
   Definition STE_v2 := make_euclidean2 (real_1) (- real_1).
@@ -895,7 +991,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_le_triv.
     left. apply real_1_gt_0.
     rewrite <- (real_0_neg_eq).
-    apply real_lt_anti.
+    left; apply real_lt_anti.
     apply real_1_gt_0.
   Qed.
   
@@ -915,7 +1011,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_le_triv.
     left. apply real_1_gt_0.
     rewrite <- (real_0_neg_eq).
-    apply real_lt_anti.
+    left; apply real_lt_anti.
     apply real_1_gt_0.
     left. apply real_1_gt_0.
   Qed.
@@ -969,5 +1065,59 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
       STE_initial_ball_radius_bound
       STE_initial_ball_contains_vs
       .
+
+  Definition STE_v4 := make_euclidean2 real_0 ((sqrt_3)/real_3_neq_0 - real_1).
+
+  Definition STE4_vs := t4_new STE_v1 STE_v2 STE_v3 STE_v4.
+
+  Lemma STE_initial_ball_contains_v4 : ball_to_subset 2 STE_initial_ball STE_v4.
+  Proof.
+    unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    simpl.
+    apply real_max_le_le_le.
+    rewrite abs_pos_id.
+    left.
+    ring_simplify (real_0 + - real_0).
+    apply real_1_gt_0.
+    right.
+    ring.
+
+    ring_simplify (sqrt_3 / real_3_neq_0 - real_1 + - real_0). 
+    apply real_max_le_le_le.
+    rewrite abs_neg_id_neg.
+    apply (real_le_add_r (- real_1)).
+    assert (T : real_1 + - real_1 = - real_0). ring.
+    rewrite T; clear T.
+    replace (- (((sqrt_3 / real_3_neq_0) - real_1) + - real_0) + - real_1) with (-(sqrt_3 / real_3_neq_0)) by ring.
+    left; apply real_lt_anti.
+    apply sqrt_3_div_3_pos.
+
+    apply (real_le_add_r real_1).
+    ring_simplify.
+    apply sqrt_3_div_3_le_1.
+
+    left. apply real_1_gt_0.
+  Qed.
+
+  Lemma STE4_initial_ball_contains_vs : 
+    Forall (ball_to_subset 2 STE_initial_ball) STE4_vs.
+  Proof.
+    unfold STE_vs.
+    rewrite Forall_forall.
+    intros.
+    apply t4_in in H.
+    destruct H.
+    rewrite H.
+    apply STE_initial_ball_contains_v1.
+    destruct H.
+    rewrite H.
+    apply STE_initial_ball_contains_v2.
+    destruct H.
+    rewrite H.
+    apply STE_initial_ball_contains_v3.
+    rewrite H.
+    apply STE_initial_ball_contains_v4.
+  Qed.
+
 
 End ST_Equilateral.

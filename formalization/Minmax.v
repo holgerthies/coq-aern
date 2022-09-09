@@ -410,7 +410,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Proof.
     intros a b a_le_b nega_le_b.
     destruct (real_total_order a real_0).
-    rewrite abs_neg_id_neg; auto.
+    rewrite abs_neg_id_neg. auto. left; auto.
     rewrite abs_pos_id; auto.
     destruct H; auto.
     rewrite <- (eq_sym H). apply real_le_triv. 
@@ -439,7 +439,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     - 
       apply (real_le_le_le _ (abs a)); auto.
       rewrite abs_neg_id_neg.
-      apply real_le_triv. auto.
+      apply real_le_triv. left; auto.
     - destruct H.
       rewrite H. 
       apply (real_le_le_le _ (abs a)); auto.

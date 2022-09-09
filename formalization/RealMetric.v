@@ -910,13 +910,17 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     auto.
   Defined.
   
-  Lemma abs_neg_id_neg : forall x : Real, real_0 > x -> abs x = - x.
+  Lemma abs_neg_id_neg : forall x : Real, real_0 >= x -> abs x = - x.
   Proof.
     intros.
     unfold abs.
     destruct (abs_prop (x)).
-    destruct a as [_ [_ a]].
+    destruct a as [_ [aZ a]].
+    destruct H.
     exact (a H).
+    rewrite H.
+    rewrite (aZ H).
+    ring.
   Defined.
   
   Lemma dist_scale : forall x y s : Real, s >= real_0 -> s * dist x y = dist (s * x) (s * y).
@@ -953,7 +957,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite abs_neg_id_neg.
     auto.
     replace (real_0) with (IZreal 0) by ring.
-    apply IZreal_lt_aux.
+    left; apply IZreal_lt_aux.
     auto.
   Defined.
   
