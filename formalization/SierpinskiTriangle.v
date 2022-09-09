@@ -390,31 +390,25 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Definition ST_equal_union (S : euclidean_subset 2) : Prop :=
     forall pt : ^euclidean 2, 
     S pt = 
-      (
-        S (point_point_away ST_v1 pt)
-        \/
-        S (point_point_away ST_v2 pt)
-        \/
-        S (point_point_away ST_v3 pt)
-      ).
+      Exists (fun v => S (point_point_away v pt)) ST_vs.
 
   (* Characterisation of the Sierpinski triangle (except being closed) *)
 
   Definition ST (S : euclidean_subset 2) : Prop :=
-    ST_has_v123 S /\ ST_inside_hull S /\ ST_equal_union S.
+    ST_has_vs S /\ ST_inside_hull S /\ ST_equal_union S.
 
   (* Constructive definition of the Sierpinski triangle using covers *)
 
-  Definition ST_split_ball (b : ball 2) :=
-    (point_ball_mid ST_v1 b) :: 
-    (point_ball_mid ST_v2 b) :: 
-    (point_ball_mid ST_v3 b) :: nil.
+  Definition ST_split_ball (b : ^ball 2)
+   := to_list (map (fun v => (point_ball_mid v b)) ST_vs).
 
   Fixpoint STn n : list (ball 2) := 
     match n with
-    | 0 => ST_initial_ball :: nil 
+    | 0 => ST_initial_ball :: List.nil 
     | (S n') => List.concat (List.map ST_split_ball (STn n'))
     end.
+
+  (* 
 
   (* The diameter shrinks exponentially with n *)
 
@@ -438,7 +432,18 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
         assert (snd a <= prec n) as IHa.
         apply (real_max_le_fst_le _ (diam 2 l)); auto.
         apply real_max_le_snd_le in IHn.
-        pose proof (IHl IHn) as IH.
+        specialize (IHl IHn).
+
+        Search diam.
+        apply diam_exists.
+        Search List.app (forall _, _).
+
+        unfold ST_split_ball.
+        induction ST_vs_size.
+        unfold to_list.
+        unfold app map.
+        Set Printing All.
+        unfold diam.
 
         apply real_max_le_le_le.
         apply point_ball_mid_halves; auto.
@@ -621,8 +626,12 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
       auto.
 
   Qed.
-  
+*)
+
+
 End SierpinskiTriangle.
+
+(* 
 
 Section ST_RightAngled.
 
@@ -924,3 +933,5 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
       .
 
 End ST_Equilateral.
+
+*)

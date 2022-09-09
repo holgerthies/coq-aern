@@ -147,6 +147,30 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply real_max_snd_ge.
   Qed.
 
+  Lemma diam_le L r : r >= real_0 -> (forall b, In b L -> snd b <= r) <-> diam L <= r.
+  Proof.
+    intro rpos.
+    split.
+    - intro.      
+      induction L.
+      auto.
+      apply real_max_le_le_le.
+      apply H.
+      unfold In; left; auto.
+      apply IHL.
+      intros.
+      apply H.
+      unfold In; right; auto.
+    - intros.
+      induction L.
+      contradict H0.
+      destruct H0.
+      rewrite <- H0.
+      apply real_max_le_fst_le in H; auto.
+      apply IHL; auto.
+      apply real_max_le_snd_le in H; auto.
+  Qed.
+
   Lemma diam_prec_spec L p : diam L <= prec p <-> forall b, In b L -> (snd b <= prec p).
   Proof.
     split.
