@@ -260,15 +260,17 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      destruct (S H) as [x' [P1 P2]].
      destruct IHn as [IH1 IH2].
      destruct (IH1 _ P1) as [x2 [Xx2 D]].
-     rewrite to_list_Exists in P2.    
+     rewrite to_list_Exists in P2.
      rewrite List.Exists_exists in P2.
      destruct P2 as [v [L1 L2]].
-     assert (exists z, X z /\ x2 = point_point_away v z).
+     assert (exists z, X z /\ x2 = point_point_away v z) as [z [zP1 zP2]].
      {
        exists (point_point_mid v x2).
        split.
-       apply (point_point_mid_in X).
-
-       apply 
+       apply (point_point_mid_in X);auto.
+       split;auto.
+       apply to_list_In;auto.
+       rewrite <-point_point_mid_away_id;auto.
      }
+     exists z;split;auto.
  End SierpinskiLimit.
