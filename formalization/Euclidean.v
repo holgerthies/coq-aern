@@ -489,6 +489,22 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     - apply (real_max_aux (dist hp1 hp3) (dist hp2 hp4) (euclidean_max_dist tp1 tp3) (euclidean_max_dist tp2 tp4)).
   Qed.
 
+  Lemma euclidean_max_dist_plus_cancel {n : nat} (p1 p2 p3 : euclidean n) : euclidean_max_dist (euclidean_plus p1 p3) (euclidean_plus p2 p3) = euclidean_max_dist p1 p2.
+  Proof.
+    induction n.
+    rewrite (dim_zero_destruct p1), (dim_zero_destruct p2), (dim_zero_destruct p3);auto.
+    destruct 
+      (dim_succ_destruct p1) as [hp1 [tp1 ->]], 
+      (dim_succ_destruct p2) as [hp2 [tp2 ->]], 
+      (dim_succ_destruct p3) as [hp3 [tp3 ->]].
+    simpl.
+    rewrite !euclidean_max_dist_cons.
+    f_equal.
+    unfold dist.
+    f_equal.
+    ring.
+    apply IHn.
+  Qed.
   (* euclidean space is complete *)
   Definition euclidean_is_fast_cauchy {n : nat} (f : nat -> euclidean n) : Prop
     := forall n m, euclidean_max_dist (f n) (f m) <= prec n + prec m.
