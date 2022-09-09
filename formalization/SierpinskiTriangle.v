@@ -676,6 +676,8 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_le_triv.
   Qed.
 
+  Definition STR := ST _ STR_vs.
+
   Definition STRn := STn _ STR_vs STR_initial_ball.
 
 (* 
