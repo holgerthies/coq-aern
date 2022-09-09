@@ -408,9 +408,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     | (S n') => List.concat (List.map ST_split_ball (STn n'))
     end.
 
-  (* 
-
   (* The diameter shrinks exponentially with n *)
+
+  (* 
 
   Lemma STn_diam n : diam 2 (STn n) <= prec n.
   Proof.
@@ -433,6 +433,8 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
         apply (real_max_le_fst_le _ (diam 2 l)); auto.
         apply real_max_le_snd_le in IHn.
         specialize (IHl IHn).
+        apply diam_le.
+        unfold real_div.
 
         Search diam.
         apply diam_exists.
@@ -631,8 +633,6 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
 End SierpinskiTriangle.
 
-(* 
-
 Section ST_RightAngled.
 
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
@@ -666,6 +666,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Definition STR_v2 := make_euclidean2 (- real_1) (- real_1).
   Definition STR_v3 := make_euclidean2 real_1 (- real_1).
 
+  Definition STR_vs := 
+    cons _ STR_v1 _ (cons _ STR_v2 _ (cons _ STR_v3 _ (nil _))).
+
   Lemma STR_initial_ball_radius_bound : snd STR_initial_ball <= real_1.
   Proof.
     unfold STR_initial_ball. 
@@ -673,8 +676,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_le_triv.
   Qed.
 
-  Definition STRn := STn STR_v1 STR_v2 STR_v3 STR_initial_ball.
+  Definition STRn := STn _ STR_vs STR_initial_ball.
 
+(* 
   (* bits needed for verification *)
 
   Lemma STR_initial_ball_contains_v1 : ball_to_subset 2 STR_initial_ball STR_v1.
@@ -745,8 +749,11 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
       STR_initial_ball_contains_v2
       STR_initial_ball_contains_v3
       .
+*)
 
 End ST_RightAngled.
+
+(* 
 
 Section ST_Equilateral.
 
