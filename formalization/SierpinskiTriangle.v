@@ -74,14 +74,25 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
 
   (* The vertices of the triangle hull *)
-  Variable ST_vs_size : nat.
-  Variable ST_vs : t (^euclidean 2) ST_vs_size.
+  Variable ST_vs_size_pred : nat.
+  (* Notation ST_vs_size := (S ST_vs_size_pred). *)
+  
+  Variable ST_vs : t (^euclidean 2) (S ST_vs_size_pred).
+  Definition ST_v1 := hd ST_vs.
+
+  Lemma ST_v1_in_vs : In ST_v1 ST_vs.
+  Proof.
+    rewrite (eta ST_vs).
+    apply In_cons_hd.
+  Qed.
+
   Variable ST_initial_ball : ^ball 2.
   Variable ST_initial_ball_radius_bound : snd ST_initial_ball <= real_1.
   Variable ST_initial_ball_contains_vs : 
     Forall (ball_to_subset 2 ST_initial_ball) ST_vs.
 
-  Definition ST_has_vs (S : euclidean_subset 2) : Prop := Forall S ST_vs.
+
+  Definition ST_has_vs (A : euclidean_subset 2) : Prop := Forall A ST_vs.
 
   (* The convex hull of a vector of points defined using weights *)
 
@@ -177,21 +188,21 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* The convex hull of the vertices defined using weights *)
 
-  Definition ST_weighted_pt (cs : t ^Real ST_vs_size) : ^euclidean 2
+  Definition ST_weighted_pt (cs : t ^Real (S ST_vs_size_pred)) : ^euclidean 2
     := weighted_pt cs ST_vs.
 
-  Definition ST_weights_valid (cs : t ^Real ST_vs_size) : Prop :=
+  Definition ST_weights_valid (cs : t ^Real (S ST_vs_size_pred)) : Prop :=
     (Forall (fun c => c >= real_0) cs) 
     /\ sum cs = real_1.
 
   Definition ST_inside_hull_pt (pt : ^euclidean 2) : Prop :=
-    exists cs : t ^Real ST_vs_size, 
+    exists cs : t ^Real (S ST_vs_size_pred), 
     pt = (ST_weighted_pt cs) /\ ST_weights_valid cs.
   
-  Definition ST_inside_hull (S : euclidean_subset 2) : Prop :=
-    forall pt : ^euclidean 2, S pt -> ST_inside_hull_pt pt.
+  Definition ST_inside_hull (A : euclidean_subset 2) : Prop :=
+    forall pt : ^euclidean 2, A pt -> ST_inside_hull_pt pt.
 
-  Lemma ST_weighted_pt_in_init_ball (cs : t ^Real ST_vs_size) : 
+  Lemma ST_weighted_pt_in_init_ball (cs : t ^Real (S ST_vs_size_pred)) : 
     ST_weights_valid cs ->
     ball_to_subset 2 ST_initial_ball (ST_weighted_pt cs).
   Proof.
@@ -387,15 +398,15 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply one_half_neq0.
   Qed.
 
-  Definition ST_equal_union (S : euclidean_subset 2) : Prop :=
+  Definition ST_equal_union (A : euclidean_subset 2) : Prop :=
     forall pt : ^euclidean 2, 
-    S pt = 
-      Exists (fun v => S (point_point_away v pt)) ST_vs.
+    A pt = 
+      Exists (fun v => A (point_point_away v pt)) ST_vs.
 
   (* Characterisation of the Sierpinski triangle (except being closed) *)
 
-  Definition ST (S : euclidean_subset 2) : Prop :=
-    ST_has_vs S /\ ST_inside_hull S /\ ST_equal_union S.
+  Definition ST (A : euclidean_subset 2) : Prop :=
+    ST_has_vs A /\ ST_inside_hull A /\ ST_equal_union A.
 
   (* Constructive definition of the Sierpinski triangle using covers *)
 
@@ -408,9 +419,18 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     | (S n') => List.concat (List.map ST_split_ball (STn n'))
     end.
 
-  (* The diameter shrinks exponentially with n *)
+  Lemma ST_split_ball_in v a : 
+    List.In v (VectorDef.to_list ST_vs) -> 
+    List.In (point_ball_mid v a) (ST_split_ball a).
+  Proof.
+    intro.
+    unfold ST_split_ball.
+    rewrite to_list_map.
+    apply (in_map (fun v0 : ^euclidean 2 => point_ball_mid v0 a)).
+    auto.
+  Qed.
 
-  (* 
+  (* The diameter shrinks exponentially with n *)
 
   Lemma STn_diam n : diam 2 (STn n) <= prec n.
   Proof.
@@ -440,43 +460,45 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
           left. apply one_half_pos.
         * intros.
           destruct (in_app_or _ _ _ H) as [Ha|Hl].
-          induction (ST_split_ball a). contradict Ha.
-
-
-        Search List.app List.In.
-
-        unfold ST_split_ball.
-        induction ST_vs_size.
-        unfold to_list.
-        unfold app map.
-        Set Printing All.
-        unfold diam.
-
-        apply real_max_le_le_le.
-        apply point_ball_mid_halves; auto.
-        apply real_max_le_le_le.
-        apply point_ball_mid_halves; auto.
-        apply real_max_le_le_le.
-        apply point_ball_mid_halves; auto.
-
-        auto.
+          {
+            clear H.
+            unfold ST_split_ball in Ha.
+            rewrite to_list_map in Ha.
+            apply in_map_iff in Ha.
+            destruct Ha as [x [ab _]].
+            rewrite <- ab.
+            unfold real_div.
+            apply point_ball_mid_halves; auto.
+          }
+          clear H.
+          rewrite <- diam_le in IHl.
+          specialize (IHl b).
+          auto.
+          unfold real_div.
+          apply real_le_pos_mult_pos_pos.
+          left. apply prec_pos.
+          left. apply one_half_pos.
   Qed.
 
   (* Intersection of cover and ST *)
 
-  Lemma STn_intersects n S: (ST S) -> Forall (fun b : ^ball 2 => intersects 2 (ball_to_subset 2 b) S) (STn n).
+  Lemma STn_intersects n A: (ST A) -> List.Forall (fun b : ^ball 2 => intersects 2 (ball_to_subset 2 b) A) (STn n).
   Proof.
     intro STs.
-    destruct STs as [[hasV1 _] [insideHull equalsUnion]].
+    destruct STs as [hasVs [insideHull equalsUnion]].
+    unfold ST_has_vs in hasVs.
+    rewrite Forall_forall in hasVs.
+    pose proof (hasV1 := hasVs ST_v1 ST_v1_in_vs).
     induction n.
     - simpl.
-      apply Forall_cons.
+      apply List.Forall_cons.
       + exists ST_v1.
         unfold intersection.
         split.
-        * apply ST_initial_ball_contains_v1.
+        * rewrite Forall_forall in ST_initial_ball_contains_vs.
+          apply (ST_initial_ball_contains_vs ST_v1 ST_v1_in_vs).
         * auto.
-      + apply Forall_nil.
+      + apply List.Forall_nil.
     - simpl.
       induction (STn n).
       auto.
@@ -487,48 +509,33 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
       apply Forall_concat.
       apply Forall_map.
-      apply Forall_cons.
+      apply List.Forall_cons.
 
-      + unfold ST_split_ball.
+      + 
         destruct IHn as [pt [pt_in_a spt]].
-        apply Forall_cons.
-        * exists (point_point_mid ST_v1 pt).
-          unfold intersection; split.
-          apply point_point_mid_in_ball_mid.
-          auto.
-
-          rewrite (equalsUnion (point_point_mid ST_v1 pt)).
-          left.
-          rewrite <- point_point_mid_away_id. auto.
-
-        * apply Forall_cons.
-          exists (point_point_mid ST_v2 pt).
-          unfold intersection; split.
-          apply point_point_mid_in_ball_mid.
-          auto.
-
-          rewrite (equalsUnion (point_point_mid ST_v2 pt)).
-          right; left.
-          rewrite <- point_point_mid_away_id. auto.
-        
-          apply Forall_cons.
-          exists (point_point_mid ST_v3 pt).
-          unfold intersection; split.
-          apply point_point_mid_in_ball_mid.
-          auto.
-
-          rewrite (equalsUnion (point_point_mid ST_v3 pt)).
-          right; right.
-          rewrite <- point_point_mid_away_id. auto.
-
-          apply Forall_nil.
-      + apply Forall_map. apply Forall_concat. auto.
+        unfold ST_split_ball.
+        rewrite to_list_map.
+        rewrite Forall_map.
+        rewrite List.Forall_forall.
+        intros v H.
+        exists (point_point_mid v pt).
+        unfold intersection; split.
+        apply point_point_mid_in_ball_mid; auto.
+        rewrite (equalsUnion (point_point_mid v pt)).
+        rewrite to_list_Exists.
+        rewrite List.Exists_exists.
+        exists v.
+        split; auto.
+        rewrite <- point_point_mid_away_id. auto.
+      + rewrite Forall_concat in IHl2.  
+        rewrite Forall_map in IHl2.
+        auto.
   Qed.  
 
   Lemma Exists_concat_map A B l (P : B -> Prop) (fl : A -> list B) (f : A -> B):
-    (forall a, In (f a) (fl a)) ->
-    Exists P (map f l) -> 
-    Exists P (concat (map fl l)).
+    (forall a, List.In (f a) (fl a)) ->
+    List.Exists P (List.map f l) -> 
+    List.Exists P (List.concat (List.map fl l)).
   Proof.
     intros fInfl existsfl.
     apply Exists_concat.
@@ -547,9 +554,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     auto.
   Qed.
 
-  Lemma ST_compact : forall S, (ST S) -> is_covert 2 S.
+  Lemma ST_compact : forall A, (ST A) -> is_covert 2 A.
   Proof.
-    intros S STs n.
+    intros A STs n.
     exists (STn n).
     split.
     exact (STn_diam n).
@@ -559,84 +566,67 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
     (* coverage: *)
 
-    destruct STs as [[hasV1 [hasV2 hasV3]] [insideHull equalsUnion]].
+    destruct STs as [hasVs [insideHull equalsUnion]].
 
     induction n.
     - simpl. 
       intros pt spt.
 
       (* break down the assumptions *)
-      apply Exists_cons_hd.      
-      destruct (insideHull pt) as [c1 [c2 [c3 [ptc123 valid123]]]]. auto.
-      rewrite ptc123.
-      apply (ST_weighted_pt_in_init_ball c1 c2 c3). auto.
+      apply List.Exists_cons_hd.      
+      destruct (insideHull pt spt) as [cs [pt_cs valid_cs]].
+      rewrite pt_cs.
+      apply (ST_weighted_pt_in_init_ball cs). auto.
 
     - intros pt spt.
 
-    rewrite (equalsUnion pt) in spt.
-    destruct spt as [pt'In | [pt'In | pt'In]]; auto.
-    + pose (point_point_away ST_v1 pt) as pt'.
+      rewrite (equalsUnion pt) in spt.
+      rewrite to_list_Exists in spt.
+      rewrite Exists_exists in spt.
+      destruct spt as [v [v_vs pt'In]].
+
+      pose (point_point_away v pt) as pt'.
       pose proof (IHn pt' pt'In) as IHn'.
-      (* applying our custom lemma about concat (map _) : *)
-      apply (Exists_concat_map _ _ _ _ _ (point_ball_mid ST_v1)).
-      simpl. auto.
+      unfold STn.
+      apply (Exists_concat_map _ _ _ _ _ (point_ball_mid v)).
+      intro.
+      apply ST_split_ball_in; auto.
+      
       fold STn.
       apply Exists_exists in IHn'.
       destruct IHn' as [b [bInSTn p1Inb]].
       apply Exists_exists.
-      exists (point_ball_mid ST_v1 b).
+      exists (point_ball_mid v b).
       split.
       apply in_map_iff.
       exists b; auto.
-      assert (pt = point_point_mid ST_v1 pt') as pt'pt.
+      assert (pt = point_point_mid v pt') as pt'pt.
       apply point_point_away_mid_id.
       rewrite pt'pt.
       apply point_point_mid_in_ball_mid.
       auto.
-
-    + pose (point_point_away ST_v2 pt) as pt'.
-      pose proof (IHn pt' pt'In) as IHn'.
-      (* applying our custom lemma about concat (map _) : *)
-      apply (Exists_concat_map _ _ _ _ _ (point_ball_mid ST_v2)).
-      simpl. auto.
-      fold STn.
-      apply Exists_exists in IHn'.
-      destruct IHn' as [b [bInSTn p1Inb]].
-      apply Exists_exists.
-      exists (point_ball_mid ST_v2 b).
-      split.
-      apply in_map_iff.
-      exists b; auto.
-      assert (pt = point_point_mid ST_v2 pt') as pt'pt.
-      apply point_point_away_mid_id.
-      rewrite pt'pt.
-      apply point_point_mid_in_ball_mid.
-      auto.
-
-    + pose (point_point_away ST_v3 pt) as pt'.
-      pose proof (IHn pt' pt'In) as IHn'.
-      (* applying our custom lemma about concat (map _) : *)
-      apply (Exists_concat_map _ _ _ _ _ (point_ball_mid ST_v3)).
-      simpl. auto.
-      fold STn.
-      apply Exists_exists in IHn'.
-      destruct IHn' as [b [bInSTn p1Inb]].
-      apply Exists_exists.
-      exists (point_ball_mid ST_v3 b).
-      split.
-      apply in_map_iff.
-      exists b; auto.
-      assert (pt = point_point_mid ST_v3 pt') as pt'pt.
-      apply point_point_away_mid_id.
-      rewrite pt'pt.
-      apply point_point_mid_in_ball_mid.
-      auto.
-
   Qed.
-*)
-
 
 End SierpinskiTriangle.
+
+
+Definition t3_new {A} (a b c : A) := 
+  cons _ a _ (cons _ b _ (cons _ c _ (nil _))).
+  
+Definition t3_get {A} (t3 : t A 3) : (A * A * A) :=
+  ((hd t3, hd (tl t3)), hd (tl (tl t3))).
+  
+(* Lemma t3_new_get {A} a b c : @t3_get A (@t3_new A a b c) = ((a, b), c).
+Proof.
+  Admitted. *)
+
+Lemma t3_in {A} e a b c: In e (@t3_new A a b c) -> e = a \/ e = b \/ e = c.
+Proof.
+  rewrite to_list_In.
+  simpl.
+  intro.
+  repeat (destruct H; auto).
+Qed.
 
 Section ST_RightAngled.
 
@@ -671,13 +661,16 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Definition STR_v2 := make_euclidean2 real_0 real_0.
   Definition STR_v3 := make_euclidean2 real_1 real_0.
 
-  Definition STR_vs := 
-    cons _ STR_v1 _ (cons _ STR_v2 _ (cons _ STR_v3 _ (nil _))).
+  Definition STR_vs := t3_new STR_v1 STR_v2 STR_v3.
 
-  Lemma STR_initial_ball_radius_bound : snd STR_initial_ball <= one_half.
+  Lemma STR_initial_ball_radius_bound : snd STR_initial_ball <= real_1.
   Proof.
     unfold STR_initial_ball. 
-    simpl. 
+    simpl.
+    rewrite <- one_half_plus_one_half.
+    rewrite <- (real_plus_unit one_half) at 1.
+    apply real_le_le_plus_le.
+    left. apply one_half_pos. 
     apply real_le_triv.
   Qed.
 
@@ -685,82 +678,96 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   Definition STRn := STn _ STR_vs STR_initial_ball.
 
-(* 
   (* bits needed for verification *)
 
   Lemma STR_initial_ball_contains_v1 : ball_to_subset 2 STR_initial_ball STR_v1.
   Proof.
     unfold STR_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
-    ring_simplify (- real_1 + - real_0).
-    ring_simplify (real_1 + - real_0).
-    rewrite (abs_pos_id real_1).
+    ring_simplify (real_0 + - one_half).
+    rewrite <- one_half_plus_one_half.
+    ring_simplify (one_half + one_half + - one_half).
+    rewrite (abs_pos_id one_half).
     rewrite (abs_neg_id_neg).
-    ring_simplify (- - real_1).
+    ring_simplify (- - one_half).
 
     apply real_max_le_le_le. 
     apply real_le_triv.
     apply real_max_le_le_le. 
     apply real_le_triv.
-    left. apply real_1_gt_0.
+    left. apply one_half_pos.
     rewrite <- (real_0_neg_eq).
     apply real_lt_anti.
-    apply real_1_gt_0.
-    left. apply real_1_gt_0.
+    apply one_half_pos.
+    left. apply one_half_pos.
   Qed.
   
   Lemma STR_initial_ball_contains_v2 : ball_to_subset 2 STR_initial_ball STR_v2.
   Proof.
     unfold STR_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
-    ring_simplify (- real_1 + - real_0).
+    ring_simplify (real_0 + - one_half).
     rewrite (abs_neg_id_neg).
-    ring_simplify (- - real_1).
+    ring_simplify (- - one_half).
 
     apply real_max_le_le_le. 
     apply real_le_triv.
     apply real_max_le_le_le. 
     apply real_le_triv.
-    left. apply real_1_gt_0.
+    left. apply one_half_pos.
     rewrite <- (real_0_neg_eq).
     apply real_lt_anti.
-    apply real_1_gt_0.
+    apply one_half_pos.
   Qed.
   
   Lemma STR_initial_ball_contains_v3 : ball_to_subset 2 STR_initial_ball STR_v3.
   Proof.
     unfold STR_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
-    ring_simplify (- real_1 + - real_0).
-    ring_simplify (real_1 + - real_0).
-    rewrite (abs_pos_id real_1).
+    rewrite <- one_half_plus_one_half.
+    ring_simplify (one_half + one_half + - one_half).
+    ring_simplify (real_0 + - one_half).
+    rewrite (abs_pos_id one_half).
     rewrite (abs_neg_id_neg).
-    ring_simplify (- - real_1).
+    ring_simplify (- - one_half).
 
     apply real_max_le_le_le. 
     apply real_le_triv.
     apply real_max_le_le_le. 
     apply real_le_triv.
-    left. apply real_1_gt_0.
+    left. apply one_half_pos.
     rewrite <- (real_0_neg_eq).
     apply real_lt_anti.
-    apply real_1_gt_0.
-    left. apply real_1_gt_0.
+    apply one_half_pos.
+    left. apply one_half_pos.
   Qed.
 
+  Lemma STR_initial_ball_contains_vs : 
+    Forall (ball_to_subset 2 STR_initial_ball) STR_vs.
+  Proof.
+    unfold STR_vs.
+    rewrite Forall_forall.
+    intros.
+    apply t3_in in H.
+    destruct H.
+    rewrite H.
+    apply STR_initial_ball_contains_v1.
+    destruct H.
+    rewrite H.
+    apply STR_initial_ball_contains_v2.
+    rewrite H.
+    apply STR_initial_ball_contains_v3.
+  Qed.
+
+
   Definition STR_compact := 
-    ST_compact 
-      STR_v1 STR_v2 STR_v3 STR_initial_ball
+    ST_compact 2
+      STR_vs STR_initial_ball
       STR_initial_ball_radius_bound
-      STR_initial_ball_contains_v1
-      STR_initial_ball_contains_v2
-      STR_initial_ball_contains_v3
+      STR_initial_ball_contains_vs
       .
-*)
 
 End ST_RightAngled.
-
-(* 
 
 Section ST_Equilateral.
 
@@ -861,6 +868,8 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Definition STE_v2 := make_euclidean2 (real_1) (- real_1).
   Definition STE_v3 := make_euclidean2 real_0 (sqrt_3 - real_1).
 
+  Definition STE_vs := t3_new STE_v1 STE_v2 STE_v3.
+
   Lemma STE_initial_ball_radius_bound : snd STE_initial_ball <= real_1.
   Proof.
     unfold STR_initial_ball. 
@@ -868,7 +877,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_le_triv.
   Qed.
 
-  Definition STEn := STn STE_v1 STE_v2 STE_v3 STE_initial_ball.
+  Definition STEn := STn _ STE_vs STE_initial_ball.
 
   (* bits needed for verification *)
 
@@ -937,15 +946,28 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     left. apply real_1_gt_0.
   Qed.
   
+  Lemma STE_initial_ball_contains_vs : 
+    Forall (ball_to_subset 2 STE_initial_ball) STE_vs.
+  Proof.
+    unfold STE_vs.
+    rewrite Forall_forall.
+    intros.
+    apply t3_in in H.
+    destruct H.
+    rewrite H.
+    apply STE_initial_ball_contains_v1.
+    destruct H.
+    rewrite H.
+    apply STE_initial_ball_contains_v2.
+    rewrite H.
+    apply STE_initial_ball_contains_v3.
+  Qed.
+
   Definition STE_compact := 
-    ST_compact 
-      STE_v1 STE_v2 STE_v3 STE_initial_ball
+    ST_compact _
+      STE_vs STE_initial_ball
       STE_initial_ball_radius_bound
-      STE_initial_ball_contains_v1
-      STE_initial_ball_contains_v2
-      STE_initial_ball_contains_v3
+      STE_initial_ball_contains_vs
       .
 
 End ST_Equilateral.
-
-*)
