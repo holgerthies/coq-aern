@@ -919,15 +919,14 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     exact (a H).
   Defined.
   
-  Lemma dist_scale : forall x y s : Real, s > real_0 -> s * dist x y = dist (s * x) (s * y).
+  Lemma dist_scale : forall x y s : Real, s >= real_0 -> s * dist x y = dist (s * x) (s * y).
   Proof.
     intros.
     unfold dist.
     replace (s * x - s * y) with (s * (x - y)) by ring.
     rewrite abs_mult.
     rewrite (abs_pos_id s).
-    auto.
-    left; auto.
+    auto. auto.
   Defined.
     
   Lemma IZreal_dist : forall z1 z2 : Z, dist (IZreal z1) (IZreal z2) = IZreal (Z.abs (z1 - z2)%Z).

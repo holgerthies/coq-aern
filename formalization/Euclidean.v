@@ -170,6 +170,18 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      exact (cons (l * x0) (IHn x1)).
   Defined.
 
+  Lemma euclidean_scalar_mult_plus {n : nat} (l1 : ^Real) (l2 : ^Real) (x : euclidean n) : 
+    euclidean_plus (euclidean_scalar_mult l1 x) (euclidean_scalar_mult l2 x) = euclidean_scalar_mult (l1+l2) x.
+  Proof.
+    induction n; auto.
+    destruct (dim_succ_destruct x) as [hx [tx ex]].
+    rewrite ex.
+    simpl.
+    f_equal.
+    ring.
+    apply IHn.
+  Qed.
+
   Lemma euclidean_scalar_mult_mult {n : nat} (l1 : ^Real) (l2 : ^Real) (x : euclidean n) : euclidean_scalar_mult l1 (euclidean_scalar_mult l2 x) = euclidean_scalar_mult (l1*l2) x.
   Proof.
     induction n; auto.
@@ -179,7 +191,16 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     f_equal.
     ring.
     apply IHn.
+  Qed.
 
+  Lemma euclidean_scalar_mult_zero {n : nat} (x : euclidean n) : euclidean_scalar_mult real_0 x = euclidean_zero n.
+  Proof.
+    induction n.
+    rewrite (dim_zero_destruct x);auto.
+    destruct (dim_succ_destruct x) as [hx [tx ->]].
+    simpl;f_equal.
+    ring.
+    apply IHn.
   Qed.
   Lemma euclidean_scalar_mult_unit {n : nat} (x : euclidean n) : euclidean_scalar_mult real_1 x = x.
   Proof.
@@ -411,7 +432,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     auto.
   Qed.
 
-  Lemma real_max_hom x y l : (real_0 < l) -> real_max (l*x) (l*y) = l * real_max x y.
+  Lemma real_max_hom x y l : (real_0 <= l) -> real_max (l*x) (l*y) = l * real_max x y.
   Proof.
     intros.
     destruct (real_max_cand x y) as [H1 | H1]; destruct (real_max_cand (l*x) (l*y)) as [H2 | H2]; rewrite H1, H2;auto.
@@ -425,7 +446,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply RealOrder.real_le_ge_eq;auto.
   Qed.    
   
-  Lemma euclidean_max_dist_scalar_mult {n : nat} (x y : euclidean n) l: (real_0 < l) -> euclidean_max_dist (euclidean_scalar_mult l x) (euclidean_scalar_mult l y) = l * (euclidean_max_dist x y).
+  Lemma euclidean_max_dist_scalar_mult {n : nat} (x y : euclidean n) l: (real_0 <= l) -> euclidean_max_dist (euclidean_scalar_mult l x) (euclidean_scalar_mult l y) = l * (euclidean_max_dist x y).
   Proof.
     intros lgt0.
     induction n.
@@ -441,6 +462,33 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite IHn.
     rewrite real_max_hom;auto.
   Qed.
+
+  Lemma euclidean_max_dist_plus_le {n : nat} (p1 p2 p3 p4 : euclidean n): euclidean_max_dist (euclidean_plus p1 p2) (euclidean_plus p3 p4) <= (euclidean_max_dist p1 p3) + (euclidean_max_dist p2 p4).
+  Proof.
+    induction n. 
+    rewrite (dim_zero_destruct p1), (dim_zero_destruct p2), (dim_zero_destruct p3), (dim_zero_destruct p4).
+    unfold euclidean_max_dist, euclidean_max_norm; simpl.
+    right; ring.
+
+    destruct 
+      (dim_succ_destruct p1) as [hp1 [tp1 ep1]], 
+      (dim_succ_destruct p2) as [hp2 [tp2 ep2]], 
+      (dim_succ_destruct p3) as [hp3 [tp3 ep3]], 
+      (dim_succ_destruct p4) as [hp4 [tp4 ep4]].
+    rewrite ep1, ep2, ep3, ep4. simpl.
+    rewrite !euclidean_max_dist_cons.
+    specialize (IHn tp1 tp2 tp3 tp4).
+    apply (real_le_le_le _ (real_max (dist hp1 hp3 + dist hp2 hp4)
+      (euclidean_max_dist tp1 tp3 + euclidean_max_dist tp2 tp4))).
+    apply real_max_compwise_le.
+    - unfold dist.
+      assert (T : hp1 + hp2 - (hp3 + hp4) = (hp1 - hp3) + (hp2 - hp4)). ring.
+      rewrite T; clear T.
+      apply abs_tri.
+    - auto.
+    - apply (real_max_aux (dist hp1 hp3) (dist hp2 hp4) (euclidean_max_dist tp1 tp3) (euclidean_max_dist tp2 tp4)).
+  Qed.
+
   (* euclidean space is complete *)
   Definition euclidean_is_fast_cauchy {n : nat} (f : nat -> euclidean n) : Prop
     := forall n m, euclidean_max_dist (f n) (f m) <= prec n + prec m.

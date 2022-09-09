@@ -1377,13 +1377,16 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
 
 
-  Lemma real_le_mult_pos_le : forall (r r1 r2 : Real), real_0 < r -> r1 <= r2 -> r * r1 <= r * r2.
+  Lemma real_le_mult_pos_le : forall (r r1 r2 : Real), real_0 <= r -> r1 <= r2 -> r * r1 <= r * r2.
   Proof.
     intros.
+    destruct H.
     destruct H0.
     left; exact (real_lt_mult_pos_lt _ _ _ H H0).
     rewrite H0.
     right; auto.
+    rewrite <- H.
+    ring_simplify; apply real_le_triv.
   Defined.
   
   Lemma IZreal_mult_hom_pos : forall z1 z2 : Z, (0 <= z2)%Z ->  IZreal (z1 * z2) = IZreal z1 * IZreal z2.

@@ -36,6 +36,29 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Definition diam (L : list ball) := (fold_right (fun b1 r => (real_max (snd b1) r)) real_0 L).
 
+  Lemma ball_to_subset_scalar_mult s c1 r1 p1:
+    s >= real_0 ->
+    ball_to_subset (c1, r1) p1 ->
+    ball_to_subset (euclidean_scalar_mult s c1, s * r1) (euclidean_scalar_mult s p1).
+  Proof.
+    unfold ball_to_subset; simpl.
+    intros.
+    rewrite euclidean_max_dist_scalar_mult.
+    apply real_le_mult_pos_le; auto. auto.
+  Qed.
+
+  Lemma ball_to_subset_plus c1 r1 p1 c2 r2 p2 :
+    ball_to_subset (c1, r1) p1 ->
+    ball_to_subset (c2, r2) p2 ->
+    ball_to_subset (euclidean_plus c1 c2, r1 + r2) (euclidean_plus p1 p2).
+  Proof.
+    unfold ball_to_subset; simpl.
+    intros.
+    apply (real_le_le_le _ (euclidean_max_dist p1 c1 + euclidean_max_dist p2 c2)).
+    apply euclidean_max_dist_plus_le.
+    apply real_le_le_plus_le; auto.
+  Qed.
+
   Definition Hausdorff_dist_bound (S T : euclidean_subset) n :=
     (forall x, S x -> exists y, T y /\ euclidean_max_dist x y <= n) /\
       (forall y, T y -> exists x, S x /\ euclidean_max_dist x y <= n).
@@ -319,7 +342,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
                             end.
 
 
-  Lemma scale_diam L l: (real_0 < l) -> diam (scale_list L l) = l * diam L.
+  Lemma scale_diam L l: (real_0 <= l) -> diam (scale_list L l) = l * diam L.
   Proof.  
     intros H.
     induction L as [| b L' IH].
@@ -417,9 +440,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       replace (euclidean_scalar_mult l x) with (euclidean_scalar_mult (/ dlneq0) x) by (rewrite <-H3;auto).
       rewrite euclidean_scalar_mult_inv.
       rewrite real_mult_comm;auto.
+      left. auto.
    - exists x;auto.
   Qed.
-
 
   Lemma is_covert_scale_down M k : is_covert M -> is_covert (scaling (prec k) M).
   Proof.
@@ -427,9 +450,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     destruct (Mc (n-k)%nat) as [L [Lp1 [Lp2 Lp3]]].
     exists (scale_list L (prec k)).
     split; [|split].
-    - rewrite scale_diam; [|apply prec_pos].
+    - rewrite scale_diam; [|left;apply prec_pos].
       apply (real_le_le_le _ ((prec k) * prec (n - k))).
-      apply real_le_mult_pos_le; [apply prec_pos | auto].
+      apply real_le_mult_pos_le; [left;apply prec_pos | auto].
       rewrite <- prec_hom.
       destruct (Nat.lt_ge_cases n k).
       pose proof (Nat.sub_0_le n k) as [H1 H2].
@@ -461,8 +484,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply prec_pos.
     unfold ball_to_subset;simpl.
     replace x with (euclidean_scalar_mult (prec k) (euclidean_scalar_mult (Nreal (Npow2 k)) x)).
-    rewrite euclidean_max_dist_scalar_mult; [|apply prec_pos].
-    apply real_le_mult_pos_le;auto;apply prec_pos.
+    rewrite euclidean_max_dist_scalar_mult; [|left;apply prec_pos].
+    apply real_le_mult_pos_le;auto;left;apply prec_pos.
     rewrite euclidean_scalar_mult_mult.
     rewrite prec_Npow2_unit.
     apply euclidean_scalar_mult_unit.
@@ -475,9 +498,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     destruct (Mc (n+k)%nat) as [L [Lp1 [Lp2 Lp3]]].
     exists (scale_list L (Nreal (Npow2 k))).
     split; [|split].
-    - rewrite scale_diam; [|apply Nreal_Npow2_pos].
+    - rewrite scale_diam; [|left;apply Nreal_Npow2_pos].
       apply (real_le_le_le _ (Nreal (Npow2 k) * prec (n + k))).
-      apply real_le_mult_pos_le; [apply Nreal_Npow2_pos | auto].
+      apply real_le_mult_pos_le; [left;apply Nreal_Npow2_pos | auto].
       rewrite prec_hom.
       rewrite (real_mult_comm (prec n)), <-real_mult_assoc, (real_mult_comm _ (prec k)).
       rewrite prec_Npow2_unit, real_mult_unit.
@@ -504,8 +527,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply Nreal_Npow2_pos.
     unfold ball_to_subset;simpl.
     replace x with (euclidean_scalar_mult (Nreal (Npow2 k)) (euclidean_scalar_mult (prec k) x)).
-    rewrite euclidean_max_dist_scalar_mult; [|apply Nreal_Npow2_pos].
-    apply real_le_mult_pos_le;auto;apply Nreal_Npow2_pos.
+    rewrite euclidean_max_dist_scalar_mult; [|left;apply Nreal_Npow2_pos].
+    apply real_le_mult_pos_le;auto;left;apply Nreal_Npow2_pos.
     rewrite euclidean_scalar_mult_mult.
     rewrite real_mult_comm.
     rewrite prec_Npow2_unit.
