@@ -85,7 +85,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* The convex hull of a vector of points defined using weights *)
 
-  Definition sum {sz} (cs : t _ sz) := fold_left real_plus real_0 cs.
+  Definition sum {sz} (cs : t _ sz) := fold_right real_plus cs real_0.
 
   Lemma sum_0 (cs : t _ 0) : sum cs = real_0.
   Proof.
@@ -94,54 +94,91 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply (case0 (fun v => sum v = real_0) T cs).
   Qed.
 
-  Lemma fold_left_sum_init_value n a (cs : t _ n) : 
-    fold_left real_plus a cs = a + fold_left real_plus real_0 cs.
-  Proof.
-    revert a.
-    induction n.
-    intro a.
-    assert (T : fold_left real_plus a (nil _) = a + fold_left real_plus real_0 (nil _)).
-    simpl.  rewrite real_plus_comm, real_plus_unit; auto.
-    apply (case0 (fun v => fold_left real_plus a v = a + fold_left real_plus real_0 v) T cs).
-
-    intro a.
-    specialize (IHn (tl cs)).
-    rewrite (eta cs).
-    simpl.
-    rewrite (IHn).
-    rewrite (IHn (real_0 + VectorDef.hd cs)).
-    ring.
-  Qed.
-
   Lemma sum_S n (cs : t _ (S n)) : sum cs = hd cs + sum (tl cs).
   Proof.
     rewrite (eta cs) at 1.
-    unfold sum; simpl.
-    rewrite fold_left_sum_init_value.
-    rewrite real_plus_unit.
     auto.
   Qed.
 
   Definition weighted_pt {sz} (cs : t ^Real sz) (pts : t (^euclidean 2) sz) : ^euclidean 2 
-    := fold_left euclidean_plus (euclidean_zero 2) 
-        (map2 euclidean_scalar_mult cs pts).
+    := fold_right euclidean_plus
+        (map2 euclidean_scalar_mult cs pts) (euclidean_zero 2).
+
+  Lemma weighted_pt_0 (cs : t _ 0) pts : weighted_pt cs pts = euclidean_zero 2.
+  Proof.
+    assert (T1 : weighted_pt (nil ^Real) (nil (^euclidean 2)) = euclidean_zero 2).
+    auto.
+    assert (T2 : weighted_pt (nil ^Real) pts = euclidean_zero 2).
+    apply (case0 (fun v => weighted_pt (nil ^Real) v = euclidean_zero 2) T1 pts).
+    apply (case0 (fun v => weighted_pt v pts = euclidean_zero 2) T2 cs).
+  Qed.
+
+  Lemma weighted_pt_S n (cs : t _ (S n)) (pts : t _ (S n)) : 
+    weighted_pt cs pts = 
+      euclidean_plus 
+        (euclidean_scalar_mult (hd cs) (hd pts))
+        (weighted_pt (tl cs) (tl pts)).
+  Proof.
+    rewrite (eta cs) at 1.
+    rewrite (eta pts) at 1.
+    auto.
+  Qed.
 
   Lemma weighted_pt_in_ball {sz} c r cs pts : 
     Forall (ball_to_subset 2 (c,r)) pts ->
-    ball_to_subset 2 (c, r * (sum cs)) (@weighted_pt (S sz) cs pts).
+    Forall (fun ci => ci >= real_0) cs ->
+    ball_to_subset 2 (euclidean_scalar_mult (sum cs) c, r * (sum cs)) (@weighted_pt sz cs pts).
   Proof.
-    intro pts_in.
-    induction sz.
-    - set (c1 := hd cs).
-    rewrite (eta cs).
-    Search (cons).
-    - caseS 
+    intros pts_in cs_pos.
+    rewrite (Forall_forall) in pts_in, cs_pos.
 
+    induction sz.
+    -
+      rewrite sum_0.
+      rewrite weighted_pt_0.
+      rewrite euclidean_scalar_mult_zero.
+      unfold ball_to_subset. simpl.
+      unfold euclidean_max_dist, euclidean_max_norm. simpl.
+      assert (T : r * real_0 = real_0). ring.
+      rewrite T; clear T.
+      assert (T:abs(real_0 + - real_0) = real_0). apply abs_zero. ring.
+      rewrite T; clear T.
+      repeat apply real_max_le_le_le; apply real_le_triv.
+    - 
+      rewrite sum_S.
+      rewrite weighted_pt_S.
+      rewrite (eta pts) in pts_in.
+      rewrite (eta cs) in cs_pos.
+      specialize (IHsz (tl cs) (tl pts)).
+      set (p1 := hd pts) in *|-*.
+      set (tps := tl pts) in *|-*.
+      set (c1 := hd cs) in *|-*.
+      move c1 after pts.
+      set (tcs := tl cs) in *|-*.
+      move tcs after pts.
+
+      rewrite <- euclidean_scalar_mult_plus.
+      ring_simplify (r * (c1 + sum tcs)).
+
+      apply ball_to_subset_plus.
+      + specialize (pts_in p1); specialize (cs_pos c1).
+        rewrite real_mult_comm.
+        apply ball_to_subset_scalar_mult; auto.
+        apply cs_pos. 
+        apply In_cons_hd.
+        apply pts_in.
+        apply In_cons_hd.
+      + apply IHsz; clear IHsz.
+        intros; apply pts_in.
+        apply In_cons_tl; auto.
+        intros; apply cs_pos.
+        apply In_cons_tl; auto.
+  Qed.
 
   (* The convex hull of the vertices defined using weights *)
 
   Definition ST_weighted_pt (cs : t ^Real ST_vs_size) : ^euclidean 2
-    := weighted_pt _ cs ST_vs.
+    := weighted_pt cs ST_vs.
 
   Definition ST_weights_valid (cs : t ^Real ST_vs_size) : Prop :=
     (Forall (fun c => c >= real_0) cs) 
@@ -159,141 +196,11 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     ball_to_subset 2 ST_initial_ball (ST_weighted_pt cs).
   Proof.
       intros [pos sum1].
-      pose proof ST_initial_ball_contains_vs as vsin.
-
-      unfold ST_weighted_pt, weighted_pt.
-
-      induction ST_vs_size.
-      - contradict sum1.
-        assert (T : fold_left real_plus real_0 cs = real_0).
-        eapply (case0 (fun v => fold_left real_plus real_0 v = real_0) _ cs).
-        rewrite T. apply real_lt_neq. apply real_1_gt_0.
-      - 
-
-      Search "fix".
-      rewrite fold_left
-
       destruct ST_initial_ball as [c r].
-      destruct (split_euclidean2 c) as [xc [yc xyc]].
-      (* rewrite xyc in v1in, v2in, v3in. *)
-      rewrite xyc; clear xyc.
-
-
-
-      destruct (split_euclidean2 ST_v1) as [x1 [y1 xy1]].
-      destruct (split_euclidean2 ST_v2) as [x2 [y2 xy2]].
-      destruct (split_euclidean2 ST_v3) as [x3 [y3 xy3]].
-      rewrite xy1 in v1in.
-      rewrite xy2 in v2in.
-      rewrite xy3 in v3in.
-      clear xy1 xy2 xy3.
-
-      destruct ST_initial_ball as [c r].
-      destruct (split_euclidean2 c) as [xc [yc xyc]].
-      rewrite xyc in v1in, v2in, v3in.
-      rewrite xyc; clear xyc.
-
-      unfold ball_to_subset in v1in, v2in, v3in.
-      simpl in v1in, v2in, v3in.
-      unfold ball_to_subset. simpl.
-
-      unfold euclidean_max_dist, euclidean_minus, euclidean_plus in v1in, v2in, v3in.
-      simpl in v1in, v2in, v3in.
-
-      unfold make_euclidean2, euclidean_max_dist, euclidean_minus, euclidean_plus.
-      simpl.
-
-      pose proof v1in as v1inX.
-      pose proof v2in as v2inX.
-      pose proof v3in as v3inX.
-      apply real_max_le_fst_le in v1inX, v2inX, v3inX.
-      pose proof v1in as v1inY.
-      pose proof v2in as v2inY.
-      pose proof v3in as v3inY.
-      apply real_max_le_snd_le in v1inY, v2inY, v3inY.
-      apply real_max_le_fst_le in v1inY, v2inY, v3inY.
-      clear v1in v2in v3in.
-
-      assert (real_0 <= r) as rpos.
-      apply (real_le_le_le _ (abs (x1 + - xc))); auto.
-      apply abs_pos.
-
-      rewrite <- (real_mult_unit xc).
-      rewrite <- (real_mult_unit yc).
-      rewrite <- c123sum.
-      assert ((c1 * x1 + c2 * x2 + c3 * x3 + - ((c1 + c2 + c3) * xc)) = 
-         c1 * (x1 + - xc) + c2 * (x2 + - xc) + c3 * (x3 + - xc)) as Temp. ring.
-      rewrite Temp; clear Temp.
-      assert ((c1 * y1 + c2 * y2 + c3 * y3 + - ((c1 + c2 + c3) * yc)) = 
-         c1 * (y1 + - yc) + c2 * (y2 + - yc) + c3 * (y3 + - yc)) as Temp. ring.
-      rewrite Temp; clear Temp.
-
-      apply real_max_le_le_le.
-      - 
-        (* use triangle inequality to distribute the abs *)
-        apply (real_le_le_le _ (abs (c1 * (x1 + - xc) + c2 * (x2 + - xc)) + abs(c3 * (x3 + - xc)))).
-        apply abs_tri.
-        pose proof (abs_tri (c1 * (x1 + - xc)) (c2 * (x2 + - xc))) as Temp.
-        apply (real_le_plus_le (abs (c3 * (x3 + - xc)))) in Temp.
-        rewrite (real_plus_comm (abs (c3 * (x3 + - xc)))) in Temp.
-        rewrite (real_plus_comm (abs (c3 * (x3 + - xc)))) in Temp.
-        apply (real_le_le_le _ _ _ Temp).
-        clear Temp.
-
-        rewrite abs_mult, abs_mult, abs_mult.
-        rewrite (abs_pos_id c1), (abs_pos_id c2), (abs_pos_id c3); auto.
-    
-        assert (c1 * abs (x1 + - xc) <= c1 * r) as T1.
-        destruct c1pos.
-        apply (real_le_mult_pos_le c1); auto.
-        rewrite <- H; right; ring.
-        assert (c2 * abs (x2 + - xc) <= c2 * r) as T2.
-        destruct c2pos.
-        apply (real_le_mult_pos_le c2); auto.
-        rewrite <- H; right; ring.
-        assert (c3 * abs (x3 + - xc) <= c3 * r) as T3.
-        destruct c3pos.
-        apply (real_le_mult_pos_le c3); auto.
-        rewrite <- H; right; ring.
-
-        rewrite <- (real_mult_unit r).
-        rewrite <- c123sum.
-        ring_simplify.
-        apply (real_le_le_plus_le); auto.
-        apply (real_le_le_plus_le); auto.
-
-      - apply real_max_le_le_le; auto.
-        (* as above but for y instead of x *)
-        apply (real_le_le_le _ (abs (c1 * (y1 + - yc) + c2 * (y2 + - yc)) + abs(c3 * (y3 + - yc)))).
-        apply abs_tri.
-        pose proof (abs_tri (c1 * (y1 + - yc)) (c2 * (y2 + - yc))) as Temp.
-        apply (real_le_plus_le (abs (c3 * (y3 + - yc)))) in Temp.
-        rewrite (real_plus_comm (abs (c3 * (y3 + - yc)))) in Temp.
-        rewrite (real_plus_comm (abs (c3 * (y3 + - yc)))) in Temp.
-        apply (real_le_le_le _ _ _ Temp).
-        clear Temp.
-
-        rewrite abs_mult, abs_mult, abs_mult.
-        rewrite (abs_pos_id c1), (abs_pos_id c2), (abs_pos_id c3); auto.
-    
-        assert (c1 * abs (y1 + - yc) <= c1 * r) as T1.
-        destruct c1pos.
-        apply (real_le_mult_pos_le c1); auto.
-        rewrite <- H; right; ring.
-        assert (c2 * abs (y2 + - yc) <= c2 * r) as T2.
-        destruct c2pos.
-        apply (real_le_mult_pos_le c2); auto.
-        rewrite <- H; right; ring.
-        assert (c3 * abs (y3 + - yc) <= c3 * r) as T3.
-        destruct c3pos.
-        apply (real_le_mult_pos_le c3); auto.
-        rewrite <- H; right; ring.
-
-        rewrite <- (real_mult_unit r).
-        rewrite <- c123sum.
-        ring_simplify.
-        apply (real_le_le_plus_le); auto.
-        apply (real_le_le_plus_le); auto.
+      pose proof (weighted_pt_in_ball c r cs ST_vs).
+      rewrite sum1, real_mult_comm, real_mult_unit in H.
+      rewrite euclidean_scalar_mult_unit in H.
+      apply H; auto.
   Qed.
 
   (* Self-similarity with ratio 1/2 *)
@@ -377,7 +284,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     rewrite real_mult_comm.
     rewrite (real_mult_comm d).
     apply real_le_mult_pos_le.
-    apply real_pos_inv_pos.
+    left; apply real_pos_inv_pos.
     apply real_2_pos.
     auto.
   Qed.
@@ -426,14 +333,14 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     rewrite real_mult_comm.
     rewrite (real_mult_comm br).
     apply real_le_mult_pos_le.
-    apply one_half_pos.
+    left; apply one_half_pos.
     auto.
 
     apply real_max_le_le_le.
     rewrite real_mult_comm.
     rewrite (real_mult_comm br).
     apply real_le_mult_pos_le.
-    apply one_half_pos.
+    left; apply one_half_pos.
     auto.
 
     apply real_le_pos_mult_pos_pos.
