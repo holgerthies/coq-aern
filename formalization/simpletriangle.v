@@ -123,7 +123,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite <-Nreal_hom.
     rewrite <-(prec_Npow2_unit (S n)).
     apply real_le_mult_pos_le.
-    apply prec_pos.
+    left; apply prec_pos.
     apply Nreal_monotone.
     simpl.
     lia.
@@ -355,7 +355,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       rewrite (abs_pos_id (/ _)).
       rewrite real_mult_comm, (real_mult_comm b).
       apply real_le_mult_pos_le; auto.
-      apply d2_pos.
+      left; apply d2_pos.
       apply real_lt_le.
       apply d2_pos.
     }
@@ -390,13 +390,13 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite !real_plus_assoc, !(real_plus_comm (real_2 * _)).
     apply real_le_plus_le.
     apply real_le_mult_pos_le; auto.
-    apply real_lt_0_2.
+    left;apply real_lt_0_2.
     rewrite abs_pos_id; [| auto].
     apply (real_le_le_le _ (real_2 * z - (y + z))).
     unfold real_minus.
     rewrite !(real_plus_comm (real_2 * _)).
     apply real_le_plus_le.
-    apply real_le_mult_pos_le; auto; apply real_lt_0_2.
+    apply real_le_mult_pos_le; auto; left; apply real_lt_0_2.
     unfold real_2.
     ring_simplify.   
     apply real_eq_le; auto.
@@ -449,7 +449,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply U; auto.
    rewrite <-real_mult_unit, (real_mult_comm real_1).
    apply real_le_mult_pos_le.
-   apply Nreal_Npow2_pos.
+   left; apply Nreal_Npow2_pos.
    exact B2.
    apply lt_n_Sm_le.
    apply Nreal_nat_lt.
@@ -460,7 +460,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply U; auto.
    rewrite <-real_mult_unit, (real_mult_comm real_1).
    apply real_le_mult_pos_le.
-   apply Nreal_Npow2_pos.
+   left; apply Nreal_Npow2_pos.
    exact B1.
    apply lt_n_Sm_le.
    apply Nreal_nat_lt.
@@ -472,7 +472,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    rewrite <-real_mult_plus_distr.
    rewrite <-real_mult_unit, (real_mult_comm real_1).
    apply real_le_mult_pos_le.
-   apply Nreal_Npow2_pos.
+   left; apply Nreal_Npow2_pos.
    exact T3.
    unfold ball_to_subset.
    unfold euclidean_max_dist.
