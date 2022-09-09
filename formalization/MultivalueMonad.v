@@ -96,6 +96,11 @@ Class MultivalueMonad_M (types : RealTypes) :=
     M_description_is_equiv : forall A, is_equiv (Monad_fun_map _ _ (Monoid_hom_nat_trans _ _ A));
 
     M_destruct : forall A (X : @M types A), @M types {x : A | projP1 _ _ (Monoid_hom_nat_trans _ _ A X) x};
+
+     multivalued_countable_choice :
+      forall x : nat -> K,
+        (exists n, x n = lazy_bool_true ) ->
+        @M types {n | x n = lazy_bool_true };
   }.
 
 Context {types : RealTypes} {mvmM : @MultivalueMonad_M types}.
