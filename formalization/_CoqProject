@@ -37,3 +37,4 @@ sqrt.v
 Subsets.v
 simpletriangle.v
 SierpinskiTriangle.v
+SierpinskiTriangleLimit.v

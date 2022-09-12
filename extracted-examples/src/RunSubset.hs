@@ -13,7 +13,8 @@ import AERN2.MP (IsBall(centre))
 -- import qualified STARn as EXTR
 -- import qualified STRn as EXTR
 -- import qualified STEn as EXTR
-import qualified STE4n as EXTR
+-- import qualified STE4n as EXTR
+import qualified STRLim as EXTR
 
 {-
 toJSON :: [Ball AERN2.CReal] -> Prelude.String
@@ -27,7 +28,7 @@ ballsToJSON balls =
     b (c, r) =
       printf "{ \"c\": %s, \"r\": %s }" (p c) (show $ d r)
     p :: EXTR.Euclidean -> String
-    p (EXTR.Cons0 _ x (EXTR.Cons0 _ y EXTR.Nil0)) =
+    p (EXTR.Cons _ x (EXTR.Cons _ y EXTR.Nil)) =
       printf "{ \"x\": %s, \"y\": %s }" (show $ d x) (show $ d y)
     p _ = error "ballsToJSON: an Euclidean value does not have dimension 2"
     d :: CReal -> Double

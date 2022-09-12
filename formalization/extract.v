@@ -311,6 +311,12 @@ Require Import Subsets.
 Extraction Implicit split_euclidean2 [ types ].
 Extraction Implicit make_euclidean2 [ types ].
 Extraction Implicit make_ball2 [ types ].
+Extraction Implicit is_covert_translation [ types casofReal ].
+Extraction Implicit is_covert_union [ types casofReal ].
+Extraction Implicit is_covert_lim [ types casofReal ].
+Extraction Implicit scale_list [ types casofReal ].
+Extraction Implicit change_diam [ types casofReal ].
+Extraction Implicit is_covert_scale_down [ types casofReal ].
 
 Require Import simpletriangle.
 Extraction Implicit Tn_ball [ types casofReal ].
@@ -322,10 +328,6 @@ Extraction Implicit Tn [ types casofReal ].
 Extraction Implicit multi_triangles_compact [ types casofReal ].
 Extraction Implicit empty_set_is_covert [ types casofReal ].
 Extraction Implicit T_is_covert [ types casofReal ].
-Extraction Implicit is_covert_translation [ types casofReal ].
-Extraction Implicit is_covert_union [ types casofReal ].
-Extraction Implicit scale_list [ types casofReal ].
-Extraction Implicit is_covert_scale_down [ types casofReal ].
 (* Extraction "MTn" multi_triangles_compact. *)
 
 Extraction Implicit sierpinski_approx_is_covert [ types casofReal ].
@@ -360,6 +362,11 @@ Extraction Implicit STE_v4 [ types casofReal ].
 Extraction Implicit STE4_vs [ types casofReal ].
 Extraction Implicit STE4n [ types casofReal ].
 (* Extraction "STE4n" STE4n. *)
+
+Require Import SierpinskiTriangleLimit.
+Extraction Implicit sierpinski_approx_is_covert [ types casofReal ].
+Extraction Implicit is_covert_sierpinski [ types casofReal ].
+Extraction "STRLim" is_covert_sierpinski.
 
 (* Require Import Nabla. *)
 
