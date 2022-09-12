@@ -99,11 +99,179 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      f_equal.
      ring.
  Defined.
+
+ Lemma sierpinski_approx_ppm n x v : In v STR_vs -> sierpinski_approx n x -> sierpinski_approx (S n) (point_point_mid v x). 
+ Proof.
+   intros.
+   unfold STR_vs in H.
+   rewrite to_list_In in H.
+   apply in_inv in H.
+   destruct H; [| apply in_inv in H;destruct H; [| apply in_inv in H; destruct H; [|contradict H]]].
+   - rewrite <-H.
+     right.
+     unfold translation, scaling.
+     exists x.
+     split;auto.
+     destruct (dim_succ_destruct x); destruct s as [xr ->].
+     destruct (dim_succ_destruct xr) as [x1 s]; destruct s as [xn ->].
+     rewrite (dim_zero_destruct xn).
+     unfold STR_v1.
+     unfold point_point_mid,euclidean_minus,make_euclidean2.
+     simpl.
+     unfold one_half, real_div.
+     f_equal;[ring | f_equal; ring].
+  - rewrite <- H.
+    left;left.
+    unfold translation, scaling.
+    exists x.
+    split;auto.
+    destruct (dim_succ_destruct x); destruct s as [xr ->].
+    destruct (dim_succ_destruct xr) as [x1 s]; destruct s as [xn ->].
+    rewrite (dim_zero_destruct xn).
+    unfold STR_v1.
+    unfold point_point_mid,euclidean_minus,make_euclidean2.
+    simpl.
+    unfold one_half, real_div.
+    f_equal;[ring | f_equal; ring].
+  - rewrite <- H.
+    left;right.
+    unfold translation, scaling.
+    exists x.
+    split;auto.
+    destruct (dim_succ_destruct x); destruct s as [xr ->].
+    destruct (dim_succ_destruct xr) as [x1 s]; destruct s as [xn ->].
+    rewrite (dim_zero_destruct xn).
+    unfold STR_v1.
+    unfold point_point_mid,euclidean_minus,make_euclidean2.
+    simpl.
+    unfold one_half, real_div.
+    f_equal;[ring | f_equal; ring].
+ Qed.
+
+ Lemma point_point_away_spec x v : point_point_away v x = euclidean_minus (euclidean_scalar_mult real_2 x) v.
+   destruct (dim_succ_destruct x); destruct s as [xr ->].
+   destruct (dim_succ_destruct xr) as [x1 s]; destruct s as [xn ->].
+   rewrite (dim_zero_destruct xn).
+   destruct (dim_succ_destruct v); destruct s as [vr ->].
+   destruct (dim_succ_destruct vr) as [v1 s]; destruct s as [vn ->].
+   rewrite (dim_zero_destruct vn).
+   unfold point_point_away, make_euclidean2, euclidean_minus.
+   simpl.
+   unfold real_2.
+   f_equal; [ | f_equal];ring.
+ Qed.
+
+ Lemma sierpinski_approx_ppa n x :  sierpinski_approx (S n) x -> exists v, In v STR_vs /\ sierpinski_approx n (point_point_away v x).
+ Proof.
+   assert (In STR_v1 STR_vs /\ In STR_v2 STR_vs /\ In STR_v3 STR_vs) as I.
+   {
+     split; [|split].
+     apply In_cons_hd.
+     apply In_cons_tl;apply In_cons_hd.
+     apply In_cons_tl;apply In_cons_tl;apply In_cons_hd.
+   }
+   assert (forall (x : euclidean 2), euclidean_scalar_mult real_2 (euclidean_scalar_mult (prec 1) x) = x) as mult_simpl.
+   {
+     intros.
+     rewrite euclidean_scalar_mult_mult.
+     replace (real_2 * prec 1) with real_1.
+     apply euclidean_scalar_mult_unit.
+     simpl;unfold real_div.
+     rewrite real_mult_comm, real_mult_assoc.
+     rewrite real_mult_inv.
+     ring.
+   }
+   intros H.
+   destruct H as [H1 | H1] ; [destruct H1 as [[y [P1 P2]] | [y [P1 P2]]]  | destruct H1 as [y [P1 P2]]].
+   - exists STR_v2.
+     rewrite point_point_away_spec.
+     split;[apply I|].
+     unfold STR_v2.
+     rewrite P1.
+     rewrite mult_simpl.
+    destruct (dim_succ_destruct y); destruct s as [yr ->].
+    destruct (dim_succ_destruct yr) as [y1 s]; destruct s as [yn ->].
+    rewrite (dim_zero_destruct yn) in *.
+    unfold euclidean_minus; simpl.
+    assert (forall x, x + (- real_0) = x) as L by (intros;ring).
+    rewrite !L.
+    apply P2.
+   - exists STR_v3.
+    split;[apply I|].
+    rewrite point_point_away_spec.
+    replace x with (euclidean_scalar_mult (prec 1) (euclidean_plus y STR_v3)).
+    rewrite mult_simpl.
+    rewrite euclidean_minus_plus.
+    apply P2.
+    destruct (dim_succ_destruct x); destruct s as [xr ->].
+    destruct (dim_succ_destruct xr) as [x1 s]; destruct s as [xn ->].
+    rewrite (dim_zero_destruct xn).
+    destruct (dim_succ_destruct y); destruct s as [yr ->].
+    destruct (dim_succ_destruct yr) as [y1 s]; destruct s as [yn ->].
+    rewrite (dim_zero_destruct yn).
+    simpl.
+    injection P1.
+    intros.
+    f_equal.
+    rewrite real_mult_plus_distr.
+    apply (real_eq_plus_cancel (- (real_1 / real_2_neq_0))).
+    ring_simplify in H1.
+    ring_simplify.
+    rewrite <-H1.
+    ring.
+    f_equal;auto.
+    rewrite real_mult_plus_distr.
+    ring_simplify.
+    ring_simplify in H0.
+    rewrite H0.
+    ring.
+  - exists STR_v1.
+    split;[apply I|].
+    rewrite point_point_away_spec.
+    replace x with (euclidean_scalar_mult (prec 1) (euclidean_plus y STR_v1)).
+    rewrite mult_simpl.
+    rewrite euclidean_minus_plus.
+    apply P2.
+    destruct (dim_succ_destruct x); destruct s as [xr ->].
+    destruct (dim_succ_destruct xr) as [x1 s]; destruct s as [xn ->].
+    rewrite (dim_zero_destruct xn).
+    destruct (dim_succ_destruct y); destruct s as [yr ->].
+    destruct (dim_succ_destruct yr) as [y1 s]; destruct s as [yn ->].
+    rewrite (dim_zero_destruct yn).
+    simpl.
+    injection P1.
+    intros.
+    f_equal.
+    ring_simplify in H1.
+    ring_simplify.
+    rewrite H1;auto.
+    f_equal;auto.
+    ring_simplify in H0.
+    rewrite real_mult_plus_distr.
+    apply (real_eq_plus_cancel (- (real_1 / real_2_neq_0))).
+    ring_simplify.
+    rewrite <-H0.
+    ring.
+ Qed.
  Lemma sierpinski_approx_next n x : sierpinski_approx (S n) x <-> exists y, (sierpinski_approx n y) /\ Exists (fun v => y = point_point_away v x) STR_vs.
  Proof.
-   induction n.
-   Admitted.
- Print point_point_away.
+  split.
+  intros.
+  destruct (sierpinski_approx_ppa _ _ H) as [v [V1 V2]].
+  exists (point_point_away v x).
+  split;auto.
+  apply to_list_Exists, List.Exists_exists.
+  exists v.
+  split;[apply to_list_In |];auto.
+
+  intros.
+  destruct H as [y [P1 P2]].
+  rewrite to_list_Exists, List.Exists_exists in P2.
+  destruct P2 as [v [V1 V2]].
+  rewrite (point_point_away_mid_id v).
+  apply sierpinski_approx_ppm; [apply to_list_In | ];auto.
+  rewrite <- V2;auto.
+  Defined.
 
  Lemma point_point_away_dist x y v : In v STR_vs -> (euclidean_max_dist (point_point_away v x) (point_point_away v y)) = real_2 * (euclidean_max_dist x y). 
  Proof.
@@ -271,7 +439,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       apply inside_hull_T.
       apply H2;auto.
    - split; intros.
-     + pose proof (sierpinski_approx_next n x ) as [S S'].
+     + pose proof (sierpinski_approx_next n x ) as [S _].
        destruct (S H) as [x' [P1 P2]].
        destruct IHn as [IH1 IH2].
        destruct (IH1 _ P1) as [x2 [Xx2 D]].
