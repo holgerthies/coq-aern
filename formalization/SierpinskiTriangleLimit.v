@@ -204,9 +204,37 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply P2.
  Qed.
 
- Lemma triangle_max_dist : forall x y, T x -> T y -> euclidean_max_dist x y <= real_1.
+ Lemma triangle_max_dist : forall x, T x -> (euclidean_max_dist x STR_v1 <= real_1).
  Proof.
- Admitted.
+   intros.   
+   destruct (dim_succ_destruct x) as [x0 [tx ->]].
+   destruct (dim_succ_destruct tx) as [y0 [tx' ->]].
+   destruct H as [Hx0 [Hy0 Hxy0]].
+   rewrite (dim_zero_destruct tx').
+   unfold STR_v1, make_euclidean2;simpl.
+   rewrite euclidean_max_dist_cons.
+   apply real_max_le_le_le.
+   unfold dist.
+   replace (x0 - real_0) with x0 by ring.
+   rewrite abs_pos_id;auto.
+   apply (real_le_add_r y0).
+   apply (real_le_le_le _ _ _ Hxy0).
+   replace real_1 with (real_1 + real_0) at 1 by ring.
+   apply real_le_plus_le;auto.
+   rewrite euclidean_max_dist_cons.
+   unfold euclidean_max_dist; simpl.
+   apply real_max_le_le_le.
+   rewrite dist_symm.
+   unfold dist.
+   rewrite abs_pos_id.
+   apply (real_le_add_r y0).
+   apply (real_le_add_r (- real_1)).
+   ring_simplify;auto.
+   apply (real_le_le_le _ _ _ Hx0).
+   apply (real_le_add_r y0).
+   ring_simplify;auto.
+   apply real_lt_le;apply real_1_gt_0.
+ Qed.
 
  Lemma point_point_mid_in X x  v : (STR X) -> X x -> In v STR_vs -> X (point_point_mid v x).
  Proof.
@@ -235,26 +263,13 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
        rewrite Forall_forall in H1.
        split; [apply H1;apply VectorDef.In_cons_hd |].
        apply triangle_max_dist;auto.
-       apply H.
-       unfold STR_vs.
-       apply VectorDef.In_cons_hd.
     + intros.
       exists STR_v1.
       split;[apply H; unfold STR_vs; apply VectorDef.In_cons_hd |].
+      rewrite euclidean_max_dist_sym.
       apply triangle_max_dist.
       apply inside_hull_T.
-      exists (cons _ (real_1) _ ((cons _ real_0) _ ((cons _ real_0 _ (nil ^Real))))).
-      unfold ST_weighted_pt,weighted_pt.
-      unfold STR_v1, make_euclidean2.
-      simpl.
-      split.
-      f_equal;[ | f_equal];ring.
-      split.
-     apply Forall_cons;[ |apply Forall_cons; [| apply Forall_cons; [| apply Forall_nil]]]; try (apply real_eq_le; reflexivity).
-     apply real_lt_le.
-     apply real_1_gt_0.
-     unfold sum;simpl; ring.
-     apply  inside_hull_T;auto.
+      apply H2;auto.
    - split; intros.
      + pose proof (sierpinski_approx_next n x ) as [S S'].
        destruct (S H) as [x' [P1 P2]].
@@ -306,4 +321,5 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      rewrite real_mult_comm, real_mult_assoc, real_mult_inv.
      ring_simplify;auto.
   Defined.
+
  End SierpinskiLimit.
