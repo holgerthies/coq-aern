@@ -490,4 +490,16 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      ring_simplify;auto.
   Defined.
 
+
+ Lemma is_covert_sierpinski : forall X, (STR X) -> is_covert 2 X.
+ Proof.
+   intros.
+   apply is_covert_lim.
+   intros.
+   exists (sierpinski_approx n).
+   split.
+   apply sierpinski_approx_is_covert.
+   apply sierpinski_approx_dist.
+   exact H.
+ Defined.
  End SierpinskiLimit.
