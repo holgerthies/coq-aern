@@ -256,21 +256,54 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      unfold sum;simpl; ring.
      apply  inside_hull_T;auto.
    - split; intros.
-     pose proof (sierpinski_approx_next n x ) as [S S'].
-     destruct (S H) as [x' [P1 P2]].
-     destruct IHn as [IH1 IH2].
-     destruct (IH1 _ P1) as [x2 [Xx2 D]].
-     rewrite to_list_Exists in P2.
-     rewrite List.Exists_exists in P2.
-     destruct P2 as [v [L1 L2]].
-     assert (exists z, X z /\ x2 = point_point_away v z) as [z [zP1 zP2]].
-     {
-       exists (point_point_mid v x2).
-       split.
-       apply (point_point_mid_in X);auto.
-       split;auto.
-       apply to_list_In;auto.
-       rewrite <-point_point_mid_away_id;auto.
-     }
-     exists z;split;auto.
+     + pose proof (sierpinski_approx_next n x ) as [S S'].
+       destruct (S H) as [x' [P1 P2]].
+       destruct IHn as [IH1 IH2].
+       destruct (IH1 _ P1) as [x2 [Xx2 D]].
+       rewrite to_list_Exists in P2.
+       rewrite List.Exists_exists in P2.
+       destruct P2 as [v [L1 L2]].
+       assert (exists z, X z /\ x2 = point_point_away v z) as [z [zP1 zP2]].
+       {
+         exists (point_point_mid v x2).
+         split.
+         apply (point_point_mid_in X);auto.
+         split;auto.
+         apply to_list_In;auto.
+         rewrite <-point_point_mid_away_id;auto.
+       }
+       exists z;split;auto.
+       apply (real_le_mult_pos_cancel real_2).
+       apply real_lt_0_2.
+       rewrite !(real_mult_comm _ real_2).
+       rewrite <- (point_point_away_dist x z v); [| apply to_list_In;auto].
+       rewrite <-L2, <-zP2.
+       simpl.
+       unfold real_div.
+       rewrite real_mult_comm, real_mult_assoc, real_mult_inv.
+       ring_simplify;auto.
+    + destruct IHn as [_ IH].
+      rewrite H3 in H.
+      rewrite to_list_Exists, List.Exists_exists in H.
+      destruct H as [v [P1' P2']].
+      destruct (IH _ P2') as [x1 [P1 P2]].
+      exists (point_point_mid v x1).
+      pose proof (sierpinski_approx_next n (point_point_mid v x1)) as [_ S].
+      split.
+      apply S.
+      exists x1;split;auto.
+     apply to_list_Exists; apply List.Exists_exists.
+     exists v.
+     split;auto.
+     rewrite <-point_point_mid_away_id;auto.
+     apply (real_le_mult_pos_cancel real_2).
+     apply real_lt_0_2.
+     rewrite !(real_mult_comm _ real_2).
+     rewrite <- (point_point_away_dist _ _ v); [| apply to_list_In;auto].
+     rewrite <-point_point_mid_away_id.
+     simpl.
+     unfold real_div.
+     rewrite real_mult_comm, real_mult_assoc, real_mult_inv.
+     ring_simplify;auto.
+  Defined.
  End SierpinskiLimit.
