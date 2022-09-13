@@ -8,13 +8,13 @@ import Text.Printf (printf)
 import AERN2.Real (CReal, bits, (?))
 import AERN2.MP (IsBall(centre))
 
--- import qualified Tn as EXTR
+import qualified Tn as EXTR
 -- import qualified MTn as EXTR
 -- import qualified STRn as EXTR
 -- import qualified STEn as EXTR
 -- import qualified STE4n as EXTR
 -- import qualified STARn as EXTR
-import qualified STRLim as EXTR
+-- import qualified STRLim as EXTR
 
 {-
 toJSON :: [Ball AERN2.CReal] -> Prelude.String

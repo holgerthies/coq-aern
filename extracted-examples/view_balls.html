@@ -6,11 +6,11 @@
 	<script type="text/javascript" src="paper-full.min.js"></script>
 	<!-- Define inlined PaperScript associate it with myCanvas -->
 	<!-- <script type="text/javascript" src="T2.js"></script> -->
-	<!-- <script type="text/javascript" src="T8.js"></script> -->
+	<script type="text/javascript" src="T10.js"></script>
 	<!-- <script type="text/javascript" src="MT4.js"></script> -->
 	<!-- <script type="text/javascript" src="STRA1-1.js"></script> -->
 	<!-- <script type="text/javascript" src="STR5.js"></script> -->
-	<script type="text/javascript" src="STRLim-5.js"></script>
+	<!-- <script type="text/javascript" src="STRLim-5.js"></script> -->
 	<!-- <script type="text/javascript" src="STE-5.js"></script> -->
 	<!-- <script type="text/javascript" src="STE-12.js"></script> -->
 	<script type="text/javascript">
@@ -25,8 +25,8 @@
 
 			// scale the canvas coordinates to fit unit [-1,1]x[-1,1] square canvas:
 			viewW = paper.view.viewSize.width;
-			paper.view.matrix.scale(viewW / 4);
-			// paper.view.viewSize.height = viewW;
+			paper.view.matrix.scale(viewW / 2);
+			// paper.view.matrix.scale(viewW / 2.5);
 
 			for (const b of bs) {
 				colour = "grey";
@@ -39,16 +39,19 @@
 		}
 
 		function draw_ball(c, r, colour) {
-			const pLT = new paper.Point(c.x + 1 - r, 3 - c.y + r);
-			const pRB = new paper.Point(c.x + 1 + r, 3 - c.y - r);
+			const pLT = new paper.Point(c.x + 1 - r, 1 - c.y + r);
+			const pRB = new paper.Point(c.x + 1 + r, 1 - c.y - r);
+			// const pLT = new paper.Point(c.x + 1 - r, 1.5 - c.y + r);
+			// const pRB = new paper.Point(c.x + 1 + r, 1.5 - c.y - r);
 			const b = new paper.Path.Rectangle(pLT, pRB);
 			// console.log(b)
 			b.strokeColor = 'black';
 			b.fillColor = colour;
-			// b.strokeWidth = 0;
-			// b.opacity = 1.0;
-			b.strokeWidth = 0.006;
-			b.opacity = 0.5;
+
+			b.strokeWidth = 0;
+			b.opacity = 1.0;
+			// b.strokeWidth = 0.006;
+			// b.opacity = 0.5;
 		}
 
 		// function boxGradient(x, y, w, h) {
