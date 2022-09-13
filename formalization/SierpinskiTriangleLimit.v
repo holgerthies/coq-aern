@@ -405,6 +405,80 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply real_lt_le;apply real_1_gt_0.
  Qed.
 
+ Lemma triangle_max_dist_half : forall x, T x -> (euclidean_max_dist x STR_v1 <= one_half
+ \/ euclidean_max_dist x STR_v2 <= one_half
+ \/ euclidean_max_dist x STR_v3 <= one_half
+ ).
+ Proof.
+   intros.   
+   destruct (dim_succ_destruct x) as [x0 [tx ->]].
+   destruct (dim_succ_destruct tx) as [y0 [tx' ->]].
+   destruct H as [Hx0 [Hy0 Hxy0]].
+   rewrite (dim_zero_destruct tx'); clear tx'.
+   unfold STR_v1, STR_v2, STR_v3, make_euclidean2;simpl.
+   rewrite euclidean_max_dist_cons.
+
+   destruct (real_total_order one_half x0);
+   destruct (real_total_order one_half y0).
+   - contradict Hxy0.
+     apply real_gt_nle.
+     rewrite <- one_half_plus_one_half.
+     apply real_lt_lt_plus_lt; auto.
+
+   - right; right. 
+     apply real_max_le_le_le; simpl.
+
+     rewrite abs_neg_id_neg.
+     rewrite <- one_half_plus_one_half.
+     apply (real_le_add_r (x0 - one_half)).
+     replace (- (x0 + - (one_half + one_half)) + (x0 - one_half)) with one_half by ring.
+     replace (one_half + (x0 - one_half)) with x0 by ring.
+     left; auto.
+     apply (real_le_add_r (real_1)).
+     pose proof (real_le_le_plus_le _ _ _ _ Hy0 (real_le_triv x0)).
+     ring_simplify in H1.
+     pose proof (real_le_le_le _ _ _ H1 Hxy0).
+     ring_simplify; auto.
+
+     replace (y0 + - real_0) with y0 by ring.
+     rewrite abs_pos_id;auto.
+     apply real_max_le_le_le.
+     destruct H0; [right| left]; auto.
+     left; apply one_half_pos.
+
+   - left.  
+     apply real_max_le_le_le; simpl.
+     unfold dist.
+     replace (x0 - real_0) with x0 by ring.
+     rewrite abs_pos_id;auto.
+     destruct H; [right| left]; auto.
+     apply real_max_le_le_le; simpl.
+     rewrite abs_neg_id_neg.
+     rewrite <- one_half_plus_one_half.
+     apply (real_le_add_r (y0 - one_half)).
+     replace (- (y0 + - (one_half + one_half)) + (y0 - one_half)) with one_half by ring.
+     replace (one_half + (y0 - one_half)) with y0 by ring.
+     left; auto.
+     apply (real_le_add_r (real_1)).
+     pose proof (real_le_le_plus_le _ _ _ _ Hx0 (real_le_triv y0)).
+     ring_simplify in H1.
+     rewrite real_plus_comm in H1.
+     pose proof (real_le_le_le _ _ _ H1 Hxy0).
+     ring_simplify; auto.
+     left; apply one_half_pos.
+
+   - right; left. 
+     apply real_max_le_le_le; simpl.
+     replace (x0 + - real_0) with x0 by ring.
+     rewrite abs_pos_id;auto.
+     destruct H; [right| left]; auto.
+     apply real_max_le_le_le; simpl.
+     replace (y0 + - real_0) with y0 by ring.
+     rewrite abs_pos_id;auto.
+     destruct H0; [right| left]; auto.
+     left; apply one_half_pos.
+  Qed.
+
  Lemma point_point_mid_in X x  v : (STR X) -> X x -> In v STR_vs -> X (point_point_mid v x).
  Proof.
    intros S Xx vP.
@@ -419,12 +493,13 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    rewrite <-point_point_mid_away_id;auto.
  Defined.
 
- Lemma sierpinski_approx_dist n : forall X, (STR X) -> (Hausdorff_dist_bound 2 (sierpinski_approx n) X (prec n)).
+ Lemma sierpinski_approx_dist n : forall X, (STR X) -> (Hausdorff_dist_bound 2 (sierpinski_approx (pred n)) X (prec n)).
  Proof.
    intros X S.
    destruct S as [H1 [H2 H3]].
-   induction n.
-   - pose proof (sierpinski_approx_contains_STR_vs 0).
+   destruct n.
+   (* case n = 0 *)
+   { pose proof (sierpinski_approx_contains_STR_vs 0).
      rewrite Forall_forall in H.
      split.
      + exists STR_v1.
@@ -439,6 +514,45 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       apply triangle_max_dist.
       apply inside_hull_T.
       apply H2;auto.
+   }
+   simpl.
+   induction n.
+   (* case n = 1 *)
+   - pose proof (sierpinski_approx_contains_STR_vs 0).
+     rewrite Forall_forall in H.
+     split; simpl.
+     intros.
+     destruct (triangle_max_dist_half x H0) as [N|[N|N]].
+     + exists STR_v1.
+       unfold ST_has_vs, STR_vs in H1.
+       rewrite Forall_forall in H1.
+       split; [apply H1;apply VectorDef.In_cons_hd |].
+       unfold real_div.
+       rewrite real_mult_unit.
+       auto.
+     + exists STR_v2.
+       unfold ST_has_vs, STR_vs in H1.
+       rewrite Forall_forall in H1.
+       split; [apply H1;apply VectorDef.In_cons_tl;apply VectorDef.In_cons_hd |].
+       unfold real_div.
+       rewrite real_mult_unit.
+       auto.
+     + exists STR_v3.
+       unfold ST_has_vs, STR_vs in H1.
+       rewrite Forall_forall in H1.
+       split; [apply H1;apply VectorDef.In_cons_tl;apply VectorDef.In_cons_tl;apply VectorDef.In_cons_hd |].
+       unfold real_div.
+       rewrite real_mult_unit.
+       auto.
+    + intros.
+
+      exists y.
+      split.
+      apply inside_hull_T; auto.
+      pose proof (euclidean_max_dist_id y y) as [_ ->]; auto.
+      unfold real_div.
+      rewrite real_mult_unit.
+      left;apply one_half_pos.
    - split; intros.
      + pose proof (sierpinski_approx_next n x ) as [S _].
        destruct (S H) as [x' [P1 P2]].
@@ -497,7 +611,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    intros.
    apply is_covert_lim.
    intros.
-   exists (sierpinski_approx n).
+   exists (sierpinski_approx (pred n)).
    split.
    apply sierpinski_approx_is_covert.
    apply sierpinski_approx_dist.
