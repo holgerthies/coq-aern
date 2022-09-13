@@ -1,4 +1,6 @@
 Require Import Real Subsets Euclidean List Lia Minmax simpletriangle SierpinskiTriangle.
+Require Import Vector.
+
 Section SierpinskiLimit.
 
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
@@ -23,7 +25,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     end.
 
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
- Check ST.
+ (* Check ST. *)
  Definition sierpinski_approx (n : nat) : (@euclidean_subset types 2).
  Proof.
    induction n.
@@ -62,7 +64,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      f_equal; ring.
      apply IHn.
  Defined.
- Require Import Vector.
 
  Lemma sierpinski_approx_contains_STR_vs : forall n, Forall (sierpinski_approx n) STR_vs.
  Proof.

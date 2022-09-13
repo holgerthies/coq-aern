@@ -35,7 +35,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Definition ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) <= (snd b)).  
 
   Definition open_ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) < (snd b)).  
-  Definition diam (L : list ball) := (fold_right (fun b1 r => (real_max (snd b1) r)) real_0 L).
+  Definition rad (L : list ball) := (fold_right (fun b1 r => (real_max (snd b1) r)) real_0 L).
 
   Lemma ball_to_subset_scalar_mult s c1 r1 p1:
     s >= real_0 ->
@@ -66,17 +66,17 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Definition is_covert (M : euclidean_subset) := 
     forall n, {Ln : list ball |
-                diam Ln <= prec n /\
+                rad Ln <= prec n /\
                 Forall (fun b => intersects (ball_to_subset b) M) Ln /\
                 forall x,  M x ->  Exists (fun b => (ball_to_subset b) x) Ln
               }.
-  Fixpoint change_diam (L : list ball) (p : nat) :=
+  Fixpoint change_rad (L : list ball) (p : nat) :=
     match L with
      | nil => nil
-    | a :: L' => (fst a, prec p) :: change_diam L' p
+    | a :: L' => (fst a, prec p) :: change_rad L' p
    end.
 
-  Lemma change_diam_spec L p : forall b, In b (change_diam L p) <-> snd b = prec p /\ exists r, In (fst b, r) L.
+  Lemma change_rad_spec L p : forall b, In b (change_rad L p) <-> snd b = prec p /\ exists r, In (fst b, r) L.
   Proof.
     intros b.
     induction L as [ | b' L' [IH1 IH2]].
@@ -120,7 +120,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      apply H.
   Qed.
 
-  Lemma change_diam_diam L p: diam (change_diam L p) <= prec p.
+  Lemma change_rad_rad L p: rad (change_rad L p) <= prec p.
   Proof.
     induction L as [ | b L' IH].
     simpl.
@@ -132,7 +132,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply IH.
   Qed.
 
-  Lemma diam_forall L b : In b L -> snd b <= diam L.
+  Lemma rad_forall L b : In b L -> snd b <= rad L.
   Proof.
     induction L.
     simpl;intros; contradict H.
@@ -142,13 +142,13 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite H.
     apply real_ge_le.
     apply real_max_fst_ge.
-    apply (real_le_le_le _ (diam L)).
+    apply (real_le_le_le _ (rad L)).
     apply IHL; auto.
     apply real_ge_le.
     apply real_max_snd_ge.
   Qed.
 
-  Lemma diam_le L r : r >= real_0 -> (forall b, In b L -> snd b <= r) <-> diam L <= r.
+  Lemma rad_le L r : r >= real_0 -> (forall b, In b L -> snd b <= r) <-> rad L <= r.
   Proof.
     intro rpos.
     split.
@@ -172,12 +172,12 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       apply real_max_le_snd_le in H; auto.
   Qed.
 
-  Lemma diam_prec_spec L p : diam L <= prec p <-> forall b, In b L -> (snd b <= prec p).
+  Lemma rad_prec_spec L p : rad L <= prec p <-> forall b, In b L -> (snd b <= prec p).
   Proof.
     split.
     intros.
-    apply (real_le_le_le _ (diam L));auto.
-    apply diam_forall;auto.
+    apply (real_le_le_le _ (rad L));auto.
+    apply rad_forall;auto.
     intros.
     induction L.
     simpl.
@@ -201,10 +201,10 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     intro p.
     destruct (X (S p)) as [A [CA HD]].
     destruct (CA (S p)) as [L [dL [int cov]]].
-    exists (change_diam L p).
-    pose proof (change_diam_spec L p) as P.
+    exists (change_rad L p).
+    pose proof (change_rad_spec L p) as P.
     split.
-    apply change_diam_diam.
+    apply change_rad_rad.
     split.
     apply Forall_forall.
     intros b inb.
@@ -240,8 +240,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply P1''.
     apply (real_le_le_le _ (snd (e, r))).
     apply real_eq_le;auto.
-    apply (real_le_le_le _ (diam L)); auto.
-    apply (diam_forall L (fst (e, r0), r)); auto.
+    apply (real_le_le_le _ (rad L)); auto.
+    apply (rad_forall L (fst (e, r0), r)); auto.
     intros x Kx.
     assert (exists y, A y /\ euclidean_max_dist x y <= prec (S p)) as [y [yp1 yp2]].
     {
@@ -271,8 +271,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply real_le_le_plus_le;auto.
     apply (real_le_le_le _ (snd b')).
     apply bP''.
-    apply (real_le_le_le _ (diam L)); auto.
-    apply diam_forall; auto.
+    apply (real_le_le_le _ (rad L)); auto.
+    apply rad_forall; auto.
   Defined.
   Lemma intersects_union A B b: intersects b (union A B) <-> intersects b A \/ intersects b B. 
   Proof.
@@ -290,10 +290,10 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     destruct (H2 n) as [L2 [D2 [int2 cov2]]].
     exists (L1 ++ L2).
     split; [| split].
-    - apply diam_prec_spec.
+    - apply rad_prec_spec.
       intros b inb.
       apply in_app_or in inb.
-      destruct inb;[apply (diam_prec_spec L1 n) | apply (diam_prec_spec L2 n)];auto.
+      destruct inb;[apply (rad_prec_spec L1 n) | apply (rad_prec_spec L2 n)];auto.
   - apply Forall_app.
     rewrite Forall_forall in int1.
     rewrite Forall_forall in int2.
@@ -311,7 +311,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     destruct (H n) as [L [D [int cov]]].
     exists (map (fun (b : ball) => ((euclidean_plus (fst b) a),(snd b))) L).
     split; [|split].
-    - apply diam_prec_spec.
+    - apply rad_prec_spec.
       intros b inb.
       apply in_map_iff in inb.
       destruct inb as [x [Hx Hx']].
@@ -319,8 +319,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       simpl.
       injection Hx.
       intros <- _.
-      apply (real_le_le_le _ (diam L));auto.
-      apply diam_forall;auto.
+      apply (real_le_le_le _ (rad L));auto.
+      apply rad_forall;auto.
   -  apply Forall_forall.
      intros b inb.
      rewrite Forall_forall in int.
@@ -367,7 +367,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
                             end.
 
 
-  Lemma scale_diam L l: (real_0 <= l) -> diam (scale_list L l) = l * diam L.
+  Lemma scale_rad L l: (real_0 <= l) -> rad (scale_list L l) = l * rad L.
   Proof.  
     intros H.
     induction L as [| b L' IH].
@@ -475,7 +475,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     destruct (Mc (n-k)%nat) as [L [Lp1 [Lp2 Lp3]]].
     exists (scale_list L (prec k)).
     split; [|split].
-    - rewrite scale_diam; [|left;apply prec_pos].
+    - rewrite scale_rad; [|left;apply prec_pos].
       apply (real_le_le_le _ ((prec k) * prec (n - k))).
       apply real_le_mult_pos_le; [left;apply prec_pos | auto].
       rewrite <- prec_hom.
@@ -523,7 +523,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     destruct (Mc (n+k)%nat) as [L [Lp1 [Lp2 Lp3]]].
     exists (scale_list L (Nreal (Npow2 k))).
     split; [|split].
-    - rewrite scale_diam; [|left;apply Nreal_Npow2_pos].
+    - rewrite scale_rad; [|left;apply Nreal_Npow2_pos].
       apply (real_le_le_le _ (Nreal (Npow2 k) * prec (n + k))).
       apply real_le_mult_pos_le; [left;apply Nreal_Npow2_pos | auto].
       rewrite prec_hom.

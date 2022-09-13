@@ -136,12 +136,12 @@ type Ball = (,) Euclidean AERN2.CReal
 
 type Is_covert = Prelude.Integer -> (([]) Ball)
 
-change_diam :: Prelude.Integer -> (([]) Ball) -> Prelude.Integer -> ([])
+change_rad :: Prelude.Integer -> (([]) Ball) -> Prelude.Integer -> ([])
                ((,) Euclidean AERN2.CReal)
-change_diam d l p =
+change_rad d l p =
   case l of {
    ([]) -> ([]);
-   (:) a l' -> (:) ((,) (fst a) (prec p)) (change_diam d l' p)}
+   (:) a l' -> (:) ((,) (fst a) (prec p)) (change_rad d l' p)}
 
 is_covert_lim :: Prelude.Integer -> (Prelude.Integer -> (,) Euclidean_subset
                  ((,) Is_covert ())) -> Is_covert
@@ -150,7 +150,7 @@ is_covert_lim d x p =
   case s of {
    (,) _ p0 ->
     case p0 of {
-     (,) a _ -> let {s0 = a (Prelude.succ p)} in change_diam d s0 p}}
+     (,) a _ -> let {s0 = a (Prelude.succ p)} in change_rad d s0 p}}
 
 is_covert_union :: Prelude.Integer -> Is_covert -> Is_covert -> Is_covert
 is_covert_union _ h1 h2 n =

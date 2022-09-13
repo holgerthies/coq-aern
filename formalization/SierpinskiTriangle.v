@@ -432,7 +432,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* The diameter shrinks exponentially with n *)
 
-  Lemma STn_diam n : diam 2 (STn n) <= prec n.
+  Lemma STn_rad n : rad 2 (STn n) <= prec n.
   Proof.
     induction n.
     - simpl.
@@ -450,10 +450,10 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
       + simpl.
         simpl in IHn.
         assert (snd a <= prec n) as IHa.
-        apply (real_max_le_fst_le _ (diam 2 l)); auto.
+        apply (real_max_le_fst_le _ (rad 2 l)); auto.
         apply real_max_le_snd_le in IHn.
         specialize (IHl IHn).
-        apply diam_le.
+        apply rad_le.
         * unfold real_div.
           apply real_le_pos_mult_pos_pos.
           left. apply prec_pos.
@@ -471,7 +471,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
             apply point_ball_mid_halves; auto.
           }
           clear H.
-          rewrite <- diam_le in IHl.
+          rewrite <- rad_le in IHl.
           specialize (IHl b).
           auto.
           unfold real_div.
@@ -559,7 +559,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     intros A STs n.
     exists (STn n).
     split.
-    exact (STn_diam n).
+    exact (STn_rad n).
     split.
     apply (STn_intersects n).
     auto.
@@ -790,9 +790,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
 End ST_RightAngled.
 
-Section ST_Equilateral.
-
 Require Import sqrt.
+
+Section ST_Equilateral.
 
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 

@@ -48,7 +48,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
                                                                       
   Definition Tn n : list (ball 2) := Tn_row n ((Npow2 n)-1) nil.
 
-  Lemma Tn_col_diam n k j: forall l, (diam 2 l) <= prec n -> diam 2 (Tn_col n k j l) <= prec n.
+  Lemma Tn_col_rad n k j: forall l, (rad 2 l) <= prec n -> rad 2 (Tn_col n k j l) <= prec n.
   Proof using Type.
     induction j as [ | l IH].
     - intros l H.
@@ -60,7 +60,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    - intros l' H.
      simpl.
      apply IH.      
-     unfold diam.
+     unfold rad.
      unfold fold_right.
      apply real_max_le_le_le.
      apply real_lt_le.
@@ -68,26 +68,26 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      destruct l'.
      apply real_lt_le.
      apply prec_pos.
-     unfold diam in H.
+     unfold rad in H.
      exact H.
   Qed.
 
-  Lemma Tn_row_diam n k : forall l, (diam 2 l) <= prec n -> diam 2 (Tn_row n k l) <= prec n.
+  Lemma Tn_row_rad n k : forall l, (rad 2 l) <= prec n -> rad 2 (Tn_row n k l) <= prec n.
   Proof using Type.
     induction k as [ | k' IH].
     - intros l H.
-      apply Tn_col_diam.
+      apply Tn_col_rad.
       exact H.
     - intros l H.
       apply IH.
-      apply Tn_col_diam.
+      apply Tn_col_rad.
       apply H.
   Qed.
 
 
-  Lemma Tn_diam n : (diam 2 (Tn n)) <= prec n.
+  Lemma Tn_rad n : (rad 2 (Tn n)) <= prec n.
   Proof using Type.
-    apply Tn_row_diam.
+    apply Tn_row_rad.
     apply real_lt_le.
     apply prec_pos.
   Qed.
@@ -406,7 +406,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Proof.
    intro n.
    exists (Tn n).
-   split; [apply Tn_diam | split; [apply Tn_intersects_T | ]].
+   split; [apply Tn_rad | split; [apply Tn_intersects_T | ]].
    intros P Tx.
    unfold T in Tx.
    destruct (split_euclidean2 P) as [x [y prp]].

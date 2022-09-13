@@ -315,7 +315,7 @@ Extraction Implicit is_covert_translation [ types casofReal ].
 Extraction Implicit is_covert_union [ types casofReal ].
 Extraction Implicit is_covert_lim [ types casofReal ].
 Extraction Implicit scale_list [ types casofReal ].
-Extraction Implicit change_diam [ types casofReal ].
+Extraction Implicit change_rad [ types casofReal ].
 Extraction Implicit is_covert_scale_down [ types casofReal ].
 
 Require Import simpletriangle.
