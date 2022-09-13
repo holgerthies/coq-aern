@@ -29,6 +29,7 @@ ballsToJSON balls =
       printf "{ \"c\": %s, \"r\": %s }" (p c) (show $ d r)
     p :: EXTR.Euclidean -> String
     p (EXTR.Cons _ x (EXTR.Cons _ y EXTR.Nil)) =
+    -- p (EXTR.Cons0 _ x (EXTR.Cons0 _ y EXTR.Nil0)) =
       printf "{ \"x\": %s, \"y\": %s }" (show $ d x) (show $ d y)
     p _ = error "ballsToJSON: an Euclidean value does not have dimension 2"
     d :: CReal -> Double
