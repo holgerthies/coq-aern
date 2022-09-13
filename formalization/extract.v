@@ -323,15 +323,14 @@ Extraction Implicit Tn_ball [ types casofReal ].
 Extraction Implicit Tn_col [ types casofReal ].
 Extraction Implicit Tn_row [ types casofReal ].
 Extraction Implicit Tn [ types casofReal ].
-(* Extraction "Tn" Tn. *)
+Extraction Implicit T_is_covert [ types casofReal ].
+(* Extraction "Tn" T_is_covert. *)
 
-Extraction Implicit multi_triangles_compact [ types casofReal ].
+Extraction Implicit multi_triangles_covert [ types casofReal ].
 Extraction Implicit empty_set_is_covert [ types casofReal ].
 Extraction Implicit T_is_covert [ types casofReal ].
 (* Extraction "MTn" multi_triangles_compact. *)
 
-Extraction Implicit sierpinski_approx_is_covert [ types casofReal ].
-(* Extraction "STARn" sierpinski_approx_is_covert. *)
 
 Require Import SierpinskiTriangle.
 Extraction Implicit one_half [ types casofReal ].
@@ -365,8 +364,10 @@ Extraction Implicit STE4n [ types casofReal ].
 
 Require Import SierpinskiTriangleLimit.
 Extraction Implicit sierpinski_approx_is_covert [ types casofReal ].
+(* Extraction "STARn" sierpinski_approx_is_covert. *)
+Extraction Implicit sierpinski_approx_is_covert [ types casofReal ].
 Extraction Implicit is_covert_sierpinski [ types casofReal ].
-Extraction "STRLim" is_covert_sierpinski.
+(* Extraction "STRLim" is_covert_sierpinski. *)
 
 (* Require Import Nabla. *)
 

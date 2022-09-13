@@ -61,6 +61,9 @@ app l m =
 type Sig a = a
   -- singleton inductive, whose constructor was exist
   
+pred :: Prelude.Integer -> Prelude.Integer
+pred = (\n -> Prelude.max 0 (Prelude.pred n))
+
 sub :: Prelude.Integer -> Prelude.Integer -> Prelude.Integer
 sub = (\n m -> Prelude.max 0 (n Prelude.- m))
 
@@ -193,8 +196,8 @@ tn n =
   tn_row n (sub (npow2 n) (Prelude.succ 0)) ([])
 
 t_is_covert :: Is_covert
-t_is_covert =
-  tn
+t_is_covert n =
+  tn (pred n)
 
 sierpinski_approx_is_covert :: Prelude.Integer -> Is_covert
 sierpinski_approx_is_covert n =

@@ -48,14 +48,13 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
                                                                       
   Definition Tn n : list (ball 2) := Tn_row n ((Npow2 n)-1) nil.
 
-  Lemma Tn_col_rad n k j: forall l, (rad 2 l) <= prec n -> rad 2 (Tn_col n k j l) <= prec n.
+  Lemma Tn_col_rad n k j: forall l, (rad 2 l) <= prec (S n) -> rad 2 (Tn_col n k j l) <= prec (S n).
   Proof using Type.
     induction j as [ | l IH].
     - intros l H.
       simpl.
       apply real_max_le_le_le.
-      apply real_lt_le.
-      apply prec_S.
+      apply real_le_triv.
       apply H.
    - intros l' H.
      simpl.
@@ -63,16 +62,16 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      unfold rad.
      unfold fold_right.
      apply real_max_le_le_le.
-     apply real_lt_le.
-     apply prec_S.
+     unfold Tn_ball. simpl.
+     apply real_le_triv.
      destruct l'.
-     apply real_lt_le.
-     apply prec_pos.
      unfold rad in H.
+     left.
+     apply prec_pos.
      exact H.
   Qed.
 
-  Lemma Tn_row_rad n k : forall l, (rad 2 l) <= prec n -> rad 2 (Tn_row n k l) <= prec n.
+  Lemma Tn_row_rad n k : forall l, (rad 2 l) <= prec (S n) -> rad 2 (Tn_row n k l) <= prec (S n).
   Proof using Type.
     induction k as [ | k' IH].
     - intros l H.
@@ -85,11 +84,20 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Qed.
 
 
-  Lemma Tn_rad n : (rad 2 (Tn n)) <= prec n.
+  Lemma Tn_rad n : (rad 2 (Tn n)) <= prec (S n).
   Proof using Type.
     apply Tn_row_rad.
     apply real_lt_le.
     apply prec_pos.
+  Qed.
+
+  Lemma Tn_rad' n : (rad 2 (Tn (pred n))) <= prec n.
+  Proof.
+    destruct n.
+    apply (real_le_le_le _ (prec 1)).
+    apply Tn_rad.
+    left; apply prec_S.
+    apply Tn_rad.
   Qed.
 
   Lemma Tn_ball_intersects (n k j : nat) : (j + k+ 1 <= (Npow2 n))%nat ->  intersects 2 (ball_to_subset 2 (Tn_ball n k j)) T.
@@ -402,11 +410,12 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply real_eq_le; auto.
   Qed.
 
+
   Lemma T_is_covert : is_covert 2 T.
   Proof.
    intro n.
-   exists (Tn n).
-   split; [apply Tn_rad | split; [apply Tn_intersects_T | ]].
+   exists (Tn (pred n)).
+   split; [apply Tn_rad' | split; [apply Tn_intersects_T | ]].
    intros P Tx.
    unfold T in Tx.
    destruct (split_euclidean2 P) as [x [y prp]].
@@ -424,10 +433,10 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      rewrite <-(real_plus_unit real_1) at 1.
      rewrite real_plus_comm.
      apply real_le_plus_le; auto.
-   - destruct (real_coordinate x n T1 B1) as [k Hk].
-   destruct (real_coordinate y n T2 B2) as [j Hj].
+   - destruct (real_coordinate x (pred n) T1 B1) as [k Hk].
+   destruct (real_coordinate y (pred n) T2 B2) as [j Hj].
    apply Exists_exists.
-   exists (Tn_ball n k j).
+   exists (Tn_ball (pred n) k j).
    split.
    apply Tn_contains.
    assert (forall m n y, y > Nreal m * prec n -> Nreal m < Nreal (Npow2 n) * y) as U.
@@ -439,15 +448,19 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      exact H.
    }
    destruct Hk as [[x0 ->] | [kprp1 kprp2] ]; destruct Hj as [[y0 ->] | [jprp1 jprp2]].
-   induction n; simpl;lia.
+   induction n; simpl. lia.
+   destruct n. simpl. lia. simpl in IHn.
+   replace (Npow2 (S n)) with (2 * (Npow2 n))%nat. lia.
+   simpl. lia.
    apply lt_n_Sm_le.
    apply Nreal_nat_lt.
    rewrite !Nreal_hom.
    simpl;ring_simplify.
    apply real_lt_plus_r_lt.
-   apply (real_lt_le_lt _ (Nreal (Npow2 n)*y)).
+   apply (real_lt_le_lt _ (Nreal (Npow2 (pred n))*y)).
    apply U; auto.
    rewrite <-real_mult_unit, (real_mult_comm real_1).
+   simpl.
    apply real_le_mult_pos_le.
    left; apply Nreal_Npow2_pos.
    exact B2.
@@ -456,7 +469,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    rewrite !Nreal_hom.
    simpl;ring_simplify.
    apply real_lt_plus_r_lt.
-   apply (real_lt_le_lt _ (Nreal (Npow2 n)*x)).
+   apply (real_lt_le_lt _ (Nreal (Npow2 (pred n))*x)).
    apply U; auto.
    rewrite <-real_mult_unit, (real_mult_comm real_1).
    apply real_le_mult_pos_le.
@@ -467,7 +480,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    rewrite !Nreal_hom.
    simpl;ring_simplify.
    apply real_lt_plus_r_lt.
-   apply (real_lt_le_lt _ (Nreal (Npow2 n)*x + Nreal (Npow2 n)*y)).
+   apply (real_lt_le_lt _ (Nreal (Npow2 (pred n))*x + Nreal (Npow2 (pred n))*y)).
    apply real_lt_lt_plus_lt; auto.
    rewrite <-real_mult_plus_distr.
    rewrite <-real_mult_unit, (real_mult_comm real_1).
@@ -485,15 +498,15 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    rewrite abs_pos_id.
    apply real_eq_le; auto.
    apply real_lt_le.
-   apply (prec_pos (S n)).
-   assert (real_0 <= Nreal k * prec n).
+   apply (prec_pos (S (pred n))).
+   assert (real_0 <= Nreal k * prec (pred n)).
    apply real_le_pos_mult_pos_pos; [destruct k; [apply real_eq_le;auto |apply real_lt_le; apply Nreal_pos;lia ] | apply real_lt_le; apply prec_pos].
-   assert (Nreal k * prec n <= x).
+   assert (Nreal k * prec (pred n) <= x).
    apply real_lt_le;apply H.
-   assert (x <= Nreal (S k) * prec n).
+   assert (x <= Nreal (S k) * prec (pred n)).
    apply H.
-   pose proof (dist_half x (Nreal k * prec n) (Nreal (S k) * prec n) H0 H1 H2).   
-   apply (real_le_le_le _ (abs (x - (Nreal k * prec n + Nreal (S k) * prec n) / real_2_neq_0))).
+   pose proof (dist_half x (Nreal k * prec (pred n)) (Nreal (S k) * prec (pred n)) H0 H1 H2).   
+   apply (real_le_le_le _ (abs (x - (Nreal k * prec (pred n) + Nreal (S k) * prec (pred n)) / real_2_neq_0))).
    apply real_eq_le.
     f_equal.
    rewrite !Nreal_hom.
@@ -501,7 +514,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    unfold real_div.
    simpl.
    ring.
-   apply (real_le_le_le _ ((Nreal (S k) * prec n - Nreal k * prec n) / real_2_neq_0)); auto.
+   apply (real_le_le_le _ ((Nreal (S k) * prec (pred n) - Nreal k * prec (pred n)) / real_2_neq_0)); auto.
    apply real_eq_le.
    unfold real_div.
    simpl.
@@ -513,15 +526,15 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    rewrite abs_pos_id.
    apply real_eq_le; auto.
    apply real_lt_le.
-   apply (prec_pos (S n)).
-   assert (real_0 <= Nreal j * prec n).
+   apply (prec_pos (S (pred n))).
+   assert (real_0 <= Nreal j * prec (pred n)).
    apply real_le_pos_mult_pos_pos; [destruct j; [apply real_eq_le;auto |apply real_lt_le; apply Nreal_pos;lia ] | apply real_lt_le; apply prec_pos].
-   assert (Nreal j * prec n <= y).
+   assert (Nreal j * prec (pred n) <= y).
    apply real_lt_le;apply H.
-   assert (y <= Nreal (S j) * prec n).
+   assert (y <= Nreal (S j) * prec (pred n)).
    apply H.
-   pose proof (dist_half y (Nreal j * prec n) (Nreal (S j) * prec n) H0 H1 H2).   
-   apply (real_le_le_le _ (abs (y - (Nreal j * prec n + Nreal (S j) * prec n) / real_2_neq_0))).
+   pose proof (dist_half y (Nreal j * prec (pred n)) (Nreal (S j) * prec (pred n)) H0 H1 H2).   
+   apply (real_le_le_le _ (abs (y - (Nreal j * prec (pred n) + Nreal (S j) * prec (pred n)) / real_2_neq_0))).
    apply real_eq_le.
     f_equal.
    rewrite !Nreal_hom.
@@ -529,13 +542,13 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    unfold real_div.
    simpl.
    ring.
-   apply (real_le_le_le _ ((Nreal (S j) * prec n - Nreal j * prec n) / real_2_neq_0)); auto.
+   apply (real_le_le_le _ ((Nreal (S j) * prec (pred n) - Nreal j * prec (pred n)) / real_2_neq_0)); auto.
    apply real_eq_le.
    unfold real_div.
    simpl.
    ring.
    apply real_lt_le.
-   apply (prec_pos (S n)).
+   apply (prec_pos (S (pred n))).
  Qed.
 
   Definition multi_triangles (n : nat) : (@euclidean_subset types 2).
@@ -564,7 +577,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply Exists_exists.
     contradict H.
  Qed.
- Lemma multi_triangles_compact (n : nat) : is_covert 2 (multi_triangles n).
+ Lemma multi_triangles_covert (n : nat) : is_covert 2 (multi_triangles n).
  Proof.
    induction n.
    apply empty_set_is_covert.
@@ -574,25 +587,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply IHn.
  Defined.
 
- Definition sierpinski_approx (n : nat) : (@euclidean_subset types 2).
- Proof.
-   induction n.
-   apply T.
-   pose proof (scaling 2 (prec 1) IHn) as T.
-   apply union.
-   apply union.
-   apply T.
-   apply (translation 2 T (make_euclidean2 ((prec 1)) real_0)).
-   apply (translation 2 T (make_euclidean2 real_0 (prec 1))).
- Defined.
-
- Lemma sierpinski_approx_is_covert n : is_covert 2 (sierpinski_approx n).
- Proof.
-   induction n.
-   apply T_is_covert.
-
-   apply is_covert_union;[apply is_covert_union |];(try apply is_covert_translation;apply is_covert_scale_down;apply IHn).
- Defined.
 End SimpleTriangle.
 
 

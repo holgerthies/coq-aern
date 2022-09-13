@@ -35,6 +35,12 @@ type Any = ()
 __ :: any
 __ = Prelude.error "Logical or arity value used"
 
+type Sig a = a
+  -- singleton inductive, whose constructor was exist
+  
+pred :: Prelude.Integer -> Prelude.Integer
+pred = (\n -> Prelude.max 0 (Prelude.pred n))
+
 sub :: Prelude.Integer -> Prelude.Integer -> Prelude.Integer
 sub = (\n m -> Prelude.max 0 (n Prelude.- m))
 
@@ -60,6 +66,8 @@ make_euclidean2 x y =
   Cons (Prelude.succ 0) x (Cons 0 y Nil)
 
 type Ball = (,) Euclidean AERN2.CReal
+
+type Is_covert = Prelude.Integer -> (([]) Ball)
 
 make_ball2 :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> Ball
 make_ball2 x y r =
@@ -96,4 +104,8 @@ tn_row n k l =
 tn :: Prelude.Integer -> ([]) Ball
 tn n =
   tn_row n (sub (npow2 n) (Prelude.succ 0)) ([])
+
+t_is_covert :: Is_covert
+t_is_covert n =
+  tn (pred n)
 
