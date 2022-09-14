@@ -554,7 +554,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     auto.
   Qed.
 
-  Lemma ST_compact : forall A, (ST A) -> is_covert 2 A.
+  Lemma ST_is_covert : forall A, (ST A) -> is_covert 2 A.
   Proof.
     intros A STs n.
     exists (STn n).
@@ -611,10 +611,10 @@ End SierpinskiTriangle.
 
 Section Known_Sized_Vectors.
 
-  Definition t3_new {A} (a b c : A) := 
+  Definition t3_new {A} (a b c : A) : t A n3 := 
     cons _ a _ (cons _ b _ (cons _ c _ (nil _))).
     
-  Definition t3_get {A} (t3 : t A 3) : (A * A * A) :=
+  Definition t3_get {A} (t3 : t A n3) : (A * A * A) :=
     ((hd t3, hd (tl t3)), hd (tl (tl t3))).
     
   (* Lemma t3_new_get {A} a b c : @t3_get A (@t3_new A a b c) = ((a, b), c).
@@ -629,7 +629,7 @@ Section Known_Sized_Vectors.
     repeat (destruct H; auto).
   Qed.
   
-  Definition t4_new {A} (a b c d : A) := 
+  Definition t4_new {A} (a b c d : A) : t A n4 := 
     cons _ a _ (cons _ b _ (cons _ c _ (cons _ d _ (nil _)))).
     
   (* Definition t4_get {A} (t3 : t A 3) : (A * A * A) :=
@@ -701,7 +701,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* bits needed for verification *)
 
-  Lemma STR_initial_ball_contains_v1 : ball_to_subset 2 STR_initial_ball STR_v1.
+  Lemma STR_initial_ball_contains_v1 : ball_to_subset n2 STR_initial_ball STR_v1.
   Proof.
     unfold STR_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
@@ -723,7 +723,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     left. apply one_half_pos.
   Qed.
   
-  Lemma STR_initial_ball_contains_v2 : ball_to_subset 2 STR_initial_ball STR_v2.
+  Lemma STR_initial_ball_contains_v2 : ball_to_subset n2 STR_initial_ball STR_v2.
   Proof.
     unfold STR_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
@@ -741,7 +741,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply one_half_pos.
   Qed.
   
-  Lemma STR_initial_ball_contains_v3 : ball_to_subset 2 STR_initial_ball STR_v3.
+  Lemma STR_initial_ball_contains_v3 : ball_to_subset n2 STR_initial_ball STR_v3.
   Proof.
     unfold STR_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
@@ -764,7 +764,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Qed.
 
   Lemma STR_initial_ball_contains_vs : 
-    Forall (ball_to_subset 2 STR_initial_ball) STR_vs.
+    Forall (ball_to_subset n2 STR_initial_ball) STR_vs.
   Proof.
     unfold STR_vs.
     rewrite Forall_forall.
@@ -781,8 +781,8 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Qed.
 
 
-  Definition STR_compact := 
-    ST_compact 2
+  Definition STR_is_covert := 
+    ST_is_covert n2
       STR_vs STR_initial_ball
       STR_initial_ball_radius_bound
       STR_initial_ball_contains_vs
@@ -821,8 +821,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   Definition STE_initial_ball := make_ball2 real_0 real_0 real_1.
 
-  Lemma real_3_pos : (IZreal 3) > real_0.
+  Lemma real_3_pos : (IZreal z3) > real_0.
   Proof.
+    unfold z3.
     assert (IZreal 3 = IZreal 2 + real_1) as Temp. ring.
     rewrite Temp; clear Temp.
     rewrite <- (real_plus_unit real_0).
@@ -831,12 +832,12 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_1_gt_0.
   Qed.
 
-  Definition real_3_neq_0 : (IZreal 3) <> real_0.
+  Definition real_3_neq_0 : (IZreal z3) <> real_0.
     apply real_gt_neq.
     apply real_3_pos.
   Defined.
 
-  Definition sqrt_3_exists : {y : ^Real | real_0 <= y /\ y * y = IZreal 3}.
+  Definition sqrt_3_exists : {y : ^Real | real_0 <= y /\ y * y = IZreal z3}.
     assert (IZreal 3 >= real_0) as ge0.
     left. apply real_3_pos.
     apply (sqrt (IZreal 3) ge0).
@@ -890,6 +891,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     unfold real_2.
     rewrite <- IZreal_mult_hom.
     apply IZreal_strict_monotone.
+    unfold z3.
     lia.
   Qed.
 
@@ -932,6 +934,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     assert (real_1 * real_1 = IZreal 1) as T.
     ring. rewrite T; clear T.
     apply IZreal_strict_monotone.
+    unfold z3.
     lia.
   Qed.
 
@@ -956,6 +959,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     rewrite sqr.
     replace (IZreal 3 * IZreal 3) with (IZreal 9) by ring.
     apply IZreal_strict_monotone.
+    unfold z3.
     lia.
   Qed.
   
@@ -977,7 +981,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* bits needed for verification *)
 
-  Lemma STE_initial_ball_contains_v1 : ball_to_subset 2 STE_initial_ball STE_v1.
+  Lemma STE_initial_ball_contains_v1 : ball_to_subset n2 STE_initial_ball STE_v1.
   Proof.
     unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
@@ -995,7 +999,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_1_gt_0.
   Qed.
   
-  Lemma STE_initial_ball_contains_v2 : ball_to_subset 2 STE_initial_ball STE_v2.
+  Lemma STE_initial_ball_contains_v2 : ball_to_subset n2 STE_initial_ball STE_v2.
   Proof.
     unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
@@ -1016,7 +1020,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     left. apply real_1_gt_0.
   Qed.
   
-  Lemma STE_initial_ball_contains_v3 : ball_to_subset 2 STE_initial_ball STE_v3.
+  Lemma STE_initial_ball_contains_v3 : ball_to_subset n2 STE_initial_ball STE_v3.
   Proof.
     unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
@@ -1043,7 +1047,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Qed.
   
   Lemma STE_initial_ball_contains_vs : 
-    Forall (ball_to_subset 2 STE_initial_ball) STE_vs.
+    Forall (ball_to_subset n2 STE_initial_ball) STE_vs.
   Proof.
     unfold STE_vs.
     rewrite Forall_forall.
@@ -1059,8 +1063,8 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply STE_initial_ball_contains_v3.
   Qed.
 
-  Definition STE_compact := 
-    ST_compact _
+  Definition STE_is_covert := 
+    ST_is_covert _
       STE_vs STE_initial_ball
       STE_initial_ball_radius_bound
       STE_initial_ball_contains_vs
@@ -1072,7 +1076,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   Definition STE4n := STn _ STE4_vs STE_initial_ball.
 
-  Lemma STE_initial_ball_contains_v4 : ball_to_subset 2 STE_initial_ball STE_v4.
+  Lemma STE_initial_ball_contains_v4 : ball_to_subset n2 STE_initial_ball STE_v4.
   Proof.
     unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
@@ -1102,7 +1106,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Qed.
 
   Lemma STE4_initial_ball_contains_vs : 
-    Forall (ball_to_subset 2 STE_initial_ball) STE4_vs.
+    Forall (ball_to_subset n2 STE_initial_ball) STE4_vs.
   Proof.
     unfold STE_vs.
     rewrite Forall_forall.
@@ -1121,5 +1125,10 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply STE_initial_ball_contains_v4.
   Qed.
 
+  Definition STE4_is_covert := 
+    ST_is_covert _
+      STE4_vs STE_initial_ball
+      STE_initial_ball_radius_bound
+      STE4_initial_ball_contains_vs.
 
 End ST_Equilateral.

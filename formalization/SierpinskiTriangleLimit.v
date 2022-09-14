@@ -26,19 +26,19 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
  (* Check ST. *)
- Definition sierpinski_approx (n : nat) : (@euclidean_subset types 2).
+ Definition sierpinski_approx (n : nat) : (@euclidean_subset types n2).
  Proof.
    induction n.
    apply T.
-   pose proof (scaling 2 (prec 1) IHn) as T.
+   pose proof (scaling n2 (prec n1) IHn) as T.
    apply union.
    apply union.
    apply T.
-   apply (translation 2 T (make_euclidean2 ((prec 1)) real_0)).
-   apply (translation 2 T (make_euclidean2 real_0 (prec 1))).
+   apply (translation n2 T (make_euclidean2 ((prec n1)) real_0)).
+   apply (translation n2 T (make_euclidean2 real_0 (prec n1))).
  Defined.
 
- Lemma sierpinski_approx_is_covert n : is_covert 2 (sierpinski_approx n).
+ Lemma sierpinski_approx_is_covert n : is_covert n2 (sierpinski_approx n).
  Proof.
    induction n.
    apply T_is_covert.
@@ -606,7 +606,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Defined.
 
 
- Lemma is_covert_sierpinski : forall X, (STR X) -> is_covert 2 X.
+ Lemma is_covert_sierpinski : forall X, (STR X) -> is_covert n2 X.
  Proof.
    intros.
    apply is_covert_lim.

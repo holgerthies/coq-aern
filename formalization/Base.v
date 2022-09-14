@@ -143,6 +143,12 @@ Proof.
 Defined.
 
 (* Use the following instead of direct integers to get integer literals when extracting code *)
+
+Definition n1 := (1)%nat.
+Definition n2 := (2)%nat.
+Definition n3 := (3)%nat.
+Definition n4 := (4)%nat.
+
 Require Export ZArith_base.
 
 Definition z0 := (0)%Z.

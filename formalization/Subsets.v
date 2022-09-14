@@ -742,10 +742,10 @@ Section SubsetsR2.
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 #[local] Notation "^Real" := (@Real types) (at level 0).
 
-  Definition make_ball2 (x y r : ^Real) : ball 2 := ((make_euclidean2 x y), r).
+  Definition make_ball2 (x y r : ^Real) : ball n2 := ((make_euclidean2 x y), r).
   
   Lemma split_ball_to_subset2 (b_x b_y r x y : ^Real) : 
-    ball_to_subset 2 (Euclidean.cons b_x (Euclidean.cons b_y Euclidean.nil), r) (Euclidean.cons x (Euclidean.cons y Euclidean.nil)) -> 
+    ball_to_subset n2 (Euclidean.cons b_x (Euclidean.cons b_y Euclidean.nil), r) (Euclidean.cons x (Euclidean.cons y Euclidean.nil)) -> 
     abs(x + - b_x) <= r /\
     abs(y + - b_y) <= r.
   Proof.

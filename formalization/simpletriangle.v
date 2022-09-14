@@ -32,7 +32,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Defined.
 
 
-  Definition Tn_ball (n k j :nat) : (ball 2) := make_ball2 (Nreal (2*k+1) * prec (S n)) (Nreal (2*j+1) * prec (S n)) (prec (S n)).
+  Definition Tn_ball (n k j :nat) : (ball 2) := make_ball2 (Nreal (n2*k+n1) * prec (S n)) (Nreal (n2*j+n1) * prec (S n)) (prec (S n)).
 
   Fixpoint Tn_col n k j l :=
   match j with
@@ -42,11 +42,11 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   
   Fixpoint Tn_row n k l :=
   match k with
-      0 => (Tn_col n 0 ((Npow2 n)-1) l)
-     | (S k') => (Tn_row n k' (Tn_col n k ((Npow2 n)-k-1) l))
+      0 => (Tn_col n 0 ((Npow2 n)-n1) l)
+     | (S k') => (Tn_row n k' (Tn_col n k ((Npow2 n)-k-n1) l))
   end.
                                                                       
-  Definition Tn n : list (ball 2) := Tn_row n ((Npow2 n)-1) nil.
+  Definition Tn n : list (ball 2) := Tn_row n ((Npow2 n)-n1) nil.
 
   Lemma Tn_col_rad n k j: forall l, (rad 2 l) <= prec (S n) -> rad 2 (Tn_col n k j l) <= prec (S n).
   Proof using Type.
@@ -117,12 +117,14 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply real_lt_le.
     apply real_lt_pos_mult_pos_pos.
     apply Nreal_pos.
+    unfold n1,n2.
     lia.
     apply prec_pos.
     split.
     apply real_lt_le.
     apply real_lt_pos_mult_pos_pos.
     apply Nreal_pos.
+    unfold n1,n2.
     lia.
     apply prec_pos.
     rewrite real_mult_comm.
@@ -134,6 +136,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     left; apply prec_pos.
     apply Nreal_monotone.
     simpl.
+    unfold n1,n2.
     lia.
   Qed.
   
@@ -166,19 +169,19 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     intros Klt.
     induction k as [ | k' IH].
     - intros l H.
-      apply Tn_col_intersects_T; try lia.
+      apply Tn_col_intersects_T; unfold n1,n2; try lia.
       exact H.
     - intros l H.
       apply IH.
       lia.
-      apply Tn_col_intersects_T; try lia.
+      apply Tn_col_intersects_T; unfold n1,n2; try lia.
       apply H.
   Qed.
 
 
   Lemma Tn_intersects_T n :  Forall (fun b => intersects 2 (ball_to_subset 2 b) T) (Tn n).
   Proof using Type.
-    apply Tn_row_intersects_T; try lia.
+    apply Tn_row_intersects_T; unfold n1,n2; try lia.
     apply Forall_nil.
   Qed.
 
@@ -234,7 +237,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      - intros.
        apply Nat.le_0_r in H.
        rewrite H.
-       apply Tn_col_contains; try lia.
+       apply Tn_col_contains.
+       unfold n1,n2.
+       lia.
      - intros.
        destruct (le_lt_or_eq _ _ H).
        apply IH; try lia.
@@ -255,7 +260,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Lemma Tn_contains n k j : (k + j + 1 <= Npow2 n)%nat -> In (Tn_ball n k j) (Tn n).
   Proof.
     intro H.
-    apply Tn_row_contains;lia.
+    apply Tn_row_contains; unfold n1,n2; lia.
   Qed.
   
   Lemma prec_mult_two n : (Nreal 2) * prec (S n) = prec n.

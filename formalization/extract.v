@@ -15,19 +15,24 @@ Extract Inlined Constant Z.opp => "P.negate".
 
 Require Import Base.
 
-Extract Inlined Constant z0 => "0".
-Extract Inlined Constant z1 => "1".
-Extract Inlined Constant z2 => "2".
-Extract Inlined Constant z3 => "3".
-Extract Inlined Constant z4 => "4".
-Extract Inlined Constant z5 => "5".
-Extract Inlined Constant z6 => "6".
-Extract Inlined Constant z7 => "7".
-Extract Inlined Constant z8 => "8".
-Extract Inlined Constant z9 => "9".
-Extract Inlined Constant z10 => "10".
-Extract Inlined Constant z11 => "11".
-Extract Inlined Constant z12 => "12".
+Extract Constant n1 => "1".
+Extract Constant n2 => "2".
+Extract Constant n3 => "3".
+Extract Constant n4 => "4".
+
+Extract Constant z0 => "0".
+Extract Constant z1 => "1".
+Extract Constant z2 => "2".
+Extract Constant z3 => "3".
+Extract Constant z4 => "4".
+Extract Constant z5 => "5".
+Extract Constant z6 => "6".
+Extract Constant z7 => "7".
+Extract Constant z8 => "8".
+Extract Constant z9 => "9".
+Extract Constant z10 => "10".
+Extract Constant z11 => "11".
+Extract Constant z12 => "12".
 
 Extract Inlined Constant projP1 => "".
 
@@ -149,16 +154,16 @@ Extraction Implicit Real [ r ].
 Extract Inlined Constant Real => "AERN2.CReal".
 
 Extraction Implicit real_0 [ types SemiDecOrderedField_Real ].
-Extract Inlined Constant real_0 => "(0 :: AERN2.CReal)".
+Extract Constant real_0 => "0".
 
 Extraction Implicit real_1 [ types SemiDecOrderedField_Real ].
-Extract Inlined Constant real_1 => "(1 :: AERN2.CReal)".
+Extract Constant real_1 => "1".
 
 Extraction Implicit real_2 [ types sofReal ].
-Extract Inlined Constant real_2 => "(2 :: AERN2.CReal)".
+Extract Constant real_2 => "2".
 
 (* Extraction Implicit real_3 [ klb SemiDecOrderedField_Real ]. *)
-(* Extract Inlined Constant real_3 => "(3 :: AERN2.CReal)". *)
+(* Extract Inlined Constant real_3 => "3". *)
 
 Extraction Implicit real_plus [ types SemiDecOrderedField_Real ].
 Extract Inlined Constant real_plus => "(+)".
@@ -274,7 +279,7 @@ Extraction Implicit dec_x_lt_2 [ types casofReal ].
 
 Extraction Implicit Zpow [ types casofReal ].
 
-Extraction "Magnitude" magnitude.magnitude.
+(* Extraction "Magnitude" magnitude.magnitude. *)
 
 Require Import RealRing.
 
@@ -352,6 +357,7 @@ Extraction Implicit point_point_mid [ types casofReal ].
 Extraction Implicit point_ball_mid [ types casofReal ].
 Extraction Implicit ST_split_ball [ types casofReal ].
 Extraction Implicit STn [ types casofReal ].
+Extraction Implicit ST_is_covert [ types casofReal ].
 
 Extraction Implicit STR_initial_ball [ types casofReal ].
 Extraction Implicit STR_v1 [ types casofReal ].
@@ -359,7 +365,8 @@ Extraction Implicit STR_v2 [ types casofReal ].
 Extraction Implicit STR_v3 [ types casofReal ].
 Extraction Implicit STR_vs [ types casofReal ].
 Extraction Implicit STRn [ types casofReal ].
-(* Extraction "STRn" STRn. *)
+Extraction Implicit STR_is_covert [ types casofReal ].
+(* Extraction "STRn" STR_is_covert. *)
 
 Extraction Implicit sqrt_3 [ types casofReal ].
 Extraction Implicit sqrt_3_exists [ types casofReal ].
@@ -369,12 +376,14 @@ Extraction Implicit STE_v2 [ types casofReal ].
 Extraction Implicit STE_v3 [ types casofReal ].
 Extraction Implicit STE_vs [ types casofReal ].
 Extraction Implicit STEn [ types casofReal ].
-(* Extraction "STEn" STEn. *)
+Extraction Implicit STE_is_covert [ types casofReal ].
+(* Extraction "STEn" STE_is_covert. *)
 
 Extraction Implicit STE_v4 [ types casofReal ].
 Extraction Implicit STE4_vs [ types casofReal ].
 Extraction Implicit STE4n [ types casofReal ].
-(* Extraction "STE4n" STE4n. *)
+Extraction Implicit STE4_is_covert [ types casofReal ].
+(* Extraction "STE4n" STE4_is_covert. *)
 
 Require Import SierpinskiTriangleLimit.
 Extraction Implicit sierpinski_approx_is_covert [ types casofReal ].
