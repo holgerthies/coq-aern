@@ -123,6 +123,7 @@ Extraction Implicit M_hprop_elim_f [ types mvmM ].
 Extract Constant M_hprop_elim_f => "P.id".
 
 Extraction Implicit choose [ types mvmM ].
+Extract Constant choose => "AERN2.select".
 
 Extraction Implicit M_paths  [ types mvmM ].
 
@@ -136,6 +137,7 @@ Extraction Implicit semidec_and [ types mvmM ].
 (* (\ _ m -> m) *)
 
 Extraction Implicit select  [ types mvmM ].
+Extract Constant select => "AERN2.select".
 
 (* Some shortcuts for efficiency. *)
 Extraction Implicit M_countable_lift [ types mvmM ].
@@ -181,17 +183,26 @@ Extraction Implicit real_lt_semidec [ types SemiDecOrderedField_Real ].
 Extract Inlined Constant real_lt_semidec => "(OGB.<)".
 
 Extraction Implicit real_limit_p [ types ComplArchiSemiDecOrderedField_Real ].
-Extract Constant real_limit_p => "AERN2.limit".
+Extract Inlined Constant real_limit_p => "AERN2.limit".
 
 Extraction Implicit real_limit  [ types casofReal ].
+Extract Inlined Constant real_limit => "AERN2.limit".
 Extraction Implicit real_limit_P  [ types casofReal ].
+Extract Inlined Constant real_limit_P => "AERN2.limit".
 Extraction Implicit real_limit_P_p  [ types casofReal ].
+Extract Inlined Constant real_limit_P_p => "AERN2.limit".
 Extraction Implicit real_limit_P_lt  [ types casofReal ].
+Extract Inlined Constant real_limit_P_lt => "AERN2.limit".
 Extraction Implicit real_limit_P_lt_p  [ types casofReal ].
+Extract Inlined Constant real_limit_P_lt_p => "AERN2.limit".
 Extraction Implicit real_mslimit_P  [ types casofReal ].
+Extract Inlined Constant real_mslimit_P => "AERN2.limit".
 Extraction Implicit real_mslimit_P_p  [ types casofReal ].
+Extract Inlined Constant real_mslimit_P_p => "AERN2.limit".
 Extraction Implicit real_mslimit_P_lt  [ types casofReal ].
+Extract Inlined Constant real_mslimit_P_lt => "AERN2.limit".
 Extraction Implicit real_mslimit_P_lt_p  [ types casofReal ].
+Extract Inlined Constant real_mslimit_P_lt_p => "AERN2.limit".
 
 Extraction Implicit M_split  [ types casofReal ].
 
@@ -344,12 +355,6 @@ Extraction Implicit Tn_row [ types casofReal ].
 Extraction Implicit Tn [ types casofReal ].
 Extraction Implicit T_is_covert [ types casofReal ].
 (* Extraction "Tn" T_is_covert. *)
-
-Extraction Implicit multi_triangles_covert [ types casofReal ].
-Extraction Implicit empty_set_is_covert [ types casofReal ].
-Extraction Implicit T_is_covert [ types casofReal ].
-(* Extraction "MTn" multi_triangles_compact. *)
-
 
 Require Import SierpinskiTriangle.
 Extraction Implicit one_half [ types casofReal ].
