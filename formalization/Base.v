@@ -142,5 +142,20 @@ Proof.
   apply irrl.
 Defined.
 
+(* Use the following instead of direct integers to get integer literals when extracting code *)
+Require Export ZArith_base.
 
+Definition z0 := (0)%Z.
+Definition z1 := (1)%Z.
+Definition z2 := (2)%Z.
+Definition z3 := (3)%Z.
+Definition z4 := (4)%Z.
+Definition z5 := (5)%Z.
+Definition z6 := (6)%Z.
+Definition z7 := (7)%Z.
+Definition z8 := (8)%Z.
+Definition z9 := (9)%Z.
+Definition z10 := (10)%Z.
+Definition z11 := (11)%Z.
+Definition z12 := (12)%Z.
 

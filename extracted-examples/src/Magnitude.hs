@@ -37,170 +37,6 @@ __ = Prelude.error "Logical or arity value used"
 
 type Sig a = a
   -- singleton inductive, whose constructor was exist
-  
-succ :: Prelude.Integer -> Prelude.Integer
-succ x =
-  (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-    (\p -> (\x -> 2 Prelude.* x) (succ p))
-    (\p -> (\x -> 2 Prelude.* x Prelude.+ 1) p)
-    (\_ -> (\x -> 2 Prelude.* x) 1)
-    x
-
-add :: Prelude.Integer -> Prelude.Integer -> Prelude.Integer
-add x y =
-  (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-    (\p ->
-    (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-      (\q -> (\x -> 2 Prelude.* x) (add_carry p q))
-      (\q -> (\x -> 2 Prelude.* x Prelude.+ 1) (add p q))
-      (\_ -> (\x -> 2 Prelude.* x) (succ p))
-      y)
-    (\p ->
-    (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-      (\q -> (\x -> 2 Prelude.* x Prelude.+ 1) (add p q))
-      (\q -> (\x -> 2 Prelude.* x) (add p q))
-      (\_ -> (\x -> 2 Prelude.* x Prelude.+ 1) p)
-      y)
-    (\_ ->
-    (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-      (\q -> (\x -> 2 Prelude.* x) (succ q))
-      (\q -> (\x -> 2 Prelude.* x Prelude.+ 1) q)
-      (\_ -> (\x -> 2 Prelude.* x) 1)
-      y)
-    x
-
-add_carry :: Prelude.Integer -> Prelude.Integer -> Prelude.Integer
-add_carry x y =
-  (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-    (\p ->
-    (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-      (\q -> (\x -> 2 Prelude.* x Prelude.+ 1) (add_carry p q))
-      (\q -> (\x -> 2 Prelude.* x) (add_carry p q))
-      (\_ -> (\x -> 2 Prelude.* x Prelude.+ 1) (succ p))
-      y)
-    (\p ->
-    (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-      (\q -> (\x -> 2 Prelude.* x) (add_carry p q))
-      (\q -> (\x -> 2 Prelude.* x Prelude.+ 1) (add p q))
-      (\_ -> (\x -> 2 Prelude.* x) (succ p))
-      y)
-    (\_ ->
-    (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-      (\q -> (\x -> 2 Prelude.* x Prelude.+ 1) (succ q))
-      (\q -> (\x -> 2 Prelude.* x) (succ q))
-      (\_ -> (\x -> 2 Prelude.* x Prelude.+ 1) 1)
-      y)
-    x
-
-pred_double :: Prelude.Integer -> Prelude.Integer
-pred_double x =
-  (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-    (\p -> (\x -> 2 Prelude.* x Prelude.+ 1) ((\x -> 2 Prelude.* x) p))
-    (\p -> (\x -> 2 Prelude.* x Prelude.+ 1) (pred_double p))
-    (\_ -> 1)
-    x
-
-of_succ_nat :: Prelude.Integer -> Prelude.Integer
-of_succ_nat n =
-  (\fO fS n -> if n Prelude.== 0 then fO () else fS (n Prelude.- 1))
-    (\_ -> 1)
-    (\x -> succ (of_succ_nat x))
-    n
-
-double :: Prelude.Integer -> Prelude.Integer
-double x =
-  (\fO fP fN n -> if n Prelude.== 0 then fO () else
-                   if n Prelude.> 0 then fP n else
-                   fN (Prelude.negate n))
-    (\_ -> 0)
-    (\p -> (\x -> x) ((\x -> 2 Prelude.* x) p))
-    (\p -> Prelude.negate ((\x -> 2 Prelude.* x) p))
-    x
-
-succ_double :: Prelude.Integer -> Prelude.Integer
-succ_double x =
-  (\fO fP fN n -> if n Prelude.== 0 then fO () else
-                   if n Prelude.> 0 then fP n else
-                   fN (Prelude.negate n))
-    (\_ -> (\x -> x) 1)
-    (\p -> (\x -> x) ((\x -> 2 Prelude.* x Prelude.+ 1) p))
-    (\p -> Prelude.negate (pred_double p))
-    x
-
-pred_double0 :: Prelude.Integer -> Prelude.Integer
-pred_double0 x =
-  (\fO fP fN n -> if n Prelude.== 0 then fO () else
-                   if n Prelude.> 0 then fP n else
-                   fN (Prelude.negate n))
-    (\_ -> Prelude.negate 1)
-    (\p -> (\x -> x) (pred_double p))
-    (\p -> Prelude.negate ((\x -> 2 Prelude.* x Prelude.+ 1) p))
-    x
-
-pos_sub :: Prelude.Integer -> Prelude.Integer -> Prelude.Integer
-pos_sub x y =
-  (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-    (\p ->
-    (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-      (\q -> double (pos_sub p q))
-      (\q -> succ_double (pos_sub p q))
-      (\_ -> (\x -> x) ((\x -> 2 Prelude.* x) p))
-      y)
-    (\p ->
-    (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-      (\q -> pred_double0 (pos_sub p q))
-      (\q -> double (pos_sub p q))
-      (\_ -> (\x -> x) (pred_double p))
-      y)
-    (\_ ->
-    (\fI fO fH n -> if n Prelude.== 1 then fH () else
-                   if Prelude.odd n
-                   then fI (n `Prelude.div` 2)
-                   else fO (n `Prelude.div` 2))
-      (\q -> Prelude.negate ((\x -> 2 Prelude.* x) q))
-      (\q -> Prelude.negate (pred_double q))
-      (\_ -> 0)
-      y)
-    x
 
 type M a = a
 
@@ -297,9 +133,8 @@ magnitude1 x =
 dec_x_lt_2 :: AERN2.CReal -> M P.Bool
 dec_x_lt_2 x =
   let {
-   h = m_split x
-         ((/) (iZreal ((\x -> x) ((\x -> 2 Prelude.* x Prelude.+ 1) 1)))
-           (2 :: AERN2.CReal)) (P.recip (2 :: AERN2.CReal))}
+   h = m_split x ((/) (iZreal 3) (2 :: AERN2.CReal))
+         (P.recip (2 :: AERN2.CReal))}
   in
   mjoin (\h0 -> case h0 of {
                  P.True -> P.False;
@@ -307,16 +142,10 @@ dec_x_lt_2 x =
 
 magnitude2 :: AERN2.CReal -> M Prelude.Integer
 magnitude2 x =
-  let {
-   y = (/) x
-         (iZreal ((\x -> x) ((\x -> 2 Prelude.* x) ((\x -> 2 Prelude.* x)
-           1))))}
-  in
+  let {y = (/) x (iZreal 4)} in
   ssr_have __ (\_ ->
     ssr_have __ (\_ ->
-      ssr_suff
-        (m_lift (\_top_assumption_ ->
-          (P.+) _top_assumption_ ((\x -> x) ((\x -> 2 Prelude.* x) 1))))
+      ssr_suff (m_lift (\_top_assumption_ -> (P.+) _top_assumption_ 2))
         (ssr_have (magnitude1 y)
           (m_lift (\_top_assumption_ -> P.negate (P.id _top_assumption_))))))
 
@@ -330,8 +159,7 @@ magnitude x =
         ssr_have __ (\_ ->
           ssr_have (magnitude2 (P.recip x))
             (m_lift (\_top_assumption_0 ->
-              (P.+) (P.negate _top_assumption_0) ((\x -> x)
-                ((\x -> 2 Prelude.* x) 1)))))}
+              (P.+) (P.negate _top_assumption_0) 2)))}
       in
       case _top_assumption_ of {
        P.True -> _evar_0_ __;

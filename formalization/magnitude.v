@@ -135,7 +135,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Lemma dec_x_lt_2 x : ^M ({x < real_2} + {real_1 < x}).
   Proof.
 
-    pose proof ( M_split x (IZreal 3 / real_2_neq_0) (/ real_2_neq_0) d2_pos) as H.
+    pose proof ( M_split x (IZreal z3 / real_2_neq_0) (/ real_2_neq_0) d2_pos) as H.
     apply (fun p => mjoin _ _ _ p H).
     intro.
     clear H.
@@ -327,11 +327,11 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       rewrite (relate_IZreal _ _ Ha0).
       suff : (x1 < 2)%R by lra.
         by apply /transport_lt_inv/xle1/IZreal_relator/Ha.
-        have magy n : is_magnitude y n -> is_magnitude x (n+2)%Z by apply magnitude_fourth.
+        have magy n : is_magnitude y n -> is_magnitude x (n+z2)%Z by apply magnitude_fourth.
         suff : ^M { z | is_magnitude y z}.
     - apply M_lift.
       case => z zprp.
-      exists (z+2)%Z.
+      exists (z+z2)%Z.
       exact (magy _ zprp).
       (* y is less than 1/2 => magnitude1 can be used *)
       have := magnitude1 _ yB.
@@ -409,7 +409,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     - have := magnitude2 _ I.
       apply M_lift.
       case => z zprp.
-      exists (-z+2)%Z.
+      exists (-z+z2)%Z.
         by apply (magnitude_inv x xneg0).
       Defined.
 

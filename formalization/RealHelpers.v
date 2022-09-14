@@ -97,8 +97,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 (*   end. *)
 
   
-  Lemma IZreal4neq0 : IZreal 4 <> real_0.
+  Lemma IZreal4neq0 : IZreal z4 <> real_0.
   Proof.
+    unfold z4.
     apply transport_neq.
     intro.
     intro.

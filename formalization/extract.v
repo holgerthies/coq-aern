@@ -15,6 +15,20 @@ Extract Inlined Constant Z.opp => "P.negate".
 
 Require Import Base.
 
+Extract Inlined Constant z0 => "0".
+Extract Inlined Constant z1 => "1".
+Extract Inlined Constant z2 => "2".
+Extract Inlined Constant z3 => "3".
+Extract Inlined Constant z4 => "4".
+Extract Inlined Constant z5 => "5".
+Extract Inlined Constant z6 => "6".
+Extract Inlined Constant z7 => "7".
+Extract Inlined Constant z8 => "8".
+Extract Inlined Constant z9 => "9".
+Extract Inlined Constant z10 => "10".
+Extract Inlined Constant z11 => "11".
+Extract Inlined Constant z12 => "12".
+
 Extract Inlined Constant projP1 => "".
 
 Require Import Kleene.
@@ -260,7 +274,7 @@ Extraction Implicit dec_x_lt_2 [ types casofReal ].
 
 Extraction Implicit Zpow [ types casofReal ].
 
-(* Extraction "Magnitude" magnitude.magnitude. *)
+Extraction "Magnitude" magnitude.magnitude.
 
 Require Import RealRing.
 

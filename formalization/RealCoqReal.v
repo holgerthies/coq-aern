@@ -1111,6 +1111,19 @@ Ltac relate :=
   match goal with
   | H : (relate real_0 ?x) |- _ => (apply Holber0 in H; try induction (eq_symm H); clear H; relate)
   | H : (relate real_1 ?x) |- _ => (apply Holber1 in H; try induction (eq_symm H); clear H; relate)
+  | H : (relate (IZreal z0) ?x) |- _ => (unfold z0 in H; relate)
+  | H : (relate (IZreal z1) ?x) |- _ => (unfold z1 in H; relate)
+  | H : (relate (IZreal z2) ?x) |- _ => (unfold z2 in H; relate)
+  | H : (relate (IZreal z3) ?x) |- _ => (unfold z3 in H; relate)
+  | H : (relate (IZreal z4) ?x) |- _ => (unfold z4 in H; relate)
+  | H : (relate (IZreal z5) ?x) |- _ => (unfold z5 in H; relate)
+  | H : (relate (IZreal z6) ?x) |- _ => (unfold z6 in H; relate)
+  | H : (relate (IZreal z7) ?x) |- _ => (unfold z7 in H; relate)
+  | H : (relate (IZreal z8) ?x) |- _ => (unfold z8 in H; relate)
+  | H : (relate (IZreal z9) ?x) |- _ => (unfold z9 in H; relate)
+  | H : (relate (IZreal z10) ?x) |- _ => (unfold z10 in H; relate)
+  | H : (relate (IZreal z11) ?x) |- _ => (unfold z11 in H; relate)
+  | H : (relate (IZreal z12) ?x) |- _ => (unfold z12 in H; relate)
   | H : (relate (?x + ?y) (?z)) |- _ =>
     (
       let a := fresh "x" in
