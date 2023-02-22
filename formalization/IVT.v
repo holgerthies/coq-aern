@@ -1,6 +1,6 @@
 Require Import Real.
 Require Import Minmax.
-
+Require Import RealRing.
 Local Open Scope Real_scope.
 
 Section IVT.
@@ -25,7 +25,6 @@ Section IVT.
     end.
 
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
-
 
   Lemma sandwich : forall a b, (forall ε, ε > real_0 -> a-ε < b < a+ε) -> b = a.
   Proof.

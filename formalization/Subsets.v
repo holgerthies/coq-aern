@@ -1,7 +1,21 @@
 (* this file proves various properties of subsets of real numbers *)
 Require Import Lia.
-Require Import Real Euclidean List Minmax.
-Section Subsets.
+Require Import Real Euclidean List Minmax ClassicalSubsets.
+
+Section GeneralSubsets.
+Context (X : Type).
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+
+Definition open (A : (csubset X)) := forall x, {k : ^K | (k = lazy_bool_true) <-> A x}. 
+
+Definition overt (A : (csubset X)) := forall B, open B -> {k : ^K | (k = lazy_bool_true) <-> (@intersects X A B)}. 
+
+Definition compact (A : (csubset X)) := forall B, open B -> {k : ^K | (k = lazy_bool_true) <-> (@is_subset X A B)}. 
+End GeneralSubsets.
+
+Section RealSubsets.
 
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
@@ -16,23 +30,122 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   
   Context (d : nat).
 
-  Definition euclidean_subset :=  (^euclidean d) -> Prop.
+ (* TODO: Move to appropriate place *)
+  Axiom eventually_true :forall (c : forall (n :nat), ^K), {k | k = lazy_bool_true <-> exists n, (c n) = lazy_bool_true}.
+
+  Definition euclidean_subset :=  csubset (^euclidean d).
+
+  Definition ball := ((^euclidean d) * ^Real)%type.
+
+  Definition ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) < (snd b)).  
+
+  Definition euclidean_open (M : euclidean_subset) := {c : nat -> ball | (forall n, is_subset (^euclidean d) (ball_to_subset (c n)) M) /\ forall x, M x -> exists n, (ball_to_subset (c n)) x}.
+
+  Lemma contained_in_ball_semidec b x : {k : K | k= lazy_bool_true <-> (ball_to_subset b) x}.
+  Proof.
+    unfold ball_to_subset.
+    destruct (real_lt_semidec (euclidean_max_dist x (fst b)) (snd b)) as [k P].
+    exists k.
+    apply P.
+  Defined.
+
+  Lemma euclidean_open_is_open M : euclidean_open M -> open (^euclidean d) M.
+  Proof.
+    unfold open.
+    intros OM x.
+    destruct OM as [c P].
+    pose ((fun n=> projP1 _ _ (contained_in_ball_semidec (c n) x)) : nat -> K).
+    assert (forall n, (k n) = lazy_bool_true <-> (ball_to_subset (c n)) x).
+    {
+      intros.
+      unfold k.
+      destruct (contained_in_ball_semidec  (c n)).
+      auto.
+    }
+    assert (M x <-> exists n, ball_to_subset (c n) x).
+    {
+      split.
+      apply P.
+      intros.
+      destruct H0.
+      destruct P.
+      apply (H1 x0);auto.
+    }
+    destruct (eventually_true k) as [k' [H1 H2]].
+    exists k'.
+    rewrite H0.
+    split; intros.
+    destruct (H1 H3) as [n nprp].
+    exists n.
+    apply H;auto.
+    destruct H3 as [n nprp].
+    apply H2.
+    exists n.
+    apply H.
+    exact nprp.
+  Defined.
+
+  Lemma open_is_euclidean_open M : open (^euclidean d) M -> euclidean_open M. 
+  Proof.
+    
+  (* is this still needed? *)
+  Lemma open_open A x : is_open A -> (CRelationClasses.iffT (A x) (^M {r | r > real_0 /\ is_subset (ball_to_subset (x, r)) A})).
+  Proof.
+    intros.
+    destruct X as [c [P1 P2]].
+    split; intros.
+    - assert (exists n, (projP1 _ _ (contained_in_ball_semidec (c n) x)) = lazy_bool_true) as C.
+      destruct (P2 _ H).
+      exists x0.
+      destruct (contained_in_ball_semidec (c x0) x);simpl.
+      apply i;auto.
+    pose proof (multivalued_countable_choice _ C).
+    revert X.
+    apply M_lift.
+    intros [n nprp].
+    destruct (contained_in_ball_semidec (c n) x).
+    simpl in nprp.
+    exists ((snd (c n) - (euclidean_max_dist x (fst (c n)))) / real_2_neq_0).
+    split;destruct i as [I _].
+    apply real_half_gt_zero.
+    apply real_gt_minus_gt_zero.
+    apply (I nprp).
+    intros p.
+    unfold ball_to_subset;simpl; intros Hp.
+    apply (P1 n).
+    apply (real_le_lt_lt _ (euclidean_max_dist p x + euclidean_max_dist x (fst (c n)))).
+    apply euclidean_max_dist_tri.
+    apply (real_lt_add_r (- euclidean_max_dist x (fst (c n)))).
+    ring_simplify.
+    apply (real_le_lt_lt _ _ _ Hp).
+    unfold real_minus.
+    rewrite real_plus_comm.
+    apply real_gt_half.
+    rewrite real_plus_comm.
+    apply real_gt_minus_gt_zero.
+    apply I;auto.
+  - apply M_hprop_elim;[intros p1 p2;apply irrl | ].
+    revert X.
+    apply M_lift.
+    intros [r [rprp1 rprp2]].
+    apply rprp2.
+    unfold ball_to_subset;simpl.
+    apply real_lt_le.
+    apply (real_le_lt_lt _ real_0).
+    apply real_eq_le.
+    apply euclidean_max_dist_id;auto.
+    exact rprp1.
+  Defined.
 
   Definition union (A B : euclidean_subset) : euclidean_subset := fun x => A x \/ B x.
   Definition intersection (A B : euclidean_subset) : euclidean_subset:= fun x => A x /\ B x.
-  Definition intersects (A B : euclidean_subset) := exists x, intersection A B x.
 
   Definition translation (A : euclidean_subset) (a : euclidean d ): euclidean_subset := fun x => A (euclidean_minus x a).
   Definition scaling (l : Real )(A : euclidean_subset) : euclidean_subset := fun x => exists y, x = (euclidean_scalar_mult l y) /\ A y.
 
-  Definition is_subset (A B : euclidean_subset) := forall x, A x -> B x.
 
   Definition empty_set : euclidean_subset := fun x => False.
 
-  Definition ball := ((^euclidean d) * ^Real)%type.
-
-
-  Definition ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) <= (snd b)).  
 
   Definition open_ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) < (snd b)).  
   Definition rad (L : list ball) := (fold_right (fun b1 r => (real_max (snd b1) r)) real_0 L).
@@ -560,102 +673,12 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply euclidean_scalar_mult_unit.
   Defined.
 
-  Definition is_open (M : euclidean_subset) := forall x, {k : K | k = lazy_bool_true <-> M x}.
-
-  Definition is_open' (M : euclidean_subset) := {c : nat -> ball | (forall n, is_subset (open_ball_to_subset (c n)) M) /\ forall x, M x -> exists n, (open_ball_to_subset (c n)) x}.
-
-  Lemma contained_in_ball_semidec b x : {k : K | k= lazy_bool_true <-> (open_ball_to_subset b) x}.
-  Proof.
-    unfold open_ball_to_subset.
-    destruct (real_lt_semidec (euclidean_max_dist x (fst b)) (snd b)) as [k P].
-    exists k.
-    apply P.
-  Defined.
-
-  Axiom eventually_true :forall (c : forall (n :nat), K), {k | k = lazy_bool_true <-> exists n, (c n) = lazy_bool_true}.
+  Definition is_open' (M : euclidean_subset) := forall x, {k : K | k = lazy_bool_true <-> M x}.
 
 
-  Lemma contained_in_open_semidec M x : is_open' M -> {k : K | k = lazy_bool_true <-> M x}.
-  Proof.
-    intros OM.
-    destruct OM as [c P].
-    pose ((fun n=> projP1 _ _ (contained_in_ball_semidec (c n) x)) : nat -> K).
-    assert (forall n, (k n) = lazy_bool_true <-> (open_ball_to_subset (c n)) x).
-    {
-      intros.
-      unfold k.
-      destruct (contained_in_ball_semidec  (c n)).
-      auto.
-    }
-    assert (M x <-> exists n, open_ball_to_subset (c n) x).
-    {
-      split.
-      apply P.
-      intros.
-      destruct H0.
-      destruct P.
-      apply (H1 x0);auto.
-    }
-    destruct (eventually_true k) as [k' [H1 H2]].
-    exists k'.
-    rewrite H0.
-    split; intros.
-    destruct (H1 H3) as [n nprp].
-    exists n.
-    apply H;auto.
-    destruct H3 as [n nprp].
-    apply H2.
-    exists n.
-    apply H.
-    exact nprp.
-  Defined.
-  Lemma open_open A x : is_open' A -> (CRelationClasses.iffT (A x) (^M {r | r > real_0 /\ is_subset (ball_to_subset (x, r)) A})).
-  Proof.
-    intros.
-    destruct X as [c [P1 P2]].
-    split; intros.
-    - assert (exists n, (projP1 _ _ (contained_in_ball_semidec (c n) x)) = lazy_bool_true) as C.
-      destruct (P2 _ H).
-      exists x0.
-      destruct (contained_in_ball_semidec (c x0) x);simpl.
-      apply i;auto.
-    pose proof (multivalued_countable_choice _ C).
-    revert X.
-    apply M_lift.
-    intros [n nprp].
-    destruct (contained_in_ball_semidec (c n) x).
-    simpl in nprp.
-    exists ((snd (c n) - (euclidean_max_dist x (fst (c n)))) / real_2_neq_0).
-    split;destruct i as [I _].
-    apply real_half_gt_zero.
-    apply real_gt_minus_gt_zero.
-    apply (I nprp).
-    intros p.
-    unfold ball_to_subset;simpl; intros Hp.
-    apply (P1 n).
-    apply (real_le_lt_lt _ (euclidean_max_dist p x + euclidean_max_dist x (fst (c n)))).
-    apply euclidean_max_dist_tri.
-    apply (real_lt_add_r (- euclidean_max_dist x (fst (c n)))).
-    ring_simplify.
-    apply (real_le_lt_lt _ _ _ Hp).
-    unfold real_minus.
-    rewrite real_plus_comm.
-    apply real_gt_half.
-    rewrite real_plus_comm.
-    apply real_gt_minus_gt_zero.
-    apply I;auto.
-  - apply M_hprop_elim;[intros p1 p2;apply irrl | ].
-    revert X.
-    apply M_lift.
-    intros [r [rprp1 rprp2]].
-    apply rprp2.
-    unfold ball_to_subset;simpl.
-    apply real_lt_le.
-    apply (real_le_lt_lt _ real_0).
-    apply real_eq_le.
-    apply euclidean_max_dist_id;auto.
-    exact rprp1.
-  Defined.
+
+  Definition open_ball_list_to_subset (L : list ball) : euclidean_subset := fun x => exists A, In A L /\ (open_ball_to_subset A) x.
+
 
   Fixpoint real_to_euclidean (x : ^Real ) (m : nat) (n : nat) :=
     match m with
@@ -664,7 +687,20 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
                 Euclidean.cons x (euclidean_zero m')
                else Euclidean.cons real_0 (real_to_euclidean x m' n)
     end.
-  (* make copy in a certain direction *)
+
+  Definition double_open_ball (b : ball) n := (((euclidean_plus (fst b) (real_to_euclidean ((-snd b) / real_2_neq_0) d n)), snd b) :: b :: ((euclidean_plus (fst b) (real_to_euclidean ((-snd b) / real_2_neq_0) d n)), snd b) :: nil).
+  
+  Fixpoint euclidean_nth {m} n (x : euclidean (S m)) : Real :=
+    match m with
+      0 => (euclidean_head x)
+    | (S m') =>
+       match n with
+         0 => (euclidean_head x)
+        | (S n') => euclidean_nth n' (euclidean_tail x)
+       end
+     end.
+  Lemma double_open_ball_spec b : forall x, open_ball_list_to_subset (double_open_ball b) x <-> 
+  (* make copy of each element shifted in a certain direction *)
   Fixpoint make_copy (L : (list ball)) (n : nat) :=
     match L with
       nil => nil
@@ -674,12 +710,18 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Fixpoint make_copies (L : (list ball)) (n : nat) :=
     match n with
       0 => L
-    | (S n') => make_copies (make_copy L n) n' 
+    | (S n') => make_copy (make_copies L n') n
    end.
 
   (* split ball into 2^d smaller balls *)
   Definition split_ball (b : ball) := scale_list (make_copies (b :: nil) d) (prec 1).
 
+  (* Lemma split_ball_contains x b : ball_to_subset b x -> exists b', In b' (split_ball b) /\ ball_to_subset b' x. *)
+  (* Proof. *)
+  (*   intros. *)
+  (* Lemma ball_refinement x b : ball_to_subset b x -> {b' | ball_to_subset b' x /\ (snd b') <= (snd b) / real_2_neq_0  }. *)
+  (* Proof. *)
+  (*   intros. *)
     
   Definition is_compact (M : euclidean_subset) := forall A, is_open A -> {k : K | k = lazy_bool_true <-> is_subset M A}.
 
@@ -687,22 +729,36 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Lemma is_open_union (M1 M2 : euclidean_subset) : is_open M1 -> is_open M2 -> is_open (union M1 M2).
   Proof.
-    intros H1 H2 x.
-    destruct (H1 x) as [k1 P1].
-    destruct (H2 x) as [k2 P2].
-    exists (lazy_bool_or k1 k2).
+    intros H1 H2.
+    destruct H1 as [c1 [P1 P2]].
+    destruct H2 as [c2 [Q1 Q2]].
+    exists (fun n => if Nat.even n then (c1 (n/2)%nat) else (c2 ((n-1)/2)%nat)). 
     split; intros.
-    rewrite lazy_bool_or_up in H.
-    destruct H; [left;apply P1 | right; apply P2];auto.
-    rewrite lazy_bool_or_up.
-    destruct H; [left;apply P1 | right; apply P2];auto.
+    - intros x.
+      destruct (Nat.even n); [left;apply (P1 (n /2) %nat x) | right; apply (Q1 ((n-1) /2)%nat x)];auto.
+    - destruct H.
+
+      destruct (P2 x H) as [n P2'].
+      exists (2*n)%nat.
+      rewrite Nat.even_mul.
+      replace ((2*n) /2)%nat with n by (rewrite Nat.mul_comm, Nat.div_mul;auto).
+      apply P2'.
+
+      destruct (Q2 x H) as [n Q2'].
+      exists (2*n+1)%nat.
+      rewrite Nat.add_comm, Nat.even_add_mul_2.
+      replace ((1 + 2*n - 1) /2)%nat with n by (rewrite Nat.add_comm, Nat.add_sub, Nat.mul_comm, Nat.div_mul;auto).
+      apply Q2'.
   Defined.
 
+
+    
   Lemma is_open_intersection (M1 M2 : euclidean_subset) : is_open M1 -> is_open M2 -> is_open (intersection M1 M2).
   Proof.
-    intros H1 H2 x.
-    destruct (H1 x) as [k1 P1].
-    destruct (H2 x) as [k2 P2].
+    intros H1 H2.
+    destruct H1 as [c1 [P1 P2]].
+    destruct H2 as [c2 [Q1 Q2]].
+    unfold is_open, intersection.
     exists (lazy_bool_and k1 k2).
     split; intros.
     rewrite lazy_bool_and_up in H.
@@ -735,13 +791,84 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     split;[apply P1 | apply P2];apply H.
   Defined.
 
+  Lemma is_overt_union M1 M2 : is_overt M1 -> is_overt M2 -> is_overt (union M1 M2).
+  Proof.
+  unfold is_overt.
 End Subsets.
+Section Overt.
 
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+#[local] Notation "^Real" := (@Real types) (at level 0).
+
+  Lemma in_ball_reduct d c0 c r x0 (x : euclidean d) :  ball_to_subset (S d) ((Euclidean.cons c0 c),r) (Euclidean.cons x0 x) <-> ball_to_subset d (c, r) x /\ dist x0 c0 <= r. 
+  Proof.
+    split; intros.
+    unfold ball_to_subset in H.   
+    simpl in H.
+    rewrite euclidean_max_dist_cons in H.
+    split.
+    unfold ball_to_subset;simpl.
+    apply (real_max_le_snd_le (dist x0 c0));auto.
+    apply (real_max_le_fst_le _ (euclidean_max_dist x c));auto.
+    unfold ball_to_subset.
+    simpl.
+    rewrite euclidean_max_dist_cons.
+    apply real_max_le_le_le;apply H.
+  Defined.
+  Search (list _ -> list _ -> _).
+  Lemma make_copy_monotone d L L' n: incl L L' -> incl (make_copy d L n) (make_copy d L' n).
+  Proof.
+   intros.
+   induction L'.
+   apply incl_l_nil in H.
+   rewrite H.
+   apply incl_nil_l.
+   simpl.
+  Defined.
+  Lemma make_copies_monotone d a L b n: In b (make_copies d L n) -> In b (make_copies d (a :: L) n).
+  Proof.
+    destruct n.
+    simpl.
+    intros.
+    right;auto.
+    simpl.
+    intros.
+    induction L.
+    apply make_copy_monotone.
+    unfold make_copies.
+    simpl.
+    unfold make_copies.
+    simpl.
+  Lemma make_copies_contains d L (b : ball d)  : In b L -> forall x, euclidean_max_dist (fst b) x <= real_2 * (snd b) -> exists b', In b' (make_copies d L d) /\ ball_to_subset d b' x. 
+  Proof.
+    induction d.
+    intros.
+    exists b.
+    simpl.
+    split;auto.
+    revert H0.
+    rewrite (dim_zero_destruct x).
+    rewrite (dim_zero_destruct (fst b)).
+    unfold ball_to_subset, euclidean_max_dist.
+    simpl.
+    admit.
+    intros.
+    induction L.
+    contradict H.
+    destruct (in_inv H).
+    admit.
+    destruct (IHL H1).
+    exists x0.
+    destruct ()
+    apply real_le_pos_mult
+  
+End Overt.
 Section SubsetsR2.
 
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 #[local] Notation "^Real" := (@Real types) (at level 0).
 
+  
   Definition make_ball2 (x y r : ^Real) : ball n2 := ((make_euclidean2 x y), r).
   
   Lemma split_ball_to_subset2 (b_x b_y r x y : ^Real) : 
