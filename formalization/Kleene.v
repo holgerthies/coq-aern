@@ -20,6 +20,7 @@ Class LazyBool_K (types : RealTypes) :=
 
     lazy_bool_or_up : forall a b, (lazy_bool_or a b = lazy_bool_true) = (a = lazy_bool_true \/ b = lazy_bool_true);
     lazy_bool_or_down : forall a b, (lazy_bool_or a b = lazy_bool_false) = (a = lazy_bool_false /\ b = lazy_bool_false);
+    lazy_bool_distinct : lazy_bool_false <> lazy_bool_true
   }.
 
 Section K_Defs.

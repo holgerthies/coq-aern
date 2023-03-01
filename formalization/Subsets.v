@@ -1,6 +1,6 @@
 (* this file proves various properties of subsets of real numbers *)
 Require Import Lia.
-Require Import Real Euclidean List Minmax ClassicalSubsets.
+Require Import Real Euclidean List Minmax ClassicalSubsets Sierpinski testsearch.
 
 Section GeneralSubsets.
 Context (X : Type).
@@ -8,12 +8,13 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 #[local] Notation "^K" := (@K types) (at level 0).
 #[local] Notation "^M" := (@M types) (at level 0).
 
-Definition open (A : (csubset X)) := forall x, {k : ^K | (k = lazy_bool_true) <-> A x}. 
+Definition open (A : (csubset X)) := forall x, {s : sierp | (sierp_up s)  <-> A x}. 
 
 Definition overt (A : (csubset X)) := forall B, open B -> {k : ^K | (k = lazy_bool_true) <-> (@intersects X A B)}. 
 
 Definition compact (A : (csubset X)) := forall B, open B -> {k : ^K | (k = lazy_bool_true) <-> (@is_subset X A B)}. 
 End GeneralSubsets.
+
 
 Section RealSubsets.
 
@@ -26,26 +27,30 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
 #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
 
+
   Add Ring realRing : (realTheory ).
   
   Context (d : nat).
 
  (* TODO: Move to appropriate place *)
-  Axiom eventually_true :forall (c : forall (n :nat), ^K), {k | k = lazy_bool_true <-> exists n, (c n) = lazy_bool_true}.
+  Axiom eventually_true :forall (c : forall (n :nat), sierp), {k | sierp_up k <-> exists n, sierp_up(c n)}.
+  (* continuity principle for functions to Sierpisnki*)
 
   Definition euclidean_subset :=  csubset (^euclidean d).
 
   Definition ball := ((^euclidean d) * ^Real)%type.
 
+
   Definition ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) < (snd b)).  
 
+  Lemma dyadic_ball_cover : {c : forall (z :Z) (p : nat), ball | forall x, exists z p, ball_to_subset (c z p) x}.
   Definition euclidean_open (M : euclidean_subset) := {c : nat -> ball | (forall n, is_subset (^euclidean d) (ball_to_subset (c n)) M) /\ forall x, M x -> exists n, (ball_to_subset (c n)) x}.
 
-  Lemma contained_in_ball_semidec b x : {k : K | k= lazy_bool_true <-> (ball_to_subset b) x}.
+  Lemma contained_in_ball_semidec b x : {s : sierp | sierp_up s <-> (ball_to_subset b) x}.
   Proof.
     unfold ball_to_subset.
     destruct (real_lt_semidec (euclidean_max_dist x (fst b)) (snd b)) as [k P].
-    exists k.
+    exists (sierp_from_kleenean k).
     apply P.
   Defined.
 

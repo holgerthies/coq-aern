@@ -7,6 +7,14 @@ Section S_Defs.
   #[local] Notation "^M" := (@M types) (at level 0).
   Definition sierp := {k : ^K | k <> lazy_bool_false}.
 
+  Definition sierp_up (s : sierp) := (proj1_sig s) = lazy_bool_true.
+
+  Definition sierp_from_kleenean {k} (H : k <> lazy_bool_false) : sierp.
+  Proof.
+  exists k.
+  apply H.
+  Defined.
+
   Axiom kleenean_from_nat_sequence : forall (f : nat -> nat), {k : ^K | k = lazy_bool_true <-> exists n, (f n) = 1}. 
 
   Axiom kleenean_to_nat_sequence : forall (k : ^K), ^M {f : nat -> nat | k = lazy_bool_true <-> exists n, (f n) = 1}.
@@ -98,27 +106,8 @@ Section S_Defs.
     apply M_lift.
     intros H.
     destruct H.
-    apply (x m).
-  Defined.
+    apply (x n).
+  Defined. 
 
-  Lemma kleene_seq_to_nat_nat_seq (S : nat -> ^K) : ^M {f : (nat -> nat -> nat) | (exists n, (S n) = lazy_bool_true) <-> exists n m, (f n m) = 1}. 
-  Proof.
-  pose proof (M_lift _  _ (kleene_seq_to_nat_seq_fun S)).
-  Search M.
-  Search M.
-  pose proof (M_countable_lift _ (kleene_seq_to_nat_seq_fun S)).
-  apply M_lift.
-  intros.
-  destruct H.
-  exists x.
-  split.
-  - intros.
-    destruct H as [n P].
-    exists n.
-    specialize (m n).
-
-  Lemma sierp_big_or (S : nat -> sierp) : {s :sierp | proj1_sig s = lazy_bool_true <-> exists n, (proj1_sig (S n)) = lazy_bool_true}.
-  Proof.
   
- Locate multivalued_countable_choice. 
 End S_Defs.

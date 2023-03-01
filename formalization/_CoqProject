@@ -31,10 +31,11 @@ RealHelpers.v
 
 # RealEquivalent.v
 
-magnitude.v
-sqrt.v
+# magnitude.v
+# sqrt.v
 
 ClassicalSubsets.v
+Sierpinski.v
 Subsets.v
 simpletriangle.v
 SierpinskiTriangle.v

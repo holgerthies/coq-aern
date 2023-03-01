@@ -1,6 +1,5 @@
 Require Import ConstructiveEpsilon.
 Require Import Real.
-From mathcomp Require Import all_ssreflect.
 Require Import Psatz.
 Require Import Nat.
 Require Import PeanoNat.
@@ -28,7 +27,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     : forall P Q : nat -> Prop,
       (forall n, {P n} + {Q n}) ->
       (exists n, ~Q n) ->
-      {n | P n /\ (forall k, (k < n)%coq_nat -> Q k)}.
+      {n | P n /\ (forall k, (k < n)%nat -> Q k)}.
   Proof.
     intros P Q H H0.
     pose proof (epsilon_smallest (when_first P Q H)).
@@ -61,7 +60,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     destruct a.
     split. auto.
     intros k kx.
-    have Hk := (H2 k).
+    pose proof (H2 k) as Hk.
     destruct (H k).
     lia.
     auto.    
@@ -73,7 +72,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     : forall P Q : nat -> Prop,
       (forall n, ^M ({P n} + {Q n})) ->
       (exists n, ~Q n) ->
-      ^M {n | P n /\ (forall k, (k < n)%coq_nat -> Q k)}.
+      ^M {n | P n /\ (forall k, (k < n)%nat -> Q k)}.
   Proof.
     intros.
     apply M_countable_lift in X.
@@ -95,9 +94,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Definition epsilon_smallest_choose_M
     : forall P : nat -> Prop,
-      (forall n : nat, ^M ({P n.+1} + {~ P n}) ) ->
+      (forall n : nat, ^M ({P (S n)%nat} + {~ P n}) ) ->
       (exists n : nat, P n) -> 
-      ^M {n : nat | P (n.+1) /\ (forall k, (k < n)%coq_nat -> ~ P k)}.
+      ^M {n : nat | P (S n)%nat /\ (forall k, (k < n)%nat -> ~ P k)}.
   Proof.
     intros P P_decM e.
     apply epsilon_smallest_PQ_M.
@@ -112,8 +111,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Proof.
     intros P Q Q' QQ'.
     apply M_lift.
-    move => [iP|iQ].
-    left. by auto.
+    intros [iP|iQ].
+    left.  auto.
     right. exact (QQ' iQ).
   Qed.
 
