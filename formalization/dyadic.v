@@ -165,9 +165,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 #[local] Notation "^Real" := (@Real types) (at level 0).
 #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
 #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
-Context (d : nat).
-Definition DyadicVector := t Dyadic d. 
-Definition to_euclidean (x : DyadicVector) : (^euclidean d).
+Definition DyadicVector {d : nat}:= t Dyadic d. 
+Definition to_euclidean {d} (x : (@DyadicVector d)) : (^euclidean d).
 Proof.
   induction x.
   apply Euclidean.nil.
@@ -176,4 +175,124 @@ Proof.
   apply IHx.
 Defined.
 
-  Lemma euclidean_approx x p : ^M { y : DyadicVector  | euclidean_max_dist x (to_euclidean y) <= prec p}.
+Lemma euclidean_approx {d} x p : ^M { y : (@DyadicVector d)  | euclidean_max_dist x (to_euclidean y) <= prec p}.
+  induction d.
+  - apply M_unit.
+    exists (nil Dyadic).
+    rewrite (dim_zero_destruct x).
+    rewrite (proj2 (euclidean_max_dist_id _ _) eq_refl). 
+    apply real_lt_le;apply prec_pos.
+  - destruct (dim_succ_destruct x) as [hx [tx H]].
+    specialize (IHd tx).
+    revert IHd.
+    apply M_lift_dom.
+    intros.
+    destruct H0 as [y P].
+    pose proof (real_approx hx p). 
+    revert X.
+    apply M_lift.
+    intros.
+    destruct H0 as [y0 H'].
+    exists (cons _ y0 _ y).
+    rewrite H.
+    simpl.
+    rewrite euclidean_max_dist_cons.
+    apply real_max_le_le_le;auto.
+Defined.
+
+Definition enumerable (X : Type) := {f : nat ->X | forall x, exists n, (f n) = x}.
+
+Lemma enumerable_pos X : {f : positive ->X | forall x, exists n, (f n) = x} -> enumerable X.
+Proof.
+  intros.
+  destruct X0 as [f P].
+  exists (fun n => (f (Pos.of_nat n))).
+  intros.
+  destruct (P x) as [n N].
+  exists (Pos.to_nat n).
+  rewrite Pos2Nat.id;auto.
+Defined.
+
+Fixpoint pos_to_pospair_fst (p : positive) :=
+  match p with
+  | xO (xO p') => xO (pos_to_pospair_fst p') 
+  | xI (xO p') => xO (pos_to_pospair_fst p') 
+  | xO (xI p') => xI (pos_to_pospair_fst p')  
+  | xI (xI p') => xI (pos_to_pospair_fst p')  
+  | _ => xH
+  end.
+    
+Fixpoint pos_to_pospair_snd (p : positive) :=
+  match p with
+  | xO (xO p') => xO (pos_to_pospair_snd p') 
+  | xI (xO p') => xI (pos_to_pospair_snd p') 
+  | xO (xI p') => xO (pos_to_pospair_snd p')  
+  | xI (xI p') => xI (pos_to_pospair_snd p')  
+  | _ => xH
+  end.
+
+Fixpoint pospair_to_pos_fst p :=
+  match p with
+  | (xO p') => (xO (xO (pospair_to_pos_fst p')))
+  | (xI p') => (xO (xI (pospair_to_pos_fst p'))) 
+  | xH => (xO xH)
+ end.
+Fixpoint pospair_to_pos_snd q :=
+  match q with
+  | (xO q') => (xO (xO (pospair_to_pos_snd q')))
+  | (xI q') => (xI (xO (pospair_to_pos_snd q'))) 
+  | xH => (xI xH) 
+ end.
+Fixpoint pospair_to_pos p q :=
+  match p, q with
+  | (xO p'), (xO q') => (xO (xO (pospair_to_pos p' q')))
+  | (xO p'), (xI q') => (xI (xO (pospair_to_pos p' q')))
+  | (xI p'), (xO q') => (xO (xI (pospair_to_pos p' q')))
+  | (xI p'), (xI q') => (xI (xI (pospair_to_pos p' q')))
+  | (xO p'), xH =>  (pospair_to_pos_fst p')
+  | (xI p'), xH => (pospair_to_pos_fst (xI p'))
+  | xH, (xO q') => (xO (xO (pospair_to_pos_snd q')))
+  | xH, (xI q') => (xI (xO (pospair_to_pos_snd q')))
+  | xH, xH => 1%positive
+ end.
+
+
+Lemma pos_to_pospair_fst_inj p : (pos_to_pospair_fst (pospair_to_pos_fst p )) = p.
+Proof.
+  induction p;simpl; try rewrite IHp;auto.
+Defined.
+
+Lemma pos_to_pospair_snd_inj q : (pos_to_pospair_snd (pospair_to_pos_snd q )) = q.
+Proof.
+  induction q;simpl; try rewrite IHq;auto.
+Defined.
+
+Lemma pos_to_pospair_surj pq : exists p, (pos_to_pospair_fst p) = (fst pq) /\ (pos_to_pospair_snd p) = (snd pq).  
+Proof.
+  destruct pq as [p q].
+  exists (pospair_to_pos p q).
+  revert q.
+  induction p;intros;destruct q;simpl;try (destruct (IHp q) as [-> ->]);auto.
+
+  rewrite pos_to_pospair_fst_inj.
+ simpl. 
+  destruct (IHp 1%positive) as [-> ->].
+  simpl.
+  destruct q.
+  destruct (IHp q).
+  rewrite H.
+  rewrite H0.
+  simpl.
+  rewrite H1,H2.
+  auto.
+  simpl.
+Lemma enumerable_pair X Y : enumerable X -> enumerable Y -> enumerable (X * Y).
+Proof.
+  intros.
+  apply enumerable_pos.
+  destruct X0 as [fx Px].
+  destruct X1 as [fy Py].
+  exists (fun n => ((fx n), (fy n))).
+  intros.
+  destruct x.
+ 
