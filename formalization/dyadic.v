@@ -1,5 +1,5 @@
 (* this file proves various properties of subsets of real numbers *)
-Require Import Lia.
+Require Import Lia CRelationClasses.
 Require Import Real Euclidean List Minmax ClassicalSubsets Sierpinski testsearch.
 
 Require Import Vector.
@@ -202,8 +202,11 @@ Defined.
 
 Definition enumerable (X : Type) := {f : nat ->X | forall x, exists n, (f n) = x}.
 
-Lemma enumerable_pos X : {f : positive ->X | forall x, exists n, (f n) = x} -> enumerable X.
+Search (Type -> Type -> Type) "iff".
+Lemma enumerable_pos X : iffT {f : positive ->X | forall x, exists n, (f n) = x} (enumerable X).
 Proof.
+  split.
+
   intros.
   destruct X0 as [f P].
   exists (fun n => (f (Pos.of_nat n))).
@@ -211,24 +214,36 @@ Proof.
   destruct (P x) as [n N].
   exists (Pos.to_nat n).
   rewrite Pos2Nat.id;auto.
+
+  intros.
+  destruct X0 as [f P].
+  exists (fun p => (f (Init.Nat.pred (Pos.to_nat p)))).
+  intros.
+  destruct (P x) as [n N].
+  exists (Pos.of_succ_nat n).
+  rewrite SuccNat2Pos.pred_id;auto.
 Defined.
 
 Fixpoint pos_to_pospair_fst (p : positive) :=
   match p with
-  | xO (xO p') => xO (pos_to_pospair_fst p') 
-  | xI (xO p') => xO (pos_to_pospair_fst p') 
-  | xO (xI p') => xI (pos_to_pospair_fst p')  
-  | xI (xI p') => xI (pos_to_pospair_fst p')  
-  | _ => xH
+  | xO (xO p') => (2 * (pos_to_pospair_fst p'))%nat 
+  | xI (xO p') => (2 * (pos_to_pospair_fst p'))%nat
+  | xO (xI p') => (2 * (pos_to_pospair_fst p')+1)%nat  
+  | xI (xI p') => (2 * (pos_to_pospair_fst p')+1)%nat  
+  | (xO xH) => 1%nat
+  | (xI xH) => 1%nat
+  | _ => 0%nat
   end.
-    
+
 Fixpoint pos_to_pospair_snd (p : positive) :=
   match p with
-  | xO (xO p') => xO (pos_to_pospair_snd p') 
-  | xI (xO p') => xI (pos_to_pospair_snd p') 
-  | xO (xI p') => xO (pos_to_pospair_snd p')  
-  | xI (xI p') => xI (pos_to_pospair_snd p')  
-  | _ => xH
+  | xO (xO p') => (2 * (pos_to_pospair_snd p'))%nat
+  | xI (xO p') => (2 * (pos_to_pospair_snd p' )+1)%nat 
+  | xO (xI p') => (2 * (pos_to_pospair_snd p'))%nat  
+  | xI (xI p') => (2 * (pos_to_pospair_snd p')+1)%nat  
+  | xO xH => 0%nat
+  | xI xH => 1%nat
+  | _ =>1%nat 
   end.
 
 Fixpoint pospair_to_pos_fst p :=
@@ -237,11 +252,12 @@ Fixpoint pospair_to_pos_fst p :=
   | (xI p') => (xO (xI (pospair_to_pos_fst p'))) 
   | xH => (xO xH)
  end.
+
 Fixpoint pospair_to_pos_snd q :=
   match q with
   | (xO q') => (xO (xO (pospair_to_pos_snd q')))
   | (xI q') => (xI (xO (pospair_to_pos_snd q'))) 
-  | xH => (xI xH) 
+  | xH => xH
  end.
 Fixpoint pospair_to_pos p q :=
   match p, q with
@@ -249,50 +265,113 @@ Fixpoint pospair_to_pos p q :=
   | (xO p'), (xI q') => (xI (xO (pospair_to_pos p' q')))
   | (xI p'), (xO q') => (xO (xI (pospair_to_pos p' q')))
   | (xI p'), (xI q') => (xI (xI (pospair_to_pos p' q')))
-  | (xO p'), xH =>  (pospair_to_pos_fst p')
-  | (xI p'), xH => (pospair_to_pos_fst (xI p'))
-  | xH, (xO q') => (xO (xO (pospair_to_pos_snd q')))
-  | xH, (xI q') => (xI (xO (pospair_to_pos_snd q')))
-  | xH, xH => 1%positive
+  | (xO p'), xH =>  (xI (xO (pospair_to_pos_fst p')))
+  | (xI p'), xH => (xI (xI (pospair_to_pos_fst p')))
+  | xH, (xO q') => (xO (xI (pospair_to_pos_snd q')))
+  | xH, (xI q') => (xI (xI (pospair_to_pos_snd q')))
+  | xH, xH => (xI xH)
  end.
 
-
-Lemma pos_to_pospair_fst_inj p : (pos_to_pospair_fst (pospair_to_pos_fst p )) = p.
+Lemma pos_to_pospair_fst_inj p : (pos_to_pospair_fst (pospair_to_pos_fst p )) = Pos.to_nat p.
 Proof.
-  induction p;simpl; try rewrite IHp;auto.
+  induction p;simpl; try lia.
 Defined.
 
-Lemma pos_to_pospair_snd_inj q : (pos_to_pospair_snd (pospair_to_pos_snd q )) = q.
+Lemma pos_to_pospair_snd_inj q : (pos_to_pospair_snd (pospair_to_pos_snd q )) = Pos.to_nat q.
 Proof.
-  induction q;simpl; try rewrite IHq;auto.
+  induction q;simpl; try lia.
 Defined.
 
-Lemma pos_to_pospair_surj pq : exists p, (pos_to_pospair_fst p) = (fst pq) /\ (pos_to_pospair_snd p) = (snd pq).  
+Lemma pos_to_pospair_fst_snd p : pos_to_pospair_snd (pospair_to_pos_fst p)  = 0%nat.
 Proof.
-  destruct pq as [p q].
-  exists (pospair_to_pos p q).
-  revert q.
-  induction p;intros;destruct q;simpl;try (destruct (IHp q) as [-> ->]);auto.
+  induction p;simpl;try lia.
+Defined.
 
-  rewrite pos_to_pospair_fst_inj.
- simpl. 
-  destruct (IHp 1%positive) as [-> ->].
-  simpl.
-  destruct q.
-  destruct (IHp q).
-  rewrite H.
-  rewrite H0.
-  simpl.
-  rewrite H1,H2.
-  auto.
-  simpl.
+Lemma pos_to_pospair_snd_fst p : pos_to_pospair_fst (pospair_to_pos_snd p)  = 0%nat.
+Proof.
+  induction p;simpl;try lia.
+Defined.
+
+Lemma pos_to_pospair_inj_fst p q: (pos_to_pospair_fst (pospair_to_pos p q)) = (Pos.to_nat p). 
+Proof.
+  revert q;induction p;destruct q;simpl;try rewrite IHp;try rewrite pos_to_pospair_fst_inj; try lia.
+  rewrite pos_to_pospair_snd_fst; lia.
+  rewrite pos_to_pospair_snd_fst; lia.
+Defined.
+Lemma pos_to_pospair_inj_snd p q: (pos_to_pospair_snd (pospair_to_pos p q)) = (Pos.to_nat q). 
+Proof.
+  revert p;induction q;destruct p;simpl;try rewrite IHq;try rewrite pos_to_pospair_snd_inj; try lia.
+  rewrite pos_to_pospair_fst_snd; lia.
+  rewrite pos_to_pospair_fst_snd; lia.
+Defined.
+
 Lemma enumerable_pair X Y : enumerable X -> enumerable Y -> enumerable (X * Y).
 Proof.
   intros.
-  apply enumerable_pos.
+  apply enumerable_pos in X0.
+  apply enumerable_pos in X1.
+  apply (fst (enumerable_pos _)).
   destruct X0 as [fx Px].
   destruct X1 as [fy Py].
-  exists (fun n => ((fx n), (fy n))).
+  exists (fun p => ((fx (((Pos.of_nat (pos_to_pospair_fst p)))), (fy (Pos.of_nat (pos_to_pospair_snd p)))))).
   intros.
   destruct x.
- 
+  destruct (Px x) as [n1 N1].
+  destruct (Py y) as [n2 N2].
+  exists (pospair_to_pos n1 n2).
+  rewrite pos_to_pospair_inj_fst.
+  rewrite pos_to_pospair_inj_snd.
+  rewrite !Pos2Nat.id.
+  rewrite N1, N2;auto.
+Defined.
+
+
+Lemma enumerable_vector X n : enumerable X -> enumerable (t X n).
+Proof.
+  intros.
+  induction n.
+  exists (fun n => (nil X)).
+  intros.
+  exists 0.
+  apply VectorDef.case0;auto.
+  destruct (enumerable_pair _ _ X0 IHn) as [f F].
+  exists (fun n => cons _ (fst (f n)) _ (snd (f n))).
+  intros x.
+  destruct (F ((hd x), (tl x))).
+  exists x0.
+  rewrite H.
+  simpl.
+  rewrite (eta x);auto.
+Defined.
+Lemma enumerable_nat : enumerable nat.
+Proof.
+  exists (fun n => n).
+  intros; exists x;auto.
+Defined.
+
+Lemma enumerable_Z : enumerable Z.
+Proof.
+  apply (enumerable_pos Z).
+  exists (fun p => match p with
+                     | (xO p') => Zpos p'
+                     | (xI p') => Zneg p'
+                   | xH => Z0
+                  end).
+  intros.
+  destruct x as [ | p | p].
+  exists 1%positive;auto.
+  exists (xO p); auto.
+  exists (xI p); auto.
+Defined.
+
+Lemma enumerable_dyadic : enumerable Dyadic.
+Proof.
+  apply enumerable_pair.
+  apply enumerable_Z.
+  apply enumerable_nat.
+Defined.
+Lemma enumerable_dyadic_vector d: enumerable (@DyadicVector d).
+Proof.
+  apply enumerable_vector.
+  apply enumerable_dyadic.
+Defined.
