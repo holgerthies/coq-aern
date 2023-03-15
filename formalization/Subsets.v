@@ -1,6 +1,6 @@
 (* this file proves various properties of subsets of real numbers *)
 Require Import Lia.
-Require Import Real Euclidean List Minmax ClassicalSubsets Sierpinski testsearch.
+Require Import Real Euclidean List Minmax ClassicalSubsets Sierpinski testsearch Dyadic.
 
 Section GeneralSubsets.
 Context (X : Type).
@@ -13,6 +13,23 @@ Definition open (A : (csubset X)) := forall x, {s : sierp | (sierp_up s)  <-> A 
 Definition overt (A : (csubset X)) := forall B, open B -> {k : ^K | (k = lazy_bool_true) <-> (@intersects X A B)}. 
 
 Definition compact (A : (csubset X)) := forall B, open B -> {k : ^K | (k = lazy_bool_true) <-> (@is_subset X A B)}. 
+
+Definition open_cf {A} (P : open A) : X -> sierp.
+Proof.
+  intros x.
+  destruct (P x).
+  apply x0.
+Defined.
+
+Lemma open_cf_exists {A} : open A -> {f : X -> sierp | forall x, (sierp_up (f x)) <-> A x}.
+Proof.
+  intros P.
+  exists (open_cf P).
+  intros x.
+  unfold open_cf.
+  destruct P.
+  apply i.
+Defined.
 End GeneralSubsets.
 
 
@@ -34,8 +51,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
  (* TODO: Move to appropriate place *)
   Axiom eventually_true :forall (c : forall (n :nat), sierp), {k | sierp_up k <-> exists n, sierp_up(c n)}.
-  (* continuity principle for functions to Sierpisnki*)
-
+  (* continuity principle for functions to Sierpinski*)
+  Axiom continuity_sierp : forall (f : euclidean d -> sierp) x, sierp_up (f x) -> ^M {n | forall y, euclidean_max_dist x y < prec n -> sierp_up (f y) }.
+  
   Definition euclidean_subset :=  csubset (^euclidean d).
 
   Definition ball := ((^euclidean d) * ^Real)%type.
@@ -43,14 +61,13 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Definition ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) < (snd b)).  
 
-  Lemma dyadic_ball_cover : {c : forall (z :Z) (p : nat), ball | forall x, exists z p, ball_to_subset (c z p) x}.
   Definition euclidean_open (M : euclidean_subset) := {c : nat -> ball | (forall n, is_subset (^euclidean d) (ball_to_subset (c n)) M) /\ forall x, M x -> exists n, (ball_to_subset (c n)) x}.
 
   Lemma contained_in_ball_semidec b x : {s : sierp | sierp_up s <-> (ball_to_subset b) x}.
   Proof.
     unfold ball_to_subset.
-    destruct (real_lt_semidec (euclidean_max_dist x (fst b)) (snd b)) as [k P].
-    exists (sierp_from_kleenean k).
+    destruct (sierp_from_semidec (real_lt_semidec (euclidean_max_dist x (fst b)) (snd b))) as [s P].
+    exists s.
     apply P.
   Defined.
 
@@ -59,11 +76,11 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     unfold open.
     intros OM x.
     destruct OM as [c P].
-    pose ((fun n=> projP1 _ _ (contained_in_ball_semidec (c n) x)) : nat -> K).
-    assert (forall n, (k n) = lazy_bool_true <-> (ball_to_subset (c n)) x).
+    pose ((fun n=> projP1 _ _ (contained_in_ball_semidec (c n) x)) : nat -> sierp).
+    assert (forall n, sierp_up (s n) <-> (ball_to_subset (c n)) x).
     {
       intros.
-      unfold k.
+      unfold s.
       destruct (contained_in_ball_semidec  (c n)).
       auto.
     }
@@ -76,7 +93,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       destruct P.
       apply (H1 x0);auto.
     }
-    destruct (eventually_true k) as [k' [H1 H2]].
+    destruct (eventually_true s) as [k' [H1 H2]].
     exists k'.
     rewrite H0.
     split; intros.
@@ -89,10 +106,76 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply H.
     exact nprp.
   Defined.
-
-  Lemma open_is_euclidean_open M : open (^euclidean d) M -> euclidean_open M. 
+  Lemma empty_ball_subset A x : is_subset _ (ball_to_subset (x,real_0)) A.
   Proof.
-    
+    unfold is_subset, ball_to_subset.
+    simpl.
+    intros y P.
+    apply real_gt_nle in P.
+    contradict P.
+    apply euclidean_max_dist_pos.
+  Defined.
+
+  Lemma open_is_euclidean_open A : open (^euclidean d) A -> ^M (euclidean_open A).
+  Proof.
+  intros.
+  destruct (open_cf_exists _ X) as [f P].
+  pose proof (continuity_sierp f) as C.
+  destruct (enumerable_dyadic_vector d) as [e E].
+  pose proof (multivalued_choice_sequence_sierp (fun n => (f (to_euclidean (e n))))).
+  revert X0.
+  apply M_lift_dom.
+  intros [c [cprp1 cprp2]].
+  assert (forall n, ^M {r | (c n = 0 /\ r = real_0) \/ forall x, (euclidean_max_dist (to_euclidean (e (pred (c n)))) x < r -> sierp_up (f x)) }) as D.
+  {
+    intros.
+    specialize (cprp1 n).
+    destruct (c n) eqn:cn.
+    apply M_unit.
+    exists real_0.
+    left;auto.
+    rewrite <- cn.
+    apply (M_lift {p : nat
+        | forall y : ^euclidean d,
+          (euclidean_max_dist (to_euclidean (e (pred (c n)))) y < prec p ->
+          sierp_up (f y))}
+ ).
+    intros.
+    destruct H as [m M].
+    exists (prec m).
+    right.
+    apply M.
+    apply C.
+    destruct cprp1;[contradict H |];auto.
+    rewrite <-cn in H.
+    exact H.
+  }
+  apply M_countable_lift in D.
+  revert D.
+  apply M_lift.
+  intros D.
+  assert {b : nat -> ball | forall n, snd (b n) = real_0 \/ (forall x, ball_to_subset (b n) x -> sierp_up (f x)) /\ exists m, (fst (b n)) = (to_euclidean (e (pred (c m))))}.
+  {
+    exists (fun n => (to_euclidean (e (c n)), (projP1 _ _ (D n)))).
+    simpl.
+    intros.
+    admit.
+  }
+  exists (fun n => (to_euclidean (e (pred (c n))), (projP1 _ _ (D n)))).
+  split.
+  - intros.
+    destruct (D n) as [r R].
+    destruct R as [[p1 ->]|  ];simpl.
+    apply empty_ball_subset.
+    unfold is_subset.
+    intros.
+    rewrite <-P.
+    apply s.
+    rewrite euclidean_max_dist_sym.
+    apply H.
+  - intros.
+    rewrite <-P in H.
+
   (* is this still needed? *)
   Lemma open_open A x : is_open A -> (CRelationClasses.iffT (A x) (^M {r | r > real_0 /\ is_subset (ball_to_subset (x, r)) A})).
   Proof.

@@ -1,6 +1,6 @@
 (* this file proves various properties of subsets of real numbers *)
 Require Import Lia CRelationClasses.
-Require Import Real Euclidean List Minmax ClassicalSubsets Sierpinski testsearch.
+Require Import Real Euclidean List Minmax ClassicalSubsets  testsearch.
 
 Require Import Vector.
 Section Dyadic.
@@ -202,7 +202,6 @@ Defined.
 
 Definition enumerable (X : Type) := {f : nat ->X | forall x, exists n, (f n) = x}.
 
-Search (Type -> Type -> Type) "iff".
 Lemma enumerable_pos X : iffT {f : positive ->X | forall x, exists n, (f n) = x} (enumerable X).
 Proof.
   split.
@@ -375,3 +374,4 @@ Proof.
   apply enumerable_vector.
   apply enumerable_dyadic.
 Defined.
+End DyadicVector.

@@ -34,6 +34,7 @@ RealHelpers.v
 # magnitude.v
 # sqrt.v
 
+Dyadic.v
 ClassicalSubsets.v
 Sierpinski.v
 Subsets.v
