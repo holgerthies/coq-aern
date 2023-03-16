@@ -116,7 +116,60 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply euclidean_max_dist_pos.
   Defined.
 
-  Lemma open_is_euclidean_open A : open (^euclidean d) A -> ^M (euclidean_open A).
+  Lemma enumerate_dyadic_elements A : open (^euclidean d) A -> ^M {f : nat -> option DyadicVector | forall v, A (to_euclidean v) <-> exists n, (f n) = Some v}.
+  Proof.
+    intros.
+    destruct (open_cf_exists _ X) as [f P].
+    destruct (enumerable_dyadic_vector d) as [e E].
+    pose proof (multivalued_choice_sequence_sierp (fun n => (f (to_euclidean (e n))))).
+    revert X0.
+    apply M_lift.
+    intros [c [cprp1 cprp2]].
+    exists (fun n => if (c n) =? 0 then None else Some (e (pred (c n)))).
+    intros.
+    rewrite <-P.
+    destruct (E v) as [m <-].
+    split.
+    - intros.
+      destruct (cprp2 _ H) as [n [H' <-]].
+      exists n.
+      rewrite <-Nat.eqb_neq in H'.
+      rewrite H';reflexivity.
+   - intros H.
+     destruct H as [n N].
+     specialize (cprp1 n).
+     destruct (c n);simpl in N.
+     contradict N; discriminate.
+     rewrite Nat.pred_succ in cprp1.
+     injection N; intros <-.
+     destruct cprp1;[contradict H |];auto.
+  Defined.
+
+  Lemma continuity_at_dyadic A v :  open (^euclidean d) A -> A (to_euclidean v) -> ^M {r  | r > real_0 /\ forall x, euclidean_max_dist (to_euclidean v) x < r -> A x}.
+  Proof.
+    intros.
+    destruct (open_cf_exists _ X) as [f P].
+    rewrite <-P in H.
+    pose proof (continuity_sierp f _ H) as C.
+    revert C.
+    apply M_lift.
+    intros.
+    destruct H0 as [n N].
+    exists (prec n).
+    split; [apply prec_pos | ].
+    intros.
+    rewrite <-P.
+    apply N.
+    exact H0.
+  Defined.
+
+
+  Lemma interior_to_dyadic A : open (^euclidean d) A -> ^M {f : nat -> ball |   (forall n x, ball_to_subset (f n) x -> A x) /\ forall x, A x -> exists n, ball_to_subset (f n) x}.
+  Proof.
+    intros.
+    destruct (open_cf_exists _ X) as [f P].
+    pose proof (enumerate_dyadic_elements _ X).
+  iemma open_is_euclidean_open A : open (^euclidean d) A -> ^M (euclidean_open A).
   Proof.
   intros.
   destruct (open_cf_exists _ X) as [f P].
@@ -154,13 +207,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   revert D.
   apply M_lift.
   intros D.
-  assert {b : nat -> ball | forall n, snd (b n) = real_0 \/ (forall x, ball_to_subset (b n) x -> sierp_up (f x)) /\ exists m, (fst (b n)) = (to_euclidean (e (pred (c m))))}.
-  {
-    exists (fun n => (to_euclidean (e (c n)), (projP1 _ _ (D n)))).
-    simpl.
-    intros.
-    admit.
-  }
   exists (fun n => (to_euclidean (e (pred (c n))), (projP1 _ _ (D n)))).
   split.
   - intros.
@@ -175,7 +221,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply H.
   - intros.
     rewrite <-P in H.
-
+    pose proof (euclidean_approx )
   (* is this still needed? *)
   Lemma open_open A x : is_open A -> (CRelationClasses.iffT (A x) (^M {r | r > real_0 /\ is_subset (ball_to_subset (x, r)) A})).
   Proof.

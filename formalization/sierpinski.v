@@ -42,7 +42,7 @@ Section S_Defs.
     exact P.
   Defined.
 
-  Lemma multivalued_choice_sequence_sierp (f : forall n, sierp) : ^M {c : nat -> nat | (forall n, (c n) = 0 \/ sierp_up (f (pred (c n)))) /\ forall m, sierp_up (f m) -> exists n, pred (c n) = m}.
+  Lemma multivalued_choice_sequence_sierp (f : forall n, sierp) : ^M {c : nat -> nat | (forall n, (c n) = 0 \/  sierp_up (f (pred (c n)))) /\ forall m, sierp_up (f m) -> exists n, (c n) <> 0 /\ pred (c n) = m}.
   Proof.
   assert (forall n, ^M {g : nat -> nat | sierp_up (f n) <-> exists m, (g m) = 1}).
   {
@@ -76,7 +76,7 @@ Section S_Defs.
     exists nm.
     rewrite NM;simpl.
     rewrite M.
-    reflexivity.
+    split; [apply Nat.neq_succ_0 |reflexivity].
   Defined.
   Fixpoint nat_sequence_transform_min (f : nat -> nat) n :=
     match n with
