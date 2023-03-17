@@ -1,4 +1,4 @@
-Require Import Real Subsets Euclidean List Lia Minmax.
+Require Import Real Subsets Euclidean List Lia Minmax ClassicalSubsets EuclideanSubsets.
 Section SimpleTriangle.
 
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
@@ -10,6 +10,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
 #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
   (* ring structure on Real *)
+
   Ltac IZReal_tac t :=
     match t with
     | real_0 => constr:(0%Z)
@@ -24,7 +25,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
-  Definition T : (@euclidean_subset types 2).
+  Definition T : (@euclidean_subset 2 types).
   unfold euclidean_subset.
   intro P.
   destruct (split_euclidean2 P) as [x [y P']].
@@ -32,7 +33,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Defined.
 
 
-  Definition Tn_ball (n k j :nat) : (ball 2) := make_ball2 (Nreal (n2*k+n1) * prec (S n)) (Nreal (n2*j+n1) * prec (S n)) (prec (S n)).
+  Definition Tn_ball (n k j :nat) : (ball ) := make_ball2 (Nreal (n2*k+n1) * prec (S n)) (Nreal (n2*j+n1) * prec (S n)) (prec (S n)).
 
   Fixpoint Tn_col n k j l :=
   match j with
@@ -46,9 +47,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      | (S k') => (Tn_row n k' (Tn_col n k ((Npow2 n)-k-n1) l))
   end.
                                                                       
-  Definition Tn n : list (ball 2) := Tn_row n ((Npow2 n)-n1) nil.
+  Definition Tn n : list ball := Tn_row n ((Npow2 n)-n1) nil.
 
-  Lemma Tn_col_rad n k j: forall l, (rad 2 l) <= prec (S n) -> rad 2 (Tn_col n k j l) <= prec (S n).
+  Lemma Tn_col_rad n k j: forall l, (rad l) <= prec (S n) -> rad (Tn_col n k j l) <= prec (S n).
   Proof using Type.
     induction j as [ | l IH].
     - intros l H.
@@ -71,7 +72,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      exact H.
   Qed.
 
-  Lemma Tn_row_rad n k : forall l, (rad 2 l) <= prec (S n) -> rad 2 (Tn_row n k l) <= prec (S n).
+  Lemma Tn_row_rad n k : forall l, (rad l) <= prec (S n) -> rad (Tn_row n k l) <= prec (S n).
   Proof using Type.
     induction k as [ | k' IH].
     - intros l H.
@@ -84,14 +85,14 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Qed.
 
 
-  Lemma Tn_rad n : (rad 2 (Tn n)) <= prec (S n).
+  Lemma Tn_rad n : (rad (Tn n)) <= prec (S n).
   Proof using Type.
     apply Tn_row_rad.
     apply real_lt_le.
     apply prec_pos.
   Qed.
 
-  Lemma Tn_rad' n : (rad 2 (Tn (pred n))) <= prec n.
+  Lemma Tn_rad' n : (rad (Tn (pred n))) <= prec n.
   Proof.
     destruct n.
     apply (real_le_le_le _ (prec 1)).
@@ -99,8 +100,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     left; apply prec_S.
     apply Tn_rad.
   Qed.
-
-  Lemma Tn_ball_intersects (n k j : nat) : (j + k+ 1 <= (Npow2 n))%nat ->  intersects 2 (ball_to_subset 2 (Tn_ball n k j)) T.
+  Lemma Tn_ball_intersects (n k j : nat) : (j + k+ 1 <= (Npow2 n))%nat ->  intersects (ball_to_subset (Tn_ball n k j)) T.
   Proof using Type.
     intros H.
     exists (fst (Tn_ball n k j)).
@@ -110,7 +110,6 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     pose proof (euclidean_max_dist_id (fst (Tn_ball n k j)) (fst (Tn_ball n k j))).
     destruct H0.
     rewrite H1.
-    apply real_lt_le.
     apply prec_pos.
     reflexivity.
     split.
@@ -145,7 +144,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   induction n; simpl; lia.
   Qed.
 
-  Lemma Tn_col_intersects_T n k j : (k <= Npow2 n - 1)%nat -> (j <= (Npow2 n)-k-1)%nat -> forall l, Forall (fun b => intersects 2 (ball_to_subset 2 b) T) l ->  Forall (fun b => intersects 2 (ball_to_subset 2 b) T) (Tn_col n k j l).
+  Lemma Tn_col_intersects_T n k j : (k <= Npow2 n - 1)%nat -> (j <= (Npow2 n)-k-1)%nat -> forall l, Forall (fun b => intersects (ball_to_subset b) T) l ->  Forall (fun b => intersects (ball_to_subset b) T) (Tn_col n k j l).
   Proof using Type.
     intros Klt Jlt.
     induction j as [ | j' IH].
@@ -164,7 +163,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      exact H.
   Qed.
 
-  Lemma Tn_row_intersects_T n k : (k <= Npow2 n - 1)%nat -> forall l, Forall (fun b => intersects 2 (ball_to_subset 2 b) T) l ->  Forall (fun b => intersects 2 (ball_to_subset 2 b) T) (Tn_row n k l).
+  Lemma Tn_row_intersects_T n k : (k <= Npow2 n - 1)%nat -> forall l, Forall (fun b => intersects (ball_to_subset b) T) l ->  Forall (fun b => intersects (ball_to_subset b) T) (Tn_row n k l).
   Proof using Type.
     intros Klt.
     induction k as [ | k' IH].
@@ -179,7 +178,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Qed.
 
 
-  Lemma Tn_intersects_T n :  Forall (fun b => intersects 2 (ball_to_subset 2 b) T) (Tn n).
+  Lemma Tn_intersects_T n :  Forall (fun b => intersects (ball_to_subset b) T) (Tn n).
   Proof using Type.
     apply Tn_row_intersects_T; unfold n1,n2; try lia.
     apply Forall_nil.
@@ -412,11 +411,12 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply real_le_mult_pos_le; auto; left; apply real_lt_0_2.
     unfold real_2.
     ring_simplify.   
-    apply real_eq_le; auto.
+    apply real_eq_le.
+    ring.
   Qed.
 
 
-  Lemma T_is_covert : is_covert 2 T.
+  Lemma T_is_located : located T.
   Proof.
    intro n.
    exists (Tn (pred n)).
@@ -496,7 +496,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    unfold euclidean_max_dist.
    rewrite prp.
    simpl.
-   apply real_max_le_le_le.
+   apply real_max_lt_lt_lt.
    destruct Hk as [[-> ->] | ].
    simpl.
    rewrite real_plus_unit, real_plus_comm, real_plus_unit, real_mult_unit, <-abs_symm.

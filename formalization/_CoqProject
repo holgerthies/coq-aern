@@ -38,6 +38,7 @@ Dyadic.v
 ClassicalSubsets.v
 Sierpinski.v
 Subsets.v
+EuclideanSubsets.v
 simpletriangle.v
 SierpinskiTriangle.v
 SierpinskiTriangleLimit.v

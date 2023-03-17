@@ -1496,6 +1496,26 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     auto.
   Defined.
   
+  Lemma real_inv_neq0 (x : Real) (xneq0 : x <> real_0) : (/ xneq0) <> real_0.
+  Proof.
+     intros H.
+     apply (real_eq_mult_eq_r x) in H.
+     rewrite real_mult_inv in H.
+     ring_simplify in H.
+     apply real_1_neq_0.
+     apply H.
+  Defined.
+     
+  Lemma real_le_mult_pos_cancel z z1 z2 : z > real_0 -> z1*z <= z2*z ->  z1 <= z2.
+  Proof.
+    intros.
+    destruct H0.
+    apply real_lt_le.
+    apply (real_lt_mult_pos_cancel z);auto.
+    apply real_eq_le.
+    apply (real_eq_mult_cancel z);auto.
+    apply real_gt_neq;auto.
+  Defined.
 End RealOrder.
 
 
