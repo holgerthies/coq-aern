@@ -15,7 +15,19 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
 
 
-Add Ring realRing : (realTheory ).
+  Ltac IZReal_tac t :=
+    match t with
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
+      match isZcst u with
+      | true => u
+      | _ => constr:(InitialRing.NotConstant)
+      end
+    | _ => constr:(InitialRing.NotConstant)
+    end.
+
+  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   
 
 Definition euclidean_subset :=  (@csubset (^euclidean d)).
@@ -33,6 +45,7 @@ Definition ball := ((^euclidean d) * ^Real)%type.
 
 Definition ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) < (snd b)).  
 
+Definition closed_ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) <= (snd b)).  
 Lemma contained_in_ball_semidec b x : {s : sierp | sierp_up s <-> (ball_to_subset b) x}.
   Proof.
     unfold ball_to_subset.
@@ -41,6 +54,15 @@ Lemma contained_in_ball_semidec b x : {s : sierp | sierp_up s <-> (ball_to_subse
     apply P.
 Defined.
 
+Lemma ball_max_dist x y b: ball_to_subset b x -> ball_to_subset b y -> euclidean_max_dist x y < real_2*(snd b). 
+Proof.
+  intros H1 H2.
+  apply (real_le_lt_lt _ _ _ (euclidean_max_dist_tri x (fst b) y)).
+  assert (real_2 = real_1 + real_1) as -> by auto.
+  assert ((real_1 + real_1) * snd b = snd b + snd b ) as -> by ring.
+  apply real_lt_lt_plus_lt;auto.
+  rewrite euclidean_max_dist_sym;auto.
+Defined.
 Lemma empty_ball_subset A x : is_subset (ball_to_subset (x,real_0)) A.
 Proof.
   unfold is_subset, ball_to_subset.
@@ -320,6 +342,83 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   (* Axiom continuity_sierp : forall (f : euclidean d -> sierp) x, sierp_up (f x) -> ^M {n | forall y, euclidean_max_dist x y < prec n -> sierp_up (f y) }. *)
 
   
+  Lemma semidec_multivalued_countable_choice (P : nat -> Prop) : (forall n, semidec (P n)) -> (exists n, P n) -> ^M {n | (P n)}.
+  Proof.
+    intros.
+    apply (M_lift {n | projP1 _ _ (X n) = lazy_bool_true}).
+    - intros.
+      destruct H0 as [n H0].
+      destruct (X n).
+      exists n.
+      apply i.
+      apply H0.
+    - apply multivalued_countable_choice.
+      destruct H.
+      exists x.
+      destruct (X x).
+      apply i.
+      exact H.
+  Defined.
+
+  Lemma real_archimedean_constructive : forall x, x > real_0 -> ^M {n | prec n < x}.
+  Proof.
+    intros.
+    apply semidec_multivalued_countable_choice.
+    intros.
+    apply real_lt_semidec.
+    apply real_Archimedean.
+    exact H.
+  Defined.
+
+  Lemma continuity_sierp : forall (f : euclidean d -> sierp) x, sierp_up (f x) -> ^M {n | forall y, euclidean_max_dist x y < prec n -> sierp_up (f y) }.
+  Proof.
+    intros.
+    pose proof (interval_extension_sierp f).
+    revert X.
+    apply M_lift_dom.
+    intros.
+    destruct H0 as [F [H1 H2]].
+    apply (M_lift_dom ({v & {n | (euclidean_max_dist x (to_euclidean v)) < (prec n) /\ F v n = true}})).
+    - intros.
+      destruct H0 as [v [n [P1 P2]]].
+      apply (M_lift {m | prec m < prec n - (euclidean_max_dist x (to_euclidean v))});[|apply real_archimedean_constructive;apply real_gt_minus_gt_zero;auto].
+      intros.
+      destruct H0 as [m H0].
+      exists m.
+      intros.
+      apply (H1 _ _ P2).
+      apply (real_le_lt_lt _ (euclidean_max_dist y x + euclidean_max_dist x (to_euclidean v))).
+      apply euclidean_max_dist_tri.
+      replace (prec n) with (prec n - euclidean_max_dist x (to_euclidean v) + euclidean_max_dist x (to_euclidean v)) by ring.
+      apply real_lt_plus_r_lt.
+      rewrite euclidean_max_dist_sym.
+      apply (real_lt_lt_lt _ _ _ H3);auto.
+    - destruct (enumerable_pair _ _ enumerable_nat (enumerable_dyadic_vector d)) as [e E].
+      apply (M_lift {n | (euclidean_max_dist x (to_euclidean (snd (e n)))) < (prec (fst (e n))) /\ (F (snd (e n)) (fst (e n))) = true}).
+      intros.
+      destruct H0 as [n H0].
+      exists (snd (e n)); exists (fst (e n)).
+      exact H0.
+
+      apply semidec_multivalued_countable_choice.
+      + intros.
+        apply semidec_and.
+        apply real_lt_semidec.
+        destruct (F (snd (e n)) (fst (e n))).
+        exists lazy_bool_true.
+        split;intros;unfold lazy_bool_up;auto.
+        exists lazy_bool_false.
+        unfold lazy_bool_up.
+        split;intros.
+        contradict H0.
+        apply lazy_bool_distinct.
+        contradict H0; auto.
+    + destruct (H2 _ H) as [v [n P]].
+      destruct (E (n,v)) as [m M].
+      exists m.
+      rewrite M;auto.
+  Defined.
+    
   Definition euclidean_open (M : euclidean_subset) := {c : nat -> (ball (d := d)) | (forall n, is_subset (ball_to_subset (c n)) M) /\ forall x, M x -> exists n, (ball_to_subset (c n)) x}.
 
 
@@ -455,6 +554,7 @@ Section EuclideanLocated.
   #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
   #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
 
+  Add Ring realRing : (realTheory ).
   Context {d : nat}.
 
   Definition located (M : euclidean_subset) := 
@@ -636,6 +736,30 @@ Section EuclideanLocated.
     (forall x, S x -> exists y, T y /\ euclidean_max_dist x y < n) /\
       (forall y, T y -> exists x, S x /\ euclidean_max_dist x y < n).
 
+  Lemma Hausdorff_dist_bound_approx M L n: (rad L <= prec n /\ Forall (fun b : ball => intersects (ball_to_subset b) M) L  /\ (forall x, M x -> Exists (fun b : ball => ball_to_subset b x) L)) -> Hausdorff_dist_bound M (fun x => Exists (fun b  => ball_to_subset b x) L) (real_2 * prec n).
+  Proof.
+    intros [H1 [H2 H3]].
+    unfold Hausdorff_dist_bound.
+    split.
+    - intros.
+      exists x.
+      split;[apply H3;auto|].
+      rewrite ((proj2 (euclidean_max_dist_id x x)) (eq_refl x)).
+      assert (real_0 = real_2 * real_0) as -> by ring.
+      apply real_lt_mult_pos_lt; [apply real_lt_0_2|apply prec_pos].
+   - intros.
+     apply Exists_exists in H.
+     destruct H as [b [B1 B2]].
+     rewrite Forall_forall in H2.
+     destruct (H2 _ B1) as [x [I1 I2]].
+     exists x;split;auto.
+     apply (real_lt_le_lt _ (real_2 * snd b)).
+     apply ball_max_dist;auto.
+     apply real_le_mult_pos_le.
+     apply real_lt_le;apply real_lt_0_2.
+     apply (real_le_le_le _ (rad L));auto.
+     apply (rad_forall _ _ B1).
+  Defined.
   Lemma located_lim :
     forall K : euclidean_subset,
       (forall n : nat, {X :  euclidean_subset & prod (located X) (Hausdorff_dist_bound X K (prec n))})
@@ -718,6 +842,23 @@ Section EuclideanLocated.
     apply (real_le_le_le _ (rad L)); auto.
     apply rad_forall; auto.
   Defined.
+
+  Lemma located_closed_balls M : 
+    (forall n, {Ln : list (ball (d := d)) |
+                rad Ln <= prec n /\
+                Forall (fun b => intersects (closed_ball_to_subset b) M) Ln /\
+                forall x,  M x ->  Exists (fun b => (closed_ball_to_subset b) x) Ln
+              }) -> located M.
+  Proof.
+    intros H.
+    apply located_lim.
+    intros n.
+    destruct (H (S n)) as [L [P1 [P2 P3]]].
+    Search (list ball).
+    Search (_ <= _ \/ )
+    exists (scale_list L real_2).
+    split.
+    Search scale_list.
 End EuclideanLocated.
 
 Section SubsetsR2.

@@ -382,6 +382,13 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite H1; auto.
   Qed.
 
+  Lemma real_max_lt_lt_lt : forall x y z, x < z -> y < z -> (real_max x y) < z.
+  Proof.
+    intros.
+    destruct (real_max_cand x y).
+    rewrite H1; auto.
+    rewrite H1; auto.
+  Qed.
 
   Lemma real_le_ge_eq : forall x y  : Real, x <= y -> x >= y -> x = y.
   Proof.
