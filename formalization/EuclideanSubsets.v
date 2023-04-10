@@ -1,7 +1,7 @@
 (* this file proves various properties of subsets of real numbers *)
 Require Import Lia.
 Require Import Real Euclidean List Minmax ClassicalSubsets Sierpinski testsearch Dyadic Subsets.
-
+Check multivalued_countable_choice.
 Section EuclideanBalls.
 
 Context {d : nat}.
@@ -286,7 +286,7 @@ Section BallOperations.
     split;apply H.
   Defined.
 
-  Lemma scale_intersects M L l  : (real_0 < l) -> Forall (fun b : ball => intersects (ball_to_subset b) M) L -> Forall (fun b : ball => intersects (ball_to_subset b) (scaling l M)) (scale_list L l).
+  Lemma scale_intersects M L l  : (real_0 < l) -> Forall (fun b : ball => intersects (closed_ball_to_subset b) M) L -> Forall (fun b : ball => intersects (closed_ball_to_subset b) (scaling l M)) (scale_list L l).
   Proof.
     intros lgt0 H.
     pose proof (real_gt_neq _ _ lgt0) as lneq0.
@@ -303,7 +303,7 @@ Section BallOperations.
       unfold ball_to_subset.
       pose proof (euclidean_max_dist_scalar_mult (euclidean_scalar_mult l x) (fst b) (/ lneq0)).
       assert (/ lneq0 > real_0) by  (apply real_pos_inv_pos;auto).
-      apply (real_lt_mult_pos_cancel (/ lneq0));auto.
+      apply (real_le_mult_pos_cancel (/ lneq0));auto.
       rewrite real_mult_comm.
       rewrite <-H1;auto.
       pose proof (real_gt_neq _ _ H2) as dlneq0.
@@ -337,6 +337,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   
  (* TODO: Move to appropriate place *)
   Axiom eventually_true :forall (c : forall (n :nat), sierp), {k | sierp_up k <-> exists n, sierp_up(c n)}.
+  Check eventually_true.
   (* continuity principle for functions to Sierpinski*)
   Axiom interval_extension_sierp : forall (f : euclidean d -> sierp), ^M {F : DyadicVector -> nat -> bool | (forall v n, (F v n) = true -> forall x, euclidean_max_dist x (to_euclidean v) < prec n -> sierp_up (f x)) /\ forall x, sierp_up (f x) -> exists v n, (euclidean_max_dist x (to_euclidean v)) < prec n /\ (F v n) = true}. 
   (* Axiom continuity_sierp : forall (f : euclidean d -> sierp) x, sierp_up (f x) -> ^M {n | forall y, euclidean_max_dist x y < prec n -> sierp_up (f y) }. *)
@@ -418,7 +419,39 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       exists m.
       rewrite M;auto.
   Defined.
-    
+
+  Lemma continuity_euclidean : forall (f : euclidean d -> euclidean d) x m, ^M {n | forall y, euclidean_max_dist x y < prec n -> euclidean_max_dist (f x) (f y) < prec m}.
+  Proof.
+    intros.
+    assert (forall y, {s |(sierp_up s) <-> (euclidean_max_dist (f x) (f y)) < prec m}).
+    {
+      intros.
+      destruct (real_lt_semidec (euclidean_max_dist (f x) (f y)) (prec m)) as [k K].
+      apply sierp_from_semidec.
+      exists k.
+      exact K.
+    }
+    pose proof (continuity_sierp (fun y => (projP1 _ _ (X y))) x).
+    simpl in X0.
+    destruct (X x).
+    simpl in X0.
+    assert (sierp_up x0).
+    apply i.
+    rewrite ((proj2 (euclidean_max_dist_id _ _)) (eq_refl (f x))).
+    apply prec_pos.
+    specialize (X0 H).
+    revert X0.
+    apply M_lift.
+    intros.
+    destruct H0 as [n H0].
+    exists n.
+    intros.
+    specialize (H0 _ H1).
+    destruct (X y).
+    simpl in H0.
+    apply i0.
+    exact H0.
+  Defined.
   Definition euclidean_open (M : euclidean_subset) := {c : nat -> (ball (d := d)) | (forall n, is_subset (ball_to_subset (c n)) M) /\ forall x, M x -> exists n, (ball_to_subset (c n)) x}.
 
 
@@ -560,8 +593,8 @@ Section EuclideanLocated.
   Definition located (M : euclidean_subset) := 
     forall n, {Ln : list (ball (d := d)) |
                 rad Ln <= prec n /\
-                Forall (fun b => intersects (ball_to_subset b) M) Ln /\
-                forall x,  M x ->  Exists (fun b => (ball_to_subset b) x) Ln
+                Forall (fun b => intersects (closed_ball_to_subset b) M) Ln /\
+                forall x,  M x ->  Exists (fun b => (closed_ball_to_subset b) x) Ln
               }.
 
   Lemma located_union K1 K2 : located K1 -> located K2 -> located (union K1 K2).
@@ -578,7 +611,7 @@ Section EuclideanLocated.
   - apply Forall_app.
     rewrite Forall_forall in int1.
     rewrite Forall_forall in int2.
-    assert (forall b, intersects (ball_to_subset b) K1 \/ intersects (ball_to_subset b) K2 -> intersects (ball_to_subset b) (union K1 K2)) by (intros; apply intersects_union;auto).
+    assert (forall b, intersects (closed_ball_to_subset b) K1 \/ intersects (closed_ball_to_subset b) K2 -> intersects (closed_ball_to_subset b) (union K1 K2)) by (intros; apply intersects_union;auto).
     split;apply (Forall_impl _ H);apply Forall_forall;intros b inb; [left;apply int1 | right;apply int2];auto.
  - intros x cx.
    apply Exists_app.
@@ -617,8 +650,8 @@ Section EuclideanLocated.
      exists (euclidean_plus x a).
      split.
      destruct b.
-     unfold ball_to_subset.
-     unfold ball_to_subset in xp1.
+     unfold closed_ball_to_subset.
+     unfold closed_ball_to_subset in xp1.
      simpl in xp1;simpl.
      rewrite <-euclidean_max_dist_minus_plus;auto.
      unfold translation;rewrite euclidean_minus_plus;auto.
@@ -633,7 +666,7 @@ Section EuclideanLocated.
    apply in_map_iff.
    exists (cb, rb).
    split; auto.
-   unfold ball_to_subset.
+   unfold closed_ball_to_subset.
    rewrite euclidean_max_dist_sym.
    simpl.
    rewrite <-euclidean_max_dist_minus_plus.
@@ -679,10 +712,10 @@ Section EuclideanLocated.
     apply scale_list_in;auto.
     apply real_gt_neq.
     apply prec_pos.
-    unfold ball_to_subset;simpl.
+    unfold closed_ball_to_subset;simpl.
     replace x with (euclidean_scalar_mult (prec k) (euclidean_scalar_mult (Nreal (Npow2 k)) x)).
     rewrite euclidean_max_dist_scalar_mult; [|left;apply prec_pos].
-    apply real_lt_mult_pos_lt;[apply prec_pos|];auto.
+    apply real_le_mult_pos_le;auto;left;apply prec_pos.
     rewrite euclidean_scalar_mult_mult.
     rewrite prec_Npow2_unit.
     apply euclidean_scalar_mult_unit.
@@ -722,10 +755,10 @@ Section EuclideanLocated.
     apply scale_list_in;auto.
     apply real_gt_neq.
     apply Nreal_Npow2_pos.
-    unfold ball_to_subset;simpl.
+    unfold closed_ball_to_subset;simpl.
     replace x with (euclidean_scalar_mult (Nreal (Npow2 k)) (euclidean_scalar_mult (prec k) x)).
     rewrite euclidean_max_dist_scalar_mult; [|left;apply Nreal_Npow2_pos].
-    apply real_lt_mult_pos_lt;[apply Nreal_Npow2_pos |];auto.
+    apply real_le_mult_pos_le;auto;left;apply Nreal_Npow2_pos.
     rewrite euclidean_scalar_mult_mult.
     rewrite real_mult_comm.
     rewrite prec_Npow2_unit.
@@ -733,33 +766,33 @@ Section EuclideanLocated.
   Defined.
 
   Definition Hausdorff_dist_bound (S T : (euclidean_subset (d := d))) n :=
-    (forall x, S x -> exists y, T y /\ euclidean_max_dist x y < n) /\
-      (forall y, T y -> exists x, S x /\ euclidean_max_dist x y < n).
+    (forall x, S x -> exists y, T y /\ euclidean_max_dist x y <= n) /\
+      (forall y, T y -> exists x, S x /\ euclidean_max_dist x y <= n).
 
-  Lemma Hausdorff_dist_bound_approx M L n: (rad L <= prec n /\ Forall (fun b : ball => intersects (ball_to_subset b) M) L  /\ (forall x, M x -> Exists (fun b : ball => ball_to_subset b x) L)) -> Hausdorff_dist_bound M (fun x => Exists (fun b  => ball_to_subset b x) L) (real_2 * prec n).
-  Proof.
-    intros [H1 [H2 H3]].
-    unfold Hausdorff_dist_bound.
-    split.
-    - intros.
-      exists x.
-      split;[apply H3;auto|].
-      rewrite ((proj2 (euclidean_max_dist_id x x)) (eq_refl x)).
-      assert (real_0 = real_2 * real_0) as -> by ring.
-      apply real_lt_mult_pos_lt; [apply real_lt_0_2|apply prec_pos].
-   - intros.
-     apply Exists_exists in H.
-     destruct H as [b [B1 B2]].
-     rewrite Forall_forall in H2.
-     destruct (H2 _ B1) as [x [I1 I2]].
-     exists x;split;auto.
-     apply (real_lt_le_lt _ (real_2 * snd b)).
-     apply ball_max_dist;auto.
-     apply real_le_mult_pos_le.
-     apply real_lt_le;apply real_lt_0_2.
-     apply (real_le_le_le _ (rad L));auto.
-     apply (rad_forall _ _ B1).
-  Defined.
+  (* Lemma Hausdorff_dist_bound_approx M L n: (rad L <= prec n /\ Forall (fun b : ball => intersects (ball_to_subset b) M) L  /\ (forall x, M x -> Exists (fun b : ball => ball_to_subset b x) L)) -> Hausdorff_dist_bound M (fun x => Exists (fun b  => ball_to_subset b x) L) (real_2 * prec n). *)
+  (* Proof. *)
+  (*   intros [H1 [H2 H3]]. *)
+  (*   unfold Hausdorff_dist_bound. *)
+  (*   split. *)
+  (*   - intros. *)
+  (*     exists x. *)
+  (*     split;[apply H3;auto|]. *)
+  (*     rewrite ((proj2 (euclidean_max_dist_id x x)) (eq_refl x)). *)
+  (*     assert (real_0 = real_2 * real_0) as -> by ring. *)
+  (*     apply real_le_mult_pos_le; [apply real_lt_0_2|apply prec_pos]. *)
+  (*  - intros. *)
+  (*    apply Exists_exists in H. *)
+  (*    destruct H as [b [B1 B2]]. *)
+  (*    rewrite Forall_forall in H2. *)
+  (*    destruct (H2 _ B1) as [x [I1 I2]]. *)
+  (*    exists x;split;auto. *)
+  (*    apply (real_lt_le_lt _ (real_2 * snd b)). *)
+  (*    apply ball_max_dist;auto. *)
+  (*    apply real_le_mult_pos_le. *)
+  (*    apply real_lt_le;apply real_lt_0_2. *)
+  (*    apply (real_le_le_le _ (rad L));auto. *)
+  (*    apply (rad_forall _ _ B1). *)
+  (* Defined. *)
   Lemma located_lim :
     forall K : euclidean_subset,
       (forall n : nat, {X :  euclidean_subset & prod (located X) (Hausdorff_dist_bound X K (prec n))})
@@ -779,7 +812,7 @@ Section EuclideanLocated.
     pose proof (P b) as [P1 P2].
     specialize (P1 inb) as [P1' P1''].
     destruct P1'' as [r P1''].
-    assert (forall b', (intersects (ball_to_subset b') A /\ snd b' <= prec (S p)) -> intersects (ball_to_subset ((fst b', prec p))) K).
+    assert (forall b', (intersects (closed_ball_to_subset b') A /\ snd b' <= prec (S p)) -> intersects (closed_ball_to_subset ((fst b', prec p))) K).
     {
       intros b' [H1 H2].
       destruct H1 as [y [yp1 yp2]].
@@ -787,14 +820,15 @@ Section EuclideanLocated.
       destruct (HD1 _ yp2) as [y' [y'p1 y'p2]].
       exists y'.
       split;auto.
-      unfold ball_to_subset;simpl.
+      unfold closed_ball_to_subset;simpl.
       pose proof (euclidean_max_dist_tri y' y (fst b')).
-      apply (real_le_lt_lt _ _ _ H).
+      apply (real_le_le_le _ _ _ H).
       rewrite <-prec_twice.
       replace (p + 1)%nat with (S p) by lia.
-      apply real_lt_lt_plus_lt.
+      apply real_le_le_plus_le.
       rewrite euclidean_max_dist_sym;auto.
-      apply (real_lt_le_lt _ (snd b'));auto.
+      apply (real_le_le_le _ (snd b'));auto.
+
     }
     specialize (H (fst b, r)).
     destruct b.
@@ -811,7 +845,7 @@ Section EuclideanLocated.
     apply (real_le_le_le _ (rad L)); auto.
     apply (rad_forall L (fst (e, r0), r)); auto.
     intros x Kx.
-    assert (exists y, A y /\ euclidean_max_dist x y < prec (S p)) as [y [yp1 yp2]].
+    assert (exists y, A y /\ euclidean_max_dist x y <= prec (S p)) as [y [yp1 yp2]].
     {
       destruct HD.
       destruct (H0 _ Kx).
@@ -833,32 +867,16 @@ Section EuclideanLocated.
     unfold ball_to_subset.
     simpl.
     pose proof (euclidean_max_dist_tri x y (fst b')).
-    apply (real_le_lt_lt _ _ _ H).
+    apply (real_le_le_le _ _ _ H).
     rewrite <-prec_twice.
     replace (p+1)%nat with (S p) by lia.
-    apply real_lt_lt_plus_lt;auto.
-    apply (real_lt_le_lt _ (snd b')).
+    apply real_le_le_plus_le;auto.
+    apply (real_le_le_le _ (snd b')).
     apply bP''.
     apply (real_le_le_le _ (rad L)); auto.
     apply rad_forall; auto.
   Defined.
 
-  Lemma located_closed_balls M : 
-    (forall n, {Ln : list (ball (d := d)) |
-                rad Ln <= prec n /\
-                Forall (fun b => intersects (closed_ball_to_subset b) M) Ln /\
-                forall x,  M x ->  Exists (fun b => (closed_ball_to_subset b) x) Ln
-              }) -> located M.
-  Proof.
-    intros H.
-    apply located_lim.
-    intros n.
-    destruct (H (S n)) as [L [P1 [P2 P3]]].
-    Search (list ball).
-    Search (_ <= _ \/ )
-    exists (scale_list L real_2).
-    split.
-    Search scale_list.
 End EuclideanLocated.
 
 Section SubsetsR2.
@@ -867,21 +885,18 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 #[local] Notation "^Real" := (@Real types) (at level 0).
 
   Definition make_ball2 (x y r : ^Real) : (ball (d:=n2)) := ((make_euclidean2 x y), r).
-  
-  (* Lemma split_ball_to_subset2 (b_x b_y r x y : ^Real) :  *)
-  (*   ball_to_subset (Euclidean.cons b_x (Euclidean.cons b_y Euclidean.nil), r) (Euclidean.cons x (Euclidean.cons y Euclidean.nil)) ->  *)
-  (*   abs(x + - b_x) < r /\ *)
-  (*   abs(y + - b_y) < r. *)
-  (* Proof. *)
-  (*   intro HX. *)
-  (*   unfold ball_to_subset in HX. *)
-  (*   unfold euclidean_max_dist in HX. *)
-  (*   Search "real_max". *)
-  (*   pose proof HX as HY. *)
-  (*   apply real_max_le_fst_le in HX. *)
-  (*   apply real_max_le_snd_le, real_max_le_fst_le in HY. *)
-  (*   split; auto.  *)
-  (* Qed.   *)
+
+ Lemma split_ball_to_subset2 (b_x b_y r x y : ^Real) : 
+    closed_ball_to_subset (Euclidean.cons b_x (Euclidean.cons b_y Euclidean.nil), r) (Euclidean.cons x (Euclidean.cons y Euclidean.nil)) -> 
+    abs(x + - b_x) <= r /\
+    abs(y + - b_y) <= r.
+  Proof.
+    intro HX.
+    pose proof HX as HY.
+    apply real_max_le_fst_le in HX.
+    apply real_max_le_snd_le, real_max_le_fst_le in HY.
+    split; auto. 
+  Defined.  
 End SubsetsR2.
 
  
