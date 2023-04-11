@@ -1,3 +1,5 @@
+Require Import Base.
+
 Require Import Extraction.
 Require ExtrHaskellBasic.
 Require ExtrHaskellNatInteger.
@@ -13,7 +15,6 @@ Extract Inlined Constant Z.sub => "(P.-)".
 Extract Inlined Constant Z.succ => "(P.+ 1)".
 Extract Inlined Constant Z.opp => "P.negate".
 
-Require Import Base.
 
 Extract Constant n1 => "1".
 Extract Constant n2 => "2".
@@ -138,6 +139,9 @@ Extraction Implicit semidec_and [ types mvmM ].
 
 Extraction Implicit select  [ types mvmM ].
 Extract Constant select => "AERN2.select".
+
+Extraction Implicit multivalued_countable_choice  [ types MultivalueMonad_M ].
+Extract Constant multivalued_countable_choice => "AERN2.selectCountable".
 
 (* Some shortcuts for efficiency. *)
 Extraction Implicit M_countable_lift [ types mvmM ].
@@ -338,15 +342,17 @@ Extraction Implicit complex_nonzero_cases [ types casofReal ].
 
 Require Import Subsets.
 
+Require Import EuclideanSubsets.
+
 Extraction Implicit split_euclidean2 [ types ].
 Extraction Implicit make_euclidean2 [ types ].
 Extraction Implicit make_ball2 [ types ].
-Extraction Implicit is_covert_translation [ types casofReal ].
-Extraction Implicit is_covert_union [ types casofReal ].
-Extraction Implicit is_covert_lim [ types casofReal ].
+Extraction Implicit located_translation [ types casofReal ].
+Extraction Implicit located_union [ types casofReal ].
+Extraction Implicit located_lim [ types casofReal ].
 Extraction Implicit scale_list [ types casofReal ].
 Extraction Implicit change_rad [ types casofReal ].
-Extraction Implicit is_covert_scale_down [ types casofReal ].
+Extraction Implicit located_scale_down [ types casofReal ].
 
 Require Import simpletriangle.
 Extraction Implicit Tn_ball [ types casofReal ].
