@@ -491,34 +491,34 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     exact nprp.
   Defined.
 
-  Lemma enumerate_dyadic_elements A : open A -> ^M {f : nat -> option (@DyadicVector d) | forall v, A (to_euclidean v) <-> exists n, (f n) = Some v}.
-  Proof.
-    intros.
-    destruct (open_cf_exists X) as [f P].
-    destruct (enumerable_dyadic_vector d) as [e E].
-    pose proof (multivalued_choice_sequence_sierp (fun n => (f (to_euclidean (e n))))).
-    revert X0.
-    apply M_lift.
-    intros [c [cprp1 cprp2]].
-    exists (fun n => if (c n) =? 0 then None else Some (e (pred (c n)))).
-    intros.
-    rewrite <-P.
-    destruct (E v) as [m <-].
-    split.
-    - intros.
-      destruct (cprp2 _ H) as [n [H' <-]].
-      exists n.
-      rewrite <-Nat.eqb_neq in H'.
-      rewrite H';reflexivity.
-   - intros H.
-     destruct H as [n N].
-     specialize (cprp1 n).
-     destruct (c n);simpl in N.
-     contradict N; discriminate.
-     rewrite Nat.pred_succ in cprp1.
-     injection N; intros <-.
-     destruct cprp1;[contradict H |];auto.
-  Defined.
+  (* Lemma enumerate_dyadic_elements A : open A -> ^M {f : nat -> option (@DyadicVector d) | forall v, A (to_euclidean v) <-> exists n, (f n) = Some v}. *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   destruct (open_cf_exists X) as [f P]. *)
+  (*   destruct (enumerable_dyadic_vector d) as [e E]. *)
+  (*   pose proof (multivalued_choice_sequence_sierp (fun n => (f (to_euclidean (e n))))). *)
+  (*   revert X0. *)
+  (*   apply M_lift. *)
+  (*   intros [c [cprp1 cprp2]]. *)
+  (*   exists (fun n => if (c n) =? 0 then None else Some (e (pred (c n)))). *)
+  (*   intros. *)
+  (*   rewrite <-P. *)
+  (*   destruct (E v) as [m <-]. *)
+  (*   split. *)
+  (*   - intros. *)
+  (*     destruct (cprp2 _ H) as [n [H' <-]]. *)
+  (*     exists n. *)
+  (*     rewrite <-Nat.eqb_neq in H'. *)
+  (*     rewrite H';reflexivity. *)
+  (*  - intros H. *)
+  (*    destruct H as [n N]. *)
+  (*    specialize (cprp1 n). *)
+  (*    destruct (c n);simpl in N. *)
+  (*    contradict N; discriminate. *)
+  (*    rewrite Nat.pred_succ in cprp1. *)
+  (*    injection N; intros <-. *)
+  (*    destruct cprp1;[contradict H |];auto. *)
+  (* Defined. *)
 
 
   Lemma open_is_euclidean_open A : open A -> ^M (euclidean_open A).
@@ -595,7 +595,30 @@ Section EuclideanLocated.
                 rad Ln <= prec n /\
                 Forall (fun b => intersects (closed_ball_to_subset b) M) Ln /\
                 forall x,  M x ->  Exists (fun b => (closed_ball_to_subset b) x) Ln
-              }.
+      }.
+
+  Lemma closed_ball_dist_exists b x  : {r | (forall y, closed_ball_to_subset (d:=d) b y -> euclidean_max_dist x y >= r) /\ (exists y, closed_ball_to_subset b y /\ euclidean_max_dist x y = r)}.
+  Proof.
+    destruct b as [c r].
+    exists (real_max real_0 ((euclidean_max_dist c x)- r)).
+    split.
+    - intros.
+      unfold closed_ball_to_subset in H;simpl in *.
+      destruct (real_max_cand real_0 ((euclidean_max_dist c x) - r)); rewrite H0.
+      apply euclidean_max_dist_pos.
+      add_both_side_by r.
+      apply (real_le_le_le _ (euclidean_max_dist x y + euclidean_max_dist y c)).
+      rewrite euclidean_max_dist_sym;apply euclidean_max_dist_tri.
+      apply real_le_plus_le.
+      exact H.
+    - unfold closed_ball_to_subset;simpl.
+  Admitted.
+
+  Lemma located_dist_exists M x : (exists y, M y) -> (located M) -> {r | forall y, M y -> euclidean_max_dist x y >= r /\ exists y, M y /\ euclidean_max_dist x y = r}.
+  Proof.
+    intros nonempty H.
+    apply real_limit_P.
+  Admitted.
 
   Lemma located_union K1 K2 : located K1 -> located K2 -> located (union K1 K2).
   Proof.

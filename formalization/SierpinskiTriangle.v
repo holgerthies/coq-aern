@@ -12,6 +12,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 #[local] Definition sofReal := @sofReal types casofReal.
 #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
 #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+
 #[local] Notation "^ball" := (@ball types) (at level 0).
 
 (* ring structure on Real *)
