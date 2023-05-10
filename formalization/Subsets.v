@@ -62,6 +62,45 @@ Proof.
 Defined.
 End Open.
 
+Section Closed.
+
+Context {X : Type}.
+Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+#[local] Notation "^K" := (@K types) (at level 0).
+#[local] Notation "^M" := (@M types) (at level 0).
+
+Definition closed (A : (@csubset X)) := open (complement A).
+
+Lemma closed_union {A B} : closed A -> closed B -> closed (union A B).
+Proof.
+  intros cA cB x.
+  pose proof (open_intersection cA cB).
+  destruct (X0 x) as [s H].
+  exists s.
+  rewrite H.
+  split;intros.
+  destruct H0.
+  intros P.
+  destruct P;auto.
+  unfold complement, union in H0.
+  split;intros P;apply H0;auto.
+Defined.
+
+Lemma closed_countable_intersection {A} : (forall n, closed (A n)) -> closed (countable_intersection A).
+Proof.
+  intros H x.
+  destruct (open_countable_union H x) as [s P].
+  exists s.
+  rewrite P.
+  split;intros.
+  intros Q.
+  destruct H0 as [n H0].
+  apply H0.
+  apply Q.
+  apply Classical_Pred_Type.not_all_ex_not.
+  apply H0.
+Defined.
+
 Section Compact.
 
 Context {X : Type}.
