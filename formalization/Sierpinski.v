@@ -1,13 +1,15 @@
+(** Sierpinski space and continuity **)
 Require Import Kleene.
-Require Import Real.
+Require Import Real Euclidean.
 Require Import Lia.
 Require Import Dyadic.
 Section S_Defs.
   Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
   #[local] Notation "^K" := (@K types) (at level 0).
   #[local] Notation "^M" := (@M types) (at level 0).
-  Definition sierp := {k : ^K | k <> lazy_bool_false}.
 
+  (** Sierpinski space is defined as a subtype of Kleeneans **)
+  Definition sierp := {k : ^K | k <> lazy_bool_false}.
   Definition sierp_up (s : sierp) := (proj1_sig s) = lazy_bool_true.
 
   Definition sierp_from_kleenean {k} (H : k <> lazy_bool_false) : sierp.
@@ -19,6 +21,26 @@ Section S_Defs.
   Lemma sierp_from_semidec {P} : {k | (lazy_bool_up klb k <-> P)}  -> {s | sierp_up s <-> P}.
   Proof.
   Admitted.
+
+  Axiom eventually_true :forall (c : forall (n :nat), sierp), {k | sierp_up k <-> exists n, sierp_up(c n)}.
+
+  Lemma semidec_multivalued_countable_choice (P : nat -> Prop) : (forall n, semidec (P n)) -> (exists n, P n) -> ^M {n | (P n)}.
+  Proof.
+    intros.
+    apply (M_lift {n | projP1 _ _ (X n) = lazy_bool_true}).
+    - intros.
+      destruct H0 as [n H0].
+      destruct (X n).
+      exists n.
+      apply i.
+      apply H0.
+    - apply multivalued_countable_choice.
+      destruct H.
+      exists x.
+      destruct (X x).
+      apply i.
+      exact H.
+  Defined.
   (* Axiom kleenean_from_nat_sequence : forall (f : nat -> nat), {k : ^K | k = lazy_bool_true <-> exists n, (f n) = 1}.  *)
 
   (* Axiom kleenean_to_nat_sequence : forall (k : ^K), ^M {f : nat -> nat | k = lazy_bool_true <-> exists n, (f n) = 1}. *)
@@ -170,3 +192,119 @@ Section S_Defs.
 
   
 End S_Defs.
+Section Continuity.
+  Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+  #[local] Notation "^K" := (@K types) (at level 0).
+  #[local] Notation "^M" := (@M types) (at level 0).
+  #[local] Notation "^Real" := (@Real types) (at level 0).
+  #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
+  #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+
+  Ltac IZReal_tac t :=
+    match t with
+    | real_0 => constr:(0%Z)
+    | real_1 => constr:(1%Z)
+    | IZreal ?u =>
+      match isZcst u with
+      | true => u
+      | _ => constr:(InitialRing.NotConstant)
+      end
+    | _ => constr:(InitialRing.NotConstant)
+    end.
+
+  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
+  (* continuity principle for functions to Sierpinski*)
+  Axiom interval_extension_sierp : forall {d} (f : euclidean d -> sierp), ^M {F : DyadicVector -> nat -> bool | (forall v n, (F v n) = true -> forall x, euclidean_max_dist x (to_euclidean v) < prec n -> sierp_up (f x)) /\ forall x, sierp_up (f x) -> exists v n, (euclidean_max_dist x (to_euclidean v)) < prec n /\ (F v n) = true}. 
+
+  Lemma real_archimedean_constructive : forall x, x > real_0 -> ^M {n | prec n < x}.
+  Proof.
+    intros.
+    apply semidec_multivalued_countable_choice.
+    intros.
+    apply real_lt_semidec.
+    apply real_Archimedean.
+    exact H.
+  Defined.
+
+  Lemma continuity_sierp : forall {d} (f : euclidean d -> sierp) x, sierp_up (f x) -> ^M {n | forall y, euclidean_max_dist x y < prec n -> sierp_up (f y) }.
+  Proof.
+    intros.
+    pose proof (interval_extension_sierp f).
+    revert X.
+    apply M_lift_dom.
+    intros.
+    destruct H0 as [F [H1 H2]].
+    apply (M_lift_dom ({v & {n | (euclidean_max_dist x (to_euclidean v)) < (prec n) /\ F v n = true}})).
+    - intros.
+      destruct H0 as [v [n [P1 P2]]].
+      apply (M_lift {m | prec m < prec n - (euclidean_max_dist x (to_euclidean v))});[|apply real_archimedean_constructive;apply real_gt_minus_gt_zero;auto].
+      intros.
+      destruct H0 as [m H0].
+      exists m.
+      intros.
+      apply (H1 _ _ P2).
+      apply (real_le_lt_lt _ (euclidean_max_dist y x + euclidean_max_dist x (to_euclidean v))).
+      apply euclidean_max_dist_tri.
+      replace (prec n) with (prec n - euclidean_max_dist x (to_euclidean v) + euclidean_max_dist x (to_euclidean v)) by ring.
+      apply real_lt_plus_r_lt.
+      rewrite euclidean_max_dist_sym.
+      apply (real_lt_lt_lt _ _ _ H3);auto.
+    - destruct (enumerable_pair _ _ enumerable_nat (enumerable_dyadic_vector d)) as [e E].
+      apply (M_lift {n | (euclidean_max_dist x (to_euclidean (snd (e n)))) < (prec (fst (e n))) /\ (F (snd (e n)) (fst (e n))) = true}).
+      intros.
+      destruct H0 as [n H0].
+      exists (snd (e n)); exists (fst (e n)).
+      exact H0.
+
+      apply semidec_multivalued_countable_choice.
+      + intros.
+        apply semidec_and.
+        apply real_lt_semidec.
+        destruct (F (snd (e n)) (fst (e n))).
+        exists lazy_bool_true.
+        split;intros;unfold lazy_bool_up;auto.
+        exists lazy_bool_false.
+        unfold lazy_bool_up.
+        split;intros.
+        contradict H0.
+        apply lazy_bool_distinct.
+        contradict H0; auto.
+    + destruct (H2 _ H) as [v [n P]].
+      destruct (E (n,v)) as [m M].
+      exists m.
+      rewrite M;auto.
+  Defined.
+
+  Lemma continuity_euclidean : forall {d} (f : euclidean d -> euclidean d) x m, ^M {n | forall y, euclidean_max_dist x y < prec n -> euclidean_max_dist (f x) (f y) < prec m}.
+  Proof.
+    intros.
+    assert (forall y, {s |(sierp_up s) <-> (euclidean_max_dist (f x) (f y)) < prec m}).
+    {
+      intros.
+      destruct (real_lt_semidec (euclidean_max_dist (f x) (f y)) (prec m)) as [k K].
+      apply sierp_from_semidec.
+      exists k.
+      exact K.
+    }
+    pose proof (continuity_sierp (fun y => (projP1 _ _ (X y))) x).
+    simpl in X0.
+    destruct (X x).
+    simpl in X0.
+    assert (sierp_up x0).
+    apply i.
+    rewrite ((proj2 (euclidean_max_dist_id _ _)) (eq_refl (f x))).
+    apply prec_pos.
+    specialize (X0 H).
+    revert X0.
+    apply M_lift.
+    intros.
+    destruct H0 as [n H0].
+    exists n.
+    intros.
+    specialize (H0 _ H1).
+    destruct (X y).
+    simpl in H0.
+    apply i0.
+    exact H0.
+  Defined.
+End Continuity.

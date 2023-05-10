@@ -30,22 +30,31 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   
 
+(** Define classical euclidean subsets and operations on them **)
 Definition euclidean_subset :=  (@csubset (^euclidean d)).
 
 Definition union (A B : euclidean_subset) : euclidean_subset := fun x => A x \/ B x.
 Definition intersection (A B : euclidean_subset) : euclidean_subset:= fun x => A x /\ B x.
 
 Definition translation (A : euclidean_subset) (a : euclidean d ): euclidean_subset := fun x => A (euclidean_minus x a).
+
 Definition scaling (l : Real )(A : euclidean_subset) : euclidean_subset := fun x => exists y, x = (euclidean_scalar_mult l y) /\ A y.
 
 
+(** Basic subsets are the empty set and balls in max norm **)
 Definition empty_set : euclidean_subset := fun x => False.
+
+(** open and closed balls are encoded as pairs of midpoint and radius.
+As the radius is not required to be positive, the empty set is included **)
 Definition ball := ((^euclidean d) * ^Real)%type.
 
-
+(** emebedding of open balls **)
 Definition ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) < (snd b)).  
 
+(** emebedding of closed balls **)
 Definition closed_ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) <= (snd b)).  
+
+(** It is semidecidable if a point is cointained in an open ball *)
 Lemma contained_in_ball_semidec b x : {s : sierp | sierp_up s <-> (ball_to_subset b) x}.
   Proof.
     unfold ball_to_subset.
@@ -63,6 +72,7 @@ Proof.
   apply real_lt_lt_plus_lt;auto.
   rewrite euclidean_max_dist_sym;auto.
 Defined.
+
 Lemma empty_ball_subset A x : is_subset (ball_to_subset (x,real_0)) A.
 Proof.
   unfold is_subset, ball_to_subset.
@@ -72,6 +82,8 @@ Proof.
   contradict P.
   apply euclidean_max_dist_pos.
 Defined.
+
+(** Some basic properties  **)
 
 Definition rad (L : list ball) := (fold_right (fun b1 r => (real_max (snd b1) r)) real_0 L).
 
@@ -101,7 +113,8 @@ Defined.
 End EuclideanBalls.
 
 Section BallOperations.
- 
+(** Operations on lists of balls **)
+
   Context {d : nat}.
   Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
@@ -111,6 +124,8 @@ Section BallOperations.
   #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
   #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
   Add Ring realRing : (realTheory ).
+
+
   Fixpoint change_rad (L : list (@ball d types)) (p : nat) :=
     match L with
      | nil => nil
@@ -172,6 +187,7 @@ Section BallOperations.
     apply real_eq_le; auto.
     apply IH.
   Defined.
+
   Lemma rad_forall L b : In b L -> snd b <= (rad (d:=d) L).
   Proof.
     induction L.
@@ -335,123 +351,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Add Ring realRing : (realTheory ).
   
- (* TODO: Move to appropriate place *)
-  Axiom eventually_true :forall (c : forall (n :nat), sierp), {k | sierp_up k <-> exists n, sierp_up(c n)}.
-  Check eventually_true.
-  (* continuity principle for functions to Sierpinski*)
-  Axiom interval_extension_sierp : forall (f : euclidean d -> sierp), ^M {F : DyadicVector -> nat -> bool | (forall v n, (F v n) = true -> forall x, euclidean_max_dist x (to_euclidean v) < prec n -> sierp_up (f x)) /\ forall x, sierp_up (f x) -> exists v n, (euclidean_max_dist x (to_euclidean v)) < prec n /\ (F v n) = true}. 
-  (* Axiom continuity_sierp : forall (f : euclidean d -> sierp) x, sierp_up (f x) -> ^M {n | forall y, euclidean_max_dist x y < prec n -> sierp_up (f y) }. *)
 
-  
-  Lemma semidec_multivalued_countable_choice (P : nat -> Prop) : (forall n, semidec (P n)) -> (exists n, P n) -> ^M {n | (P n)}.
-  Proof.
-    intros.
-    apply (M_lift {n | projP1 _ _ (X n) = lazy_bool_true}).
-    - intros.
-      destruct H0 as [n H0].
-      destruct (X n).
-      exists n.
-      apply i.
-      apply H0.
-    - apply multivalued_countable_choice.
-      destruct H.
-      exists x.
-      destruct (X x).
-      apply i.
-      exact H.
-  Defined.
-
-  Lemma real_archimedean_constructive : forall x, x > real_0 -> ^M {n | prec n < x}.
-  Proof.
-    intros.
-    apply semidec_multivalued_countable_choice.
-    intros.
-    apply real_lt_semidec.
-    apply real_Archimedean.
-    exact H.
-  Defined.
-
-  Lemma continuity_sierp : forall (f : euclidean d -> sierp) x, sierp_up (f x) -> ^M {n | forall y, euclidean_max_dist x y < prec n -> sierp_up (f y) }.
-  Proof.
-    intros.
-    pose proof (interval_extension_sierp f).
-    revert X.
-    apply M_lift_dom.
-    intros.
-    destruct H0 as [F [H1 H2]].
-    apply (M_lift_dom ({v & {n | (euclidean_max_dist x (to_euclidean v)) < (prec n) /\ F v n = true}})).
-    - intros.
-      destruct H0 as [v [n [P1 P2]]].
-      apply (M_lift {m | prec m < prec n - (euclidean_max_dist x (to_euclidean v))});[|apply real_archimedean_constructive;apply real_gt_minus_gt_zero;auto].
-      intros.
-      destruct H0 as [m H0].
-      exists m.
-      intros.
-      apply (H1 _ _ P2).
-      apply (real_le_lt_lt _ (euclidean_max_dist y x + euclidean_max_dist x (to_euclidean v))).
-      apply euclidean_max_dist_tri.
-      replace (prec n) with (prec n - euclidean_max_dist x (to_euclidean v) + euclidean_max_dist x (to_euclidean v)) by ring.
-      apply real_lt_plus_r_lt.
-      rewrite euclidean_max_dist_sym.
-      apply (real_lt_lt_lt _ _ _ H3);auto.
-    - destruct (enumerable_pair _ _ enumerable_nat (enumerable_dyadic_vector d)) as [e E].
-      apply (M_lift {n | (euclidean_max_dist x (to_euclidean (snd (e n)))) < (prec (fst (e n))) /\ (F (snd (e n)) (fst (e n))) = true}).
-      intros.
-      destruct H0 as [n H0].
-      exists (snd (e n)); exists (fst (e n)).
-      exact H0.
-
-      apply semidec_multivalued_countable_choice.
-      + intros.
-        apply semidec_and.
-        apply real_lt_semidec.
-        destruct (F (snd (e n)) (fst (e n))).
-        exists lazy_bool_true.
-        split;intros;unfold lazy_bool_up;auto.
-        exists lazy_bool_false.
-        unfold lazy_bool_up.
-        split;intros.
-        contradict H0.
-        apply lazy_bool_distinct.
-        contradict H0; auto.
-    + destruct (H2 _ H) as [v [n P]].
-      destruct (E (n,v)) as [m M].
-      exists m.
-      rewrite M;auto.
-  Defined.
-
-  Lemma continuity_euclidean : forall (f : euclidean d -> euclidean d) x m, ^M {n | forall y, euclidean_max_dist x y < prec n -> euclidean_max_dist (f x) (f y) < prec m}.
-  Proof.
-    intros.
-    assert (forall y, {s |(sierp_up s) <-> (euclidean_max_dist (f x) (f y)) < prec m}).
-    {
-      intros.
-      destruct (real_lt_semidec (euclidean_max_dist (f x) (f y)) (prec m)) as [k K].
-      apply sierp_from_semidec.
-      exists k.
-      exact K.
-    }
-    pose proof (continuity_sierp (fun y => (projP1 _ _ (X y))) x).
-    simpl in X0.
-    destruct (X x).
-    simpl in X0.
-    assert (sierp_up x0).
-    apply i.
-    rewrite ((proj2 (euclidean_max_dist_id _ _)) (eq_refl (f x))).
-    apply prec_pos.
-    specialize (X0 H).
-    revert X0.
-    apply M_lift.
-    intros.
-    destruct H0 as [n H0].
-    exists n.
-    intros.
-    specialize (H0 _ H1).
-    destruct (X y).
-    simpl in H0.
-    apply i0.
-    exact H0.
-  Defined.
   Definition euclidean_open (M : euclidean_subset) := {c : nat -> (ball (d := d)) | (forall n, is_subset (ball_to_subset (c n)) M) /\ forall x, M x -> exists n, (ball_to_subset (c n)) x}.
 
 
