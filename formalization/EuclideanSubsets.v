@@ -338,7 +338,7 @@ Section BallOperations.
 End BallOperations.
 
 Section EuclideanOpen.
-
+(** This section defines an alternative encoding for open sets of euclidean space and shows the equivalence to the more general definition **)
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
  Context {d : nat}.
 
@@ -451,6 +451,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      rewrite M;simpl; rewrite N2.
      exact N1.
    Defined.
+
+  (** Operations on Euclidean open sets **)
 
   Lemma euclidean_open_union (M1 M2 : euclidean_subset) : euclidean_open M1 -> euclidean_open M2 -> euclidean_open (union M1 M2).
   Proof.

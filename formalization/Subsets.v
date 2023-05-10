@@ -28,6 +28,38 @@ Proof.
   apply i.
 Defined.
 
+Lemma open_countable_union {A} : (forall n, open (A n)) -> open (countable_union A).
+Proof.
+  intros.
+  intro x.
+  Check eventually_true.
+  destruct (eventually_true (fun n => (proj1_sig (X0 n x)))) as [s P].
+  exists s.
+  rewrite P.
+  split;intros.
+  - destruct H as [n H].
+    pose proof (proj2_sig (X0 n x)).
+    exists n.
+    apply H0.
+    exact H.
+  - destruct H as [n H].
+    pose proof (proj2_sig (X0 n x)).
+    exists n.
+    apply H0.
+    exact H.
+Defined.
+
+Lemma open_intersection {A B}: open A -> open B -> open (intersection A B).
+Proof.
+  intros openA openB x.
+  destruct (openA x) as [s1 S1].
+  destruct (openB x) as [s2 S2].
+  exists (proj1_sig (sierp_and s1 s2)).
+  rewrite (proj2_sig (sierp_and s1 s2)).
+  unfold intersection.
+  rewrite S1, S2.
+  split;auto.
+Defined.
 End Open.
 
 Section Compact.

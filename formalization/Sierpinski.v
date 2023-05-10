@@ -18,6 +18,19 @@ Section S_Defs.
   apply H.
   Defined.
 
+  Lemma sierp_and s1 s2 : {s | sierp_up s <-> sierp_up s1 /\ sierp_up s2}. 
+  Proof.
+    destruct s1 as [k1 K1].
+    destruct s2 as [k2 K2].
+    assert (lazy_bool_and k1 k2 <> lazy_bool_false).
+    { rewrite lazy_bool_and_down.
+      intros H.
+      destruct H;auto.
+    }
+    exists (sierp_from_kleenean H).
+    unfold sierp_from_kleenean, sierp_up;simpl.
+    rewrite lazy_bool_and_up;split;auto.
+  Defined.
   Lemma sierp_from_semidec {P} : {k | (lazy_bool_up klb k <-> P)}  -> {s | sierp_up s <-> P}.
   Proof.
   Admitted.
