@@ -54,6 +54,8 @@ Definition ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean
 (** emebedding of closed balls **)
 Definition closed_ball_to_subset (b : ball)  : euclidean_subset := (fun x => (euclidean_max_dist x (fst b)) <= (snd b)).  
 
+Definition list_of_closed_balls_to_subset (l : list ball) : euclidean_subset := (fun x => exists b, (In b l /\ closed_ball_to_subset b x)).
+
 (** It is semidecidable if a point is cointained in an open ball *)
 Lemma contained_in_ball_semidec b x : {s : sierp | sierp_up s <-> (ball_to_subset b) x}.
   Proof.
@@ -503,6 +505,41 @@ Section EuclideanLocated.
 
   Definition dist A (x : euclidean d) r := (exists y, A y /\ euclidean_max_dist x y <= r) /\ forall y, A y -> euclidean_max_dist x y >= r.
 
+  Definition Hausdorff_dist_bound (S T : (euclidean_subset (d := d))) n :=
+    (forall x, S x -> exists y, T y /\ euclidean_max_dist x y <= n) /\
+      (forall y, T y -> exists x, S x /\ euclidean_max_dist x y <= n).
+
+  Lemma dist_unique A x r1 r2 : dist A x r1 -> dist A x r2 -> r1 = r2.
+  Proof.
+    unfold dist.
+    intros [H1 H2] [H1' H2'].
+    destruct H1 as [y1 [P1 P2]].
+    destruct H1' as [y2 [Q1 Q2]].
+    specialize (H2' _ P1).
+    specialize (H2 _ Q1).
+    apply real_le_le_eq.
+    apply (real_le_le_le _ _ _ H2);auto.
+    apply (real_le_le_le _ _ _ H2');auto.
+  Defined.
+
+  Lemma dist_hausdorff_dist A B x r1 r2 q : dist A x r1 -> dist B x r2 -> Hausdorff_dist_bound A B q -> RealMetric.dist r1 r2 <= q.
+  Proof.
+    intros [[y1 [Y1 Y1']] P1] [[y2 [Y2 Y2']] P2] [H1 H2].
+    apply real_metric_sand.
+    split.
+    - add_both_side_by q.
+      destruct (H2 _ Y2) as [y' [Ay' dy']].
+      apply (real_le_le_le _ _ _ (P1 _ Ay')).
+      apply (real_le_le_le _ _ _ (euclidean_max_dist_tri x y2 y')).
+      rewrite real_plus_comm.
+      apply real_le_le_plus_le;auto.
+      rewrite euclidean_max_dist_sym;auto.
+   - destruct (H1 _ Y1) as [y' [Ay' dy']].
+      apply (real_le_le_le _ _ _ (P2 _ Ay')).
+      apply (real_le_le_le _ _ _ (euclidean_max_dist_tri x y1 y')).
+      apply real_le_le_plus_le;auto.
+  Defined.
+  
   Lemma min_dist_point (c : euclidean d) r x :  (r >= real_0) -> (euclidean_max_dist x c) >= r -> exists y, euclidean_max_dist c y = r /\ euclidean_max_dist x y = (euclidean_max_dist c x) - r.
   Proof.
     intros.
@@ -598,10 +635,22 @@ Section EuclideanLocated.
       apply H.
   Defined.
 
-  Lemma located_dist_exists M x : (exists y, M y) -> (located M) -> {r | forall y, M y -> euclidean_max_dist x y >= r /\ exists y, M y /\ euclidean_max_dist x y = r}.
+  (** distance over union of list of balls **)
+  Lemma finite_union_ball_dist_exists L x : (rad L) >= real_0 -> {r | dist (list_of_closed_balls_to_subset L) x r}.
+  Proof.
+  Admitted.
+
+  Lemma located_dist_exists M x : (exists y, M y) -> (located M) -> {r | dist M x r}.
   Proof.
     intros nonempty H.
     apply real_limit_P.
+    admit.
+    intros.
+    destruct (H n) as [l [P1 [P2 P3]]].
+    assert (rad l >= real_0).
+    admit.
+    destruct (finite_union_ball_dist_exists l x H0) as [dst dstP].
+    exists dst.
   Admitted.
 
   Lemma located_union K1 K2 : located K1 -> located K2 -> located (union K1 K2).
@@ -772,9 +821,6 @@ Section EuclideanLocated.
     apply euclidean_scalar_mult_unit.
   Defined.
 
-  Definition Hausdorff_dist_bound (S T : (euclidean_subset (d := d))) n :=
-    (forall x, S x -> exists y, T y /\ euclidean_max_dist x y <= n) /\
-      (forall y, T y -> exists x, S x /\ euclidean_max_dist x y <= n).
 
   (* Lemma Hausdorff_dist_bound_approx M L n: (rad L <= prec n /\ Forall (fun b : ball => intersects (ball_to_subset b) M) L  /\ (forall x, M x -> Exists (fun b : ball => ball_to_subset b x) L)) -> Hausdorff_dist_bound M (fun x => Exists (fun b  => ball_to_subset b x) L) (real_2 * prec n). *)
   (* Proof. *)
