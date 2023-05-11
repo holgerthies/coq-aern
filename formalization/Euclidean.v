@@ -3,6 +3,9 @@ Require Import Minmax.
 Require Import MultiLimit.
 
 
+Declare Scope Euclidean_scope.
+Delimit Scope Euclidean_scope with euclidean.
+Local Open Scope Euclidean_scope.
 Section Euclidean.
   
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
@@ -146,7 +149,17 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   
 
-  
+  Lemma euclidean_plus_zero {n : nat} (x : euclidean n): (euclidean_plus x (euclidean_zero n)) = x. 
+  Proof.
+    induction n.
+    rewrite (dim_zero_destruct x);auto.
+    destruct (dim_succ_destruct x) as [hx [tx ex]].
+    rewrite ex.
+    simpl.
+    assert ((hx + real_0) = hx) as -> by ring.
+    rewrite IHn.
+    reflexivity.
+  Defined.
   Definition euclidean_opp {n : nat} (x : euclidean n) : euclidean n.
   Proof.
     induction n.
@@ -180,7 +193,18 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     f_equal.
     ring.
     apply IHn.
-  Qed.
+  Defined.
+
+  Lemma euclidean_scalar_mult_euclidean_plus {n : nat} (l : ^Real) (x y : euclidean n) : euclidean_scalar_mult l (euclidean_plus x y) = euclidean_plus (euclidean_scalar_mult l x) (euclidean_scalar_mult l y).
+  Proof.
+    induction n; auto.
+    destruct (dim_succ_destruct x) as [hx [tx ex]].
+    destruct (dim_succ_destruct y) as [hy [ty ey]].
+    rewrite ex, ey.
+    simpl.
+    rewrite IHn.
+    rewrite real_mult_plus_distr;auto.
+  Defined.
 
   Lemma euclidean_scalar_mult_mult {n : nat} (l1 : ^Real) (l2 : ^Real) (x : euclidean n) : euclidean_scalar_mult l1 (euclidean_scalar_mult l2 x) = euclidean_scalar_mult (l1*l2) x.
   Proof.
@@ -192,6 +216,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     ring.
     apply IHn.
   Qed.
+
 
   Lemma euclidean_scalar_mult_zero {n : nat} (x : euclidean n) : euclidean_scalar_mult real_0 x = euclidean_zero n.
   Proof.
@@ -463,6 +488,30 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite real_max_hom;auto.
   Qed.
 
+  Lemma euclidean_max_dist_scaled {n : nat} (x: euclidean n) l: (l <= real_1) -> euclidean_max_dist x (euclidean_scalar_mult l x) = (real_1 - l) * (euclidean_max_dist x (euclidean_zero n)).
+  Proof.
+    intros.
+    induction n.
+    rewrite (dim_zero_destruct x).
+    unfold euclidean_max_dist.
+    simpl.
+    ring.
+    destruct (dim_succ_destruct x) as [hx [tx ex]].
+    rewrite ex;simpl.
+    rewrite !euclidean_max_dist_cons.
+    rewrite IHn.
+    rewrite <-!real_max_hom.
+    assert ((dist hx (l * hx)) = (real_1 - l) * dist hx real_0) as ->.
+    {
+      rewrite dist_scale.
+      unfold dist.
+      assert ((real_1 - l)*hx - (real_1-l)*real_0  = hx - l*hx) as -> by ring.
+      reflexivity.
+      add_both_side_by l;auto.
+    }
+    reflexivity.
+    add_both_side_by l;auto.
+  Defined.
   Lemma euclidean_max_dist_plus_le {n : nat} (p1 p2 p3 p4 : euclidean n): euclidean_max_dist (euclidean_plus p1 p2) (euclidean_plus p3 p4) <= (euclidean_max_dist p1 p3) + (euclidean_max_dist p2 p4).
   Proof.
     induction n. 
@@ -1025,6 +1074,9 @@ Qed.
  Qed.
 End Euclidean.
 
+Infix "+" := (euclidean_plus ) : Euclidean_scope.
+Infix "-" := (euclidean_minus ) : Euclidean_scope.
+Infix "*" := (euclidean_scalar_mult ) : Euclidean_scope.
 Section Euclidean2.
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 

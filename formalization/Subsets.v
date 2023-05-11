@@ -1,4 +1,4 @@
-(* this file proves various properties of subsets of real numbers *)
+(* this file proves various prperties of subsets of real numbers *)
 Require Import Lia.
 Require Import Real Euclidean List Minmax ClassicalSubsets Sierpinski testsearch Dyadic.
 
@@ -100,6 +100,7 @@ Proof.
   apply Classical_Pred_Type.not_all_ex_not.
   apply H0.
 Defined.
+End Closed.
 
 Section Compact.
 
