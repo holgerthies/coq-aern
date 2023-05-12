@@ -77,6 +77,15 @@ Proof.
   rewrite euclidean_max_dist_sym;auto.
 Defined.
 
+Lemma closed_ball_max_dist x y b: closed_ball_to_subset b x -> closed_ball_to_subset b y -> euclidean_max_dist x y <= real_2*(snd b). 
+Proof.
+  intros H1 H2.
+  apply (real_le_le_le _ _ _ (euclidean_max_dist_tri x (fst b) y)).
+  assert (real_2 = real_1 + real_1) as -> by auto.
+  assert ((real_1 + real_1) * snd b = snd b + snd b ) as -> by ring.
+  apply real_le_le_plus_le;auto.
+  rewrite euclidean_max_dist_sym;auto.
+Defined.
 Lemma empty_ball_subset A x : is_subset (ball_to_subset (x,real_0)) A.
 Proof.
   unfold is_subset, ball_to_subset.
@@ -503,41 +512,158 @@ Section EuclideanLocated.
                 forall x,  M x ->  Exists (fun b => (closed_ball_to_subset b) x) Ln
       }.
 
-  Definition dist A (x : euclidean d) r := (exists y, A y /\ euclidean_max_dist x y <= r) /\ forall y, A y -> euclidean_max_dist x y >= r.
+  Definition W_is_inf P s := W_is_sup (fun x => (P (- x))) (-s). 
+
+  Definition dist (A : csubset) (x : euclidean d) r :=  (forall y, A y -> euclidean_max_dist x y >= r) /\ forall s, (forall y, A y -> euclidean_max_dist x y >= s) -> s <= r.
+  Lemma helper1 A r (x : euclidean d): (forall z, (exists y, A y /\ euclidean_max_dist x y = z) -> r <= z) <-> forall y, A y -> r <= (euclidean_max_dist x y).
+  Proof.
+    split; intros.
+    apply H.
+    exists y.
+    split;auto.
+
+    destruct H0 as [y [Ay <-]].
+    apply H;auto.
+  Defined.
+
+
+  Lemma real_le_anti_anti z1 z2: -z1 <= -z2 -> z2 <= z1. 
+  Proof.
+    intros.
+    destruct H.
+    apply real_lt_le.
+    apply real_lt_anti_anti.
+    exact H.
+    apply real_eq_le.
+    assert (z2 = (- (- z2))) as -> by ring.
+    rewrite <-H.
+    ring.
+   Defined.
+
+  Lemma real_le_pos_neg z1 z2: z1 <= -z2 -> z2 <= -z1. 
+  Proof.
+    intros.
+    assert (z2 = (- - z2)) as -> by ring.
+    apply real_le_anti_anti.
+    ring_simplify.
+    exact H.
+  Defined.
+
+  Lemma real_le_neg_pos z1 z2: -z1 <= z2 -> -z2 <= z1. 
+  Proof.
+    intros.
+    assert (z1 = (- - z1)) as -> by ring.
+    apply real_le_anti_anti.
+    ring_simplify.
+    exact H.
+  Defined.
+
+  Lemma dist_inf M x r: ((dist M x r) <-> W_is_inf (fun r' =>  exists y, M y /\ euclidean_max_dist x y = r') r).
+  Proof.
+    split.
+    - intros [D1 D2].
+      split.
+
+      unfold W_is_upper_bound.
+      intros z P.
+      destruct P as [y [P1 P2]].
+      apply real_le_pos_neg.
+      rewrite <-P2.
+      apply D1;auto.
+
+      intros.
+      unfold W_is_upper_bound in H.
+      apply real_le_neg_pos.
+      apply D2.
+      intros.
+      apply real_le_neg_pos.
+      apply H.
+      exists y;split;auto;ring.
+  - intros [H1 H2].
+    split.
+
+    intros.
+    unfold W_is_upper_bound in H1.
+    apply real_le_anti_anti.
+    apply H1.
+    exists y;split;auto;ring.
+
+    intros.
+    apply real_le_anti_anti.
+    apply H2.
+    unfold W_is_upper_bound;intros.
+    destruct H0 as [y [My Dy]].
+    apply real_le_pos_neg.
+    rewrite <-Dy.
+    apply H;auto.
+  Defined.
 
   Definition Hausdorff_dist_bound (S T : (euclidean_subset (d := d))) n :=
     (forall x, S x -> exists y, T y /\ euclidean_max_dist x y <= n) /\
       (forall y, T y -> exists x, S x /\ euclidean_max_dist x y <= n).
 
-  Lemma dist_unique A x r1 r2 : dist A x r1 -> dist A x r2 -> r1 = r2.
+  Lemma Hausdorff_dist_bound_approx M L n: (rad L <= prec n /\ Forall (fun b : ball => intersects (closed_ball_to_subset b) M) L  /\ (forall x, M x -> Exists (fun b : ball => closed_ball_to_subset b x) L)) -> Hausdorff_dist_bound M (list_of_closed_balls_to_subset L) (real_2 * prec n).
   Proof.
-    unfold dist.
-    intros [H1 H2] [H1' H2'].
-    destruct H1 as [y1 [P1 P2]].
-    destruct H1' as [y2 [Q1 Q2]].
-    specialize (H2' _ P1).
-    specialize (H2 _ Q1).
-    apply real_le_le_eq.
-    apply (real_le_le_le _ _ _ H2);auto.
-    apply (real_le_le_le _ _ _ H2');auto.
+    intros [H1 [H2 H3]].
+    unfold Hausdorff_dist_bound.
+    split.
+    - intros.
+      exists x.
+      split.
+      specialize (H3 x H).
+      apply Exists_exists in H3.
+      apply H3;auto.
+      rewrite ((proj2 (euclidean_max_dist_id x x)) (eq_refl x)).
+      assert (real_0 = real_2 * real_0) as -> by ring.
+      apply real_le_mult_pos_le; apply real_lt_le;[apply real_lt_0_2|apply prec_pos].
+   - intros.
+     destruct H as [b [B1 B2]].
+     rewrite Forall_forall in H2.
+     destruct (H2 _ B1) as [x [I1 I2]].
+     exists x;split;auto.
+     apply (real_le_le_le _ (real_2 * snd b)).
+     apply closed_ball_max_dist;auto.
+     apply real_le_mult_pos_le.
+     apply real_lt_le;apply real_lt_0_2.
+     apply (real_le_le_le _ (rad L));auto.
+     apply (rad_forall _ _ B1).
   Defined.
 
   Lemma dist_hausdorff_dist A B x r1 r2 q : dist A x r1 -> dist B x r2 -> Hausdorff_dist_bound A B q -> RealMetric.dist r1 r2 <= q.
   Proof.
-    intros [[y1 [Y1 Y1']] P1] [[y2 [Y2 Y2']] P2] [H1 H2].
+    intros [D1 D2] [D1' D2'] [H1 H2].
     apply real_metric_sand.
     split.
-    - add_both_side_by q.
-      destruct (H2 _ Y2) as [y' [Ay' dy']].
-      apply (real_le_le_le _ _ _ (P1 _ Ay')).
-      apply (real_le_le_le _ _ _ (euclidean_max_dist_tri x y2 y')).
-      rewrite real_plus_comm.
+    - apply D2'.
+      intros.
+      destruct (H2 _ H) as [y' [Ay' dy']].
+      add_both_side_by q.
+      apply (real_le_le_le _ _ _ (D1 _ Ay')).
+      apply (real_le_le_le _ _ _ (euclidean_max_dist_tri x y y')).
       apply real_le_le_plus_le;auto.
+      apply real_le_triv.
       rewrite euclidean_max_dist_sym;auto.
-   - destruct (H1 _ Y1) as [y' [Ay' dy']].
-      apply (real_le_le_le _ _ _ (P2 _ Ay')).
-      apply (real_le_le_le _ _ _ (euclidean_max_dist_tri x y1 y')).
+    - add_both_side_by (-q).
+      apply D2.
+      intros.
+      destruct (H1 _ H) as [y' [Ay' dy']].
+      add_both_side_by q.
+      apply (real_le_le_le _ _ _ (D1' _ Ay')).
+      apply (real_le_le_le _ _ _ (euclidean_max_dist_tri x y y')).
       apply real_le_le_plus_le;auto.
+      apply real_le_triv.
+  Defined.
+  
+
+  Lemma dist_unique A x r1 r2 :  (dist A x r1 -> dist A x r2 -> r1 = r2).
+  Proof.
+    unfold dist.
+    intros [H1 H2] [H1' H2'].
+    apply real_le_le_eq.
+    apply H2'.
+    apply H1.
+    apply H2.
+    apply H1'.
   Defined.
   
   Lemma min_dist_point (c : euclidean d) r x :  (r >= real_0) -> (euclidean_max_dist x c) >= r -> exists y, euclidean_max_dist c y = r /\ euclidean_max_dist x y = (euclidean_max_dist c x) - r.
@@ -606,52 +732,123 @@ Section EuclideanLocated.
     exists (real_max real_0 ((euclidean_max_dist c x)- r)).
     split.
     - destruct (real_max_cand real_0 (euclidean_max_dist x c -r)).
-      + assert (r >= euclidean_max_dist x c).
-        { add_both_side_by (-r).
-          assert ((-r + euclidean_max_dist x c) = euclidean_max_dist x c - r) as -> by ring.
-          apply (real_max_eq_snd_le _ _ _ H).
-        }
-        exists x.
+      + intros.
         rewrite (euclidean_max_dist_sym  c).
         rewrite H.
-        split;auto.
-        rewrite (proj2 (euclidean_max_dist_id x x) eq_refl). 
-        apply real_le_triv.
-      + assert (r <= euclidean_max_dist x c).
+        apply euclidean_max_dist_pos.
+      + intros z Z.
+        assert (r <= euclidean_max_dist x c).
         { add_both_side_by (-r).
           assert ((-r + euclidean_max_dist x c) = euclidean_max_dist x c - r) as -> by ring.
           apply (real_max_eq_fst_le _ _ _ H).
         }
         destruct (min_dist_point c r x) as [y [P1 P2]]; auto.
-        exists y.
-        split;unfold closed_ball_to_subset;[simpl;rewrite euclidean_max_dist_sym, P1; apply real_le_triv | ].
-        rewrite (euclidean_max_dist_sym c), H, (euclidean_max_dist_sym _ c), P2.
-        apply real_le_triv.
+        rewrite (euclidean_max_dist_sym c), H, (euclidean_max_dist_sym _ c).
+        add_both_side_by r.
+        apply (real_le_le_le _ _ _ (euclidean_max_dist_tri c z x)).
+        rewrite real_plus_comm.
+        rewrite (euclidean_max_dist_sym z).
+        apply real_le_plus_le.
+        rewrite euclidean_max_dist_sym.
+        apply Z.
     - intros.
-      destruct (real_max_cand real_0 (euclidean_max_dist x c -r)); rewrite (euclidean_max_dist_sym c), H0;[apply euclidean_max_dist_pos | ].
-      add_both_side_by r.
-      apply (real_le_le_le _ _ _ (euclidean_max_dist_tri x y c)).
-      apply real_le_plus_le.
-      apply H.
+      destruct (real_max_cand real_0 (euclidean_max_dist x c -r)).
+      + rewrite euclidean_max_dist_sym,H0.
+        apply (real_le_le_le _ (euclidean_max_dist x x)).
+        apply H.
+        assert (r >= euclidean_max_dist x c).
+        { add_both_side_by (-r).
+          assert ((-r + euclidean_max_dist x c) = euclidean_max_dist x c - r) as -> by ring.
+          apply (real_max_eq_snd_le _ _ _ H0).
+        }
+        apply H1.
+        apply real_eq_le.
+        apply euclidean_max_dist_id;auto.
+     +  assert (r <= euclidean_max_dist x c).
+        { add_both_side_by (-r).
+          assert ((-r + euclidean_max_dist x c) = euclidean_max_dist x c - r) as -> by ring.
+          apply (real_max_eq_fst_le _ _ _ H0).
+        }
+        rewrite (euclidean_max_dist_sym c), H0.
+        destruct (min_dist_point c r x) as [y [P1 P2]];auto.
+        rewrite (euclidean_max_dist_sym x).
+        rewrite <-P2.
+        apply H.
+        apply real_eq_le;simpl.
+        rewrite euclidean_max_dist_sym.
+        apply P1.
   Defined.
 
   (** distance over union of list of balls **)
-  Lemma finite_union_ball_dist_exists L x : (rad L) >= real_0 -> {r | dist (list_of_closed_balls_to_subset L) x r}.
+  Lemma finite_union_ball_dist_exists L x : (forall b, In b L -> snd b >= real_0) -> {r | dist (list_of_closed_balls_to_subset L) x r}.
   Proof.
   Admitted.
+
+  
+  Lemma located_approx_dist M x n : (exists y, M y) -> (located M) -> {r | forall r', (dist M x r') -> RealMetric.dist r r' <= prec n}.
+  Proof.
+    intros.
+    destruct (X (S n)) as [l P].
+    assert (forall b, In b l -> snd b >= real_0). admit.
+    destruct (finite_union_ball_dist_exists l x H0).
+    exists x0. 
+    intros.
+    pose proof (Hausdorff_dist_bound_approx M l (S n) P).
+    pose proof (dist_hausdorff_dist _ _ _ _ _ _ H1 d0 H2).
+    rewrite dist_symm.
+    assert (prec n = real_2 * (prec (S n))) as -> by (rewrite <-prec_twice,Nat.add_1_r;unfold real_2;simpl;ring).
+    exact H3.
+ Admitted.
+  
+  Lemma classical_dist_exists M x : (exists y, M y) -> exists r, dist M x r.
+  Proof.
+    intros.
+    assert ((exists r, dist M x r) <-> (exists r, W_is_inf (fun r' =>  exists y, M y /\ euclidean_max_dist x y = r') r)).
+    {
+      split;intros H1;destruct H1 as [y H1];exists y;apply dist_inf;auto.
+    }
+    apply H0.
+    assert (forall P, ((exists r, W_is_sup P r) -> exists r, W_is_sup P (- r))).
+    {
+      intros.
+      destruct H1.
+      exists (-x0).
+      assert ((- - x0) = x0) as -> by ring.
+      exact H1.
+    }
+    unfold W_is_inf.
+    apply H1.
+    apply W_complete.
+    destruct H as [y H].
+    exists (-euclidean_max_dist x y);exists y.
+    split;auto;ring.
+    unfold W_is_bounded_above.
+    exists real_0.
+    unfold W_is_upper_bound.
+    intros.
+    destruct H2 as [y [_ H2]].
+    apply real_le_anti_anti.
+    rewrite <- H2.
+    ring_simplify.
+    apply euclidean_max_dist_pos.
+  Defined.
 
   Lemma located_dist_exists M x : (exists y, M y) -> (located M) -> {r | dist M x r}.
   Proof.
     intros nonempty H.
     apply real_limit_P.
-    admit.
-    intros.
-    destruct (H n) as [l [P1 [P2 P3]]].
-    assert (rad l >= real_0).
-    admit.
-    destruct (finite_union_ball_dist_exists l x H0) as [dst dstP].
-    exists dst.
-  Admitted.
+    - destruct (classical_dist_exists _ x nonempty) as [r R].
+      exists r.
+      split;auto.
+      intros.
+      apply (dist_unique _ _ _ _ R H0).
+    - intros.
+      destruct (located_approx_dist _ x n nonempty H) as [d0 D0].
+      exists d0.
+      destruct (classical_dist_exists _ x nonempty) as [r R].
+      exists r.
+      split;auto.
+  Defined.
 
   Lemma located_union K1 K2 : located K1 -> located K2 -> located (union K1 K2).
   Proof.
@@ -822,30 +1019,7 @@ Section EuclideanLocated.
   Defined.
 
 
-  (* Lemma Hausdorff_dist_bound_approx M L n: (rad L <= prec n /\ Forall (fun b : ball => intersects (ball_to_subset b) M) L  /\ (forall x, M x -> Exists (fun b : ball => ball_to_subset b x) L)) -> Hausdorff_dist_bound M (fun x => Exists (fun b  => ball_to_subset b x) L) (real_2 * prec n). *)
-  (* Proof. *)
-  (*   intros [H1 [H2 H3]]. *)
-  (*   unfold Hausdorff_dist_bound. *)
-  (*   split. *)
-  (*   - intros. *)
-  (*     exists x. *)
-  (*     split;[apply H3;auto|]. *)
-  (*     rewrite ((proj2 (euclidean_max_dist_id x x)) (eq_refl x)). *)
-  (*     assert (real_0 = real_2 * real_0) as -> by ring. *)
-  (*     apply real_le_mult_pos_le; [apply real_lt_0_2|apply prec_pos]. *)
-  (*  - intros. *)
-  (*    apply Exists_exists in H. *)
-  (*    destruct H as [b [B1 B2]]. *)
-  (*    rewrite Forall_forall in H2. *)
-  (*    destruct (H2 _ B1) as [x [I1 I2]]. *)
-  (*    exists x;split;auto. *)
-  (*    apply (real_lt_le_lt _ (real_2 * snd b)). *)
-  (*    apply ball_max_dist;auto. *)
-  (*    apply real_le_mult_pos_le. *)
-  (*    apply real_lt_le;apply real_lt_0_2. *)
-  (*    apply (real_le_le_le _ (rad L));auto. *)
-  (*    apply (rad_forall _ _ B1). *)
-  (* Defined. *)
+
   Lemma located_lim :
     forall K : euclidean_subset,
       (forall n : nat, {X :  euclidean_subset & prod (located X) (Hausdorff_dist_bound X K (prec n))})
