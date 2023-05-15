@@ -784,21 +784,29 @@ Section EuclideanLocated.
   Proof.
   Admitted.
 
-  
+  (** A covering for a nonempty set can not contain any empty balls**)
+   Lemma intersection_nonempty (M : csubset) (L : list ball) : (exists x, M x) -> Forall (fun b => intersects (@closed_ball_to_subset d _ _ b) M) L ->  forall b, In b L -> snd b >= real_0.
+   Proof.
+     intros.
+     rewrite Forall_forall in H0.
+     destruct (H0 _ H1) as [x [P1 P2]].
+     apply (real_le_le_le _ _ _  (euclidean_max_dist_pos x (fst b))).
+     apply P1.
+   Defined.
+
   Lemma located_approx_dist M x n : (exists y, M y) -> (located M) -> {r | forall r', (dist M x r') -> RealMetric.dist r r' <= prec n}.
   Proof.
     intros.
     destruct (X (S n)) as [l P].
-    assert (forall b, In b l -> snd b >= real_0). admit.
-    destruct (finite_union_ball_dist_exists l x H0).
+    destruct (finite_union_ball_dist_exists l x (intersection_nonempty _ _ H ((proj1 (proj2 P))))).
     exists x0. 
     intros.
     pose proof (Hausdorff_dist_bound_approx M l (S n) P).
-    pose proof (dist_hausdorff_dist _ _ _ _ _ _ H1 d0 H2).
+    pose proof (dist_hausdorff_dist _ _ _ _ _ _ H0 d0 H1).
     rewrite dist_symm.
     assert (prec n = real_2 * (prec (S n))) as -> by (rewrite <-prec_twice,Nat.add_1_r;unfold real_2;simpl;ring).
-    exact H3.
- Admitted.
+    exact H2.
+ Defined.
   
   Lemma classical_dist_exists M x : (exists y, M y) -> exists r, dist M x r.
   Proof.
