@@ -779,11 +779,75 @@ Section EuclideanLocated.
         apply P1.
   Defined.
 
-  (** distance over union of list of balls **)
-  Lemma finite_union_ball_dist_exists L x : (forall b, In b L -> snd b >= real_0) -> {r | dist (list_of_closed_balls_to_subset L) x r}.
+  Lemma list_of_closed_balls_to_subset_cons a l x : (@list_of_closed_balls_to_subset d _ _  (a :: l) x) <-> (closed_ball_to_subset a x) \/ (list_of_closed_balls_to_subset l x).
   Proof.
-  Admitted.
+    split.
+    - intros.
+      destruct H as [b [H1 H2]].
+      apply in_inv in H1.
+      destruct H1.
+      left.
+      rewrite H;apply H2.
+      right.
+      exists b;auto.
+   - intros.
+     destruct H.
+     exists a;split;[apply in_eq | ];auto.
+     destruct H as [b [H1 H2]].
+     exists b;split;[apply in_cons| ];auto.
+  Defined.
 
+  (** distance over union of list of balls **)
+  Lemma finite_union_ball_dist_exists L x : L <> Datatypes.nil -> (forall b, In b L -> snd b >= real_0) -> {r | dist (list_of_closed_balls_to_subset L) x r}.
+  Proof.
+    intros nonempty H.
+    induction L;[contradict nonempty;auto |].
+    assert (snd a >= real_0) by (apply H;simpl;auto).
+    destruct (closed_ball_dist_exists a x H0) as [rh Rh].
+    destruct L.
+    - exists rh.
+      assert (forall x, (list_of_closed_balls_to_subset (a :: Datatypes.nil) x) <-> (closed_ball_to_subset a x)).
+      {
+        intros.
+        split.
+        intros [y [[P1|P1] P2]]; [rewrite P1| contradict P1];auto.
+        intros;exists a.
+        split;simpl;auto.
+      }
+      split;intros;apply Rh.
+      rewrite <-H1;auto.
+      intros y.
+      rewrite <-H1;auto.
+   - destruct IHL as [rt Rt];[discriminate| |].
+     intros;apply H;apply in_cons;auto.
+     destruct (real_min_prop rh rt) as [r R].
+     exists r.
+     destruct (real_is_min_Or _ _ _ R) as [[<- P]| [<- P]];split.
+     + intros.
+       apply list_of_closed_balls_to_subset_cons in H1.
+       destruct H1;[apply Rh;auto |].
+       apply (real_le_le_le _ rt);auto.
+       apply Rt;auto.
+    + intros.
+      destruct Rh as [Rh1 Rh2].
+      apply Rh2.
+      intros.
+      apply H1.
+      apply list_of_closed_balls_to_subset_cons.
+      left;auto.
+   + intros.
+     apply list_of_closed_balls_to_subset_cons in H1.
+     destruct H1; [| apply Rt;auto].
+     apply (real_le_le_le _ rh);auto;apply Rh;auto.
+   + intros.
+      destruct Rt as [Rt1 Rt2].
+      apply Rt2.
+      intros.
+      apply H1.
+      apply list_of_closed_balls_to_subset_cons.
+      right;auto.
+   Defined.
+  
   (** A covering for a nonempty set can not contain any empty balls**)
    Lemma intersection_nonempty (M : csubset) (L : list ball) : (exists x, M x) -> Forall (fun b => intersects (@closed_ball_to_subset d _ _ b) M) L ->  forall b, In b L -> snd b >= real_0.
    Proof.
@@ -794,11 +858,26 @@ Section EuclideanLocated.
      apply P1.
    Defined.
 
+  (** A covering for a nonempty set can not contain any empty balls**)
+   Lemma cover_nonempty (M : csubset) (L : list ball) : (exists x, M x) -> 
+                (forall x,  M x ->  Exists (fun b => (@closed_ball_to_subset d _ _ b) x) L)
+ ->  L <> Datatypes.nil.
+   Proof.
+     intros.
+     destruct H as [x Mx].
+     specialize (H0 _ Mx).
+     rewrite Exists_exists in H0.
+     destruct H0 as [b [B B']].
+     contradict B.
+     rewrite B.
+     apply in_nil.
+  Defined.
+
   Lemma located_approx_dist M x n : (exists y, M y) -> (located M) -> {r | forall r', (dist M x r') -> RealMetric.dist r r' <= prec n}.
   Proof.
     intros.
     destruct (X (S n)) as [l P].
-    destruct (finite_union_ball_dist_exists l x (intersection_nonempty _ _ H ((proj1 (proj2 P))))).
+    destruct (finite_union_ball_dist_exists l x (cover_nonempty _ _ H (proj2 (proj2 P))) (intersection_nonempty _ _ H ((proj1 (proj2 P))))).
     exists x0. 
     intros.
     pose proof (Hausdorff_dist_bound_approx M l (S n) P).
