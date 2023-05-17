@@ -1191,6 +1191,84 @@ Section EuclideanLocated.
     apply rad_forall; auto.
   Defined.
 
+
+  Lemma located_uniformly_continuous A (f : euclidean d -> euclidean d): located A -> forall m, ^M {n | forall x, (A x -> forall y, euclidean_max_dist x y <= prec n -> euclidean_max_dist (f x) (f y) <= prec m)}.
+  Proof.
+  Admitted.
+
+  Definition image (f : (@euclidean types d) -> (@euclidean types d)) (A : csubset) x := exists y, A y /\ (f y) = x.
+
+  Lemma image_list (f: (@euclidean types d) -> (@euclidean types  d)) (L : list ball) m : {L' | forall b', In b' L' <-> exists b, In b L /\ (fst b') = f (fst b) /\ snd b' = prec m}.
+  Proof.
+    induction L.
+    exists Datatypes.nil.
+    intros;simpl;split;intros;[contradict H| destruct H as [H1 [H _]] ];auto.
+    destruct IHL as [L' H].
+    exists ((f (fst a), prec m) :: L').
+    simpl.
+    intros.
+    split.
+    - intros [].
+      exists a;rewrite <-H0;simpl;split;auto.
+      destruct (proj1 (H b') H0) as [b [H1 H2]].
+      exists b.
+      split;auto.
+    - destruct b';simpl.
+      intros [b [H1 [-> ->]]];simpl.
+     destruct H1;[rewrite H0 |];auto.
+     right.
+     apply H.
+     exists b.
+     split;auto.
+   Defined.
+
+   Lemma image_located A (f : euclidean d -> euclidean d) : located A -> ^M (located (image f A)).
+  Proof.
+    intros.
+    unfold located.
+    apply M_countable_lift.
+    intros.
+    pose proof (located_uniformly_continuous A f X n).
+    revert X0.
+    apply M_lift.
+    intros [m H].
+    destruct (X m) as [L [H1 [H2 H3]]].
+    destruct (image_list f L n) as [L' P].
+    exists L'.
+    split; [|split].
+    - apply rad_prec_spec.
+      intros.
+      destruct (proj1 (P b) H0) as [_ [_ [_ ->]]].
+      apply real_le_triv.
+   - apply Forall_forall.
+     intros b' I.
+     destruct (proj1 (P b') I) as [b [B1 [B2 B3]]].
+     rewrite Forall_forall in H2.
+     destruct (H2 _ B1) as [y [Y1 Y2]].
+     exists (f y).
+     unfold ClassicalSubsets.intersection, closed_ball_to_subset, image.
+     split.
+     rewrite B2,B3.
+     apply  H;auto.
+     apply (real_le_le_le _ (rad L) );auto.
+     apply (real_le_le_le _ (snd b));auto.
+     apply rad_forall;auto.
+     exists y;auto.
+   - intros y [x [X1 X2] ].
+     apply Exists_exists.
+     specialize (H3 _ X1).
+     rewrite Exists_exists in H3.
+     destruct H3 as [b [B1 B2]].
+     exists (f (fst b), (prec n)).
+     split.
+     apply P.
+     exists b;split;auto.
+     rewrite <- X2.
+     apply H;auto.
+     apply (real_le_le_le _ (rad L));auto.
+     apply (real_le_le_le _ (snd b));auto.
+     apply rad_forall;auto.
+  Defined.
 End EuclideanLocated.
 
 Section SubsetsR2.
