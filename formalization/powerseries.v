@@ -382,6 +382,22 @@ Section PolynomialModels.
  destruct n;auto;ring.
  destruct b;destruct n;simpl; try ring;auto.
  Qed.
+ Lemma mult_coefficients_sym a b : mult_coefficients a b  = mult_coefficients b a.
+ Proof.
+   apply (nth_ext _ _ real_0 real_0).
+   rewrite !length_mult_coefficients;lia.
+   intros.
+   rewrite length_mult_coefficients in H.
+   rewrite !mult_coefficients_spec; try lia.
+   induction n.
+   unfold convolution_coeff.
+   simpl.
+   ring.
+
+   unfold convolution_coeff.
+   simpl.
+   rewrite Nat.sub_diag.
+   simpl.
  Lemma mult_coefficients_cons a b a0 b0 : mult_coefficients (a0 :: a) (b0 :: b) = sum_coefficients (mult_coefficients [a0] (b0 :: b)) (real_0 :: mult_coefficients a (b0 :: b)).
  Proof.
    apply (nth_ext _ _ real_0 real_0).
