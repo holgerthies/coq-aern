@@ -394,13 +394,15 @@ Section PolynomialModels.
      simpl in H.
      rewrite mult_coefficients_spec; try (simpl;lia).
      rewrite sum_coefficient_nth.
-     rewrite mult_coefficients_spec.
+     rewrite !mult_coefficients_single_list.
      destruct n;simpl; [unfold convolution_coeff;simpl;ring|].
      rewrite convolution_coeff_cons.
      rewrite mult_coefficients_spec; try (simpl;lia).
-     rewrite convolution_coeff_cons.
+     assert (real_0 = a0 * real_0) as R by ring.
+     rewrite R,map_nth.
      simpl.
-     unfold convolution_coeff;rewrite convolution_coeff_rec_nil;ring.
+     rewrite <-R;auto.
+ Qed.
 
  Lemma mult_coefficients_eval_cons a b a0 x : eval_series (mult_coefficients (a0 :: a) b) x = a0 * eval_series b x + x*eval_series (mult_coefficients a b) x.
  Proof.
