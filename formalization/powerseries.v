@@ -342,10 +342,71 @@ Section PolynomialModels.
     ring.
  Qed.
 
+ Lemma convolution_coeff_zero a b n: (length a + length b - 1<= n)%nat  -> convolution_coeff a b n = real_0.
+ Proof.
+   revert n.
+   induction a;intros.
+   unfold convolution_coeff.
+   rewrite convolution_coeff_rec_nil;auto.
+   simpl in H.
+   destruct n.
+   - assert (b = []) as -> by (apply length_zero_iff_nil;lia).
+     unfold convolution_coeff.
+     simpl;ring.
+   - rewrite convolution_coeff_cons.
+     rewrite IHa; simpl in H;try lia.
+      rewrite nth_overflow; [ring | lia].
+ Qed.
+
+ Lemma mult_coefficients_cons_nth a0 a b n : nth (S n) (mult_coefficients (a0 :: a) b) real_0 = a0 * nth (S n) b real_0 + convolution_coeff a b n.
+ Proof.
+   destruct (Nat.le_gt_cases (S n) ((length a+length b - 1))%nat).
+   - rewrite mult_coefficients_spec; simpl; try lia.
+     rewrite convolution_coeff_cons;auto.
+  - rewrite !nth_overflow;try rewrite length_mult_coefficients;simpl; try lia.
+    rewrite convolution_coeff_zero;  [ring | lia].
+ Qed.
+
+ Lemma length_sum_coefficients a b : length (sum_coefficients a b) = Nat.max (length a) (length b).
+ Proof.
+   revert b.
+   induction a;simpl;auto.
+   intros.
+   destruct b;simpl; auto.
+ Qed.
+
+ Lemma sum_coefficient_nth a b n : nth n (sum_coefficients a b) real_0 = nth n a real_0 + nth n b real_0.
+ Proof.
+ revert n b.
+ induction a;intros;simpl.
+ destruct n;auto;ring.
+ destruct b;destruct n;simpl; try ring;auto.
+ Qed.
+ Lemma mult_coefficients_cons a b a0 b0 : mult_coefficients (a0 :: a) (b0 :: b) = sum_coefficients (mult_coefficients [a0] (b0 :: b)) (real_0 :: mult_coefficients a (b0 :: b)).
+ Proof.
+   apply (nth_ext _ _ real_0 real_0).
+   - rewrite length_sum_coefficients.
+     rewrite !length_mult_coefficients;simpl.
+     rewrite length_mult_coefficients;simpl.
+     rewrite max_r;try lia.
+   - intros.
+     rewrite length_mult_coefficients in H.
+     simpl in H.
+     rewrite mult_coefficients_spec; try (simpl;lia).
+     rewrite sum_coefficient_nth.
+     rewrite mult_coefficients_spec.
+     destruct n;simpl; [unfold convolution_coeff;simpl;ring|].
+     rewrite convolution_coeff_cons.
+     rewrite mult_coefficients_spec; try (simpl;lia).
+     rewrite convolution_coeff_cons.
+     simpl.
+     unfold convolution_coeff;rewrite convolution_coeff_rec_nil;ring.
+
  Lemma mult_coefficients_eval_cons a b a0 x : eval_series (mult_coefficients (a0 :: a) b) x = a0 * eval_series b x + x*eval_series (mult_coefficients a b) x.
  Proof.
    rewrite <-mult_coefficients_eval_single.
    induction a.
+   simpl.
    - rewrite mult_coefficients_eval_nil.
      ring.
   - simpl.
