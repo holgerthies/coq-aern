@@ -224,8 +224,35 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Defined.
 
   Definition real_max (x y : Real) := projP1 _ _ (real_max_prop x y).
+  Definition real_min (x y : Real) := projP1 _ _ (real_min_prop x y).
 
 
+  Lemma real_min_real_max x y : real_min x y = - real_max (-x) (-y).
+  Proof.
+    unfold real_min, real_max.
+    destruct (real_max_prop (-x) (-y)).
+    destruct (real_min_prop x y).
+    simpl.
+    destruct r as [r1 [r2 r3]].
+    destruct r0 as [m1 [m2 m3]].
+    destruct (real_total_order x y) as [H | [H | H]].
+
+    rewrite m3;auto.
+    rewrite r1; [ring|].
+    apply real_lt_anti_anti.
+    ring_simplify;auto.
+
+    rewrite m2;auto.
+    rewrite r2; [ring|].
+    rewrite H;auto.
+
+    rewrite m1;auto.
+    rewrite r3;auto.
+    ring_simplify;auto.
+    apply real_lt_anti_anti.
+    ring_simplify.
+    auto.
+ Qed.
   (* properties of max function *)
 
 
@@ -290,6 +317,19 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     left; apply p; exact H.
   Qed.
 
+  Lemma real_min_cand : forall x y, (real_min x y) =  x \/ (real_min x y) =  y.
+  Proof.
+    intros.
+    unfold real_min.
+    destruct (real_min_prop x y).
+    simpl.
+    destruct r as [p [q r]].
+    destruct (real_total_order x y).
+    left; apply r; exact H.
+    destruct H.
+    left; apply q; exact H.
+    right; apply p; exact H.
+  Qed.
 
   Lemma real_max_eq_snd_le : forall x y z, (real_max x y) = z -> y <= z.
   Proof.
@@ -346,6 +386,22 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     right; auto.
   Qed.
   
+  Lemma real_min_fst_le : forall x y, (real_min x y) <= x.
+  Proof.
+    intros.
+    rewrite real_min_real_max.
+    add_both_side_by (real_max (-x) (- y) - x).
+    apply real_max_fst_ge.
+  Qed.
+
+  
+  Lemma real_min_snd_le : forall x y, (real_min x y) <= y.
+  Proof.
+    intros.
+    rewrite real_min_real_max.
+    add_both_side_by (real_max (-x) (- y) - y).
+    apply real_max_snd_ge.
+  Qed.
 
   Lemma real_max_le_fst_le : forall x y z, (real_max x y) <= z -> x <= z.
   Proof.
