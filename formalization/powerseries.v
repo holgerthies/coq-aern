@@ -382,6 +382,20 @@ Section PolynomialModels.
  destruct n;auto;ring.
  destruct b;destruct n;simpl; try ring;auto.
  Qed.
+ Lemma convolution_coeff_sym a b n : convolution_coeff a b n = convolution_coeff b a n.
+ Proof.
+    revert n b.
+    induction a;intros.
+    unfold convolution_coeff.
+    rewrite convolution_coeff_rec_nil.
+    admit.
+    destruct n.
+    unfold convolution_coeff.
+    simpl.
+    ring.
+    rewrite convolution_coeff_cons.
+    simpl.
+    unfold convolution_coeff; simpl.
  Lemma mult_coefficients_sym a b : mult_coefficients a b  = mult_coefficients b a.
  Proof.
    apply (nth_ext _ _ real_0 real_0).
