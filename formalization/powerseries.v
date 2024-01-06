@@ -276,6 +276,15 @@ Section PolynomialModels.
    rewrite IHi.
    destruct (j - S i)%nat;ring.
  Qed.    
+ Lemma convolution_coeff_rec_nil2 a i j : convolution_coeff_rec a [] j i = real_0.
+ Proof.
+   induction i;intros.
+   simpl.
+   destruct (j-0)%nat;ring.
+   simpl.
+   rewrite IHi.
+   destruct (j - S i)%nat;ring.
+ Qed.    
  Lemma mult_coefficients_single a0 b n : nth n (mult_coefficients [a0] b) real_0 = a0 * (nth n b real_0).
  Proof.
    destruct (Nat.le_gt_cases (n+1) ((length b))%nat).
@@ -382,20 +391,61 @@ Section PolynomialModels.
  destruct n;auto;ring.
  destruct b;destruct n;simpl; try ring;auto.
  Qed.
+
+ Lemma convolution_coeff_rec_inv_S a b n i : (i < n)%nat -> convolution_coeff_rec a b n (n-i) = convolution_coeff_rec a b n (n - S i) + nth i a real_0 * nth (n-i)%nat b real_0.
+ Proof.
+   simpl.
+   destruct (n-i)%nat eqn:E.
+   lia.
+   intros.
+   simpl.
+   rewrite <-E.
+   replace (n - (n-i))%nat with i by lia.
+   destruct (n - S i)%nat eqn:E'.
+   replace n0 with 0 by lia.
+   simpl.
+   ring.
+   replace n0 with (S n1) by lia.
+   ring.
+ Qed.
+
+ Lemma convolution_coeff_rec_opp_S a b n i: (S i < n)%nat -> convolution_coeff_rec a b n (S i) =  convolution_coeff_rec a b n i + convolution_coeff_rec b a n (n-(S i)) - convolution_coeff_rec b a n (n-(S (S i)))%nat.
+ Proof.
+   intros.
+   rewrite convolution_coeff_rec_inv_S;auto.
+   simpl.
+   ring.
+ Qed.
+
+ Lemma convolution_coeff_rec_opp a b n i: (i < n)%nat -> convolution_coeff_rec a b n n = convolution_coeff_rec a b n (n-S i)%nat + convolution_coeff_rec b a n i.
+ Proof.
+   intros.
+   induction i.
+   - destruct n; try lia.
+     simpl.
+     rewrite Nat.sub_diag.
+     rewrite Nat.sub_0_r.
+     ring.
+   - rewrite IHi; try lia.
+     rewrite convolution_coeff_rec_opp_S; try lia.
+     ring.
+ Qed.
  Lemma convolution_coeff_sym a b n : convolution_coeff a b n = convolution_coeff b a n.
  Proof.
-    revert n b.
-    induction a;intros.
-    unfold convolution_coeff.
-    rewrite convolution_coeff_rec_nil.
-    admit.
-    destruct n.
-    unfold convolution_coeff.
-    simpl.
-    ring.
-    rewrite convolution_coeff_cons.
-    simpl.
-    unfold convolution_coeff; simpl.
+  unfold convolution_coeff.
+  destruct n; [simpl; ring | ].
+  rewrite (convolution_coeff_rec_opp _ _ _ (n-1)%nat);try lia.
+  destruct n; [simpl;ring|].
+  replace (S (S n) - S (S n - 1))%nat with 1 by lia.
+  simpl.
+  rewrite Nat.sub_0_r, Nat.sub_diag.
+  ring_simplify.
+  destruct n.
+  ring.
+  replace (S n - n)%nat with 1 by lia.
+  ring.
+ Qed.
+
  Lemma mult_coefficients_sym a b : mult_coefficients a b  = mult_coefficients b a.
  Proof.
    apply (nth_ext _ _ real_0 real_0).
@@ -403,15 +453,9 @@ Section PolynomialModels.
    intros.
    rewrite length_mult_coefficients in H.
    rewrite !mult_coefficients_spec; try lia.
-   induction n.
-   unfold convolution_coeff.
-   simpl.
-   ring.
+   apply convolution_coeff_sym.
+  Qed.
 
-   unfold convolution_coeff.
-   simpl.
-   rewrite Nat.sub_diag.
-   simpl.
  Lemma mult_coefficients_cons a b a0 b0 : mult_coefficients (a0 :: a) (b0 :: b) = sum_coefficients (mult_coefficients [a0] (b0 :: b)) (real_0 :: mult_coefficients a (b0 :: b)).
  Proof.
    apply (nth_ext _ _ real_0 real_0).
@@ -437,29 +481,22 @@ Section PolynomialModels.
  Lemma mult_coefficients_eval_cons a b a0 x : eval_series (mult_coefficients (a0 :: a) b) x = a0 * eval_series b x + x*eval_series (mult_coefficients a b) x.
  Proof.
    rewrite <-mult_coefficients_eval_single.
-   induction a.
-   simpl.
-   - rewrite mult_coefficients_eval_nil.
+   destruct b.
+   - rewrite !(mult_coefficients_sym _ []).
+     rewrite !mult_coefficients_eval_nil.
      ring.
-  - simpl.
-    rewrite Nat.sub_diag.
-    unfold convolution_coeff.
-    simpl.
+   - rewrite mult_coefficients_cons.
+     rewrite sum_eval;simpl.
+     ring.
+ Qed.
  Lemma mult_eval a b x : eval_series (mult_coefficients a b) x = eval_series a x * eval_series b x.
  Proof.
-   revert b.
-   induction a.
-   intros.
-   admit.
-   intros.
+   induction a; [rewrite mult_coefficients_eval_nil;simpl;ring |].
    simpl.
-   simpl.
-   unfold convolution_coeff, convolution_coeff_rec.
-   rewrite Nat.sub_diag.
-   simpl.
-   unfold nth_default.
-   simpl.
-   ring_simplify.
+   rewrite mult_coefficients_eval_cons.
+   rewrite IHa.
+   ring.
+ Qed.
 End PolynomialModels.
 
 Section Powerseries.
