@@ -497,6 +497,119 @@ Section PolynomialModels.
    rewrite IHa.
    ring.
  Qed.
+ Fixpoint bound_polynomial a r :=
+   match a with
+   | [] => real_0
+   | a0 :: a'  => abs a0 + r * (bound_polynomial a' r)
+   end.
+
+  Lemma bound_polynomial_spec a r : forall x, abs x <= r -> abs (eval_series a x) <= bound_polynomial a r.
+  Proof.
+   intros.
+   induction a; [rewrite abs_pos_id; apply real_le_triv | ].
+   simpl.
+   apply (real_le_le_le _ _ _ (abs_tri _ _)).
+   apply real_le_plus_le.
+   rewrite abs_mult.
+   apply real_le_mult_pos_le_le;auto;apply abs_pos.
+  Qed.
+
+  Definition swipe (p : polynomial_model) (n : nat) : polynomial_model.
+  Proof.
+    destruct p as [a r err].
+    apply mk_polynomial_model.
+    apply (firstn n a).
+    apply r.
+    apply (err + (pow r n) * (bound_polynomial (skipn n a) r)).
+  Defined.
+
+  Lemma pm_r_gt0 p f : (pm_radius p) < real_0 -> is_polynomial_model p f.
+  Proof.
+    unfold is_polynomial_model, eval_pm.
+    intros.
+    destruct p as [a r err]; simpl in *.
+    contradict H0.
+    apply real_lt_nlt.
+    apply (real_lt_le_lt _ _ _ H).
+    apply abs_pos.
+  Qed.
+
+  Lemma swipe_pm p f n : is_polynomial_model p f -> is_polynomial_model (swipe p n) f.
+  Proof.
+    unfold is_polynomial_model.
+    destruct p as [a r err].
+    unfold swipe; unfold eval_pm;simpl.
+    intros.
+    apply (real_le_lt_lt _ _ _ (dist_tri  _ (eval_series a x) _ )).
+    rewrite real_plus_comm, (real_plus_comm err).
+    apply real_le_lt_plus_lt;auto.
+    assert (real_0 <= r) as rge0 by (apply real_lt_le; apply (real_le_lt_lt _ (abs x)); try apply abs_pos;auto).
+    replace (dist (eval_series a x) (eval_series (firstn n a) x)) with (abs (pow x n) * abs (eval_series (skipn n a) x)).
+    { 
+      apply real_le_mult_pos_le_le; try apply abs_pos; try apply real_le_triv.
+      rewrite pow_abs.
+      apply pow_nonneg_le;try apply abs_pos; apply real_lt_le;auto.
+      apply bound_polynomial_spec;apply real_lt_le;auto.
+    }
+    rewrite <- abs_mult.
+    unfold dist.
+    f_equal.
+    clear H.
+    revert a.
+    induction n;intros; [simpl;ring |].
+    simpl.
+    destruct a;simpl;try ring.
+    rewrite real_mult_assoc.
+    rewrite IHn.
+    ring.
+  Qed.
+
+  Definition mult_pm (p1 p2 : polynomial_model) : polynomial_model.
+  Proof.
+    destruct p1 as [a ra erra]; destruct p2 as [b rb errb].
+    remember (Minmax.real_min ra rb) as r.
+    apply mk_polynomial_model.
+    apply (mult_coefficients a b).
+    apply r.
+    apply (erra*errb + bound_polynomial a r * errb + bound_polynomial b r * erra).
+ Defined.
+  Lemma real_lt_mult_pos_lt_lt r1 r2 r3 r4:  (real_0 <= r1) -> (real_0 < r3) -> (real_0 < r4) -> r1 < r3 -> r2 < r4 -> r1 * r2 < r3 * r4.
+  Proof.
+    intros.
+    apply (real_le_lt_lt _ (r1 * r4)).
+    apply real_le_mult_pos_le;auto.
+    apply real_lt_le;auto.
+    apply real_lt_mult_r_pos_lt;auto.
+ Qed.
+  Lemma mult_pm_spec p1 p2 f1 f2: is_polynomial_model p1 f1 -> is_polynomial_model p2 f2 -> is_polynomial_model (mult_pm p1 p2) (fun x => (f1 x) * (f2 x)). 
+  Proof.
+    destruct p1 as [a ra erra]; destruct p2 as [b rb errb].
+    unfold is_polynomial_model, eval_pm; simpl.
+    intros.
+    rewrite mult_eval.
+    unfold dist.
+    replace (f1 x * f2 x - eval_series a x * eval_series b x) with (eval_series a x * (f2 x -  eval_series b x) + eval_series b x * (f1 x  - eval_series a x) + (f1 x - eval_series a x )* ((f2 x) - eval_series b x))  by ring.
+    rewrite (real_plus_assoc (erra*errb)), (real_plus_comm (erra * errb)).
+    apply (real_le_lt_lt _ _ _ (abs_tri _ _ )).
+    apply real_le_lt_plus_lt;[apply (real_le_le_le _ _ _ (abs_tri _ _ )); apply real_le_le_plus_le|]; rewrite abs_mult.
+    - apply real_le_mult_pos_le_le; try apply abs_pos; [apply bound_polynomial_spec |];apply real_lt_le;auto.
+      apply H0.
+      apply (real_lt_le_lt _ _ _ H1).
+      apply Minmax.real_min_snd_le.
+    - apply real_le_mult_pos_le_le; try apply abs_pos; [apply bound_polynomial_spec |];apply real_lt_le;auto.
+      apply H.
+      apply (real_lt_le_lt _ _ _ H1).
+      apply Minmax.real_min_fst_le.
+    - pose proof (real_lt_le_lt _ _ _ H1 (Minmax.real_min_fst_le ra rb)).
+      pose proof (real_lt_le_lt _ _ _ H1 (Minmax.real_min_snd_le ra rb)).
+      specialize (H _ H2).
+      specialize (H0 _ H3).
+      apply real_lt_mult_pos_lt_lt; try apply abs_pos; auto.
+      apply (real_le_lt_lt _ (dist (f1 x) (eval_series a x)));auto.
+      apply dist_pos.
+      apply (real_le_lt_lt _ (dist (f2 x) (eval_series b x)));auto.
+      apply dist_pos.
+ Qed.
 End PolynomialModels.
 
 Section Powerseries.
