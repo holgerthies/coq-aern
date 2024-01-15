@@ -13,11 +13,11 @@ Context {types : RealTypes} { sofReal : SemiDecOrderedField_Real types }.
 #[local] Notation "^M" := (@M types) (at level 0).
 #[local] Notation "^Real" := (@Real types) (at level 0).
  
-  Fixpoint pow (r : Real) (n : nat) : Real :=
-    match n with
-    | O => real_1
-    | S m => r * pow r m
-    end.
+  (* Fixpoint pow (r : Real) (n : nat) : Real := *)
+  (*   match n with *)
+  (*   | O => real_1 *)
+  (*   | S m => r * pow r m *)
+  (*   end. *)
 
   Lemma realTheory : ring_theory real_0 real_1 real_plus real_mult real_minus real_opp (eq (A:=Real)).
   Proof.

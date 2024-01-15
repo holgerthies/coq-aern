@@ -1,7 +1,7 @@
 Require Import Real.
 Require Import Euclidean.
 
-Definition poly (n : nat) := {x : euclidean (S n) | euclidean_head x <> Real0 }.
+Definition poly (n : nat) := {x : euclidean (S n) | euclidean_head x <> real_0 }.
 Fixpoint npow (x : Real) (n : nat) : Real :=
   match n with
   | O => Real1

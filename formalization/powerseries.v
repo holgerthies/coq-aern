@@ -7,6 +7,7 @@ Require Export Ring Field.
 Require Import Psatz.
 Require Import List.
 Import ListNotations.
+Require Import Polynomial.
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
 #[local] Notation "^K" := (@K types) (at level 0).
@@ -29,81 +30,9 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
 Section Power.
-  Lemma pow_pos r : (real_0 < r) -> forall n, real_0 < pow r n.
-  Proof.
-    intros H n.
-    induction n; [apply real_1_gt_0 | ].
-    simpl.
-    pose proof (real_lt_mult_pos_lt _ _ _ H IHn).
-    ring_simplify in H0.
-    apply H0.
-  Qed.
 
-  Lemma pow_mult r1 r2 n : (pow r1 n) * (pow r2 n) = (pow (r1 * r2) n).
-  Proof.
-    induction n;[simpl;ring|].
-    simpl.
-    rewrite <-IHn.
-    ring.
-  Qed.
 
-  Lemma pow_nonneg r : (real_0 <= r) -> forall n, real_0 <= pow r n.
-  Proof.
-    intros H n.
-    destruct H; [apply real_lt_le;apply pow_pos;auto |].
-    rewrite <-H.
-    induction n;[apply real_lt_le; apply real_1_gt_0 | ].
-    apply real_eq_le.
-    simpl.
-    ring.
-  Qed.
 
-  Lemma pow_neq_0 r n : (real_0 < r) -> pow r n <> real_0.
-  Proof.
-    intros H.
-    apply real_gt_neq.
-    apply pow_pos.
-    exact H.
-  Qed.
-
-  Lemma pow_abs r n : abs (pow r n) = pow (abs r) n.
-  Proof.
-    induction n.
-    - simpl.
-      apply abs_pos_id.
-      apply real_lt_le.
-      apply real_1_gt_0.
-    - simpl.
-      rewrite abs_mult.
-      rewrite IHn.
-      auto.
-  Qed.
- Lemma pow_plus r n m : pow r (n+m) = pow r n * pow r m.
- Proof.
-   induction m.
-   rewrite <- plus_n_O;simpl;ring.
-   rewrite Nat.add_succ_r.
-   simpl.
-   rewrite IHm.
-   ring.
- Qed.
-
- Lemma pow_1 n : pow real_1 n = real_1.
- Proof.
-   induction n;auto.
-   simpl.
-   rewrite IHn.
-   ring.
- Qed.
-
- Lemma pow_prec n : pow (/ real_2_neq_0) n = prec n.
- Proof.
-   induction n;auto.
-   simpl.
-   rewrite IHn.
-   unfold real_div.
-   ring.
- Qed.
  (* Lemma pow_div r1 {r2} (r2' : real_0 < r2) n : (pow r1 n) / (pow_neq_0 _ n r2') = (pow (r1 / (real_gt_neq _ _ r2')) n). *)
  (* Proof. *)
  (*   induction n. *)
@@ -117,23 +46,6 @@ Section Power.
  (*     rewrite H. *)
  (*     ring. *)
  (*  -  *)
- Lemma real_le_mult_pos_le_le r1 r2 r3 r4 : (real_0 <= r1) -> (real_0 <= r2) -> (r1 <= r3) -> (r2 <= r4) -> (r1 * r2 <= r3 * r4).
- Proof.
-   intros.
-   apply (real_le_le_le _ _ _ (real_le_mult_pos_le _ _ _ H H2)).
-   rewrite !(real_mult_comm _ r4).
-   apply real_le_mult_pos_le; auto.
-   apply (real_le_le_le _ r2);auto.
- Qed.
-
-  Lemma pow_nonneg_le r1 r2 n : (real_0 <= r1) -> (r1 <= r2) -> (pow r1 n) <= (pow r2 n).
-  Proof.
-    intros.
-    induction n; [apply real_le_triv|].
-    simpl.
-    apply real_le_mult_pos_le_le;auto.
-    apply pow_nonneg;auto.
-  Qed.
 
 End Power.
 
@@ -145,12 +57,6 @@ Section PolynomialModels.
                                        pm_radius: ^Real;
                                        pm_error : ^Real
                                      }.
-
-  Fixpoint eval_series (a : list Real) (x : Real) :=
-    match a with
-    | nil => real_0
-    | h :: t => h + x * (eval_series t x)  
-    end.
 
 
   Definition eval_pm p x := eval_series (pm_coeffs p) x.
@@ -187,12 +93,6 @@ Section PolynomialModels.
     apply (Minmax.real_min (pm_radius p1) (pm_radius p2)).
     apply (pm_error p1 + pm_error p2).
   Defined.
-  Lemma dist_plus_le a b c d : dist (a+b) (c+d) <= dist a c + dist b d.
-  Proof.
-    unfold dist.
-    assert (a+b - (c+d) = (a-c) + (b-d)) as -> by ring.
-    apply abs_tri.
-  Qed.
 
   Lemma sum_pm_spec p1 p2 f1 f2: is_polynomial_model p1 f1 -> is_polynomial_model p2 f2 -> is_polynomial_model (sum_pm p1 p2) (fun x => (f1 x) + (f2 x)). 
  Proof.
@@ -206,313 +106,7 @@ Section PolynomialModels.
    apply Minmax.real_min_fst_le.
    apply Minmax.real_min_snd_le.
   Defined.
- Fixpoint convolution_coeff_rec (a b : list Real) n i :=
-   nth (n-i)%nat a real_0 * nth i b real_0 + match i with
-     | 0 => real_0
-     | S i' => convolution_coeff_rec a b n i'
-    end.
- Definition convolution_coeff (a b : list Real) n := convolution_coeff_rec a b n n.
 
-   Lemma convolution_coeff_rec_cons a b a0 n i  :(i <= n)%nat -> convolution_coeff_rec (a0 :: a) b (S n) i = convolution_coeff_rec a b n i.
-  Proof.
-   intros.
-   induction i.
-   - simpl.
-     rewrite Nat.sub_0_r;unfold nth;simpl.
-     ring.
-   - simpl.
-     assert (i < n)%nat by lia.
-     destruct (n-i)%nat eqn: E; [lia|].
-     rewrite IHi; try lia.
-     assert ((n - S i)%nat = n0) as -> by lia.
-     ring.
- Qed. 
-
- Lemma convolution_coeff_cons a b a0 n : convolution_coeff (a0 :: a) b (S n) = a0 * nth (S n) b real_0 + convolution_coeff a b n.
- Proof.
-   unfold convolution_coeff.
-   simpl.
-   destruct (n-n)%nat eqn:E;rewrite convolution_coeff_rec_cons;try lia;auto.
- Qed.
-   
- Fixpoint mult_coefficients_rec (a b : list Real) n :=
-   match n with
-    | 0 => []
-    | S n' =>  convolution_coeff a b ((length a + length b - 1) - n)%nat :: mult_coefficients_rec a b n'
-     end.
-
- Definition mult_coefficients_rec_spec a b n m : (n < m)%nat -> nth n (mult_coefficients_rec a b m) real_0 = convolution_coeff a b (length a + length b - 1  + n - m)%nat .
- Proof.
-   revert n.
-   induction m; intros; try lia.
-   destruct n; simpl;try rewrite Nat.add_0_r;auto.
-   rewrite IHm;try lia.
-   assert (length a + length b - 1 + S n - S m = length a + length b - 1 + n - m)%nat as -> by lia.
-   auto.
- Qed.
-
- Definition mult_coefficients a b := mult_coefficients_rec a b (length a + length b - 1).
-
- Definition mult_coefficients_spec a b n : (n < length a + length b - 1)%nat -> nth n (mult_coefficients a b) real_0 = convolution_coeff a b n.
- Proof.
-   intros.
-   unfold mult_coefficients.
-   rewrite mult_coefficients_rec_spec; auto.
-   assert (length a + length b - 1 + n - (length a + length b - 1) = n)%nat as -> by lia.
-   reflexivity.
- Qed.
-
- Lemma length_mult_coefficients a b : length (mult_coefficients a b) = (length a + length b - 1)%nat.
- Proof.
-   unfold mult_coefficients.
-   induction (length a + length b - 1)%nat; simpl; try lia.
- Qed.
- Lemma convolution_coeff_rec_nil b i j : convolution_coeff_rec [] b j i = real_0.
- Proof.
-   induction i;intros.
-   simpl.
-   destruct (j-0)%nat;ring.
-   simpl.
-   rewrite IHi.
-   destruct (j - S i)%nat;ring.
- Qed.    
- Lemma convolution_coeff_rec_nil2 a i j : convolution_coeff_rec a [] j i = real_0.
- Proof.
-   induction i;intros.
-   simpl.
-   destruct (j-0)%nat;ring.
-   simpl.
-   rewrite IHi.
-   destruct (j - S i)%nat;ring.
- Qed.    
- Lemma mult_coefficients_single a0 b n : nth n (mult_coefficients [a0] b) real_0 = a0 * (nth n b real_0).
- Proof.
-   destruct (Nat.le_gt_cases (n+1) ((length b))%nat).
-   - rewrite mult_coefficients_spec; simpl;try rewrite Nat.sub_0_r;try lia.
-     destruct n;unfold convolution_coeff;simpl.
-     ring.
-     rewrite Nat.sub_diag.
-     rewrite convolution_coeff_rec_cons; try lia.
-     rewrite convolution_coeff_rec_nil.
-     ring.
-   - assert (length (mult_coefficients [a0] b) <= n)%nat.
-    {
-     rewrite length_mult_coefficients.
-     simpl.
-     lia.
-    }
-    rewrite !nth_overflow;try ring;try lia;auto.
- Qed.
-
- Lemma mult_coefficients_single_list a0 b : mult_coefficients [a0] b = map (fun x => a0 * x) b.
- Proof.
-   apply (nth_ext _ _ real_0 real_0).
-   - rewrite length_mult_coefficients, map_length.
-     simpl; lia.
-  - intros.
-    rewrite mult_coefficients_single.
-    assert (real_0 = ((fun x => a0 * x) real_0)) as R by ring.
-    rewrite R, map_nth.
-    rewrite <-R.
-    reflexivity.
- Qed.
-
- Lemma mult_coefficients_eval_single a0 b x : eval_series (mult_coefficients [a0] b) x = a0 * eval_series b x.
- Proof.
-   rewrite mult_coefficients_single_list.
-   induction b;simpl;try ring.
-   rewrite IHb.
-   ring.
- Qed.
-
- Lemma mult_coefficients_nil b n : nth n (mult_coefficients [] b) real_0 = real_0.
- Proof.
-   destruct (Nat.le_gt_cases (n+1) ((length b-1))%nat).
-   - rewrite mult_coefficients_spec; simpl; try lia.
-     unfold convolution_coeff.
-     apply convolution_coeff_rec_nil.
-  - rewrite nth_overflow;auto.
-    rewrite length_mult_coefficients.
-    simpl;lia.
- Qed.
- Lemma mult_coefficients_nil_list b : mult_coefficients [] b = repeat real_0 (length b - 1)%nat.
- Proof.
-    apply (nth_ext _ _ real_0 real_0).
-    rewrite length_mult_coefficients, repeat_length.
-    simpl;lia.
-    intros.
-    rewrite mult_coefficients_nil, nth_repeat;auto.
- Qed.
- Lemma mult_coefficients_eval_nil b x : eval_series (mult_coefficients [] b) x = real_0.
- Proof.
-    rewrite mult_coefficients_nil_list.
-    induction (length b - 1)%nat;simpl;auto.
-    rewrite IHn.
-    ring.
- Qed.
-
- Lemma convolution_coeff_zero a b n: (length a + length b - 1<= n)%nat  -> convolution_coeff a b n = real_0.
- Proof.
-   revert n.
-   induction a;intros.
-   unfold convolution_coeff.
-   rewrite convolution_coeff_rec_nil;auto.
-   simpl in H.
-   destruct n.
-   - assert (b = []) as -> by (apply length_zero_iff_nil;lia).
-     unfold convolution_coeff.
-     simpl;ring.
-   - rewrite convolution_coeff_cons.
-     rewrite IHa; simpl in H;try lia.
-      rewrite nth_overflow; [ring | lia].
- Qed.
-
- Lemma mult_coefficients_cons_nth a0 a b n : nth (S n) (mult_coefficients (a0 :: a) b) real_0 = a0 * nth (S n) b real_0 + convolution_coeff a b n.
- Proof.
-   destruct (Nat.le_gt_cases (S n) ((length a+length b - 1))%nat).
-   - rewrite mult_coefficients_spec; simpl; try lia.
-     rewrite convolution_coeff_cons;auto.
-  - rewrite !nth_overflow;try rewrite length_mult_coefficients;simpl; try lia.
-    rewrite convolution_coeff_zero;  [ring | lia].
- Qed.
-
- Lemma length_sum_coefficients a b : length (sum_coefficients a b) = Nat.max (length a) (length b).
- Proof.
-   revert b.
-   induction a;simpl;auto.
-   intros.
-   destruct b;simpl; auto.
- Qed.
-
- Lemma sum_coefficient_nth a b n : nth n (sum_coefficients a b) real_0 = nth n a real_0 + nth n b real_0.
- Proof.
- revert n b.
- induction a;intros;simpl.
- destruct n;auto;ring.
- destruct b;destruct n;simpl; try ring;auto.
- Qed.
-
- Lemma convolution_coeff_rec_inv_S a b n i : (i < n)%nat -> convolution_coeff_rec a b n (n-i) = convolution_coeff_rec a b n (n - S i) + nth i a real_0 * nth (n-i)%nat b real_0.
- Proof.
-   simpl.
-   destruct (n-i)%nat eqn:E.
-   lia.
-   intros.
-   simpl.
-   rewrite <-E.
-   replace (n - (n-i))%nat with i by lia.
-   destruct (n - S i)%nat eqn:E'.
-   replace n0 with 0 by lia.
-   simpl.
-   ring.
-   replace n0 with (S n1) by lia.
-   ring.
- Qed.
-
- Lemma convolution_coeff_rec_opp_S a b n i: (S i < n)%nat -> convolution_coeff_rec a b n (S i) =  convolution_coeff_rec a b n i + convolution_coeff_rec b a n (n-(S i)) - convolution_coeff_rec b a n (n-(S (S i)))%nat.
- Proof.
-   intros.
-   rewrite convolution_coeff_rec_inv_S;auto.
-   simpl.
-   ring.
- Qed.
-
- Lemma convolution_coeff_rec_opp a b n i: (i < n)%nat -> convolution_coeff_rec a b n n = convolution_coeff_rec a b n (n-S i)%nat + convolution_coeff_rec b a n i.
- Proof.
-   intros.
-   induction i.
-   - destruct n; try lia.
-     simpl.
-     rewrite Nat.sub_diag.
-     rewrite Nat.sub_0_r.
-     ring.
-   - rewrite IHi; try lia.
-     rewrite convolution_coeff_rec_opp_S; try lia.
-     ring.
- Qed.
- Lemma convolution_coeff_sym a b n : convolution_coeff a b n = convolution_coeff b a n.
- Proof.
-  unfold convolution_coeff.
-  destruct n; [simpl; ring | ].
-  rewrite (convolution_coeff_rec_opp _ _ _ (n-1)%nat);try lia.
-  destruct n; [simpl;ring|].
-  replace (S (S n) - S (S n - 1))%nat with 1 by lia.
-  simpl.
-  rewrite Nat.sub_0_r, Nat.sub_diag.
-  ring_simplify.
-  destruct n.
-  ring.
-  replace (S n - n)%nat with 1 by lia.
-  ring.
- Qed.
-
- Lemma mult_coefficients_sym a b : mult_coefficients a b  = mult_coefficients b a.
- Proof.
-   apply (nth_ext _ _ real_0 real_0).
-   rewrite !length_mult_coefficients;lia.
-   intros.
-   rewrite length_mult_coefficients in H.
-   rewrite !mult_coefficients_spec; try lia.
-   apply convolution_coeff_sym.
-  Qed.
-
- Lemma mult_coefficients_cons a b a0 b0 : mult_coefficients (a0 :: a) (b0 :: b) = sum_coefficients (mult_coefficients [a0] (b0 :: b)) (real_0 :: mult_coefficients a (b0 :: b)).
- Proof.
-   apply (nth_ext _ _ real_0 real_0).
-   - rewrite length_sum_coefficients.
-     rewrite !length_mult_coefficients;simpl.
-     rewrite length_mult_coefficients;simpl.
-     rewrite max_r;try lia.
-   - intros.
-     rewrite length_mult_coefficients in H.
-     simpl in H.
-     rewrite mult_coefficients_spec; try (simpl;lia).
-     rewrite sum_coefficient_nth.
-     rewrite !mult_coefficients_single_list.
-     destruct n;simpl; [unfold convolution_coeff;simpl;ring|].
-     rewrite convolution_coeff_cons.
-     rewrite mult_coefficients_spec; try (simpl;lia).
-     assert (real_0 = a0 * real_0) as R by ring.
-     rewrite R,map_nth.
-     simpl.
-     rewrite <-R;auto.
- Qed.
-
- Lemma mult_coefficients_eval_cons a b a0 x : eval_series (mult_coefficients (a0 :: a) b) x = a0 * eval_series b x + x*eval_series (mult_coefficients a b) x.
- Proof.
-   rewrite <-mult_coefficients_eval_single.
-   destruct b.
-   - rewrite !(mult_coefficients_sym _ []).
-     rewrite !mult_coefficients_eval_nil.
-     ring.
-   - rewrite mult_coefficients_cons.
-     rewrite sum_eval;simpl.
-     ring.
- Qed.
- Lemma mult_eval a b x : eval_series (mult_coefficients a b) x = eval_series a x * eval_series b x.
- Proof.
-   induction a; [rewrite mult_coefficients_eval_nil;simpl;ring |].
-   simpl.
-   rewrite mult_coefficients_eval_cons.
-   rewrite IHa.
-   ring.
- Qed.
- Fixpoint bound_polynomial a r :=
-   match a with
-   | [] => real_0
-   | a0 :: a'  => abs a0 + r * (bound_polynomial a' r)
-   end.
-
-  Lemma bound_polynomial_spec a r : forall x, abs x <= r -> abs (eval_series a x) <= bound_polynomial a r.
-  Proof.
-   intros.
-   induction a; [rewrite abs_pos_id; apply real_le_triv | ].
-   simpl.
-   apply (real_le_le_le _ _ _ (abs_tri _ _)).
-   apply real_le_plus_le.
-   rewrite abs_mult.
-   apply real_le_mult_pos_le_le;auto;apply abs_pos.
-  Qed.
 
   Definition swipe (p : polynomial_model) (n : nat) : polynomial_model.
   Proof.
@@ -573,14 +167,6 @@ Section PolynomialModels.
     apply r.
     apply (erra*errb + bound_polynomial a r * errb + bound_polynomial b r * erra).
  Defined.
-  Lemma real_lt_mult_pos_lt_lt r1 r2 r3 r4:  (real_0 <= r1) -> (real_0 < r3) -> (real_0 < r4) -> r1 < r3 -> r2 < r4 -> r1 * r2 < r3 * r4.
-  Proof.
-    intros.
-    apply (real_le_lt_lt _ (r1 * r4)).
-    apply real_le_mult_pos_le;auto.
-    apply real_lt_le;auto.
-    apply real_lt_mult_r_pos_lt;auto.
- Qed.
   Lemma mult_pm_spec p1 p2 f1 f2: is_polynomial_model p1 f1 -> is_polynomial_model p2 f2 -> is_polynomial_model (mult_pm p1 p2) (fun x => (f1 x) * (f2 x)). 
   Proof.
     destruct p1 as [a ra erra]; destruct p2 as [b rb errb].
@@ -614,9 +200,19 @@ End PolynomialModels.
 
 Section Powerseries.
 
+  
 
-  Definition bounded_seq (a : nat -> Real) M {r : Real} (H : real_0 < r)  :=  forall n, abs (a n) <= pow (real_2) M * (pow (/ (real_gt_neq _ _ H)) n).
-                                                                                                         
+  Definition bounded_seq (a : nat -> Real) M {r : Real} (H : real_0 < r)  :=  forall n, abs (a n) <= Nreal M * (pow (/ (real_gt_neq _ _ H)) n).
+                                                                                   
+ Record bounded_ps : Type := mk_bounded_ps
+                               {
+                                 series : nat -> Real;
+                                 bounded_ps_M : nat;
+                                 bounded_ps_r :Real;
+                                 bounded_ps_rgt0 : bounded_ps_r > real_0;
+                                 bounded_ps_bounded: bounded_seq series bounded_ps_M bounded_ps_rgt0 
+                               }.
+
 
   Fixpoint partial_sum (a : nat -> Real) n :=
     match n with
@@ -641,6 +237,7 @@ Section Powerseries.
      ring_simplify.
      apply real_le_triv.
   Qed.
+
   Lemma tmpn_cauchy a m : (forall n,  abs (a (n+m)%nat) <= prec n) -> is_fast_cauchy (fun n => partial_sum a (n+m)%nat).
   Proof.
     intros H.
@@ -654,60 +251,109 @@ Section Powerseries.
     apply H.
  Qed.
 
- Definition ps a x n := (a n) * pow x n. 
+  Definition to_list (a : nat -> ^Real) n := map a (seq 0 (S n)).
+
 
  Definition partial_sum_inc a m n := partial_sum a (n+m)%nat.
 
- Lemma ps_fast_cauchy a M {r} (rgt0 : real_0 < r)  : bounded_seq a M rgt0 -> forall x, abs x <=  (r / real_2_neq_0) -> is_fast_cauchy (partial_sum_inc (ps a x) M). 
- Proof.
-   intros.
-   apply tmpn_cauchy.
-   intros.
-   unfold ps.
-   unfold bounded_seq in H.
-   rewrite abs_mult.
-   apply (real_le_le_le _ (((pow real_2 M) * (pow (/ (real_gt_neq _ _ rgt0)) (n + M)%nat) * (pow (r / real_2_neq_0) (n+M)%nat)))).
-   - apply real_le_mult_pos_le_le; try apply abs_pos;[apply H|].
+ Definition ps a x n := (a n) * pow x n. 
+
+ Lemma eval_series_to_list a x n i:  (i <= n)%nat -> eval_series (to_list a n) x = eval_series (to_list a i) x + (pow x (S i))*(eval_series (map a (seq (S i) (n-i)%nat)) x).
+  Proof.
+    revert n.
+    induction i; [intros;simpl;rewrite Nat.sub_0_r;ring | ].
+    intros.
+    rewrite (IHi (S i));try lia.
+    rewrite IHi; try lia.
+    replace (S i - i)%nat with 1 by lia.
+    replace (n-i)%nat with (S (n - S i))%nat  by lia.
+    simpl.
+    ring.
+Qed.
+
+  Lemma eval_series_partial_sum a x n : eval_series (to_list a n) x = partial_sum (ps a x) n.
+  Proof.
+    unfold ps.
+    induction n; [simpl;ring|].
+    rewrite (eval_series_to_list a x (S n) n); try lia.
+    replace (S n - n)%nat with 1 by lia.
+    simpl.
+    rewrite <-IHn.
+    destruct n;simpl;ring.
+  Qed.
+
+  Lemma Npow2_pow n : Npow2 n = (2 ^ n).
+  Proof.
+    induction n.
+    simpl;lia.
+    simpl.
+    rewrite IHn.
+    lia.
+  Qed.
+
+  Lemma increment_num M n : (Nreal M * prec (n+(S (Nat.log2 M)))) < prec n. 
+  Proof.
+    rewrite prec_hom, real_mult_comm, real_mult_assoc.
+    replace (prec n) with ( prec n * real_1) at 2 by ring.
+    apply real_lt_mult_pos_lt; try apply prec_pos.
+    rewrite <-(prec_Npow2_unit (S (Nat.log2 M))).
+    apply real_lt_mult_pos_lt; try apply prec_pos.
+    apply Nreal_strict_monotone.
+    rewrite Npow2_pow.
+    destruct M;[simpl;lia | ].
+    apply Nat.log2_spec;lia.
+ Qed.
+  
+ Definition eval_radius (a : bounded_ps) := ((bounded_ps_r a) / real_2_neq_0).
+
+  Definition to_polynomial_model (a : bounded_ps) (n : nat) : polynomial_model.
+  Proof.
+    destruct a as [a M r rgt0 B].
+    apply mk_polynomial_model.
+    apply (to_list a (n+(S (Nat.log2 M)))%nat).
+    apply (r / real_2_neq_0).
+    apply (prec n).
+  Defined.
+
+  Lemma is_fast_cauchy_eval (a : bounded_ps) x : abs x <= eval_radius a -> is_fast_cauchy (fun n => eval_pm (to_polynomial_model a n) x).
+  Proof.
+    unfold eval_radius, eval_pm.
+    destruct a as [a M r rgt0 B].
+    simpl bounded_ps_r.
+    simpl pm_coeffs.
+    intros H n m.
+    rewrite !eval_series_partial_sum.
+    apply tmpn_cauchy.
+    intros.
+    unfold ps.
+    unfold bounded_seq in B.
+    rewrite abs_mult.
+    apply real_lt_le.
+    apply (real_le_lt_lt _ (Nreal M * prec (n0+(S (Nat.log2 M))))); [|apply increment_num].
+   apply (real_le_le_le _ (((Nreal M) * (pow (/ (real_gt_neq _ _ rgt0)) (n0 + (S (Nat.log2 M)))%nat) * (pow (r / real_2_neq_0) (n0+S (Nat.log2 M))%nat)))).
+   - apply real_le_mult_pos_le_le; try apply abs_pos; try apply B.
      rewrite pow_abs.
      apply pow_nonneg_le;auto.
      apply abs_pos.
-  - rewrite real_mult_assoc.
+   - rewrite real_mult_assoc.
+     apply real_le_mult_pos_le; [destruct M;[apply real_le_triv|apply real_lt_le;apply Nreal_pos;lia]|].
     rewrite pow_mult.
     unfold real_div.
     rewrite <-real_mult_assoc.
-    assert (/ real_gt_neq r real_0 rgt0 * r = real_1) as -> by apply real_mult_inv.
+    assert (/ real_gt_neq r real_0 rgt0 * r = real_1) as -> by apply real_mult_inv.  
     rewrite real_mult_unit.
-    rewrite pow_plus.
-    rewrite real_mult_comm, real_mult_assoc.
-    rewrite pow_mult.
-    assert (/ real_2_neq_0 * real_2 = real_1) as -> by apply real_mult_inv.
-    apply real_eq_le.
-    rewrite pow_1.
     rewrite pow_prec.
-    ring.
+    apply real_le_triv.
  Qed.
 
- Record bounded_ps : Type := mk_bounded_ps
-                               {
-                                 series : nat -> ^Real;
-                                 bounded_ps_M : nat;
-                                 bounded_ps_r :^Real;
-                                 bounded_ps_rgt0 : bounded_ps_r > real_0;
-                                 bounded_ps_bounded: bounded_seq series bounded_ps_M bounded_ps_rgt0 
-                               }.
- Definition eval_radius (a : bounded_ps) := ((bounded_ps_r a) / real_2_neq_0).
-
- Definition evaluation (a : bounded_ps) (x : Real):  abs x <=  (eval_radius  a) -> {y : Real | is_fast_limit y (partial_sum_inc (ps (series a) x) (bounded_ps_M a))}.
+ Definition eval (a : bounded_ps) (x : Real):  abs x <=  (eval_radius  a) -> ^Real.
  Proof.
-   destruct a as [a M r rgt0 B].
    intros.
-   destruct (real_limit (fun n => (partial_sum (ps a x) (n+M)%nat))).
-   apply (ps_fast_cauchy a M rgt0);auto.
-   exists x0.
-   apply i.
+   destruct (real_limit (fun n => eval_pm (to_polynomial_model a n) x)).
+   apply is_fast_cauchy_eval;auto.
+   apply x0.
  Defined.
 
- Definition eval a x H := projP1 _ _ (evaluation a x H).
  (* Definition coeff_bound a := {M : nat & {r : Real & {H : (r > real_0) | bounded_seq a M H }}}. *)
 
  Definition sum (a : nat -> Real) (b: nat -> Real) := fun n => (a n) + (b n).
