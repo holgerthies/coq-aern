@@ -567,4 +567,25 @@ Section Shift.
  Defined.
 End Shift.
 
+Section Derivative.
+  Definition derivative (f: Real -> Real) (g : Real -> Real) x := forall eps, {d : Real | forall y, dist x y <= d -> abs (f y - f x - g x * (y -x)) <= eps }.
+
+  Definition derivative_sum f1 f2 g1 g2 x : derivative f1 g1 x -> derivative f2 g2 x -> derivative (fun x => (f1 x + f2 x)) (fun x => (g1 x + g2 x)) x.
+  Proof.
+    intros H1 H2 eps.
+    destruct (H1 (eps / real_2_neq_0)) as [d1 D1].
+    destruct (H2 (eps / real_2_neq_0)) as [d2 D2].
+    exists (Minmax.real_min d1 d2).
+    intros.
+    replace (f1 y + f2 y - (f1 x + f2 x) - (g1 x + g2 x)*(y - x)) with ((f1 y - f1 x -(g1 x)*(y-x)) + (f2 y - f2 x - (g2 x)*(y-x))) by ring.
+    apply (real_le_le_le _ _ _ (abs_tri _ _)).
+    replace eps with (eps /real_2_neq_0 + eps / real_2_neq_0).
+    apply real_le_le_plus_le; [apply D1 | apply D2];apply (real_le_le_le _ _ _ H); [apply Minmax.real_min_fst_le | apply Minmax.real_min_snd_le].
+    rewrite real_div_distr.
+
+    replace (eps + eps) with (eps * real_2) by (unfold real_2; simpl;ring).
+    unfold real_div; rewrite real_mult_assoc, (real_mult_comm real_2), real_mult_inv.
+    ring.
+ Qed.
+
   
