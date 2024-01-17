@@ -1,3 +1,53 @@
+ Lemma derivable_continuous f g : (forall x, derivative f g x) -> continuous f.
+ Proof.
+   intros D x eps H.
+   destruct (D x _ (real_half_gt_zero _ H)) as [d [D1 D2]].
+    assert (abs (g x) + real_1 > real_0).
+    {
+      apply (real_lt_le_lt _ (real_0 + real_1)); [rewrite real_plus_unit; apply real_1_gt_0 |].
+      apply real_le_le_plus_le; [apply abs_pos|apply real_le_triv].
+    }
+    remember (eps / (real_gt_neq _ _ H0) / real_2_neq_0) as d'.
+    assert (d' > real_0).
+    {
+      rewrite Heqd'.
+      apply real_half_gt_zero.
+      unfold real_div.
+      apply real_lt_pos_mult_pos_pos;auto.
+      apply real_pos_inv_pos;auto.
+    }
+    exists (Minmax.real_min d d').
+    split; [destruct (Minmax.real_min_cand d d') as [-> | ->];auto|].
+    intros.
+    rewrite dist_symm.
+    unfold dist.
+    replace (f y - f x) with ((f y - f x - g x * (y - x)) + g x * (y - x)) by ring.
+    apply (real_le_le_le _ _ _ (abs_tri _ _)).
+    rewrite <-half_twice.
+    apply real_le_le_plus_le; [apply D2; apply (real_le_le_le _ _ _ H2);apply Minmax.real_min_fst_le|].
+    rewrite abs_mult.
+    rewrite real_mult_comm.
+    apply (real_le_le_le _ (abs (y - x) * (abs (g x) + real_1)) _).
+    apply real_le_mult_pos_le; try apply abs_pos; add_both_side_by (- abs (g x)); apply real_lt_le;apply real_1_gt_0.
+    apply (real_le_mult_pos_cancel (/ real_gt_neq _ _ H0));[apply real_pos_inv_pos;auto |].
+    rewrite real_mult_comm, (real_mult_comm (abs (y-x))), <-real_mult_assoc, real_mult_inv.
+    ring_simplify.
+    rewrite dist_symm in H2.
+    apply (real_le_le_le _ _ _ H2).
+    apply (real_le_le_le _ _ _ (Minmax.real_min_snd_le _ _)).
+    rewrite Heqd'.
+    unfold real_div; ring_simplify.
+    apply real_le_triv.
+  Defined.
+
+ 
+  Definition derivative_product f1 f2 g1 g2 x : derivative f1 g1 x -> derivative f2 g2 x -> derivative (fun x => (f1 x * f2 x)) (fun x => (f1 x * g2 x) + (g1 x * f2 x)) x.
+  Proof.
+    intros H1 H2 eps epsgt0.
+    exists real_0.
+    split;[admit|].
+    intros.
+    replace (f1 y * f2 y - f1 x * f2 x - (f1 x * g2 x + g1 x * f2 x) * (y - x)) with (f1 y * (f2 y - f2 x - g2 x * (y-x)) + f2 x * (f1 y - f1 x - g1 x * (y-x))+(f1 y - f1 x)*(g2 x)*(y-x)) by ring.
 Require Import Real.
 Require Import MultiLimit.
 Require Import Euclidean.
