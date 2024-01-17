@@ -146,7 +146,23 @@ Section Power.
    unfold real_div.
    ring.
   Qed.
+ Lemma half_twice x : (x / real_2_neq_0) + (x / real_2_neq_0) = x.
+ Proof.
+    rewrite real_div_distr.
 
+    replace (x + x) with (x * real_2) by (unfold real_2; simpl;ring).
+    unfold real_div; rewrite real_mult_assoc, (real_mult_comm real_2), real_mult_inv.
+    ring.
+ Qed.
+ Lemma half_le_le x y : (x <= y) -> (x / real_2_neq_0) <= (y / real_2_neq_0).
+ Proof.
+   intros.
+   unfold real_div.
+   apply (real_le_mult_pos_cancel real_2); [apply real_2_pos|].
+   rewrite !real_mult_assoc.
+   rewrite real_mult_inv.
+   ring_simplify;auto.
+ Qed.
 End Power.
 
 Section Polynomials.
@@ -568,24 +584,138 @@ Section Shift.
 End Shift.
 
 Section Derivative.
-  Definition derivative (f: Real -> Real) (g : Real -> Real) x := forall eps, {d : Real | forall y, dist x y <= d -> abs (f y - f x - g x * (y -x)) <= eps }.
+  Definition derivative (f: Real -> Real) (g : Real -> Real) x := forall eps, eps > real_0 -> {d : Real | d > real_0 /\ forall y, dist x y <= d -> abs (f y - f x - g x * (y -x)) <= eps }.
 
   Definition derivative_sum f1 f2 g1 g2 x : derivative f1 g1 x -> derivative f2 g2 x -> derivative (fun x => (f1 x + f2 x)) (fun x => (g1 x + g2 x)) x.
   Proof.
-    intros H1 H2 eps.
-    destruct (H1 (eps / real_2_neq_0)) as [d1 D1].
-    destruct (H2 (eps / real_2_neq_0)) as [d2 D2].
-    exists (Minmax.real_min d1 d2).
+    intros H1 H2 eps epsgt0.
+    assert (eps / real_2_neq_0 > real_0) by (apply real_half_gt_zero;auto).
+    destruct (H1 (eps / real_2_neq_0)) as [d1 [d1gt0 D1]];auto.
+    destruct (H2 (eps / real_2_neq_0)) as [d2 [d2gt0 D2]];auto.
+    exists (Minmax.real_min d1 d2);split;[destruct (Minmax.real_min_cand d1 d2) as [-> | ->];auto|].
     intros.
     replace (f1 y + f2 y - (f1 x + f2 x) - (g1 x + g2 x)*(y - x)) with ((f1 y - f1 x -(g1 x)*(y-x)) + (f2 y - f2 x - (g2 x)*(y-x))) by ring.
     apply (real_le_le_le _ _ _ (abs_tri _ _)).
-    replace eps with (eps /real_2_neq_0 + eps / real_2_neq_0).
-    apply real_le_le_plus_le; [apply D1 | apply D2];apply (real_le_le_le _ _ _ H); [apply Minmax.real_min_fst_le | apply Minmax.real_min_snd_le].
-    rewrite real_div_distr.
-
-    replace (eps + eps) with (eps * real_2) by (unfold real_2; simpl;ring).
-    unfold real_div; rewrite real_mult_assoc, (real_mult_comm real_2), real_mult_inv.
-    ring.
+    replace eps with (eps /real_2_neq_0 + eps / real_2_neq_0) by apply half_twice.
+    apply real_le_le_plus_le; [apply D1 | apply D2]; apply (real_le_le_le _ _ _ H0); [apply Minmax.real_min_fst_le | apply Minmax.real_min_snd_le].
  Qed.
 
-  
+  Definition continuous (f: Real -> Real) := forall x eps, eps > real_0 -> {d : Real | d > real_0 /\ forall y, dist x y <= d -> dist (f x) (f y) <= eps}.
+
+  Lemma dist_bound x y eps : dist x y <= eps -> abs y <= abs x + eps.
+  Proof.
+    intros.
+    replace y with (x + (y-x)) by ring.
+    rewrite dist_symm in H.
+    apply (real_le_le_le _ _ _ (abs_tri _ _)).
+    apply real_le_le_plus_le; [apply real_le_triv | apply H].
+  Qed.
+
+  Lemma continuous_prod f1 f2 : continuous f1 -> continuous f2 -> continuous (fun x => (f1 x) * (f2 x)).
+  Proof.
+    intros H1 H2.
+    intros x eps H.
+    assert (abs (f1 x) + real_1 > real_0).
+    {
+      apply (real_lt_le_lt _ (real_0 + real_1)); [rewrite real_plus_unit; apply real_1_gt_0 |].
+      apply real_le_le_plus_le; [apply abs_pos|apply real_le_triv].
+    }
+    remember (eps / (real_gt_neq _ _ H0) / real_2_neq_0) as eps0.
+    assert (eps0 > real_0) as eps0gt0.
+    {
+    rewrite Heqeps0.
+    apply real_half_gt_zero.
+    unfold real_div.
+    apply real_lt_pos_mult_pos_pos;auto.
+    apply real_pos_inv_pos;auto.
+    }
+    destruct (H2 x _ eps0gt0) as [d0 [d0gt0 D0]].
+    assert (abs (f2 x) + eps0  > real_0).
+    {
+      
+      apply (real_lt_le_lt _ (real_0 + eps0)); [rewrite real_plus_unit; auto |].
+      apply real_le_le_plus_le; [apply abs_pos|apply real_le_triv].
+    }
+    remember (eps / (real_gt_neq _ _ H3) / real_2_neq_0) as eps1.
+    assert (eps1 > real_0) as eps1gt0.
+    {
+    rewrite Heqeps1.
+    apply real_half_gt_zero.
+    unfold real_div.
+    apply real_lt_pos_mult_pos_pos;auto.
+    apply real_pos_inv_pos;auto.
+    }
+    assert (forall a b c (cn0 : c <> real_0), a * (b / cn0) = (a*b)/ cn0) as diff by (intros;unfold real_div;ring_simplify;auto).
+    destruct (H1 x _ eps1gt0) as [d1 [d1gt0 D1]].
+    exists (Minmax.real_min d0 d1).
+    split; [destruct (Minmax.real_min_cand d0 d1) as [-> | ->];auto|].
+    intros.
+    unfold dist.
+    replace (f1 x * f2 x - f1 y * f2 y) with ((f1 x * (f2 x -  f2 y)) + (f2 y * ( f1 x - f1 y))) by ring.
+    replace eps with (eps / real_2_neq_0 + eps / real_2_neq_0) by apply half_twice.
+    apply (real_le_le_le _ _ _ (abs_tri _ _)).
+    apply real_le_le_plus_le;rewrite abs_mult.
+    - apply (real_le_le_le _ (abs (f1 x) * eps0)).
+      + apply real_le_mult_pos_le; [apply abs_pos |].
+        apply D0.
+        apply (real_le_le_le _ _ _ H4).
+        apply Minmax.real_min_fst_le.
+      + rewrite Heqeps0.
+        rewrite diff.
+        apply half_le_le.
+        unfold real_div.
+        rewrite <-real_mult_assoc, real_mult_comm, <-real_mult_assoc, real_mult_comm.
+        replace eps with ( eps * real_1) at 2 by ring.
+        apply real_le_mult_pos_le;[apply real_lt_le;auto|].
+        apply (real_le_mult_pos_cancel (abs (f1 x) + real_1));auto.
+        rewrite real_mult_assoc, (real_mult_comm (abs (f1 x))), <-real_mult_assoc, real_mult_inv, !real_mult_unit.
+        add_both_side_by (-abs (f1 x)).
+        apply real_lt_le;apply real_1_gt_0.
+     - apply (real_le_le_le _ (abs (f2 y) * eps1)).
+      + apply real_le_mult_pos_le; [apply abs_pos |].
+        apply D1.
+        apply (real_le_le_le _ _ _ H4).
+        apply Minmax.real_min_snd_le.
+      + rewrite Heqeps1.
+        rewrite diff.
+        apply half_le_le.
+        unfold real_div.
+        rewrite <-real_mult_assoc, real_mult_comm, <-real_mult_assoc, real_mult_comm.
+        replace eps with ( eps * real_1) at 2 by ring.
+        apply real_le_mult_pos_le;[apply real_lt_le;auto|].
+        apply (real_le_mult_pos_cancel (abs (f2 x) + eps0));auto.
+        rewrite real_mult_assoc, (real_mult_comm (abs (f2 y))), <-real_mult_assoc, real_mult_inv, !real_mult_unit.
+        apply dist_bound.
+        apply D0.
+        apply (real_le_le_le _ _ _ H4).
+        apply Minmax.real_min_fst_le.
+  Defined.
+
+  Lemma continuous_sum f1 f2 : continuous f1 -> continuous f2 -> continuous (fun x => (f1 x) + (f2 x)).
+  Proof.
+    intros H1 H2 x eps H.
+    assert (eps / real_2_neq_0 > real_0) by (apply real_half_gt_zero;auto).
+    destruct (H1 x _ H0) as [d [D0 D1]].
+    destruct (H2 x _ H0) as [d' [D0' D1']].
+    exists (Minmax.real_min d d').
+    split; [destruct (Minmax.real_min_cand d d') as [-> | ->];auto|].
+    intros.
+    apply (real_le_le_le _ _ _ (dist_plus_le _ _ _ _)).
+    rewrite <-half_twice.
+    apply real_le_le_plus_le; [apply D1 | apply D1'];apply (real_le_le_le _ _ _ H3).
+    apply Minmax.real_min_fst_le.
+    apply Minmax.real_min_snd_le.
+  Defined.
+  Lemma continuous_poly p : continuous (eval_poly p).
+  Proof.
+    induction p.
+    exists real_1.
+    split; [apply real_1_gt_0 | intros;simpl ];rewrite (proj2 (dist_zero real_0 real_0));try apply real_lt_le;auto.
+    simpl.
+    apply (continuous_sum (fun x => a) (fun x => x * eval_poly p x));auto.
+    intros x' eps' H'; exists real_1; split; [apply real_1_gt_0 |intros;simpl].
+    rewrite (proj2 (dist_zero a a));try apply real_lt_le;auto.
+    apply (continuous_prod (fun x => x) (eval_poly p));auto.
+    intros x eps H.
+    exists eps;intros;auto.
+ Defined.
