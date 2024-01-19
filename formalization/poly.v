@@ -185,8 +185,58 @@ Section Polynomials.
     | h :: t => h + x * (eval_poly t x)  
     end.
 
+  Fixpoint eval_poly_rec (a : poly) (x : Real) (n : nat) :=
+    match n with
+    | 0 => real_0
+    | (S n') => last a real_0  * (npow x n') + eval_poly_rec (removelast a) x n'
+    end.
 
-  Lemma bound_polynomial p r : {B | forall x, abs x <= r -> abs (eval_poly p x) <= B}.
+  Definition eval_poly2 a x := eval_poly_rec a x (length a).
+
+  Lemma eval_poly2_app1 a an x : eval_poly2 (a ++ [an]) x = an * (npow x (length a)) + eval_poly2 a x.
+  Proof.
+    unfold eval_poly2 at 1.
+    replace (length (a ++ [an])) with (S (length a)) by (rewrite app_length;simpl;lia).
+    simpl.
+    rewrite last_last.
+    rewrite removelast_last.
+    auto.
+  Qed.
+
+  Lemma eval_poly2_app a b x : eval_poly2 (a ++ b) x  = eval_poly2 a x  + npow x (length a) * eval_poly2 b x. 
+  Proof.
+  revert a.
+  induction b as [| b0 b IH];intros.
+  rewrite app_nil_r;unfold eval_poly2;simpl;ring.
+  replace (a ++ b0 :: b) with ((a ++ [b0]) ++ b) by (rewrite <-app_assoc;auto).
+  rewrite IH.
+  rewrite eval_poly2_app1.
+  rewrite app_length.
+  simpl.
+  rewrite real_plus_assoc, !(real_plus_comm (eval_poly2 a x)), <-real_plus_assoc.
+  apply real_eq_plus_eq.
+  replace (length a + 1)%nat with (S (length a)) by lia.
+  simpl.
+  replace (b0 * npow x (length a) + x *npow x (length a)*eval_poly2 b x) with (npow x (length a) * (b0 + x * eval_poly2 b x)) by ring.
+  apply real_eq_mult_eq.
+  replace (b0 :: b) with ([b0]++b) by auto.
+  rewrite IH.
+  unfold eval_poly2.
+  simpl.
+  ring.
+  Qed.
+
+  Lemma eval_eval2 a x : eval_poly a x = eval_poly2 a x.
+  Proof.
+    induction a as [| a0 a]; [unfold eval_poly2;simpl;ring|].
+    replace (a0 :: a) with ([a0]++a) by auto.
+    rewrite eval_poly2_app.
+    simpl.
+    rewrite IHa.
+    unfold eval_poly2.
+    simpl;ring.
+  Qed.
+    Lemma bound_polynomial p r : {B | forall x, abs x <= r -> abs (eval_poly p x) <= B}.
   Proof.
    induction p as [| a0 p' IH]; [exists real_0;intros; simpl;rewrite abs_pos_id; apply real_le_triv | ].
    destruct IH as [B' H].
@@ -824,7 +874,24 @@ Section Derivative.
     rewrite <-(half_twice x);ring_simplify;rewrite half_twice; ring.    
   Qed.
 
-  Definition derivative_product f1 f2 g1 g2 x : derivative f1 g1 x -> derivative f2 g2 x -> derivative (fun x => (f1 x * f2 x)) (fun x => (f1 x * g2 x) + (g1 x * f2 x)) x.
+  Lemma derivative_sproduct a f g x : derivative f g x -> derivative (fun x => a * f x) (fun x => a * g x) x.
+  Proof.
+    intros H eps epsgt0.
+    destruct (H (eps / (real_gt_neq _  _ (abs_plus_1_gt_0 a)))) as [d [dgt0 D]];[apply real_div_gt_0;try apply abs_plus_1_gt_0;auto |].
+    exists d;split;auto.
+    intros.
+    replace (a*f y - a * f x - a * g x * (y-x)) with (a * (f y - f x - g x * (y- x))) by ring.
+    rewrite abs_mult.
+    apply (real_le_le_le _ (abs a * ((eps / (real_gt_neq _  _ (abs_plus_1_gt_0 a))) * abs (y - x)))).
+    apply real_le_mult_pos_le; [apply abs_pos | apply D];auto.
+    rewrite <-real_mult_assoc.
+    rewrite !(real_mult_comm _( abs (y - x))).
+    apply real_le_mult_pos_le; try apply abs_pos.
+    rewrite (real_mult_comm (abs a)). 
+    apply abs_plus_one_div_inv;auto.
+  Qed.
+  
+  Lemma derivative_product f1 f2 g1 g2 x : derivative f1 g1 x -> derivative f2 g2 x -> derivative (fun x => (f1 x * f2 x)) (fun x => (f1 x * g2 x) + (g1 x * f2 x)) x.
   Proof.
     intros H1 H2 eps epsgt0.
     remember (eps / real_2_neq_0  / (real_gt_neq _  _ (abs_plus_1_gt_0 (g2 x)))) as eps0'.
@@ -909,5 +976,121 @@ Section Derivative.
       apply real_half_gt_zero;auto.
   Defined.
 
+  Lemma derivative_const c : forall x, derivative (fun x => c) (fun x => real_0) x.
+ Proof. 
+   intros x eps H.
+   exists real_1.
+   split; [apply real_1_gt_0|].
+   intros.
+   replace (c-c-real_0 * (y-x)) with real_0 by ring.
+   rewrite (proj2 (abs_zero real_0)); try apply real_le_triv;auto.
+   apply real_le_pos_mult_pos_pos.
+   apply real_lt_le;auto.
+   apply abs_pos.
+ Qed.
 
-  
+  Lemma derivative_id : forall x, derivative (fun x => x) (fun x => real_1) x.
+  Proof.
+    intros x eps H.
+    exists real_1.
+   split; [apply real_1_gt_0|].
+   intros.
+   replace (y-x-real_1 * (y-x)) with real_0 by ring.
+   rewrite (proj2 (abs_zero real_0)); try apply real_le_triv;auto.
+   apply real_le_pos_mult_pos_pos.
+   apply real_lt_le;auto.
+   apply abs_pos.
+ Qed.
+
+ Lemma derivative_monomial n : forall x, derivative (fun x => (npow x (S n))) (fun x => (Nreal (S n) * npow x n)) x.
+ Proof.
+   intros.
+   induction n.
+   - simpl.
+     replace ((real_1+real_0)*real_1) with real_1 by ring.
+     replace (fun x => x*real_1) with (fun (x : ^Real) => x) by (apply fun_ext;intros;ring).
+     apply derivative_id.
+  - replace (fun x => Nreal (S (S n)) * npow x (S n)) with (fun (x : ^Real) => x*(Nreal (S n) * npow x n) + real_1 * npow x ((S n))) by (apply fun_ext;intros;simpl;ring).
+    simpl.
+    apply derivative_product.
+    apply derivative_id.
+    apply IHn.
+ Qed.
+
+ Lemma derive_ext f1 f2 g x : (forall x, f1 x = f2 x) ->  derivative f2 g x -> derivative f1 g x.
+ Proof.
+   intros H D eps epsgt0.
+   destruct (D eps epsgt0) as [d [dgt dP]].
+   exists d;split;auto.
+   intros.
+   rewrite !H.
+   apply dP;auto.
+ Qed.
+
+ Lemma monomial_poly a n : {p : poly | forall x, eval_poly p x = a * npow x n}.
+ Proof.
+   exists ((repeat real_0 n) ++ [a]).
+   intros.
+   induction n; [simpl; ring|].
+   simpl.
+   rewrite IHn.
+   ring.
+ Qed.
+
+ Lemma derive_poly_helper p1 p2 p1' p2' : (forall x, derivative (eval_poly p1) (eval_poly p1') x) -> (forall x, derivative (fun x => (npow x (length p1)) * (eval_poly p2 x)) (eval_poly p2') x) -> forall x, derivative (eval_poly (p1++p2)) (fun x => (eval_poly p1' x + eval_poly p2' x)) x.
+ Proof.
+   intros H1 H2 x.
+   apply (derive_ext _ (fun x => eval_poly p1 x + npow x (length p1) * eval_poly p2 x)); [intros;rewrite !eval_eval2;apply eval_poly2_app | ].
+   apply derivative_sum;auto.
+ Qed.
+ Lemma derive_poly2 (p : poly) : {p' & forall x, derivative (eval_poly p) (eval_poly p') x }.
+ Proof.
+   replace p with (rev (rev p)) by apply rev_involutive.
+   induction (rev p);[exists [];unfold eval_poly2;simpl; apply derivative_const|].
+   simpl.
+   destruct IHl as [p' IH].
+   destruct (monomial_poly a (length (rev l))) as [m M'].
+   destruct (sum_poly p' m) as [p0 P0].
+
+   intros x eps epsgt0.
+   rewrite P0.
+   apply derive_poly_helper;auto.
+   clear x eps epsgt0.
+   intros x eps epsgt0.
+   rewrite M'.
+   simpl.
+   exists real_1; split; [apply real_1_gt_0 |].
+   intros
+   (* assert (forall x, eval_poly2 m x = a*npow x (length p)) as M by  (intros; rewrite <-eval_eval2;auto). *)
+   (* clear M'. *)
+   intros x.
+   assert (eval_poly2 (a :: p) = (fun x => (a * ))) 
+admit.
+ Lemma derive_poly (p : poly) : {p' & forall x, derivative (eval_poly p) (eval_poly p') x }.
+ Proof.
+   induction p; [exists [];apply derivative_const|].
+   destruct IHp as [p' P'].()
+   destruct (mult_poly [real_0;real_1] p') as [xp' X].
+   destruct (sum_poly p xp') as [p0' P].
+   exists p0'.
+   simpl.
+   intros x.
+   replace (eval_poly p0') with (fun x => real_0 + eval_poly p0' x) by (apply fun_ext;intros;ring).
+   apply derivative_sum; [apply derivative_const |].
+   replace (eval_poly p0') with (fun x =>  x * eval_poly p' x + real_1 * eval_poly p x ).
+   - apply derivative_product; [apply derivative_id |].
+     apply P'.
+   - apply fun_ext.
+     intros.
+     rewrite P.
+     rewrite X.
+     simpl;ring.
+ Defined.
+
+ Lemma derive_poly_spec p : forall n, nth n (projT1 (derive_poly p)) real_0 = (Nreal (S n)) * (nth (S n) p real_0).
+ Proof.
+   induction p.
+   intros n.
+   destruct n;simpl;ring.
+   intros n.
+   induction n.
