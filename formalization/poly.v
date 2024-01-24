@@ -889,7 +889,7 @@ Section Derivative.
     apply real_le_mult_pos_le; try apply abs_pos.
     rewrite (real_mult_comm (abs a)). 
     apply abs_plus_one_div_inv;auto.
-  Qed.
+  Defined.
   
   Lemma derivative_product f1 f2 g1 g2 x : derivative f1 g1 x -> derivative f2 g2 x -> derivative (fun x => (f1 x * f2 x)) (fun x => (f1 x * g2 x) + (g1 x * f2 x)) x.
   Proof.
@@ -1035,7 +1035,7 @@ Section Derivative.
    simpl.
    rewrite IHn.
    ring.
- Qed.
+ Defined.
 
  Lemma derive_poly_helper p1 p2 p1' p2' : (forall x, derivative (eval_poly p1) (eval_poly p1') x) -> (forall x, derivative (fun x => (npow x (length p1)) * (eval_poly p2 x)) (eval_poly p2') x) -> forall x, derivative (eval_poly (p1++p2)) (fun x => (eval_poly p1' x + eval_poly p2' x)) x.
  Proof.
@@ -1043,54 +1043,72 @@ Section Derivative.
    apply (derive_ext _ (fun x => eval_poly p1 x + npow x (length p1) * eval_poly p2 x)); [intros;rewrite !eval_eval2;apply eval_poly2_app | ].
    apply derivative_sum;auto.
  Qed.
- Lemma derive_poly2 (p : poly) : {p' & forall x, derivative (eval_poly p) (eval_poly p') x }.
+
+ Lemma derive_monomial a n : {p & forall x, derivative (fun x => a * npow x n) (eval_poly p) x}.
  Proof.
-   replace p with (rev (rev p)) by apply rev_involutive.
+   destruct n; [exists []; simpl; apply derivative_const|].
+   destruct (monomial_poly (a * (Nreal (S n))) n) as [p P].
+   exists p.
+   replace (eval_poly p) with (fun x => a * (Nreal (S n) * npow x n)) by (apply fun_ext;intros; rewrite P;ring).
+   intros x.
+   apply derivative_sproduct.
+   apply derivative_monomial.
+ Defined.
+ 
+ Lemma derive_poly (p : poly) : {p' & forall x, derivative (eval_poly p) (eval_poly p') x }.
+ Proof.
+   replace p with (rev (rev p)) by (apply rev_involutive).
    induction (rev p);[exists [];unfold eval_poly2;simpl; apply derivative_const|].
    simpl.
    destruct IHl as [p' IH].
-   destruct (monomial_poly a (length (rev l))) as [m M'].
+   destruct (derive_monomial a (length (rev l))) as [m M].
    destruct (sum_poly p' m) as [p0 P0].
-
+   exists p0.
    intros x eps epsgt0.
    rewrite P0.
    apply derive_poly_helper;auto.
    clear x eps epsgt0.
-   intros x eps epsgt0.
-   rewrite M'.
-   simpl.
-   exists real_1; split; [apply real_1_gt_0 |].
-   intros
-   (* assert (forall x, eval_poly2 m x = a*npow x (length p)) as M by  (intros; rewrite <-eval_eval2;auto). *)
-   (* clear M'. *)
-   intros x.
-   assert (eval_poly2 (a :: p) = (fun x => (a * ))) 
-admit.
- Lemma derive_poly (p : poly) : {p' & forall x, derivative (eval_poly p) (eval_poly p') x }.
- Proof.
-   induction p; [exists [];apply derivative_const|].
-   destruct IHp as [p' P'].()
-   destruct (mult_poly [real_0;real_1] p') as [xp' X].
-   destruct (sum_poly p xp') as [p0' P].
-   exists p0'.
    simpl.
    intros x.
-   replace (eval_poly p0') with (fun x => real_0 + eval_poly p0' x) by (apply fun_ext;intros;ring).
-   apply derivative_sum; [apply derivative_const |].
-   replace (eval_poly p0') with (fun x =>  x * eval_poly p' x + real_1 * eval_poly p x ).
-   - apply derivative_product; [apply derivative_id |].
-     apply P'.
-   - apply fun_ext.
-     intros.
-     rewrite P.
-     rewrite X.
-     simpl;ring.
- Defined.
+   apply (derive_ext _ (fun x => a * npow x (length (rev l)))); [intros;ring|].
+   apply M.
+  Defined.
+
+ 
+
+ (* Lemma derive_poly (p : poly) : {p' & forall x, derivative (eval_poly p) (eval_poly p') x }. *)
+ (* Proof. *)
+ (*   induction p; [exists [];apply derivative_const|]. *)
+ (*   destruct IHp as [p' P'].() *)
+ (*   destruct (mult_poly [real_0;real_1] p') as [xp' X]. *)
+ (*   destruct (sum_poly p xp') as [p0' P]. *)
+ (*   exists p0'. *)
+ (*   simpl. *)
+ (*   intros x. *)
+ (*   replace (eval_poly p0') with (fun x => real_0 + eval_poly p0' x) by (apply fun_ext;intros;ring). *)
+ (*   apply derivative_sum; [apply derivative_const |]. *)
+ (*   replace (eval_poly p0') with (fun x =>  x * eval_poly p' x + real_1 * eval_poly p x ). *)
+ (*   - apply derivative_product; [apply derivative_id |]. *)
+ (*     apply P'. *)
+ (*   - apply fun_ext. *)
+ (*     intros. *)
+ (*     rewrite P. *)
+ (*     rewrite X. *)
+ (*     simpl;ring. *)
+ (* Defined. *)
 
  Lemma derive_poly_spec p : forall n, nth n (projT1 (derive_poly p)) real_0 = (Nreal (S n)) * (nth (S n) p real_0).
  Proof.
    induction p.
    intros n.
+   simpl.
+   unfold derive_poly.
+   simpl.
+   unfold eq_rect.
+   simpl.
+   admit.
+   intros.
+   simpl.
    destruct n;simpl;ring.
    intros n.
    induction n.
