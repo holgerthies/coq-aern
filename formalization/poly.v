@@ -77,6 +77,13 @@ Section RealHelpers.
    rewrite real_mult_inv.
    ring_simplify;auto.
  Qed.
+
+  Lemma abs_plus_1_gt_0 : forall x, (abs x)+real_1 > real_0.
+  Proof.
+    intros.
+    apply (real_lt_le_lt _ (real_0 + real_1)); [rewrite real_plus_unit; apply real_1_gt_0 |].
+    apply real_le_le_plus_le; [apply abs_pos|apply real_le_triv].
+  Qed.
 End RealHelpers.
 
 Section Power.
@@ -764,12 +771,6 @@ Section Derivative.
   Definition derivative (f: Real -> Real) (g : Real -> Real) x := forall eps, eps > real_0 -> {d : Real | d > real_0 /\ forall y, dist x y <= d -> abs (f y - f x - g x * (y -x)) <= eps * abs(y-x) }.
 
   
-  Lemma abs_plus_1_gt_0 : forall x, (abs x)+real_1 > real_0.
-  Proof.
-    intros.
-    apply (real_lt_le_lt _ (real_0 + real_1)); [rewrite real_plus_unit; apply real_1_gt_0 |].
-    apply real_le_le_plus_le; [apply abs_pos|apply real_le_triv].
-  Qed.
  Lemma derivable_continuous f g : forall x,  derivative f g x -> continuous f x.
  Proof.
    intros x D eps H.
@@ -1097,18 +1098,19 @@ Section Derivative.
  (*     simpl;ring. *)
  (* Defined. *)
 
- Lemma derive_poly_spec p : forall n, nth n (projT1 (derive_poly p)) real_0 = (Nreal (S n)) * (nth (S n) p real_0).
- Proof.
-   induction p.
-   intros n.
-   simpl.
-   unfold derive_poly.
-   simpl.
-   unfold eq_rect.
-   simpl.
-   admit.
-   intros.
-   simpl.
-   destruct n;simpl;ring.
-   intros n.
-   induction n.
+ (* Lemma derive_poly_spec p : forall n, nth n (projT1 (derive_poly p)) real_0 = (Nreal (S n)) * (nth (S n) p real_0). *)
+ (* Proof. *)
+ (*   induction p. *)
+ (*   intros n. *)
+ (*   simpl. *)
+ (*   unfold derive_poly. *)
+ (*   simpl. *)
+ (*   unfold eq_rect. *)
+ (*   simpl. *)
+ (*   admit. *)
+ (*   intros. *)
+ (*   simpl. *)
+ (*   destruct n;simpl;ring. *)
+ (*   intros n. *)
+ (*   induction n. *)
+End Derivative.

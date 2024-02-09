@@ -7,202 +7,13 @@ Require Export Ring Field.
 Require Import Psatz.
 Require Import List.
 Import ListNotations.
-Require Import Polynomial.
-Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+Require Import Poly.
+Require Import Taylormodel.
 
-#[local] Notation "^K" := (@K types) (at level 0).
-#[local] Notation "^M" := (@M types) (at level 0).
-#[local] Notation "^Real" := (@Real types) (at level 0).
-
-  (* ring structure on Real *)
-  Ltac IZReal_tac t :=
-    match t with
-    | real_0 => constr:(0%Z)
-    | real_1 => constr:(1%Z)
-    | IZreal ?u =>
-      match isZcst u with
-      | true => u
-      | _ => constr:(InitialRing.NotConstant)
-      end
-    | _ => constr:(InitialRing.NotConstant)
-    end.
-
-  Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
-
-Section Power.
-
-
-
- (* Lemma pow_div r1 {r2} (r2' : real_0 < r2) n : (pow r1 n) / (pow_neq_0 _ n r2') = (pow (r1 / (real_gt_neq _ _ r2')) n). *)
- (* Proof. *)
- (*   induction n. *)
- (*   - simpl. *)
- (*     unfold real_div. *)
- (*     ring_simplify. *)
- (*     apply (real_eq_mult_cancel (pow r2 0)). *)
- (*     apply real_gt_neq;apply pow_pos;auto. *)
- (*     pose proof (real_mult_inv (pow r2 0) (pow_neq_0 _ 0 r2')). *)
- (*     simpl;simpl in H. *)
- (*     rewrite H. *)
- (*     ring. *)
- (*  -  *)
-
-End Power.
-
-Section PolynomialModels.
-
- Record polynomial_model : Type := mk_polynomial_model
-                                     {
-                                       pm_coeffs : list ^Real;
-                                       pm_radius: ^Real;
-                                       pm_error : ^Real
-                                     }.
-
-
-  Definition eval_pm p x := eval_series (pm_coeffs p) x.
- Definition is_polynomial_model (p : polynomial_model) (f : Real -> Real) := forall x, abs x < pm_radius p -> dist (f x) (eval_pm p x) < pm_error p.
-
- Fixpoint sum_coefficients (a b : list Real) :=
-   match a with
-     | nil => b
-     | a0 :: atl =>
-       match b with
-       | nil => a
-       | b0 :: btl => (a0 + b0) :: sum_coefficients atl btl
-       end
-     end.
-                 
-
-   Lemma sum_eval a b x : eval_series (sum_coefficients a b) x = eval_series a x + eval_series b x.
-   Proof.
-     revert b.
-     induction a as [| a0 a];intros; [simpl;ring|].
-     destruct b as [| b0 b];[simpl;ring|].
-     simpl.
-     assert (forall y z u, y = z + u -> a0 + b0 + y = a0+z+(b0+u)) by (intros;rewrite H;ring).
-     apply H.
-     rewrite <-real_mult_plus_distr.
-     apply real_eq_mult_eq.
-     apply IHa.
-   Qed.
-   
-  Definition sum_pm (p1 p2 : polynomial_model) : polynomial_model.
-  Proof.
-    apply mk_polynomial_model.
-    apply (sum_coefficients (pm_coeffs p1) (pm_coeffs p2)).
-    apply (Minmax.real_min (pm_radius p1) (pm_radius p2)).
-    apply (pm_error p1 + pm_error p2).
-  Defined.
-
-  Lemma sum_pm_spec p1 p2 f1 f2: is_polynomial_model p1 f1 -> is_polynomial_model p2 f2 -> is_polynomial_model (sum_pm p1 p2) (fun x => (f1 x) + (f2 x)). 
- Proof.
-   destruct p1; destruct p2.
-   unfold is_polynomial_model, eval_pm.
-   simpl.
-   intros.
-   rewrite sum_eval.
-   apply (real_le_lt_lt _ _ _ (dist_plus_le _ _ _ _)).
-   apply real_lt_lt_plus_lt;[apply H | apply H0];apply (real_lt_le_lt _ _ _ H1).
-   apply Minmax.real_min_fst_le.
-   apply Minmax.real_min_snd_le.
-  Defined.
-
-
-  Definition swipe (p : polynomial_model) (n : nat) : polynomial_model.
-  Proof.
-    destruct p as [a r err].
-    apply mk_polynomial_model.
-    apply (firstn n a).
-    apply r.
-    apply (err + (pow r n) * (bound_polynomial (skipn n a) r)).
-  Defined.
-
-  Lemma pm_r_gt0 p f : (pm_radius p) < real_0 -> is_polynomial_model p f.
-  Proof.
-    unfold is_polynomial_model, eval_pm.
-    intros.
-    destruct p as [a r err]; simpl in *.
-    contradict H0.
-    apply real_lt_nlt.
-    apply (real_lt_le_lt _ _ _ H).
-    apply abs_pos.
-  Qed.
-
-  Lemma swipe_pm p f n : is_polynomial_model p f -> is_polynomial_model (swipe p n) f.
-  Proof.
-    unfold is_polynomial_model.
-    destruct p as [a r err].
-    unfold swipe; unfold eval_pm;simpl.
-    intros.
-    apply (real_le_lt_lt _ _ _ (dist_tri  _ (eval_series a x) _ )).
-    rewrite real_plus_comm, (real_plus_comm err).
-    apply real_le_lt_plus_lt;auto.
-    assert (real_0 <= r) as rge0 by (apply real_lt_le; apply (real_le_lt_lt _ (abs x)); try apply abs_pos;auto).
-    replace (dist (eval_series a x) (eval_series (firstn n a) x)) with (abs (pow x n) * abs (eval_series (skipn n a) x)).
-    { 
-      apply real_le_mult_pos_le_le; try apply abs_pos; try apply real_le_triv.
-      rewrite pow_abs.
-      apply pow_nonneg_le;try apply abs_pos; apply real_lt_le;auto.
-      apply bound_polynomial_spec;apply real_lt_le;auto.
-    }
-    rewrite <- abs_mult.
-    unfold dist.
-    f_equal.
-    clear H.
-    revert a.
-    induction n;intros; [simpl;ring |].
-    simpl.
-    destruct a;simpl;try ring.
-    rewrite real_mult_assoc.
-    rewrite IHn.
-    ring.
-  Qed.
-
-  Definition mult_pm (p1 p2 : polynomial_model) : polynomial_model.
-  Proof.
-    destruct p1 as [a ra erra]; destruct p2 as [b rb errb].
-    remember (Minmax.real_min ra rb) as r.
-    apply mk_polynomial_model.
-    apply (mult_coefficients a b).
-    apply r.
-    apply (erra*errb + bound_polynomial a r * errb + bound_polynomial b r * erra).
- Defined.
-  Lemma mult_pm_spec p1 p2 f1 f2: is_polynomial_model p1 f1 -> is_polynomial_model p2 f2 -> is_polynomial_model (mult_pm p1 p2) (fun x => (f1 x) * (f2 x)). 
-  Proof.
-    destruct p1 as [a ra erra]; destruct p2 as [b rb errb].
-    unfold is_polynomial_model, eval_pm; simpl.
-    intros.
-    rewrite mult_eval.
-    unfold dist.
-    replace (f1 x * f2 x - eval_series a x * eval_series b x) with (eval_series a x * (f2 x -  eval_series b x) + eval_series b x * (f1 x  - eval_series a x) + (f1 x - eval_series a x )* ((f2 x) - eval_series b x))  by ring.
-    rewrite (real_plus_assoc (erra*errb)), (real_plus_comm (erra * errb)).
-    apply (real_le_lt_lt _ _ _ (abs_tri _ _ )).
-    apply real_le_lt_plus_lt;[apply (real_le_le_le _ _ _ (abs_tri _ _ )); apply real_le_le_plus_le|]; rewrite abs_mult.
-    - apply real_le_mult_pos_le_le; try apply abs_pos; [apply bound_polynomial_spec |];apply real_lt_le;auto.
-      apply H0.
-      apply (real_lt_le_lt _ _ _ H1).
-      apply Minmax.real_min_snd_le.
-    - apply real_le_mult_pos_le_le; try apply abs_pos; [apply bound_polynomial_spec |];apply real_lt_le;auto.
-      apply H.
-      apply (real_lt_le_lt _ _ _ H1).
-      apply Minmax.real_min_fst_le.
-    - pose proof (real_lt_le_lt _ _ _ H1 (Minmax.real_min_fst_le ra rb)).
-      pose proof (real_lt_le_lt _ _ _ H1 (Minmax.real_min_snd_le ra rb)).
-      specialize (H _ H2).
-      specialize (H0 _ H3).
-      apply real_lt_mult_pos_lt_lt; try apply abs_pos; auto.
-      apply (real_le_lt_lt _ (dist (f1 x) (eval_series a x)));auto.
-      apply dist_pos.
-      apply (real_le_lt_lt _ (dist (f2 x) (eval_series b x)));auto.
-      apply dist_pos.
- Qed.
-End PolynomialModels.
 
 Section Powerseries.
 
-  
-
-  Definition bounded_seq (a : nat -> Real) M {r : Real} (H : real_0 < r)  :=  forall n, abs (a n) <= Nreal M * (pow (/ (real_gt_neq _ _ H)) n).
+  Definition bounded_seq (a : nat -> Real) M {r : Real} (H : real_0 < r)  :=  forall n, abs (a n) <= Nreal M * (npow (real_inv (real_gt_neq _ _ H))  n).
                                                                                    
  Record bounded_ps : Type := mk_bounded_ps
                                {
@@ -219,6 +30,7 @@ Section Powerseries.
     | 0 => (a 0)
     | (S n') => (a n)+partial_sum a n'
     end.
+
   Lemma tpmn_sum a : (forall n, abs (a n) <= prec n) -> forall n, abs (partial_sum  a n) <= real_2 - prec n.
   Proof.
     intros H n.
@@ -237,7 +49,7 @@ Section Powerseries.
      ring_simplify.
      apply real_le_triv.
   Qed.
-
+  Check consecutive_converging_fast_cauchy.
   Lemma tmpn_cauchy a m : (forall n,  abs (a (n+m)%nat) <= prec n) -> is_fast_cauchy (fun n => partial_sum a (n+m)%nat).
   Proof.
     intros H.
@@ -251,14 +63,14 @@ Section Powerseries.
     apply H.
  Qed.
 
-  Definition to_list (a : nat -> ^Real) n := map a (seq 0 (S n)).
+  Definition to_list (a : nat -> (@Real Poly.types)) n := map a (seq 0 (S n)).
 
 
  Definition partial_sum_inc a m n := partial_sum a (n+m)%nat.
 
- Definition ps a x n := (a n) * pow x n. 
+ Definition ps a x n := (a n) * npow x n. 
 
- Lemma eval_series_to_list a x n i:  (i <= n)%nat -> eval_series (to_list a n) x = eval_series (to_list a i) x + (pow x (S i))*(eval_series (map a (seq (S i) (n-i)%nat)) x).
+ Lemma eval_series_to_list a x n i:  (i <= n)%nat -> eval_poly (to_list a n) x = eval_poly (to_list a i) x + (npow x (S i))*(eval_poly (map a (seq (S i) (n-i)%nat)) x).
   Proof.
     revert n.
     induction i; [intros;simpl;rewrite Nat.sub_0_r;ring | ].
@@ -271,7 +83,7 @@ Section Powerseries.
     ring.
 Qed.
 
-  Lemma eval_series_partial_sum a x n : eval_series (to_list a n) x = partial_sum (ps a x) n.
+  Lemma eval_series_partial_sum a x n : eval_poly (to_list a n) x = partial_sum (ps a x) n.
   Proof.
     unfold ps.
     induction n; [simpl;ring|].
@@ -306,21 +118,11 @@ Qed.
   
  Definition eval_radius (a : bounded_ps) := ((bounded_ps_r a) / real_2_neq_0).
 
-  Definition to_polynomial_model (a : bounded_ps) (n : nat) : polynomial_model.
+  Lemma is_fast_cauchy_eval (a : bounded_ps) x : abs x <= eval_radius a -> is_fast_cauchy (fun n => eval_poly (to_list (series a) (n+(S (Nat.log2 (bounded_ps_M a))))%nat) x).
   Proof.
-    destruct a as [a M r rgt0 B].
-    apply mk_polynomial_model.
-    apply (to_list a (n+(S (Nat.log2 M)))%nat).
-    apply (r / real_2_neq_0).
-    apply (prec n).
-  Defined.
-
-  Lemma is_fast_cauchy_eval (a : bounded_ps) x : abs x <= eval_radius a -> is_fast_cauchy (fun n => eval_pm (to_polynomial_model a n) x).
-  Proof.
-    unfold eval_radius, eval_pm.
+    unfold eval_radius.
     destruct a as [a M r rgt0 B].
     simpl bounded_ps_r.
-    simpl pm_coeffs.
     intros H n m.
     rewrite !eval_series_partial_sum.
     apply tmpn_cauchy.
@@ -330,19 +132,19 @@ Qed.
     rewrite abs_mult.
     apply real_lt_le.
     apply (real_le_lt_lt _ (Nreal M * prec (n0+(S (Nat.log2 M))))); [|apply increment_num].
-   apply (real_le_le_le _ (((Nreal M) * (pow (/ (real_gt_neq _ _ rgt0)) (n0 + (S (Nat.log2 M)))%nat) * (pow (r / real_2_neq_0) (n0+S (Nat.log2 M))%nat)))).
+   apply (real_le_le_le _ (((Nreal M) * (npow (/ (real_gt_neq _ _ rgt0)) (n0 + (S (Nat.log2 M)))%nat) * (npow (r / real_2_neq_0) (n0+S (Nat.log2 M))%nat)))).
    - apply real_le_mult_pos_le_le; try apply abs_pos; try apply B.
-     rewrite pow_abs.
-     apply pow_nonneg_le;auto.
+     rewrite abs_npow_distr.
+     apply npow_nonneg_le;auto.
      apply abs_pos.
    - rewrite real_mult_assoc.
      apply real_le_mult_pos_le; [destruct M;[apply real_le_triv|apply real_lt_le;apply Nreal_pos;lia]|].
-    rewrite pow_mult.
+    rewrite npow_mult.
     unfold real_div.
     rewrite <-real_mult_assoc.
     assert (/ real_gt_neq r real_0 rgt0 * r = real_1) as -> by apply real_mult_inv.  
     rewrite real_mult_unit.
-    rewrite pow_prec.
+    rewrite npow_prec.
     apply real_le_triv.
  Qed.
 
@@ -353,6 +155,15 @@ Qed.
    apply is_fast_cauchy_eval;auto.
    apply x0.
  Defined.
+  Definition to_polynomial_model (a : bounded_ps) (n : nat) : taylor_model.
+  Proof.
+    destruct a as [a M r rgt0 B].
+    apply mk_polynomial_model.
+    apply (to_list a (n+(S (Nat.log2 M)))%nat).
+    apply (r / real_2_neq_0).
+    apply (prec n).
+  Defined.
+
 
  (* Definition coeff_bound a := {M : nat & {r : Real & {H : (r > real_0) | bounded_seq a M H }}}. *)
 
