@@ -239,15 +239,23 @@ Section ClassicalContinuity.
 End ClassicalContinuity.
 
 Section ClassicalDerivatives.
-  Definition derivative_pt (f: cfun) (g : cfun) x := dom f x /\ dom g x /\ forall eps, eps > real_0 -> exists delta,  delta > real_0 /\ forall y fx fy gx, dist x y <= delta -> img f x fx -> img f y fy -> img g x gx -> abs (fy - fx - gx * (y -x)) <= eps * abs(y-x) .
+  Definition derivative_pt (f: cfun) (gx : Real) x := dom f x /\ forall eps, eps > real_0 -> exists delta,  delta > real_0 /\ forall y fx fy, dist x y <= delta -> img f x fx -> img f y fy  -> abs (fy - fx - gx * (y -x)) <= eps * abs(y-x) .
 
-  Definition cderivative (f: cfun) (g : cfun) x0 r := forall x,  dist x x0 <= r -> derivative_pt f g x.
+  Definition cderivative (f: cfun) (g : cfun) x0 r := forall x, exists gx, img g x gx /\  dist x x0 <= r -> derivative_pt f gx x.
 
   Fixpoint nth_derivative (f: cfun) (g : cfun) x0 r n :=
     match n with
     | 0 => forall x, dist x x0 < r /\ dom f x -> forall y, img f x y -> img g x y
     | S n' => exists f', cderivative f f' x0 r /\ nth_derivative f' g x0 r n'
     end.
+
+  Lemma approx_rolle (f : cfun) f' x0 r x y fx : x <= y -> cderivative f f' x0 r -> dist x x0 <= r -> dist y x0 <= r -> img f x fx -> img f y fx ->  forall n, exists z fz', img f' z fz' /\ abs fz' <= prec n.
+  Admitted.
+  Lemma rolle (f: cfun) f' x0 r x y fx : x <= y -> cderivative f f' x0 r -> dist x x0 <= r -> dist y x0 <= r -> img f x fx -> img f y fx -> exists z, img f' z real_0.
+  Proof.
+    intros.
+    Search "lim".
+  Lemma linear_approx (f: cfun) f' :=  
 
 
 End ClassicalDerivatives.
