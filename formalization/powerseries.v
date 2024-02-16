@@ -9,6 +9,7 @@ Require Import List.
 Import ListNotations.
 Require Import Poly.
 Require Import Taylormodel.
+Require Import ClassicalFunctions.
 
 
 Section Powerseries.
@@ -148,24 +149,13 @@ Qed.
     apply real_le_triv.
  Qed.
 
- (* Definition eval (a : bounded_ps) (x : Real):  abs x <=  (eval_radius  a) -> {y | (real_limit (fun n => ))}. *)
- (* Proof. *)
- (*   intros. *)
- (*   destruct (real_limit (fun n => eval_pm (to_polynomial_model a n) x)). *)
- (*   apply is_fast_cauchy_eval;auto. *)
- (*   apply x0. *)
- (* Defined. *)
- (*  Definition to_polynomial_model (a : bounded_ps) (n : nat) : taylor_model. *)
- (*  Proof. *)
- (*    destruct a as [a M r rgt0 B]. *)
- (*    apply mk_polynomial_model. *)
- (*    apply (to_list a (n+(S (Nat.log2 M)))%nat). *)
- (*    apply (r / real_2_neq_0). *)
- (*    apply (prec n). *)
- (*  Defined. *)
-
-
- (* Definition coeff_bound a := {M : nat & {r : Real & {H : (r > real_0) | bounded_seq a M H }}}. *)
+ Definition ps_to_cfun (a : bounded_ps) : cfun.
+ Proof.
+   exists (fun xy => abs (fst xy) <= (eval_radius a) /\ is_fast_limit_p (snd xy) (fun n => eval_poly (to_list (series a) (n+(S (Nat.log2 (bounded_ps_M a))))%nat) (fst xy))).
+   simpl.
+   intros x y1 y2 [[H1 H2] [H1' H2']].
+   apply (limit_is_unique _ _ _ H2);auto.
+ Qed.
 
  Definition sum (a : nat -> Real) (b: nat -> Real) := fun n => (a n) + (b n).
 
@@ -200,15 +190,13 @@ Qed.
  Lemma seq_bound_larger_M a M1 M2 r p: (M1 <= M2)%nat -> (@bounded_seq a M1 r p) -> (@bounded_seq a M2 r p).
  Proof.
    intros P1 P2 n.
-   apply (real_le_le_le _ ((npow real_2 M1) * npow (/ real_gt_neq r real_0 p) n));auto.
-   rewrite !(real_mult_comm (npow real_2 _)).
+   apply (real_le_le_le _ (Nreal M1 * npow (/ real_gt_neq r real_0 p) n));auto.
+   rewrite !(real_mult_comm (Nreal _)).
    apply real_le_mult_pos_le.
-   - apply pow_nonneg.
+   - apply npow_nonneg.
      apply real_lt_le.
      apply real_pos_inv_pos;auto.
-  - apply pow_monotone;auto.
-    apply real_lt_le.
-    apply real_2_gt_1.
+  - apply Nreal_monotone;auto.
  Qed.
 
  Lemma inv_lt_gt x y (p1 : x<>real_0) (p2 : y <> real_0)  : real_0 < x -> x < y -> (/ p2) < (/ p1) .

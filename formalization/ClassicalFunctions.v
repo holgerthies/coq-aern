@@ -93,6 +93,11 @@ Section ClassicalFunctions.
    split;auto.
  Qed.
 
+ Lemma fun_to_cfun_dom f : forall x, dom (fun_to_cfun f) x.
+ Proof.
+  intros.
+  exists (f x);simpl;auto.
+ Qed.
 End ClassicalFunctions.
 
 Notation "f + g" := (sumcf f g) : cfun_scope.
@@ -263,6 +268,23 @@ Section ClassicalDerivatives.
 
 
 End ClassicalDerivatives.
+
+Section ConstructiveVersions.
+  Definition continuous (f: Real -> Real) x := forall eps, eps > real_0 -> {d : Real | d > real_0 /\ forall y, dist x y <= d -> dist (f x) (f y) <= eps}.
+
+  Lemma continuous_ccontinuous f x : continuous f x -> ccontinuous (fun_to_cfun f) x.
+  Proof.
+    intros H.
+    split; [apply fun_to_cfun_dom |].
+    intros.
+    destruct (H eps) as [delta [H1 H2]];auto.
+    exists delta;split;auto.
+    intros.
+    rewrite <-(proj1 (fun_to_cfun_spec f _ _) H3).
+    rewrite <-(proj1 (fun_to_cfun_spec f _ _) H4).
+    apply H2;auto.
+ Qed.
+End ConstructiveVersions.
 
 Section Examples.
 Definition sqrt: cfun.

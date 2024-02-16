@@ -651,8 +651,8 @@ Section Shift.
 End Shift.
 
 Section Continuity.
-  Definition continuous (f: Real -> Real) x := forall eps, eps > real_0 -> {d : Real | d > real_0 /\ forall y, dist x y <= d -> dist (f x) (f y) <= eps}.
 
+  Definition continuous (f: Real -> Real) x := forall eps, eps > real_0 -> {d : Real | d > real_0 /\ forall y, dist x y <= d -> dist (f x) (f y) <= eps}.
 
   Lemma continuous_prod f1 f2 x: continuous f1 x -> continuous f2 x -> continuous (fun x => (f1 x) * (f2 x)) x.
   Proof.
@@ -1055,6 +1055,11 @@ Section Derivative.
    apply derivative_sproduct.
    apply derivative_monomial.
  Defined.
+
+ Lemma derive_monomial_spec a n : (projT1  (derive_monomial a (S n))) = (pr1 _ _ (monomial_poly (a * Nreal (S n)) n)). 
+ Proof.
+   induction n;simpl;auto.
+ Qed.
  
  Lemma derive_poly (p : poly) : {p' & forall x, derivative (eval_poly p) (eval_poly p') x }.
  Proof.
