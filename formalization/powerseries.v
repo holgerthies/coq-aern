@@ -49,7 +49,7 @@ Section Powerseries.
      ring_simplify.
      apply real_le_triv.
   Qed.
-  Check consecutive_converging_fast_cauchy.
+
   Lemma tmpn_cauchy a m : (forall n,  abs (a (n+m)%nat) <= prec n) -> is_fast_cauchy (fun n => partial_sum a (n+m)%nat).
   Proof.
     intros H.
@@ -148,34 +148,34 @@ Qed.
     apply real_le_triv.
  Qed.
 
- Definition eval (a : bounded_ps) (x : Real):  abs x <=  (eval_radius  a) -> ^Real.
- Proof.
-   intros.
-   destruct (real_limit (fun n => eval_pm (to_polynomial_model a n) x)).
-   apply is_fast_cauchy_eval;auto.
-   apply x0.
- Defined.
-  Definition to_polynomial_model (a : bounded_ps) (n : nat) : taylor_model.
-  Proof.
-    destruct a as [a M r rgt0 B].
-    apply mk_polynomial_model.
-    apply (to_list a (n+(S (Nat.log2 M)))%nat).
-    apply (r / real_2_neq_0).
-    apply (prec n).
-  Defined.
+ (* Definition eval (a : bounded_ps) (x : Real):  abs x <=  (eval_radius  a) -> {y | (real_limit (fun n => ))}. *)
+ (* Proof. *)
+ (*   intros. *)
+ (*   destruct (real_limit (fun n => eval_pm (to_polynomial_model a n) x)). *)
+ (*   apply is_fast_cauchy_eval;auto. *)
+ (*   apply x0. *)
+ (* Defined. *)
+ (*  Definition to_polynomial_model (a : bounded_ps) (n : nat) : taylor_model. *)
+ (*  Proof. *)
+ (*    destruct a as [a M r rgt0 B]. *)
+ (*    apply mk_polynomial_model. *)
+ (*    apply (to_list a (n+(S (Nat.log2 M)))%nat). *)
+ (*    apply (r / real_2_neq_0). *)
+ (*    apply (prec n). *)
+ (*  Defined. *)
 
 
  (* Definition coeff_bound a := {M : nat & {r : Real & {H : (r > real_0) | bounded_seq a M H }}}. *)
 
  Definition sum (a : nat -> Real) (b: nat -> Real) := fun n => (a n) + (b n).
 
- Lemma pow_monotone x n1 n2 : real_1 <= x -> (n1 <= n2)%nat -> pow x n1 <= pow x n2.
+ Lemma npow_monotone x n1 n2 : real_1 <= x -> (n1 <= n2)%nat -> npow x n1 <= npow x n2.
  Proof.
    revert n2.
    induction n1.
    - intros.
-     pose proof (pow_nonneg_le real_1 x n2 (real_lt_le _ _ real_1_gt_0) H).
-     rewrite pow_1 in H1.
+     pose proof (npow_nonneg_le real_1 x n2 (real_lt_le _ _ real_1_gt_0) H).
+     rewrite npow_1 in H1.
      exact H1.
    - intros.
      destruct n2.
@@ -190,9 +190,9 @@ Qed.
      apply IHn1;auto.
  Qed.
 
- Lemma pow2_max M1 M2: pow real_2 M1 <= pow real_2 (max M1 M2) /\ pow real_2 M2 <= pow real_2 (max M1 M2).
+ Lemma pow2_max M1 M2: npow real_2 M1 <= npow real_2 (max M1 M2) /\ npow real_2 M2 <= npow real_2 (max M1 M2).
  Proof.
-   split;(apply pow_monotone; [apply real_lt_le; apply real_2_gt_1 | ]).
+   split;(apply npow_monotone; [apply real_lt_le; apply real_2_gt_1 | ]).
    apply Nat.le_max_l.
    apply Nat.le_max_r.
 Qed.
@@ -200,8 +200,8 @@ Qed.
  Lemma seq_bound_larger_M a M1 M2 r p: (M1 <= M2)%nat -> (@bounded_seq a M1 r p) -> (@bounded_seq a M2 r p).
  Proof.
    intros P1 P2 n.
-   apply (real_le_le_le _ ((pow real_2 M1) * pow (/ real_gt_neq r real_0 p) n));auto.
-   rewrite !(real_mult_comm (pow real_2 _)).
+   apply (real_le_le_le _ ((npow real_2 M1) * npow (/ real_gt_neq r real_0 p) n));auto.
+   rewrite !(real_mult_comm (npow real_2 _)).
    apply real_le_mult_pos_le.
    - apply pow_nonneg.
      apply real_lt_le.

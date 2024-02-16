@@ -43,6 +43,6 @@ EuclideanSubsets.v
 #SierpinskiTriangle.v
 #SierpinskiTriangleLimit.v
 
-
+ClassicalFunctions.v
 Poly.v
 #Taylormodel.v

@@ -8,6 +8,8 @@ Require Import Poly.
 #[local] Notation "^K" := (@K Poly.types) (at level 0).
 #[local] Notation "^M" := (@M Poly.types) (at level 0).
 #[local] Notation "^Real" := (@Real Poly.types) (at level 0).
+ Declare Scope cfun_scope.
+ Delimit Scope cfun_scope with cfun.
 Section ClassicalFunctions.
   Definition cfun := {f : (^Real * ^Real) -> Prop | forall x y1 y2, f (x,y1) /\ f (x,y2) -> y1 = y2}.
   Definition img (f : cfun) x y := (pr1  _ _ f (x,y)).
@@ -30,7 +32,6 @@ Section ClassicalFunctions.
     simpl.
     split; auto.
   Qed.
-  
   Definition mulcf (f g : cfun) : cfun.
   Proof.
     exists (fun xy => exists y z, img f (fst xy) y /\ img g (fst xy) z /\ ((snd xy) = y * z)).
@@ -91,7 +92,11 @@ Section ClassicalFunctions.
    intros.
    split;auto.
  Qed.
+
 End ClassicalFunctions.
+
+Notation "f + g" := (sumcf f g) : cfun_scope.
+Notation "f * g" := (mulcf f g) : cfun_scope.
 
 Section ClassicalContinuity.
   Definition ccontinuous (f: cfun) x := dom f x /\ forall eps, eps > real_0 -> exists delta, delta > real_0 /\ forall y fx fy, img f x fx ->  img f y fy  -> dist x y <= delta -> dist (fx) (fy) <= eps.
@@ -249,13 +254,42 @@ Section ClassicalDerivatives.
     | S n' => exists f', cderivative f f' x0 r /\ nth_derivative f' g x0 r n'
     end.
 
-  Lemma approx_rolle (f : cfun) f' x0 r x y fx : x <= y -> cderivative f f' x0 r -> dist x x0 <= r -> dist y x0 <= r -> img f x fx -> img f y fx ->  forall n, exists z fz', img f' z fz' /\ abs fz' <= prec n.
-  Admitted.
-  Lemma rolle (f: cfun) f' x0 r x y fx : x <= y -> cderivative f f' x0 r -> dist x x0 <= r -> dist y x0 <= r -> img f x fx -> img f y fx -> exists z, img f' z real_0.
-  Proof.
-    intros.
-    Search "lim".
-  Lemma linear_approx (f: cfun) f' :=  
+  (* Lemma approx_rolle (f : cfun) f' x0 r x y fx : x <= y -> cderivative f f' x0 r -> dist x x0 <= r -> dist y x0 <= r -> img f x fx -> img f y fx ->  forall n, exists z fz', img f' z fz' /\ abs fz' <= prec n. *)
+  (* Admitted. *)
+  (* Lemma rolle (f: cfun) f' x0 r x y fx : x <= y -> cderivative f f' x0 r -> dist x x0 <= r -> dist y x0 <= r -> img f x fx -> img f y fx -> exists z, img f' z real_0. *)
+  (* Proof. *)
+  (*   intros. *)
+  (* Admitted. *)
 
 
 End ClassicalDerivatives.
+
+Section Examples.
+Definition sqrt: cfun.
+Proof.
+  exists (fun xy => (snd xy >= real_0) /\ (snd xy * snd xy) = fst xy ).
+  simpl.
+  intros x y1 y2 [[H1 H2] [H1' H2']].
+  assert (forall z, z*z = real_0 -> z = real_0).
+  {
+    intros.
+    destruct (real_total_order z real_0) as [Z| [-> | Z]];auto; apply (real_eq_mult_cancel z); try rewrite H;try ring.
+    apply real_lt_neq;auto.
+    apply real_gt_neq;auto.
+  }
+  destruct H1;destruct H1'.
+  - apply real_pos_square_eq_eq; [| | rewrite H2, H2'];auto.
+  -  rewrite <-H1.
+     apply H.
+     rewrite H2.
+     rewrite <-H2'.
+     rewrite <-H1.
+     ring.
+  -  rewrite <-H0.
+     rewrite H;auto.
+     rewrite H2'.
+     rewrite <-H2.
+     rewrite <-H0;ring.
+  - rewrite <-H0, <-H1;auto.
+Qed.
+End Examples.
