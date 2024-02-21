@@ -398,6 +398,7 @@ Qed.
  (* Qed. *)
   
 
+
  Fixpoint derivative_factor (n : nat) (k : nat) := 
    match k with
    | 0 => real_1

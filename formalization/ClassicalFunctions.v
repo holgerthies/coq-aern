@@ -8,8 +8,6 @@ Require Import Poly.
 #[local] Notation "^K" := (@K Poly.types) (at level 0).
 #[local] Notation "^M" := (@M Poly.types) (at level 0).
 #[local] Notation "^Real" := (@Real Poly.types) (at level 0).
- Declare Scope cfun_scope.
- Delimit Scope cfun_scope with cfun.
 Section ClassicalFunctions.
   Definition cfun := {f : (^Real * ^Real) -> Prop | forall x y1 y2, f (x,y1) /\ f (x,y2) -> y1 = y2}.
   Definition img (f : cfun) x y := (pr1  _ _ f (x,y)).
@@ -32,6 +30,7 @@ Section ClassicalFunctions.
     simpl.
     split; auto.
   Qed.
+  
   Definition mulcf (f g : cfun) : cfun.
   Proof.
     exists (fun xy => exists y z, img f (fst xy) y /\ img g (fst xy) z /\ ((snd xy) = y * z)).
@@ -92,16 +91,7 @@ Section ClassicalFunctions.
    intros.
    split;auto.
  Qed.
-
- Lemma fun_to_cfun_dom f : forall x, dom (fun_to_cfun f) x.
- Proof.
-  intros.
-  exists (f x);simpl;auto.
- Qed.
 End ClassicalFunctions.
-
-Notation "f + g" := (sumcf f g) : cfun_scope.
-Notation "f * g" := (mulcf f g) : cfun_scope.
 
 Section ClassicalContinuity.
   Definition ccontinuous (f: cfun) x := dom f x /\ forall eps, eps > real_0 -> exists delta, delta > real_0 /\ forall y fx fy, img f x fx ->  img f y fy  -> dist x y <= delta -> dist (fx) (fy) <= eps.
@@ -249,9 +239,9 @@ Section ClassicalContinuity.
 End ClassicalContinuity.
 
 Section ClassicalDerivatives.
-  Definition derivative_pt (f: cfun) (gx : Real) x := dom f x /\ forall eps, eps > real_0 -> exists delta,  delta > real_0 /\ forall y fx fy, dist x y <= delta -> img f x fx -> img f y fy  -> abs (fy - fx - gx * (y -x)) <= eps * abs(y-x) .
+  Definition derivative_pt (f: cfun) (g : cfun) x := dom f x /\ dom g x /\ forall eps, eps > real_0 -> exists delta,  delta > real_0 /\ forall y fx fy gx, dist x y <= delta -> img f x fx -> img f y fy -> img g x gx -> abs (fy - fx - gx * (y -x)) <= eps * abs(y-x) .
 
-  Definition cderivative (f: cfun) (g : cfun) x0 r := forall x, exists gx, img g x gx /\  dist x x0 <= r -> derivative_pt f gx x.
+  Definition cderivative (f: cfun) (g : cfun) x0 r := forall x,  dist x x0 <= r -> derivative_pt f g x.
 
   Fixpoint nth_derivative (f: cfun) (g : cfun) x0 r n :=
     match n with
@@ -259,34 +249,9 @@ Section ClassicalDerivatives.
     | S n' => exists f', cderivative f f' x0 r /\ nth_derivative f' g x0 r n'
     end.
 
-  (* Lemma approx_rolle (f : cfun) f' x0 r x y fx : x <= y -> cderivative f f' x0 r -> dist x x0 <= r -> dist y x0 <= r -> img f x fx -> img f y fx ->  forall n, exists z fz', img f' z fz' /\ abs fz' <= prec n. *)
-  (* Admitted. *)
-  (* Lemma rolle (f: cfun) f' x0 r x y fx : x <= y -> cderivative f f' x0 r -> dist x x0 <= r -> dist y x0 <= r -> img f x fx -> img f y fx -> exists z, img f' z real_0. *)
-  (* Proof. *)
-  (*   intros. *)
-  (* Admitted. *)
-
 
 End ClassicalDerivatives.
 
-Section ConstructiveVersions.
-  Definition continuous (f: Real -> Real) x := forall eps, eps > real_0 -> {d : Real | d > real_0 /\ forall y, dist x y <= d -> dist (f x) (f y) <= eps}.
-
-  Lemma continuous_ccontinuous f x : continuous f x -> ccontinuous (fun_to_cfun f) x.
-  Proof.
-    intros H.
-    split; [apply fun_to_cfun_dom |].
-    intros.
-    destruct (H eps) as [delta [H1 H2]];auto.
-    exists delta;split;auto.
-    intros.
-    rewrite <-(proj1 (fun_to_cfun_spec f _ _) H3).
-    rewrite <-(proj1 (fun_to_cfun_spec f _ _) H4).
-    apply H2;auto.
- Qed.
-End ConstructiveVersions.
-
-Section Examples.
 Definition sqrt: cfun.
 Proof.
   exists (fun xy => (snd xy >= real_0) /\ (snd xy * snd xy) = fst xy ).
@@ -309,9 +274,4 @@ Proof.
      ring.
   -  rewrite <-H0.
      rewrite H;auto.
-     rewrite H2'.
-     rewrite <-H2.
-     rewrite <-H0;ring.
-  - rewrite <-H0, <-H1;auto.
-Qed.
-End Examples.
+     rewrite H2'
