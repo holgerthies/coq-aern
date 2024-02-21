@@ -185,7 +185,16 @@ Section TaylorModels.
   Admitted.
 
   Lemma derivative_inv f g x : derivative f g x -> derivative (fun x => - f x) (fun x => - g x) x.
-  Admitted.
+  Proof.
+    intros.
+    intros eps epsgt0.
+    destruct (X _ epsgt0) as [d [X1 X2]].
+    exists d;split;auto.
+    intros.
+    rewrite abs_symm.
+    replace (- (- f y - - f x - - g x *(y-x))) with (f y - f x - g x * (y-x)) by ring.
+    apply X2;auto.
+  Defined.
 
   Lemma polynomial_approx_derivative_bound f t f' t' r :  (r > real_0) -> (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall x, abs x < r -> dom f' x) ->(forall x n, abs x < r -> derivative (eval_tm (t n)) (eval_tm (t' n)) x) -> forall eps, eps > real_0 -> exists N, forall m n, (n > N)%nat -> (m > N)%nat -> forall x y, abs x < r -> abs y < r -> dist (eval_tm (t m) x - eval_tm (t n) x) (eval_tm (t m) y - eval_tm (t n) y) < eps * dist x y.
   Proof.
@@ -205,19 +214,41 @@ Section TaylorModels.
     rewrite <-dist_abs.
     apply NP;auto.
   Qed.
-  Lemma polynomial_approx_derivative_helper f t f' t' r x  : r > real_0 -> dom f x -> (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (abs x < r) -> (forall n, derivative (eval_poly (tm_poly f (t n))) (eval_poly (tm_poly f' (t' n))) x) ->forall eps, eps > real_0 -> exists N delta, forall m n, (n > N)%nat -> (m > N)%nat -> forall y, dom f y -> dist x y <= delta -> abs (eval_tm (t m) x - eval_tm (t n) x - eval_tm (t m) y + eval_tm (t m) x) < eps * abs(y-x).  
+
+  Lemma polynomial_approx_derivative_helper f t f' t' r :  (r > real_0) -> (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall x, abs x < r -> dom f' x) ->(forall x n, abs x < r -> derivative (eval_tm (t n)) (eval_tm (t' n)) x) -> forall eps, eps > real_0 -> exists n, forall x y fx fy,abs x < r ->  abs y < r -> img f x fx -> img f y fy -> dist (fy - fx) (eval_tm (t n) y - eval_tm (t n) x) <= eps * dist x y.
   Proof.
     intros.
-    destruct (real_Archimedean _ H4) as [n Np].
-    destruct (poly_approx_dist _ _ _ H H2 (prec (n+1)%nat)) as [N NP]; try apply prec_pos.
-    exists N.
-    
- Lemma polynomial_approx_derivative_helper f t r x: r > real_0 -> dom f x -> (polynomial_approx f t r) -> abs x < r ->  forall eps, (eps > real_0) -> exists  n delta ,  forall fx y fy, dist x y <= delta -> img f x fx -> img f y fy -> abs (fx - fy - (eval_tm (t n) x) - (eval_tm (t n ) y)) < eps*(x-y).
- Proof.
-   intros.
-   destruct (real_Archimedean _ H3) as [n N].
-   exists (n+1)%nat.
-   intros.
+    destruct (real_Archimedean _ H3) as [n nlt].
+    destruct (polynomial_approx_derivative_bound _ _ _ _ _ H H0 H1 H2 X _ (prec_pos (n+1)%nat)) as [N NP].
+    exists (N+1)%nat.
+    intros.
+    destruct (dist_pos x y).
+    apply real_lt_le.
+    assert (prec (n+1)%nat * dist x y > real_0) by (apply real_lt_pos_mult_pos_pos;auto;apply prec_pos).
+    apply (real_lt_lt_lt _ (prec (n+1)%nat * dist x y + (prec (n+1)%nat)*dist x y)); [|apply (real_le_lt_lt _ (prec n * dist x y)); [rewrite <-(prec_twice n);ring_simplify;apply real_eq_le|rewrite !(real_mult_comm _ (dist _ _));apply real_lt_mult_pos_lt];auto].
+    unfold dist.
+    destruct (real_Archimedean _ H9) as [N' NP'].
+    replace (fy - fx - (eval_tm (t (N+1)%nat) y - eval_tm (t (N+1)%nat) x)) with ((fy - (eval_tm (t (N+N'+1)%nat)) y) + (eval_tm (t (N+N'+1)%nat) x - fx) + ((eval_tm (t (N+N'+1)%nat) y - eval_tm (t (N+1)%nat) y) - ((eval_tm (t (N+N'+1)%nat) x) - eval_tm (t (N+1)%nat) x))) by ring.
+    apply (real_le_lt_lt _ _ _ (abs_tri _ _)).
+    apply real_lt_lt_plus_lt; [|rewrite <-!dist_abs, (dist_symm y);apply NP;auto;lia].
+    apply (real_lt_lt_lt _ (prec N'));auto.
+    apply (real_lt_le_lt _ (prec (N + N'))); [|destruct N; [apply real_eq_le;auto|apply real_lt_le; apply prec_monotone;lia]].
+    rewrite <-prec_twice.
+    apply (real_le_lt_lt _ _ _ (abs_tri _ _)).
+    apply real_lt_lt_plus_lt.
+    apply (poly_approx_spec _ _ _ _ _ H);auto.
+    rewrite <-dist_abs.
+    apply (poly_approx_spec _ _ _ _ _ H);auto.
+    rewrite <-H8.
+    replace (eps*real_0) with real_0 by ring.
+    apply real_eq_le.
+    apply dist_zero.
+    rewrite (proj1 (dist_zero x y));auto.
+    replace fy with fx.
+    ring_simplify;auto.
+    apply (cfun_spec f x);auto.
+    rewrite (proj1 (dist_zero x y));auto.
+ Qed.
  Lemma polynomial_approx_derivative_helper f t r x : r > real_0 -> dom f x ->(polynomial_approx f t r) -> abs x < r -> forall eps, (eps > real_0) -> exists  n delta,  forall fx y, img f x fx -> dist x y <= delta -> dist fx (eval_tm (t n) y) < eps.
   Proof.
     intros.
