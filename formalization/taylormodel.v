@@ -179,6 +179,39 @@ Section TaylorModels.
      apply (poly_approx_spec _ _ _ _ m H H5 H0);auto.
  Qed.
 
+  Lemma lbc f f' r M : (forall x, abs x < r -> derivative f f' x) -> (forall x, abs x < r -> abs (f' x) < M) -> forall x y, abs x < r -> abs y < r -> dist (f x) (f y) < M * dist x y.
+  Proof.
+    intros.
+  Admitted.
+
+  Lemma derivative_inv f g x : derivative f g x -> derivative (fun x => - f x) (fun x => - g x) x.
+  Admitted.
+
+  Lemma polynomial_approx_derivative_bound f t f' t' r :  (r > real_0) -> (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall x, abs x < r -> dom f' x) ->(forall x n, abs x < r -> derivative (eval_tm (t n)) (eval_tm (t' n)) x) -> forall eps, eps > real_0 -> exists N, forall m n, (n > N)%nat -> (m > N)%nat -> forall x y, abs x < r -> abs y < r -> dist (eval_tm (t m) x - eval_tm (t n) x) (eval_tm (t m) y - eval_tm (t n) y) < eps * dist x y.
+  Proof.
+    intros.
+    destruct (poly_approx_dist _ _ _ H H1 _ H3) as [N NP].
+    exists N.
+    intros.
+    assert (forall x, abs x < r -> derivative (fun x => (eval_tm (t m)) x - eval_tm (t n) x) (fun x => (eval_tm (t' m) x - eval_tm (t' n) x )) x).
+    {
+      intros.
+      apply derivative_sum;auto.
+      apply derivative_inv;auto.
+    }
+    specialize (NP _ _ H4 H5).
+    apply (lbc _ _ _ eps X0 );auto.
+    intros.
+    rewrite <-dist_abs.
+    apply NP;auto.
+  Qed.
+  Lemma polynomial_approx_derivative_helper f t f' t' r x  : r > real_0 -> dom f x -> (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (abs x < r) -> (forall n, derivative (eval_poly (tm_poly f (t n))) (eval_poly (tm_poly f' (t' n))) x) ->forall eps, eps > real_0 -> exists N delta, forall m n, (n > N)%nat -> (m > N)%nat -> forall y, dom f y -> dist x y <= delta -> abs (eval_tm (t m) x - eval_tm (t n) x - eval_tm (t m) y + eval_tm (t m) x) < eps * abs(y-x).  
+  Proof.
+    intros.
+    destruct (real_Archimedean _ H4) as [n Np].
+    destruct (poly_approx_dist _ _ _ H H2 (prec (n+1)%nat)) as [N NP]; try apply prec_pos.
+    exists N.
+    
  Lemma polynomial_approx_derivative_helper f t r x: r > real_0 -> dom f x -> (polynomial_approx f t r) -> abs x < r ->  forall eps, (eps > real_0) -> exists  n delta ,  forall fx y fy, dist x y <= delta -> img f x fx -> img f y fy -> abs (fx - fy - (eval_tm (t n) x) - (eval_tm (t n ) y)) < eps*(x-y).
  Proof.
    intros.
