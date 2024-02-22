@@ -300,7 +300,4 @@ Section TaylorModels.
         apply D0;auto.
         apply (real_le_le_le _ d);auto.
   Qed.
-  Definition polynomial_approx (f : cfun) r := forall eps, eps > real_0 -> {t : (taylor_model f) | (tm_error f t) <= eps /\ (tm_radius f t) >= r}.
-
-  Lemma polynomial_approx_derivative (f: cfun) (f': cfun) x r : (polynomial_approx f r)  ->  (polynomial_approx f' r) -> (x <= r) -> 
 End TaylorModels.
