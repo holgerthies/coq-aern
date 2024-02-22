@@ -300,4 +300,26 @@ Section TaylorModels.
         apply D0;auto.
         apply (real_le_le_le _ d);auto.
   Qed.
+  Definition is_fast_cauchy_poly (p : nat -> poly) r := forall x n m, abs x < r -> dist (eval_poly (p n) x) (eval_poly (p m) x) <= prec n + prec m.
+
+  Lemma poly_limit (p : nat -> poly) r : is_fast_cauchy_poly p r -> forall x, abs x < r -> {y | is_fast_limit_p y (fun n => eval_poly (p n) x)}.
+  Proof.
+    intros.
+    apply real_limit_p.
+    rewrite <-is_fast_cauchy_iff_p.
+    intros n m.
+    apply H;auto.
+  Qed.
+
+  Definition limit_cfun (p : nat -> poly) : cfun.
+  Proof.
+   exists (fun xy => is_fast_limit_p (snd xy)  (fun n => (eval_poly (p n) (fst xy)))).
+   intros.
+   simpl in H.
+   destruct H.
+   apply (limit_is_unique _ _ _ H H0).
+  Qed.
+  Check dist_plus_le.
+  
+    
 End TaylorModels.
