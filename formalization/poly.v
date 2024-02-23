@@ -1060,7 +1060,101 @@ Section Derivative.
  Proof.
    induction n;simpl;auto.
  Qed.
- 
+
+ Lemma poly_rev_ind : forall (P : poly -> Type),
+  P [] -> (forall (x : Real) (l : poly), P l -> P (l ++ [x])) -> forall l : poly, P l.
+ Proof.
+   intros.
+   replace l with (rev (rev l)) by (apply rev_involutive).
+   induction (rev l).
+   simpl.
+   apply X.
+   simpl.
+   apply X0;auto.
+ Qed.
+
+ Lemma derive_poly (p : poly) : {p' : poly | length p' = (length p - 1)%nat /\ forall n,  nth n p' real_0 = Nreal (S n) * nth (S n) p real_0 }.
+ Proof.
+   induction p using poly_rev_ind;[exists [];split;auto; intros;rewrite nth_overflow;simpl;[ring | lia]|].
+   destruct p.
+   - exists [].
+     split; auto.
+     intros; rewrite nth_overflow; simpl; try lia.
+     destruct n;simpl;ring.
+   - destruct IHp as [p' [P1 P2]].
+     simpl in P1.
+     rewrite Nat.sub_0_r in P1.
+     exists (p' ++ [(Nreal (S (length p)))*x]).
+     split; [rewrite !app_length, P1;simpl;lia|].
+     intros n.
+     destruct (Nat.lt_ge_cases n (length p')).
+     + rewrite app_nth1;auto.
+       rewrite P2.
+       simpl.
+       rewrite app_nth1;try rewrite <-P1;auto.
+    + destruct H; [simpl;rewrite nth_middle, P1, nth_middle;ring|].
+      simpl.
+      rewrite !nth_overflow; try ring; rewrite app_length;simpl; lia.
+ Qed.
+ Lemma derive_poly_app p a : forall x, eval_poly (pr1 _ _ (derive_poly (p ++ [a]))) x  = eval_poly (pr1 _ _ (derive_poly p)) x + eval_poly (projT1 (derive_monomial a (length p))) x.
+ Proof.
+   intros.
+   destruct (derive_poly p) as [p1 [H1 H2]].
+   destruct (derive_poly (p ++ [a])) as [p2 [H1' H2']].
+   assert (p1 = [] /\ p2 = [] \/ (length p > 0)%nat /\ p2 = p1 ++ [Nreal (S (length p1)) * a]).
+   {
+     destruct p; [left;rewrite length_zero_iff_nil in H1;rewrite length_zero_iff_nil in H1';auto|right].
+     split;[simpl;lia|].
+     apply (nth_ext _ _ real_0 real_0); [rewrite H1', !app_length, H1;simpl;lia|].
+     intros.
+     rewrite H2'.
+     simpl.
+     assert (length p1 = length p) by (simpl in H1;lia).
+     rewrite app_length in H1'; simpl in H1'.
+     destruct (Nat.lt_ge_cases n (length p)).
+     rewrite !app_nth1;try lia;rewrite H2;auto.
+     destruct H3.
+     rewrite <-H0 at 3.
+     rewrite !nth_middle.
+     rewrite H0;auto.
+     rewrite !nth_overflow; try lia.
+   }
+   destruct H as [[-> ->] | [H ->]]; [simpl; replace (length p) with 0;simpl;[ring|simpl in H1';rewrite H1';rewrite app_length;simpl;lia]|].
+   simpl.
+   rewrite eval_eval2, eval_poly2_app, <-!eval_eval2.
+   rewrite !(real_plus_comm (eval_poly p1 x)).
+   apply real_eq_plus_eq.
+   destruct (length p);try lia.
+   rewrite derive_monomial_spec.
+   destruct (monomial_poly (a * Nreal (S n)) n) as [m M].
+   simpl;rewrite M.
+   rewrite H1.
+   simpl.
+   replace (n-0)%nat with n by lia.
+   ring.
+ Qed.
+
+ Lemma derive_poly_spec p : forall x, derivative (eval_poly p) (eval_poly (pr1 _ _ (derive_poly p))) x.
+ Proof.
+   intros.
+   induction p using poly_rev_ind.
+   - destruct (derive_poly []) as [p' [H1 H2]].
+     simpl;replace p' with (@nil ^Real) by (rewrite length_zero_iff_nil in H1;auto).
+     simpl;apply derivative_const.
+   - 
+     pose proof (derive_poly_app p x0).
+     Search derivative.
+     rewrite H.
+     destruct (derive_poly (p ++ [x0])).
+       simpl.
+   simpl.
+   - simpl; rewrite length_zero_iff_nil in H1.
+     rewrite H1.
+     simpl.
+     apply derivative_const.
+  - simpl.
+   destruct (derive_monomial x0 (length p')) as [m M].
+   destruct (sum_poly p' m) as [p0 P0].
  Lemma derive_poly (p : poly) : {p' & forall x, derivative (eval_poly p) (eval_poly p') x }.
  Proof.
    replace p with (rev (rev p)) by (apply rev_involutive).
