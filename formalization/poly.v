@@ -1028,6 +1028,15 @@ Section Derivative.
    apply dP;auto.
  Qed.
 
+ Lemma derive_ext2 f g1 g2 x : (forall x, g2 x = g1 x) ->  derivative f g1 x -> derivative f g2 x.
+ Proof.
+   intros H D eps epsgt0.
+   destruct (D eps epsgt0) as [d [dgt dP]].
+   exists d;split;auto.
+   intros.
+   rewrite H.
+   apply dP;auto.
+ Qed.
  Lemma monomial_poly a n : {p : poly | forall x, eval_poly p x = a * npow x n}.
  Proof.
    exists ((repeat real_0 n) ++ [a]).
@@ -1136,43 +1145,39 @@ Section Derivative.
 
  Lemma derive_poly_spec p : forall x, derivative (eval_poly p) (eval_poly (pr1 _ _ (derive_poly p))) x.
  Proof.
-   intros.
-   induction p using poly_rev_ind.
-   - destruct (derive_poly []) as [p' [H1 H2]].
+   induction p as [| a p IH] using poly_rev_ind.
+   - intros.
+     destruct (derive_poly []) as [p' [H1 H2]].
      simpl;replace p' with (@nil ^Real) by (rewrite length_zero_iff_nil in H1;auto).
      simpl;apply derivative_const.
-   - 
-     pose proof (derive_poly_app p x0).
-     Search derivative.
-     rewrite H.
-     destruct (derive_poly (p ++ [x0])).
-       simpl.
-   simpl.
-   - simpl; rewrite length_zero_iff_nil in H1.
-     rewrite H1.
+   - intros x.
+     pose proof (derive_poly_app p a).
+     apply (derive_ext2 _ _ _ x H).
+     apply derive_poly_helper;auto.
+     intros.
+     destruct (derive_monomial a (length p)) as [m M].
      simpl.
-     apply derivative_const.
-  - simpl.
-   destruct (derive_monomial x0 (length p')) as [m M].
-   destruct (sum_poly p' m) as [p0 P0].
- Lemma derive_poly (p : poly) : {p' & forall x, derivative (eval_poly p) (eval_poly p') x }.
- Proof.
-   replace p with (rev (rev p)) by (apply rev_involutive).
-   induction (rev p);[exists [];unfold eval_poly2;simpl; apply derivative_const|].
-   simpl.
-   destruct IHl as [p' IH].
-   destruct (derive_monomial a (length (rev l))) as [m M].
-   destruct (sum_poly p' m) as [p0 P0].
-   exists p0.
-   intros x eps epsgt0.
-   rewrite P0.
-   apply derive_poly_helper;auto.
-   clear x eps epsgt0.
-   simpl.
-   intros x.
-   apply (derive_ext _ (fun x => a * npow x (length (rev l)))); [intros;ring|].
-   apply M.
-  Defined.
+     apply (derive_ext _ (fun x => a * npow x (length p))); [intros;ring|].
+     apply M.
+ Qed.
+ (* Lemma derive_poly (p : poly) : {p' & forall x, derivative (eval_poly p) (eval_poly p') x }. *)
+ (* Proof. *)
+ (*   replace p with (rev (rev p)) by (apply rev_involutive). *)
+ (*   induction (rev p);[exists [];unfold eval_poly2;simpl; apply derivative_const|]. *)
+ (*   simpl. *)
+ (*   destruct IHl as [p' IH]. *)
+ (*   destruct (derive_monomial a (length (rev l))) as [m M]. *)
+ (*   destruct (sum_poly p' m) as [p0 P0]. *)
+ (*   exists p0. *)
+ (*   intros x eps epsgt0. *)
+ (*   rewrite P0. *)
+ (*   apply derive_poly_helper;auto. *)
+ (*   clear x eps epsgt0. *)
+ (*   simpl. *)
+ (*   intros x. *)
+ (*   apply (derive_ext _ (fun x => a * npow x (length (rev l)))); [intros;ring|]. *)
+ (*   apply M. *)
+ (*  Defined. *)
 
  
 
