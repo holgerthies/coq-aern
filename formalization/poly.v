@@ -1082,7 +1082,7 @@ Section Derivative.
    apply X0;auto.
  Qed.
 
- Lemma derive_poly (p : poly) : {p' : poly | length p' = (length p - 1)%nat /\ forall n,  nth n p' real_0 = Nreal (S n) * nth (S n) p real_0 }.
+ Lemma poly_deriv_exists (p : poly) : {p' : poly | length p' = (length p - 1)%nat /\ forall n,  nth n p' real_0 = Nreal (S n) * nth (S n) p real_0 }.
  Proof.
    induction p using poly_rev_ind;[exists [];split;auto; intros;rewrite nth_overflow;simpl;[ring | lia]|].
    destruct p.
@@ -1105,11 +1105,14 @@ Section Derivative.
       simpl.
       rewrite !nth_overflow; try ring; rewrite app_length;simpl; lia.
  Qed.
- Lemma derive_poly_app p a : forall x, eval_poly (pr1 _ _ (derive_poly (p ++ [a]))) x  = eval_poly (pr1 _ _ (derive_poly p)) x + eval_poly (projT1 (derive_monomial a (length p))) x.
+
+ Definition derive_poly p := (pr1 _ _ (poly_deriv_exists p)).
+ Lemma derive_poly_app p a : forall x, eval_poly (derive_poly (p ++ [a])) x  = eval_poly (derive_poly p) x + eval_poly (projT1 (derive_monomial a (length p))) x.
  Proof.
    intros.
-   destruct (derive_poly p) as [p1 [H1 H2]].
-   destruct (derive_poly (p ++ [a])) as [p2 [H1' H2']].
+   unfold derive_poly.
+   destruct (poly_deriv_exists p) as [p1 [H1 H2]].
+   destruct (poly_deriv_exists (p ++ [a])) as [p2 [H1' H2']].
    assert (p1 = [] /\ p2 = [] \/ (length p > 0)%nat /\ p2 = p1 ++ [Nreal (S (length p1)) * a]).
    {
      destruct p; [left;rewrite length_zero_iff_nil in H1;rewrite length_zero_iff_nil in H1';auto|right].
@@ -1143,11 +1146,12 @@ Section Derivative.
    ring.
  Qed.
 
- Lemma derive_poly_spec p : forall x, derivative (eval_poly p) (eval_poly (pr1 _ _ (derive_poly p))) x.
+ Lemma derive_poly_spec p : forall x, derivative (eval_poly p) (eval_poly (derive_poly p)) x.
  Proof.
+   unfold derive_poly.
    induction p as [| a p IH] using poly_rev_ind.
    - intros.
-     destruct (derive_poly []) as [p' [H1 H2]].
+     destruct (poly_deriv_exists []) as [p' [H1 H2]].
      simpl;replace p' with (@nil ^Real) by (rewrite length_zero_iff_nil in H1;auto).
      simpl;apply derivative_const.
    - intros x.

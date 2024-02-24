@@ -8,11 +8,75 @@ Require Import Psatz.
 Require Import List.
 Import ListNotations.
 Require Import Poly.
-Require Import Taylormodel.
-Require Import ClassicalFunctions.
 
 
 Section Powerseries.
+
+ Lemma min_le_both r1 r2 : Minmax.real_min r1 r2 <= r1 /\ Minmax.real_min r1 r2 <= r2.
+ Proof.
+   split.
+   apply Minmax.real_min_fst_le.
+   apply Minmax.real_min_snd_le.
+ Qed.
+  Lemma Npow2_pow n : Npow2 n = (2 ^ n).
+  Proof.
+    induction n.
+    simpl;lia.
+    simpl.
+    rewrite IHn.
+    lia.
+  Qed.
+
+ Lemma npow_monotone x n1 n2 : real_1 <= x -> (n1 <= n2)%nat -> npow x n1 <= npow x n2.
+ Proof.
+   revert n2.
+   induction n1.
+   - intros.
+     pose proof (npow_nonneg_le real_1 x n2 (real_lt_le _ _ real_1_gt_0) H).
+     rewrite npow_1 in H1.
+     exact H1.
+   - intros.
+     destruct n2.
+     rewrite Nat.le_0_r in H0.
+     rewrite H0.
+     apply real_le_triv.
+     apply Nat.le_succ_le_pred in H0.
+     simpl in H0.
+     simpl.
+     apply real_le_mult_pos_le.
+     apply (real_le_le_le _ _ _ (real_lt_le _ _ real_1_gt_0));auto.
+     apply IHn1;auto.
+ Qed.
+
+ Lemma pow2_max M1 M2: npow real_2 M1 <= npow real_2 (max M1 M2) /\ npow real_2 M2 <= npow real_2 (max M1 M2).
+ Proof.
+   split;(apply npow_monotone; [apply real_lt_le; apply real_2_gt_1 | ]).
+   apply Nat.le_max_l.
+   apply Nat.le_max_r.
+Qed.
+ 
+ Lemma inv_lt_gt x y (p1 : x<>real_0) (p2 : y <> real_0)  : real_0 < x -> x < y -> (/ p2) < (/ p1) .
+ Proof.
+     intros.
+     apply (real_lt_mult_pos_cancel x);auto.
+     rewrite real_mult_inv.
+     apply (real_lt_mult_pos_cancel y);[ apply (real_lt_lt_lt _ x);auto|].
+     rewrite real_mult_comm, <-real_mult_assoc, (real_mult_comm y), real_mult_inv.
+     ring_simplify;auto.
+ Qed.
+
+ Lemma inv_le_ge x y (p1 : x<>real_0) (p2 : y <> real_0)  : real_0 < x -> x <= y -> (/ p2) <= (/ p1) .
+ Proof.
+   intros.
+   destruct H0.
+   apply real_lt_le.
+   apply inv_lt_gt;auto.
+   revert p1.
+   rewrite H0.
+   intros.
+   assert (p1 = p2) as -> by apply irrl.
+   apply real_le_triv.
+ Qed.
 
   Definition bounded_seq (a : nat -> Real) M {r : Real} (H : real_0 < r)  :=  forall n, abs (a n) <= Nreal M * (npow (real_inv (real_gt_neq _ _ H))  n).
                                                                                    
@@ -38,7 +102,10 @@ Section Powerseries.
     induction n.
     - unfold real_2.
       simpl.
-      ring_simplify;auto.
+      apply (real_le_le_le _ _ _ (H 0)).
+      simpl.
+      ring_simplify.
+      apply real_eq_le;auto.
    - simpl.
      apply (real_le_le_le _ _ _ (abs_tri _ _)).
      apply (real_le_le_le _ _ _ (real_le_le_plus_le _ _ _ _ (H (S n)) IHn) ).
@@ -64,14 +131,11 @@ Section Powerseries.
     apply H.
  Qed.
 
-  Definition to_list (a : nat -> (@Real Poly.types)) n := map a (seq 0 (S n)).
+  Definition to_poly (a : nat -> (@Real Poly.types)) n := map a (seq 0 (S n)).
 
+  Definition ps a x n := (a n) * npow x n. 
 
- Definition partial_sum_inc a m n := partial_sum a (n+m)%nat.
-
- Definition ps a x n := (a n) * npow x n. 
-
- Lemma eval_series_to_list a x n i:  (i <= n)%nat -> eval_poly (to_list a n) x = eval_poly (to_list a i) x + (npow x (S i))*(eval_poly (map a (seq (S i) (n-i)%nat)) x).
+ Lemma eval_series_to_poly a x n i:  (i <= n)%nat -> eval_poly (to_poly a n) x = eval_poly (to_poly a i) x + (npow x (S i))*(eval_poly (map a (seq (S i) (n-i)%nat)) x).
   Proof.
     revert n.
     induction i; [intros;simpl;rewrite Nat.sub_0_r;ring | ].
@@ -84,24 +148,15 @@ Section Powerseries.
     ring.
 Qed.
 
-  Lemma eval_series_partial_sum a x n : eval_poly (to_list a n) x = partial_sum (ps a x) n.
+  Lemma eval_series_partial_sum a x n : eval_poly (to_poly a n) x = partial_sum (ps a x) n.
   Proof.
     unfold ps.
     induction n; [simpl;ring|].
-    rewrite (eval_series_to_list a x (S n) n); try lia.
+    rewrite (eval_series_to_poly a x (S n) n); try lia.
     replace (S n - n)%nat with 1 by lia.
     simpl.
     rewrite <-IHn.
     destruct n;simpl;ring.
-  Qed.
-
-  Lemma Npow2_pow n : Npow2 n = (2 ^ n).
-  Proof.
-    induction n.
-    simpl;lia.
-    simpl.
-    rewrite IHn.
-    lia.
   Qed.
 
   Lemma increment_num M n : (Nreal M * prec (n+(S (Nat.log2 M)))) < prec n. 
@@ -118,7 +173,9 @@ Qed.
  Qed.
   
  Definition eval_radius (a : bounded_ps) := ((bounded_ps_r a) / real_2_neq_0).
- Definition eval_seq (a : bounded_ps) x:= (fun n => eval_poly (to_list (series a) (n+(S (Nat.log2 (bounded_ps_M a))))%nat) x).
+
+ Definition eval_seq (a : bounded_ps) x:= (fun n => eval_poly (to_poly (series a) (n+(S (Nat.log2 (bounded_ps_M a))))%nat) x).
+
   Lemma is_fast_cauchy_eval (a : bounded_ps) x : abs x <= eval_radius a -> is_fast_cauchy (eval_seq a x).
   Proof.
     unfold eval_radius.
@@ -159,6 +216,39 @@ Qed.
    exists x0.
    apply i.
  Qed.
+
+  Definition derivative_sequence (a : nat -> Real) n := Nreal (n+1) * (a (n+1)%nat).
+
+  Lemma derivative_sequence_spec a : forall n x, derivative (eval_poly (to_poly a (S n))) (eval_poly (to_poly (derivative_sequence a) n)) x.
+  Proof.
+    intros.
+    assert (to_poly (derivative_sequence a) n = derive_poly (to_poly a (S n))) as ->.
+    {
+      unfold derive_poly.
+      destruct (poly_deriv_exists (to_poly a (S n))) as [p' [H1 H2]].
+      simpl.
+      apply (nth_ext _ _ real_0 real_0).
+      - rewrite H1.
+        simpl.
+        rewrite !map_length.
+        rewrite !seq_length;auto.
+     - intros m M.
+       rewrite H2.
+       unfold derivative_sequence, to_poly.
+       remember (fun n0 => (Nreal (n0+1)) * (a (n0+1)%nat)) as f.
+       rewrite (@nth_indep _ _ _ real_0 (f 0));[| rewrite Heqf;auto].
+       unfold to_poly in M.
+       rewrite map_length, seq_length in M.
+       rewrite (@nth_indep _ _ _ real_0 (a 0));[|rewrite map_length, seq_length;lia].
+       rewrite !map_nth.
+       rewrite !seq_nth;auto;try lia.
+       rewrite Heqf.
+       simpl.
+       replace (m+1)%nat with (S m) by lia.
+       simpl;auto.
+    }
+    apply derive_poly_spec.
+ Qed.
  Definition ps_to_cfun (a : bounded_ps) : cfun.
  Proof.
    exists (fun xy => abs (fst xy) <= (eval_radius a) /\ is_fast_limit_p (snd xy) (eval_seq a (fst xy))).
@@ -181,33 +271,6 @@ Qed.
  Qed.
  Definition sum (a : nat -> Real) (b: nat -> Real) := fun n => (a n) + (b n).
 
- Lemma npow_monotone x n1 n2 : real_1 <= x -> (n1 <= n2)%nat -> npow x n1 <= npow x n2.
- Proof.
-   revert n2.
-   induction n1.
-   - intros.
-     pose proof (npow_nonneg_le real_1 x n2 (real_lt_le _ _ real_1_gt_0) H).
-     rewrite npow_1 in H1.
-     exact H1.
-   - intros.
-     destruct n2.
-     rewrite Nat.le_0_r in H0.
-     rewrite H0.
-     apply real_le_triv.
-     apply Nat.le_succ_le_pred in H0.
-     simpl in H0.
-     simpl.
-     apply real_le_mult_pos_le.
-     apply (real_le_le_le _ _ _ (real_lt_le _ _ real_1_gt_0));auto.
-     apply IHn1;auto.
- Qed.
-
- Lemma pow2_max M1 M2: npow real_2 M1 <= npow real_2 (max M1 M2) /\ npow real_2 M2 <= npow real_2 (max M1 M2).
- Proof.
-   split;(apply npow_monotone; [apply real_lt_le; apply real_2_gt_1 | ]).
-   apply Nat.le_max_l.
-   apply Nat.le_max_r.
-Qed.
 
  Lemma seq_bound_larger_M a M1 M2 r p: (M1 <= M2)%nat -> (@bounded_seq a M1 r p) -> (@bounded_seq a M2 r p).
  Proof.
@@ -219,28 +282,6 @@ Qed.
      apply real_lt_le.
      apply real_pos_inv_pos;auto.
   - apply Nreal_monotone;auto.
- Qed.
-
- Lemma inv_lt_gt x y (p1 : x<>real_0) (p2 : y <> real_0)  : real_0 < x -> x < y -> (/ p2) < (/ p1) .
- Proof.
-     intros.
-     apply (real_lt_mult_pos_cancel x);auto.
-     rewrite real_mult_inv.
-     apply (real_lt_mult_pos_cancel y);[ apply (real_lt_lt_lt _ x);auto|].
-     rewrite real_mult_comm, <-real_mult_assoc, (real_mult_comm y), real_mult_inv.
-     ring_simplify;auto.
- Qed.
- Lemma inv_le_ge x y (p1 : x<>real_0) (p2 : y <> real_0)  : real_0 < x -> x <= y -> (/ p2) <= (/ p1) .
- Proof.
-   intros.
-   destruct H0.
-   apply real_lt_le.
-   apply inv_lt_gt;auto.
-   revert p1.
-   rewrite H0.
-   intros.
-   assert (p1 = p2) as -> by apply irrl.
-   apply real_le_triv.
  Qed.
 
  Lemma seq_bound_smaller_r a M r1 p1 r2 p2: (r2 <= r1) -> (@bounded_seq a M r1 p1) -> (@bounded_seq a M r2 p2).
@@ -271,7 +312,7 @@ Qed.
    rewrite <-prec_twice.
    apply real_le_le_plus_le; rewrite Nat.add_1_r;apply dist_le_prop;auto.
 Qed.
- Lemma sum_ps_partial_sum a b x n : eval_poly (to_list (sum a b) n) x  = eval_poly (to_list a n) x + eval_poly (to_list b n) x.
+ Lemma sum_ps_partial_sum a b x n : eval_poly (to_poly (sum a b) n) x  = eval_poly (to_poly a n) x + eval_poly (to_poly b n) x.
  Proof.
     rewrite !eval_series_partial_sum.
    induction n.
@@ -283,7 +324,7 @@ Qed.
      ring_simplify;auto.
  Qed.
 
- Lemma is_fast_limit_speedup a x y M1 M2 : (M1 <= M2)%nat -> is_fast_limit_p y (fun n => (eval_poly (to_list a (n+M1)%nat)) x) -> is_fast_limit_p y (fun n => (eval_poly (to_list a (n+M2))) x).
+ Lemma is_fast_limit_speedup a x y M1 M2 : (M1 <= M2)%nat -> is_fast_limit_p y (fun n => (eval_poly (to_poly a (n+M1)%nat)) x) -> is_fast_limit_p y (fun n => (eval_poly (to_poly a (n+M2))) x).
   Proof.
     intros H1 H2 n.
     assert (n+M2 = (n+(M2-M1))+M1)%nat as -> by lia.
@@ -302,6 +343,7 @@ Qed.
    apply H.
    lia.
  Qed.
+
  Definition sum_ps (a b : bounded_ps) : {c : bounded_ps |cfun_eq (ps_to_cfun c) (ps_to_cfun a + ps_to_cfun b)%cfun}.
  Proof.
    destruct a as [a' M1 r1 r1gt0 Ba] eqn:A.
@@ -385,7 +427,6 @@ Qed.
     apply H5.
  Defined.
 
-
  (*  Lemma eval_radius_sum_both {x a b} : abs x <= (eval_radius a) -> abs x <= (eval_radius b) -> abs x <= (eval_radius (sum_ps a b)). *)
  (*  Proof. *)
  (*   unfold eval_radius. *)
@@ -397,6 +438,8 @@ Qed.
  (*   destruct (Minmax.real_min_cand bounded_ps_r0 bounded_ps_r1) as [-> | ->];auto. *)
  (* Qed. *)
   
+
+ 
 
 
  Fixpoint derivative_factor (n : nat) (k : nat) := 
