@@ -1,4 +1,5 @@
 Require Import Real.
+Require Import RealAssumption.
 Require Import MultiLimit.
 Require Import Euclidean.
 Require Import Nnat.
@@ -10,7 +11,7 @@ Import ListNotations.
 Require Import Poly.
 
 
-Section Powerseries.
+Section ToMove.
 
  Lemma min_le_both r1 r2 : Minmax.real_min r1 r2 <= r1 /\ Minmax.real_min r1 r2 <= r2.
  Proof.
@@ -77,18 +78,9 @@ Qed.
    assert (p1 = p2) as -> by apply irrl.
    apply real_le_triv.
  Qed.
+End ToMove.
 
-  Definition bounded_seq (a : nat -> Real) M {r : Real} (H : real_0 < r)  :=  forall n, abs (a n) <= Nreal M * (npow (real_inv (real_gt_neq _ _ H))  n).
-                                                                                   
- Record bounded_ps : Type := mk_bounded_ps
-                               {
-                                 series : nat -> Real;
-                                 bounded_ps_M : nat;
-                                 bounded_ps_r :Real;
-                                 bounded_ps_rgt0 : bounded_ps_r > real_0;
-                                 bounded_ps_bounded: bounded_seq series bounded_ps_M bounded_ps_rgt0 
-                               }.
-
+Section Series.
 
   Fixpoint partial_sum (a : nat -> Real) n :=
     match n with
@@ -96,6 +88,9 @@ Qed.
     | (S n') => (a n)+partial_sum a n'
     end.
 
+  Definition converges_to (a : nat -> Real) x := forall eps, eps > real_0 -> exists N, forall n, (n > N)%nat -> dist (partial_sum a n) x < eps.
+
+  
   Lemma tpmn_sum a : (forall n, abs (a n) <= prec n) -> forall n, abs (partial_sum  a n) <= real_2 - prec n.
   Proof.
     intros H n.
@@ -130,8 +125,23 @@ Qed.
     assert (S (n+m) = (S n)+m)%nat as -> by lia.
     apply H.
  Qed.
+End Series.
 
-  Definition to_poly (a : nat -> (@Real Poly.types)) n := map a (seq 0 (S n)).
+  Definition bounded_seq (a : nat -> Real) M {r : Real} (H : real_0 < r)  :=  forall n, abs (a n) <= Nreal M * (npow (real_inv (real_gt_neq _ _ H))  n).
+                                                                                   
+ Record bounded_ps : Type := mk_bounded_ps
+                               {
+                                 series : nat -> Real;
+                                 bounded_ps_M : nat;
+                                 bounded_ps_r :Real;
+                                 bounded_ps_rgt0 : bounded_ps_r > real_0;
+                                 bounded_ps_bounded: bounded_seq series bounded_ps_M bounded_ps_rgt0 
+                               }.
+
+
+
+
+  Definition to_poly (a : nat -> ^Real) n := map a (seq 0 (S n)).
 
   Definition ps a x n := (a n) * npow x n. 
 
