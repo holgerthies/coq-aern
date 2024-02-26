@@ -7,36 +7,13 @@ Import ListNotations.
 Require Import ClassicalMonads.
 Require Import Minmax.
 
-Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-#[local] Notation "^K" := (@K types) (at level 0).
-#[local] Notation "^M" := (@M types) (at level 0).
-#[local] Notation "^Real" := (@Real types) (at level 0).
-
-
-(* ring structure on Real *)
-Ltac IZReal_tac t :=
-  match t with
-  | real_0 => constr:(0%Z)
-  | real_1 => constr:(1%Z)
-  | IZreal ?u =>
-      match isZcst u with
-      | true => u
-      | _ => constr:(InitialRing.NotConstant)
-      end
-  | _ => constr:(InitialRing.NotConstant)
-  end.
-
-Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
-
-
-Declare Scope cfun_scope.
-Delimit Scope cfun_scope with cfun.
+Require Import RealAssumption.
 
 
 
 Section SomeMoreNabla.
-    Definition Nabla_lift_binary  A B C (f : A -> B -> C) : Nabla A -> Nabla B -> Nabla C.
+  Definition Nabla_lift_binary  A B C (f : A -> B -> C) : Nabla A -> Nabla B -> Nabla C.
   Proof.
     intros.
     destruct X.
@@ -180,16 +157,34 @@ Section ClassicalParitalFunctions.
   
   Definition pc X := Nabla (option X).
 
-  (* Definition c X := Nabla X. *)
+  Definition pc_unit (A : Type) : A -> pc A := fun x => Nabla_unit _ (Some x).
 
-  Definition bot {X} := Nabla_unit (option X) None.
+  Definition pc_bot {A : Type} := Nabla_unit (option A) None.
   
-  Definition defined_to {X} (x : pc X) (y : X) := x = Nabla_unit _ (Some y). 
-
+  Definition pc_mult (A : Type) : pc (pc A) -> pc A.
+  Proof.
+    intro.
+    apply (Nabla_bind2 X).
+    intro.
+    destruct X0.
+    exact p.
+    exact pc_bot.
+  Defined.
+      
+  Definition pc_lift {A B} (f : A -> B) : pc A -> pc B.
+  Proof.
+    intro.
+    apply (Nabla_bind2 X).
+    intro.
+    destruct X0.
+    exact (pc_unit _ (f a)). 
+    exact pc_bot.
+  Defined.
+  
+  Definition defined_to {X} (x : pc X) (y : X) := x = pc_unit _ y.
+  
   Definition defined {X} (x : pc X) := exists t, defined_to x t.
-  
-  (* Definition defined_to {X} (x : pc X) (y : c X) := exists t, y = Nabla_unit _ t /\ x = Nabla_unit _ (Some t).  *)
-  
+    
   Definition domain {X Y} (f : X -> pc Y) := fun x :X => defined (f x).
    
   Definition comp {X Y Z} (g : Y -> pc Z) (f : X -> pc Y) : X -> pc Z.
@@ -200,7 +195,7 @@ Section ClassicalParitalFunctions.
     intros y'.
     destruct y' as [y' | _].
     exact (g y').
-    exact bot.
+    exact pc_bot.
   Defined.
 
   Lemma comp_iff {X Y Z} (g : Y -> pc Z) (f : X -> pc Y) :
@@ -234,6 +229,7 @@ Section ClassicalParitalFunctions.
     unfold comp.
     unfold Nabla_bind2.
     rewrite p.
+    unfold pc_unit.
     rewrite Nabla_unit_ntrans.
     rewrite q.
     rewrite Nabla_coh1.
@@ -253,8 +249,8 @@ Section ClassicalParitalFunctions.
     destruct x' as [x' | x'].
     destruct y' as [y' | y'].
     exact (o x' y').
-    exact (Nabla_unit _ None).
-    exact (Nabla_unit _ None).
+    exact pc_bot.
+    exact pc_bot. 
   Defined.
 
   Definition pc_pair {A B} : pc A -> pc B -> pc (A * B).
@@ -266,9 +262,9 @@ Section ClassicalParitalFunctions.
     apply (Nabla_bind2 y).
     intro y'.
     destruct y'.
-    exact (Nabla_unit _ (Some (a, b))).
-    exact bot.
-    exact bot.
+    exact (pc_unit _ (a, b)). 
+    exact pc_bot.
+    exact pc_bot.
   Defined.
 
   Lemma pc_pair_iff {A B} (x : pc A) (y : pc B) :
@@ -282,9 +278,12 @@ Section ClassicalParitalFunctions.
     unfold Nabla_bind2.
     unfold defined_to in p.
     rewrite p.
+    unfold pc_unit.
     rewrite Nabla_unit_ntrans.
     unfold defined_to in q.
     rewrite q.
+    unfold pc_lift, pc_unit.
+
     rewrite Nabla_unit_ntrans.
     rewrite Nabla_coh1.
     rewrite Nabla_coh1.
@@ -314,14 +313,185 @@ Section ClassicalParitalFunctions.
     apply Nabla_unit_mono in H.
     discriminate H.
   Defined.
+
+  Lemma pc_pair_fst_bot {A B} (x : pc B) : @pc_pair A B pc_bot x = pc_bot.
+  Proof.
+    unfold pc_pair.
+    unfold Nabla_bind2.
+    unfold pc_bot.
+    rewrite Nabla_unit_ntrans.
+    rewrite Nabla_coh1.
+    auto.
+  Defined.
+
+  Lemma pc_case {A} : forall x : pc A, x = pc_bot \/ exists x', x = pc_unit _ x'.
+  Proof.
+    intros.
+    destruct (Nabla_unit_surjective x).
+    destruct x0.
+    right.
+    exists a; auto.
+    left; auto.
+  Defined.
+  
     
+  Lemma pc_pair_snd_bot {A B} (x : pc A) : @pc_pair A B x pc_bot = pc_bot.
+  Proof.
+    unfold pc_pair.
+    unfold Nabla_bind2.
+    unfold pc_bot.
+    destruct (pc_case x).
+    induction (eq_sym H).
+    unfold pc_bot.
+    rewrite Nabla_unit_ntrans.
+    rewrite Nabla_coh1.
+    auto.
+    destruct H.
+    rewrite H.
+    unfold pc_unit.
+    rewrite Nabla_unit_ntrans.
+    rewrite Nabla_coh1.
+    rewrite Nabla_unit_ntrans.
+    rewrite Nabla_coh1.
+    auto.
+  Defined.
+  
+  Lemma pc_unit_mono : forall (A : Type) (x y : A), pc_unit A x = pc_unit A y -> x = y.
+  Proof.
+    intros.
+    apply Nabla_unit_mono in H.
+    injection H; auto.
+  Defined.
+  
+  Lemma pc_pair_bot_case {A B} {x} {y} : @pc_pair A B x y = pc_bot -> x = pc_bot \/ y = pc_bot.
+  Proof.
+    intro.
+    destruct (pc_case x).
+    left; auto.
+    destruct (pc_case y).
+    right; auto.
+    destruct H0 as [x' p].
+    destruct H1 as [y' q].
+    pose proof (pc_pair_iff x y x' y').
+    destruct H0.
+    pose proof (H0 (conj p q)).
+    rewrite H2 in H.
+    apply Nabla_unit_mono in H.
+    discriminate H.
+  Defined.
+      
+  Lemma pc_unit_ntrans : forall (A B : Type) (f : A -> B) (x : A),
+      pc_lift f (pc_unit A x) = pc_unit B (f x).
+  Proof.
+    intros.
+    unfold pc_lift.
+    unfold pc_unit.
+    unfold Nabla_bind2.
+    unfold pc_unit.
+    rewrite Nabla_unit_ntrans.
+    rewrite Nabla_coh1.
+    auto.
+  Defined.
+
+  Lemma pc_lift_bot : forall {A B} (f : A -> B),
+      pc_lift f pc_bot = pc_bot.
+  Proof.
+    intros.
+    unfold pc_lift.
+    unfold Nabla_bind2.
+    unfold pc_bot.
+    rewrite Nabla_unit_ntrans.
+    rewrite Nabla_coh1.
+    auto.
+  Defined.
+  
+  
+  Lemma pc_mult_ntrans : forall (A B : Type) (f : A -> B) (x : pc (pc A)),
+       pc_mult B (pc_lift (pc_lift f) x) = pc_lift f (pc_mult A x).
+  Proof.
+  Admitted.
+  
+    
+  Definition pc_bind {A B} (f : A -> pc B) : pc A -> pc B.
+  Proof.
+    intro.
+    apply pc_mult.
+    apply (pc_lift f).
+    exact X.
+  Defined.
+
+  Lemma pc_bot_defined_to_absurd {A} : forall {x : A}, defined_to pc_bot x -> False.
+  Proof.
+    intros.
+    apply Nabla_unit_mono in H.
+    discriminate H.
+  Defined.
+  
+  Definition pc_lift2 {A B C} (f : A -> B -> C) : pc A -> pc B -> pc C.
+  Proof. 
+    intros.
+    pose proof (pc_pair X X0).
+    apply (pc_lift (fun x => f (fst x) (snd x))).
+    exact X1.
+  Defined.
+
+  
+
+  Definition pc_lift2_iff {A B C} (f : A -> B -> C) :
+    forall x y z',
+      defined_to (pc_lift2 f x y) z' <-> exists x' y', defined_to x x' /\ defined_to y y' /\ z' = f x' y'.
+  Proof.
+    intros.
+    split.
+    intro.
+    destruct (pc_case x).
+    rewrite H0 in H.
+    unfold pc_lift2 in H.
+    rewrite pc_pair_fst_bot in H.
+    rewrite pc_lift_bot in H.
+    contradiction (pc_bot_defined_to_absurd H).
+    destruct (pc_case y).
+    rewrite H1 in H.
+    unfold pc_lift2 in H.
+    rewrite pc_pair_snd_bot in H.
+    rewrite pc_lift_bot in H.
+    contradiction (pc_bot_defined_to_absurd H).
+    destruct H0 as [x' p].
+    destruct H1 as [y' q].
+    exists x', y'.
+    split.
+    exact p.
+    split.
+    exact q.
+    
+    unfold defined_to in H.
+    unfold pc_lift2 in H.
+    destruct (pc_pair_iff x y x' y') as [l _].
+    pose proof (l (conj p q)).
+    rewrite H0 in H.
+    rewrite pc_unit_ntrans in H.
+    simpl in H.
+    apply pc_unit_mono in H.
+    rewrite H; auto.
+
+    intros [x' [y' [p [q r]]]].
+    rewrite r.
+    unfold pc_lift2.
+    destruct (pc_pair_iff x y x' y') as [l _].
+    pose proof (l (conj p q)).
+    rewrite H.
+    rewrite pc_unit_ntrans.
+    simpl.
+    apply eq_refl.
+  Defined.
+  
     
     
 End ClassicalParitalFunctions.
 
 Class MetricSpace (A : Type) :=
   {
-    metric : A -> A -> ^Real ;
+    metric : A -> A -> Real ;
     metric_axiom_identity : forall x, metric x x = real_0 ;
     metric_axiom_positivity : forall x y, x <> y -> metric x y > real_0 ;
     metric_axiom_symmetry : forall x y, metric x y = metric y x ;
@@ -334,9 +504,6 @@ Section ClassicalContinuity1.
   Context `{mA : MetricSpace A}.
   Context `{mB : MetricSpace B}.
   
-  (* Definition metricA := @metric A mA. *)
-  (* Definition metricB := @metric B mB. *)
-
   Definition t_cont_at (f : A -> Nabla B) x :=
     forall eps, eps > real_0 -> exists delta, delta > real_0 /\ forall y fx fy,
             metric x y <= delta -> f x = Nabla_unit _ fx -> f y = Nabla_unit _ fy -> metric fx fy <= eps. 
@@ -354,9 +521,6 @@ Section ClassicalContinuity2.
   Context `{mA : MetricSpace A}.
   Context `{mB : MetricSpace B}.
   Context `{mC : MetricSpace C}.
-  
-  (* Definition metricA := @metric A mA. *)
-  (* Definition metricB := @metric B mB. *)
 
   Lemma cont_at_comp (f : A -> pc B) (g : B -> pc C) :
     forall x, cont_at f x -> forall fx, defined_to (f x) fx -> cont_at g fx -> cont_at (comp g f) x.
@@ -508,7 +672,15 @@ Section ClassicalContinuity3.
   
 End ClassicalContinuity3.
 
-Section ClassicalContinuityRealOps.
+Declare Scope pcreal_scope.
+Delimit Scope pcreal_scope with pcreal.
+
+Notation pcReal := (pc Real).
+Notation "x + y" := (pc_lift2 (fun a b => a + b) x y) : pcreal_scope.
+Notation "x - y" := (pc_lift2 (fun a b => a - b) x y) : pcreal_scope.
+Notation "x * y" := (pc_lift2 (fun a b => a * b) x y) : pcreal_scope.
+
+
 
   Lemma dist_axiom_identity : forall x, dist x x = real_0.
   Proof.
@@ -556,24 +728,7 @@ Section ClassicalContinuityRealOps.
       metric_axiom_triangle := dist_axiom_triangle
     }.
 
-
-(* Lemma real_le_mult_pos_le_le r1 r2 r3 r4 : (real_0 <= r1) -> (real_0 <= r2) -> (r1 <= r3) -> (r2 <= r4) -> (r1 * r2 <= r3 * r4). *)
-(*  Proof. *)
-(*    intros. *)
-(*    apply (real_le_le_le _ _ _ (real_le_mult_pos_le _ _ _ H H2)). *)
-(*    rewrite !(real_mult_comm _ r4). *)
-(*    apply real_le_mult_pos_le; auto. *)
-(*    apply (real_le_le_le _ r2);auto. *)
-(*  Qed. *)
-
- (*  Lemma real_lt_mult_pos_lt_lt r1 r2 r3 r4:  (real_0 <= r1) -> (real_0 < r3) -> (real_0 < r4) -> r1 < r3 -> r2 < r4 -> r1 * r2 < r3 * r4. *)
- (*  Proof. *)
- (*    intros. *)
- (*    apply (real_le_lt_lt _ (r1 * r4)). *)
- (*    apply real_le_mult_pos_le;auto. *)
- (*    apply real_lt_le;auto. *)
- (*    apply real_lt_mult_r_pos_lt;auto. *)
- (* Qed. *)
+  Section ClassicalContinuityRealOps.
 
   Lemma dist_plus_le a b c d : dist (a+b) (c+d) <= dist a c + dist b d.
   Proof.
