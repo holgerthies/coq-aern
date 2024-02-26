@@ -43,6 +43,7 @@ EuclideanSubsets.v
 #SierpinskiTriangle.v
 #SierpinskiTriangleLimit.v
 
+RealAssumption.v
 Poly.v
 ClassicalFunctions.v
 Taylormodel.v

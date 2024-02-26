@@ -1,29 +1,10 @@
 Require Import Real.
+Require Import RealAssumption.
 Require Import Euclidean.
 Require Import List.
 Require Import Psatz.
 Import ListNotations.
 
-Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
-
-#[local] Notation "^K" := (@K types) (at level 0).
-#[local] Notation "^M" := (@M types) (at level 0).
-#[local] Notation "^Real" := (@Real types) (at level 0).
-
-  (* ring structure on Real *)
-  Ltac IZReal_tac t :=
-    match t with
-    | real_0 => constr:(0%Z)
-    | real_1 => constr:(1%Z)
-    | IZreal ?u =>
-      match isZcst u with
-      | true => u
-      | _ => constr:(InitialRing.NotConstant)
-      end
-    | _ => constr:(InitialRing.NotConstant)
-    end.
-
-Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
 Section RealHelpers.
  Lemma real_le_mult_pos_le_le r1 r2 r3 r4 : (real_0 <= r1) -> (real_0 <= r2) -> (r1 <= r3) -> (r2 <= r4) -> (r1 * r2 <= r3 * r4).
