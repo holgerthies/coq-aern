@@ -39,7 +39,7 @@ Proof.
   apply dist_tri.
 Defined.
 
-Instance real_metric_space : MetricSpace ^Real :=
+Global Instance real_metric_space : MetricSpace ^Real :=
   {
     metric := dist ;
     metric_axiom_identity := dist_axiom_identity ;
