@@ -6,152 +6,7 @@ Import ListNotations.
 (* Require Import Poly. *)
 Require Import ClassicalMonads.
 Require Import Minmax.
-
-
 Require Import RealAssumption.
-
-
-
-Section SomeMoreNabla.
-  Definition Nabla_lift_binary  A B C (f : A -> B -> C) : Nabla A -> Nabla B -> Nabla C.
-  Proof.
-    intros.
-    destruct X.
-    destruct X0.
-    exists (fun c => exists a b, x a /\ x0 b  /\ c = f a b ).
-    destruct e, e0.
-    exists (f x1 x2).
-    split.
-    exists x1.
-    exists x2.
-    destruct H, H0.
-    repeat split; auto.
-
-    intros.
-    destruct H, H0, H1.
-    destruct H1.
-    destruct H1.
-    destruct H4.
-    induction (H2 _ H1).
-    induction (H3 _ H4).
-    auto.
-  Defined.
-
-  Definition Nabla_bind_binary  A B C (f : A -> B -> Nabla C) : Nabla A -> Nabla B -> Nabla C.
-  Proof.
-    intros.
-    apply Nabla_mult.
-    apply (Nabla_lift_binary _ _ _ f).
-    exact X.
-    exact X0.
-  Defined.
- 
-  Lemma Nabla_lift_binary_commute : forall A B C (f : A -> B -> C) x y,
-      Nabla_unit _ (f x y) = Nabla_lift_binary _ _ _ f (Nabla_unit _ x) (Nabla_unit _ y).
-  Proof.
-    intros.
-    unfold Nabla_lift_binary.
-    case_eq (Nabla_unit _ x); intros.
-    case_eq (Nabla_unit _ y); intros.
-    unfold Nabla_unit.
-    
-    assert ( (fun a : C => a = f x y) = (fun c : C => exists (a : A) (b : B), x0 a /\ x1 b /\ c = f a b)).
-    apply fun_ext.
-    intros.
-    apply Prop_ext.
-    intro.
-    exists x.
-    exists y.
-
-    unfold Nabla_unit in H.
-    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H). 
-    unfold Nabla_unit in H0.
-    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H0). 
-   
-    apply (lp _ _ (fun f => f x)) in H2.
-    apply (lp _ _ (fun f => f y)) in H3.
-    rewrite <- H2.
-    rewrite <- H3.
-    
-    repeat split; auto.
-    intro.
-    repeat destruct H1.
-    destruct H2.
-    rewrite H3; clear H3.
-    
-    unfold Nabla_unit in H.
-    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H). 
-    unfold Nabla_unit in H0.
-    pose proof (sigma_eqP_pr1 _ _ _ _ _ _ H0). 
-    apply (lp _ _ (fun f => f x)) in H3.
-    apply (lp _ _ (fun f => f y)) in H4.
-    assert (x0 x) by (rewrite<- H3; apply eq_refl).
-    assert (x1 y) by (rewrite<- H4; apply eq_refl).
-    clear H3 H4.
-    destruct e, e0.
-    destruct u, u0.
-    pose proof (e _ H1).
-    pose proof (e _ H5).
-    pose proof (e0 _ H2).
-    pose proof (e0 _ H6).
-    rewrite <- H8, <- H7, <- H4,<- H3.
-    apply eq_refl.
-    apply (sigma_eqP _ _ _ _ _ _ H1).
-    apply irrl.
-  Qed.
-  
-
-  Definition Nabla_bind {X} {Y} (f : X -> Nabla Y) : Nabla X -> Nabla Y.
-  Proof.
-    intro.
-    apply Nabla_mult.
-    apply (Nabla_fun_map _ _ f).
-    exact X0.
-  Defined.
-  
-  
-  Definition Nabla_bind2 {X} {Y} (x : Nabla X) (f : X -> Nabla Y) :  Nabla Y.
-  Proof.
-    apply Nabla_mult.
-    apply (Nabla_fun_map _ _ f).
-    exact x.
-  Defined.
-  
-  Definition Nabla_unit_surjective {X} : forall x : Nabla X, exists t : X, x = Nabla_unit _ t.
-  Proof.
-    intros.
-    destruct x.
-    destruct e.
-    exists x0.
-    unfold Nabla_unit.
-    assert (x =(fun a : X => a = x0)).
-    apply fun_ext.
-    intros.
-    apply Prop_ext.
-    intro.
-    destruct u.
-    rewrite (H1 _ H); auto.
-    intro.
-    destruct u.
-    rewrite H; auto.
-    apply (sigma_eqP (X -> Prop)  (fun P : X -> Prop => exists ! a : X, P a) _ _  (ex_intro (unique (fun a : X => x a)) x0 u) (ex_intro (unique (fun a : X => a = x0)) x0 (conj eq_refl (fun (x' : X) (H0 : x' = x0) => eq_ind x' (fun X0 : X => X0 = x') eq_refl x0 H0))) H).
-    apply irrl.
-  Defined.
-     
-    
-    
-  Lemma Nabla_unit_mono : forall A (x y : A), Nabla_unit _ x = Nabla_unit _ y -> x = y.
-  Proof.
-    intros.
-    apply sigma_eqP_pr1 in H.
-    
-    apply (lp _ _  (fun f => f x)) in H.
-    induction H.
-    apply eq_refl.
-  Defined.
-
-
-End SomeMoreNabla.
 
 Section ClassicalParitalFunctions.
   
@@ -485,7 +340,42 @@ Section ClassicalParitalFunctions.
     apply eq_refl.
   Defined.
   
-    
+  Definition pc_hprop_lem {A} : forall P, is_hprop P -> ((P + neg P) -> pc A) -> pc A.
+  Proof.
+    intros.
+    exact (Nabla_hprop_lem P H X).
+  Defined.
+  
+  
+  Definition pc_Prop_lem {A} : forall P : Prop, ((P + ~ P) -> pc A) -> pc A.
+  Proof.
+    intro P.
+    assert (is_hprop P).
+    intros x y.
+    apply irrl.
+    apply Nabla_hprop_lem.
+    exact H.
+  Defined.
+
+  Definition pc_ana_fun A B := {S : A * B -> Prop | forall x y1 y2, S (x, y1) -> S (x, y2) -> y1 = y2}.
+
+  Definition pc_ana_fun_to_pc_fun A B : pc_ana_fun A B -> A -> pc B.
+  Proof.
+    intros [S p] x. 
+    apply (pc_hprop_lem ({y | S (x, y)})).
+    intros [a h1] [b h2].
+    pose proof (p x a b h1 h2).
+    destruct H.
+    rewrite (irrl _ h1 h2).
+    apply eq_refl.
+    intros [l|r].
+    destruct l.
+    exact (pc_unit _ x0).
+    exact pc_bot.
+  Defined.
+  
+  
+
     
 End ClassicalParitalFunctions.
 
