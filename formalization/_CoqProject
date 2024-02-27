@@ -15,6 +15,7 @@ RealMetric.v
 RealLimit2.v
 Real.v
 
+
 Minmax.v
 Euclidean.v
 Complex.v
@@ -44,6 +45,14 @@ EuclideanSubsets.v
 #SierpinskiTriangleLimit.v
 
 RealAssumption.v
+
+# classical analysis
+ClassicalPartiality.v
+ClassicalPartialReals.v
+ClassicalContinuity.v
+ClassicalContinuousPartialRealFunctions.v
+ClassicalAnalysis.v
+
+
 Poly.v
-ClassicalFunctions.v
 Taylormodel.v

@@ -9,8 +9,9 @@ Require Import List.
 Import ListNotations.
 Require Import Poly.
 
-Require Import RealAssumption.
-Require Import ClassicalFunctions.
+Require Import ClassicalAnalysis.
+Require Import ClassicalPartialReals.
+
 
 Section TaylorModels.
 
@@ -25,6 +26,18 @@ Section TaylorModels.
  Definition eval_tm {f} t x := (eval_poly (tm_poly f t) x).
  Definition tm_deg {f} (t : taylor_model f) := length (tm_poly f t).
 
+
+
+(* Declare Scope pcreal_scope. *)
+(* Delimit Scope pcreal_scope with pcreal. *)
+
+(* Notation pcReal := (pc Real). *)
+
+(* Notation "x + y" := (pc_lift2 (fun a b => a + b) x y) : pcreal_scope. *)
+(* Notation "x - y" := (pc_lift2 (fun a b => a - b) x y) : pcreal_scope. *)
+(* Notation "x * y" := (pc_lift2 (fun a b => a * b) x y) : pcreal_scope. *)
+
+ 
  Lemma min_le_both r1 r2 : Minmax.real_min r1 r2 <= r1 /\ Minmax.real_min r1 r2 <= r2.
  Proof.
    split.
