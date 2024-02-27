@@ -323,13 +323,38 @@ Qed.
    apply L.
  Defined.
 
- Definition is_ps_for f a := forall x, abs x < (bounded_ps_r a) -> defined (f x) -> powerseries_pc (series a) x = f x.
+ Definition is_ps_for f a := forall x, abs x <= (eval_radius a) -> defined (f x) -> powerseries_pc (series a) x = f x.
 
  Lemma to_tm_approx (a : bounded_ps) : polynomial_approx (powerseries_pc (series a)) (to_taylor_model a) (eval_radius a).
  Proof.
    split;apply real_le_triv.
  Qed.
 
+ Lemma approx_is_ps f a : (forall n x fx, abs x <= eval_radius a -> defined_to (f x) fx -> dist (eval_tm (to_taylor_model a n) x) fx < prec (S n)) -> is_ps_for f a.
+ Proof.
+   intros H x X D.
+   destruct D as [y Y].
+   assert (defined_to (powerseries_pc (series a) x) y).
+   {
+     apply powerseries_pc_spec.
+     apply fast_limit_limit.
+     intros n.
+     apply real_lt_le.
+     rewrite dist_symm.
+     replace (eval_seq a x n) with (eval_tm (to_taylor_model a n) x).
+     admit.
+     unfold eval_tm, to_taylor_model,eval_seq.
+     simpl tm_poly.
+     replace m with (m - (S (Nat.log2 (bounded_ps_M a))) + (S (Nat.log2 (bounded_ps_M a))))%nat by lia.
+     simpl.
+     apply H.
+     apply H;auto.
+     apply (real_le_lt_lt _ (prec n));auto.
+     destruct M;[apply real_le_triv|apply real_lt_le;apply prec_monotone;lia].
+     
+   }
+   rewrite Y,H0;auto.
+Qed.
 End Powerseries.
 Section Addition.
 
