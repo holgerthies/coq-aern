@@ -232,8 +232,16 @@ Qed.
                                  bounded_ps_bounded: bounded_seq series bounded_ps_M bounded_ps_rgt0 
                                }.
 
-
-
+  Lemma bounded_ps_change_Mr (a : bounded_ps) M r : (bounded_ps_M a <= M)%nat -> (real_0 < r <= bounded_ps_r a) -> {b : bounded_ps | series a = series b /\ bounded_ps_M b = M /\ bounded_ps_r b = r}.
+  Proof.
+  intros.
+  destruct H0.
+  destruct a.
+  simpl in *.
+  pose proof (seq_bound_larger_M _ _ _ _ _ H bounded_ps_bounded0).
+  pose proof (seq_bound_smaller_r _ _ _ _ _ H0 H1 H2).
+  exists (mk_bounded_ps _ _ _ _ H3);auto.
+  Qed.
 
   Lemma increment_num M n : (Nreal M * prec (n+(S (Nat.log2 M)))) < prec n. 
   Proof.
@@ -313,24 +321,33 @@ Qed.
 
  Definition to_taylor_model (a : bounded_ps) (n : nat) : taylor_model (powerseries_pc (series a)).
  Proof.
-   apply (mk_tm _ (to_poly (series a) (S n+(S (Nat.log2 (bounded_ps_M a))))%nat) (eval_radius a) (prec n)).
+   apply (mk_tm _ (to_poly (series a) (n+(S (Nat.log2 (bounded_ps_M a))))%nat) (eval_radius a) (prec n)).
    intros.
-   apply real_lt_le in H.
    apply powerseries_pc_spec in H0.
    destruct (eval_val _ _ H) as [y L].
    rewrite (sum_is_unique _ _ y H0); [|apply fast_limit_limit];auto.
-   apply (real_le_lt_lt _ (prec (S n))); [|apply prec_monotone;auto].
    apply L.
  Defined.
+ 
+ Lemma to_taylor_model_series a n x : (eval_tm (to_taylor_model a n) x) = eval_seq a x n.
+ Proof. auto. Qed.
 
  Definition is_ps_for f a := forall x, abs x <= (eval_radius a) -> defined (f x) -> powerseries_pc (series a) x = f x.
 
+ Definition is_ps_for_M_indep f a b : series a = series b -> bounded_ps_r b <= bounded_ps_r a -> is_ps_for f a ->  is_ps_for f b.
+ Proof.
+   unfold is_ps_for.
+   intros.
+   rewrite <- H1,H;auto.
+   apply (real_le_le_le _ (eval_radius b));auto.
+   apply half_le_le;auto.
+ Qed.
  Lemma to_tm_approx (a : bounded_ps) : polynomial_approx (powerseries_pc (series a)) (to_taylor_model a) (eval_radius a).
  Proof.
    split;apply real_le_triv.
  Qed.
 
- Lemma approx_is_ps f a : (forall n x fx, abs x <= eval_radius a -> defined_to (f x) fx -> dist (eval_tm (to_taylor_model a n) x) fx < prec (S n)) -> is_ps_for f a.
+ Lemma approx_is_ps f a : (forall n x fx, abs x <= eval_radius a -> defined_to (f x) fx -> dist (eval_tm (to_taylor_model a n) x) fx <= prec n) -> is_ps_for f a.
  Proof.
    intros H x X D.
    destruct D as [y Y].
@@ -339,22 +356,34 @@ Qed.
      apply powerseries_pc_spec.
      apply fast_limit_limit.
      intros n.
-     apply real_lt_le.
      rewrite dist_symm.
-     replace (eval_seq a x n) with (eval_tm (to_taylor_model a n) x).
-     admit.
-     unfold eval_tm, to_taylor_model,eval_seq.
-     simpl tm_poly.
-     replace m with (m - (S (Nat.log2 (bounded_ps_M a))) + (S (Nat.log2 (bounded_ps_M a))))%nat by lia.
-     simpl.
-     apply H.
+     rewrite <-to_taylor_model_series.
      apply H;auto.
-     apply (real_le_lt_lt _ (prec n));auto.
-     destruct M;[apply real_le_triv|apply real_lt_le;apply prec_monotone;lia].
      
    }
    rewrite Y,H0;auto.
-Qed.
+ Qed.
+
+ Lemma eval_seq_converges a n x y : abs x <= eval_radius a -> defined_to (powerseries_pc (series a) x) y -> dist (eval_seq a x n) y <= prec n.
+ Proof.
+   intros.
+   apply powerseries_pc_spec in H0.
+   destruct (eval_val _ _ H) as [z Z].
+   rewrite (sum_is_unique  _ _ z H0);try rewrite dist_symm;auto.
+   intros eps epsgt0.
+   destruct (real_Archimedean _ epsgt0) as [m M].
+   unfold is_fast_limit in Z.
+   unfold eval_seq in Z.
+   exists ((S m) + S (Nat.log2 (bounded_ps_M a)))%nat.
+   intros k K.
+   apply real_lt_le.
+   rewrite <-eval_series_partial_sum.
+   apply (real_lt_lt_lt _ (prec m));auto.
+   replace k with ((S m + (k - (S m) - S (Nat.log2 (bounded_ps_M a))))+S (Nat.log2 (bounded_ps_M a)))%nat by lia.
+   apply (real_le_lt_lt _ (prec (S m + (k - (S m) - S (Nat.log2 (bounded_ps_M a)))))); try (apply prec_monotone;lia).
+   rewrite dist_symm.
+   apply Z.
+ Qed.
 End Powerseries.
 Section Addition.
 
@@ -365,6 +394,7 @@ Section Addition.
     unfold to_poly.
     rewrite seq_S, map_app;auto.
  Qed.
+
  Lemma sum_to_poly_sum_poly a b : forall n, to_poly (sum a b) n = sum_polyf (to_poly a n) (to_poly b n).
  Proof.
    intros.
@@ -379,17 +409,19 @@ Section Addition.
 Admitted.
 
  Definition sum_pc (a b : bounded_ps) := fun x => (powerseries_pc (series a) x + powerseries_pc (series b) x)%pcreal.
+
+
+
+ 
  Definition sum_ps (a b : bounded_ps) : {c : bounded_ps | is_ps_for (sum_pc a b) c }.
  Proof.
    destruct a as [a' M1 r1 r1gt0 Ba] eqn:A.
    destruct b as [b' M2 r2 r2gt0 Bb] eqn:B.
    pose proof (min_le_both r1 r2) as [R1 R2]. 
    remember (Minmax.real_min r1 r2) as r.
-   assert (r > real_0).
-   {
-     rewrite Heqr.
-     destruct (Minmax.real_min_cand r1 r2) as [-> | ->];auto.
-   }
+   assert (real_0 < r) by (rewrite Heqr;destruct (Minmax.real_min_cand r1 r2) as [-> | ->];auto).
+   destruct (bounded_ps_change_Mr a (S (M1+M2))%nat r) as [a0 [A1 [A2 A3]]];try rewrite A;simpl;[lia|split|];auto.
+   destruct (bounded_ps_change_Mr b (S (M1+M2))%nat r) as [b0 [B1 [B2 B3]]];try rewrite B;simpl;[lia|split|];auto.
    assert (bounded_seq (sum a' b') (M1+M2)%nat H).
    { intros n.
      apply (real_le_le_le _ _ _ (abs_tri (a' n) (b' n))).
@@ -400,66 +432,50 @@ Admitted.
      apply (seq_bound_smaller_r _ _ r2 r2gt0);auto.
   }
   remember (mk_bounded_ps _ _ _ _ H0) as c.
-  assert ((S (Nat.log2 (bounded_ps_M c))) <= (S (S (Nat.log2 (bounded_ps_M c)))))%nat as L0 by lia.
-  assert ((S (Nat.log2 (bounded_ps_M a)) <= S (Nat.log2 (M1+M2)))%nat /\ (S (Nat.log2 (bounded_ps_M b)) <= S (Nat.log2 (M1+M2)))%nat) as [L1 L2].
-    {
-      rewrite A, B.
-      simpl.
-      split;apply le_n_S;apply Nat.log2_le_mono;lia.
-    }
-  exists c.
-  split.
-   - simpl.
-    intros [H1 H2].
-    assert (abs x <= eval_radius a /\ abs x <= eval_radius b) as [P1 P2].
-    {
-      rewrite Heqc in H1.
-      unfold eval_radius in *.
-      rewrite A,B.
-      simpl in *.
-      split;apply (real_le_le_le _ (r / real_2_neq_0));auto;apply half_le_le;auto.
-    }
-    destruct (eval_val a x);auto.
-    destruct (eval_val b x);auto.
-    exists x0; exists x1.
-    rewrite <-A, <-B.
-    split;split;auto.
-    pose proof (sum_limit _ _ _ _ i i0).
-    unfold eval_seq in H2.
-    pose proof (is_fast_limit_speedup _ x fx _ _ L0 H2 ).
-    pose proof (is_fast_limit_speedup _ x x0 _ _ L1 i).
-    pose proof (is_fast_limit_speedup _ x x1 _ _ L2 i0).
-    apply (limit_is_unique _ _ _ H4).
-    intros n.
-    apply dist_le_prop.
-    unfold eval_seq.
-    rewrite Heqc.
-    simpl series; simpl bounded_ps_M.
-    rewrite sum_ps_partial_sum.
-    rewrite <-prec_twice, Nat.add_1_r.
-    apply (real_le_le_le _ _ _ (dist_plus _ _ _ _)).
-    rewrite <-Nat.add_succ_comm.
-    rewrite A in H5.
-    rewrite B in H6.
-    apply real_le_le_plus_le;apply dist_le_prop;auto.
-  - simpl.
-    intros [x0 [x1 [[C1 C2] [[C1' C2'] ->]]]].
-    assert (abs x <= eval_radius c)
-    by (rewrite Heqc;unfold eval_radius;simpl;rewrite Heqr;destruct (Minmax.real_min_cand r1 r2) as [-> | ->];auto).
-    split;auto.
-    destruct (eval_val c x);auto.
-    pose proof (is_fast_limit_speedup _ x x2 _ _ L0 i).
-    rewrite Heqc, A, B in *.
-    unfold eval_seq,eval_radius in *; simpl series in *;simpl bounded_ps_r in *; simpl bounded_ps_M in *.
-    pose proof (is_fast_limit_speedup _ x x0 _ _ L1 C2).
-    pose proof (is_fast_limit_speedup _ x _ _ _ L2 C2').
-    replace (x0 + x1) with x2;auto.
-    apply (limit_is_unique _ _ _ H2).
-    intros n.
-    rewrite <-Nat.add_succ_comm.
-    rewrite sum_ps_partial_sum.
-    pose proof (sum_limit _ _ _ _ H3 H4).
-    apply H5.
+   exists c.
+   destruct (bounded_ps_change_Mr c (2 * (S (bounded_ps_M c)))%nat (bounded_ps_r c)) as [c' [H1 [H2 H3]]];[lia| destruct c;simpl;split; [auto|apply real_le_triv]|].
+   apply (is_ps_for_M_indep _ c');try apply real_eq_le;auto.
+   apply approx_is_ps.
+   intros.
+   unfold to_taylor_model, eval_tm; simpl tm_poly.
+   rewrite <-H1.
+   rewrite H2.
+   rewrite Heqc.
+   simpl series; simpl bounded_ps_M.
+   rewrite Nat.log2_double;try lia.
+   rewrite <-Nat.add_succ_comm.
+   rewrite sum_to_poly_sum_poly.
+   rewrite sum_polyf_spec.
+   apply pc_lift2_iff in H5.
+   simpl in H5.
+   destruct H5 as [y1 [y2 [D1 [D2 ->]]]].
+   apply (real_le_le_le  _ _ _ (dist_plus_le _ _ _ _)).
+   rewrite <-prec_twice.
+   apply real_le_le_plus_le.
+   - replace (eval_poly (to_poly a' (S n + S (Nat.log2 (S (M1+M2))%nat))) x) with (eval_tm (to_taylor_model a0 (S n)) x).
+     rewrite to_taylor_model_series.
+     rewrite Nat.add_1_r.
+     apply eval_seq_converges.
+     apply (real_le_le_le _ _ _ H4).
+     unfold eval_radius.
+     rewrite H3,A3, Heqc;simpl.
+     apply real_le_triv.
+     rewrite <-A1, A;simpl;auto.
+     unfold to_taylor_model,eval_tm.
+     simpl tm_poly.
+     rewrite A2, <-A1, A; simpl;auto.
+   - replace (eval_poly (to_poly b' (S n + S (Nat.log2 (S (M1+M2))%nat))) x) with (eval_tm (to_taylor_model b0 (S n)) x).
+     rewrite to_taylor_model_series.
+     rewrite Nat.add_1_r.
+     apply eval_seq_converges.
+     apply (real_le_le_le _ _ _ H4).
+     unfold eval_radius.
+     rewrite H3,B3, Heqc;simpl.
+     apply real_le_triv.
+     rewrite <-B1, B;simpl;auto.
+     unfold to_taylor_model,eval_tm.
+     simpl tm_poly.
+     rewrite B2, <-B1, B; simpl;auto.
  Defined.
 
 End Addition.
@@ -500,67 +516,6 @@ End Derivative.
 
 
  
- Definition cfun_eq (f g : cfun) := forall x fx, img f x fx <-> img g x fx.
-
- Lemma dist_plus x y x' y' : dist (x+x') (y + y') <= dist x y + dist x' y'.
- Proof.
-   unfold dist.
-   assert (x + x' - (y + y') = (x-y + (x' - y'))) as -> by ring.
-   apply abs_tri.
- Qed.
- Lemma sum_limit a b x y : is_fast_limit_p x a -> is_fast_limit_p y b -> is_fast_limit_p (x + y) (fun n => a (S n) + b (S n)).
- Proof.
-   intros.
-   intro n.
-   apply dist_le_prop.
-   apply (real_le_le_le _ _ _ (dist_plus x (a (S n)) y (b (S n)))).
-   rewrite <-prec_twice.
-   apply real_le_le_plus_le; rewrite Nat.add_1_r;apply dist_le_prop;auto.
-Qed.
- Lemma sum_ps_partial_sum a b x n : eval_poly (to_poly (sum a b) n) x  = eval_poly (to_poly a n) x + eval_poly (to_poly b n) x.
- Proof.
-    rewrite !eval_series_partial_sum.
-   induction n.
-   - unfold sum,ps.
-     simpl;ring_simplify;auto.
-   -  simpl.
-     rewrite IHn.
-     unfold sum,ps.
-     ring_simplify;auto.
- Qed.
-
- Lemma is_fast_limit_speedup a x y M1 M2 : (M1 <= M2)%nat -> is_fast_limit_p y (fun n => (eval_poly (to_poly a (n+M1)%nat)) x) -> is_fast_limit_p y (fun n => (eval_poly (to_poly a (n+M2))) x).
-  Proof.
-    intros H1 H2 n.
-    assert (n+M2 = (n+(M2-M1))+M1)%nat as -> by lia.
-    apply dist_le_prop.
-    apply (real_le_le_le _ (prec (n + (M2-M1))%nat)).
-    apply dist_le_prop.
-    apply H2.
-   assert (forall n m, (n <= m)%nat -> (prec m <= prec n)).
-   {
-     intros.
-     destruct H; [apply real_le_triv | ].
-     apply real_lt_le.
-     apply prec_monotone.
-     lia.
-   }
-   apply H.
-   lia.
- Qed.
-
- (*  Lemma eval_radius_sum_both {x a b} : abs x <= (eval_radius a) -> abs x <= (eval_radius b) -> abs x <= (eval_radius (sum_ps a b)). *)
- (*  Proof. *)
- (*   unfold eval_radius. *)
- (*   destruct a. *)
- (*   destruct b. *)
- (*   unfold bounded_ps_r. *)
- (*   simpl. *)
- (*   intros. *)
- (*   destruct (Minmax.real_min_cand bounded_ps_r0 bounded_ps_r1) as [-> | ->];auto. *)
- (* Qed. *)
-  
-
  
 
 
