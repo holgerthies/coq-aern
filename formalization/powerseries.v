@@ -347,6 +347,8 @@ Qed.
    split;apply real_le_triv.
  Qed.
 
+ Lemma to_tm_approx' (a : bounded_ps) r : polynomial_approx (powerseries_pc (series a)) (to_taylor_model a) r.
+ Admitted.
  Lemma approx_is_ps f a : (forall n x fx, abs x <= eval_radius a -> defined_to (f x) fx -> dist (eval_tm (to_taylor_model a n) x) fx <= prec n) -> is_ps_for f a.
  Proof.
    intros H x X D.
@@ -480,7 +482,6 @@ Admitted.
 
 End Addition.
 Section Derivative.
-End Derivative.
   Definition derivative_sequence (a : nat -> Real) n := Nreal (n+1) * (a (n+1)%nat).
 
   Lemma derivative_sequence_spec a : forall n x, derivative (eval_poly (to_poly a (S n))) (eval_poly (to_poly (derivative_sequence a) n)) x.
@@ -514,11 +515,63 @@ End Derivative.
     apply derive_poly_spec.
  Qed.
 
+ Definition derivative_fun (f : ^Real -> pc ^Real) : (^Real -> pc ^Real).
+ Proof.
+   intros.
+ Admitted.
+ Lemma derivative_fun_spec f : forall x, (defined (f x) -> exists y, defined_to ((derivative_fun f) x) y /\ derivative_pt f x y).
+ Admitted.
 
- 
- 
+ Lemma nat_upper : forall x, ^M {n : nat | x < Nreal n}.
+ Admitted.
+ Lemma deriv_bounded_ps a:  {b : bounded_ps | series b = derivative_sequence (series a)}.
+ Proof.
+ (*   intros N. *)
+ (*   (Nreal R >= (bounded_ps_r a)) *)
+ (*     destruct a as [a M r rgt0 H]. *)
+ (*   simpl. *)
+ (*   destruct (mk_bounded_ps (derivative_sequence a) (M*R) _ (real_half_gt_zero _ rgt0)). *)
+ (*   - intros n. *)
+ (*     unfold derivative_sequence. *)
+ (*     apply (real_le_le_le _ (Nreal (n+1) * (Nreal M * (npow (/ real_gt_neq _ _ rgt0) (n+1)%nat)))). *)
+ (*     + rewrite abs_mult,abs_pos_id; [| apply real_lt_le; apply Nreal_pos;lia]. *)
+ (*       apply real_le_mult_pos_le;[apply real_lt_le;apply Nreal_pos;lia|]. *)
+ (*       apply H. *)
+ (*    + apply (real_le_le_le _ (npow real_2 n)) *)
+ (*   apply  *)
+ Admitted.
 
+ Lemma powerseries_pc_defined a : forall x, abs x <= eval_radius a -> defined (powerseries_pc (series a) x).
+ Admitted.
 
+ Lemma deriv_ps (a : bounded_ps) : {b : bounded_ps | is_ps_for (derivative_fun (powerseries_pc (series a))) b}.
+ Proof.
+   destruct (deriv_bounded_ps a) as [a' H].
+   exists a'.
+   Search is_ps_for.
+   apply approx_is_ps.
+   intros.
+   unfold eval_tm, to_taylor_model; simpl tm_poly.
+   rewrite H.
+   pose proof (derivative_sequence_spec (series a)).
+   pose proof (to_tm_approx).
+   assert (eval_radius a' > real_0).
+   admit.
+   assert ((forall (x : ^Real) (n : nat),
+        abs x <= eval_radius a' ->
+        derivative
+          (eval_poly
+             (tm_poly (powerseries_pc (series a)) (to_taylor_model a (S n))))
+          (eval_poly
+             (tm_poly (powerseries_pc (series a')) (to_taylor_model a' n))) x) ).
+   {
+     intros.
+     unfold tm_poly, to_taylor_model.
+     rewrite plus_Sn_m.
+     apply X.
+   }
+   pose proof (polynomial_approx_derivative (powerseries_pc (series a)) (to_taylor_model a) (powerseries_pc (series a')) (to_taylor_model a') (eval_radius a') H3 (to_tm_approx' a (eval_radius a')) (to_tm_approx a' ) (powerseries_pc_defined a')).
+   
  Fixpoint derivative_factor (n : nat) (k : nat) := 
    match k with
    | 0 => real_1
