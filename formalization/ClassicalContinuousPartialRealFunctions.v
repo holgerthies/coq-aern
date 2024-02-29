@@ -3,6 +3,8 @@ Require Import ClassicalMonads ClassicalPartiality ClassicalPartialReals Classic
 Require Import RealAssumption.
 Require Import Minmax.
 
+Open Scope Real_scope.
+
 Lemma dist_axiom_identity : forall x, dist x x = real_0.
 Proof.
   intro x.
@@ -11,7 +13,7 @@ Proof.
   apply H0; auto.
 Defined.
 
-Lemma real_le_eq_or_lt : forall x y, x <= y -> x = y \/ x < y.
+Lemma real_le_eq_or_lt : forall x y, (x <= y -> x = y \/ x < y)%Real.
 Proof.
 Admitted.
 

@@ -287,7 +287,23 @@ Proof.
   exact X1.
 Defined.
 
+Definition pc_lift2_fst_bot {A B C} (f : A -> B -> C) x : 
+  pc_lift2 f pc_bot x = pc_bot.
+Proof.
+  unfold pc_lift2.
+  rewrite pc_pair_fst_bot. 
+  rewrite pc_lift_bot.
+  auto.
+Defined.
 
+Definition pc_lift2_snd_bot {A B C} (f : A -> B -> C) x : 
+  pc_lift2 f x pc_bot = pc_bot.
+Proof.
+  unfold pc_lift2.
+  rewrite pc_pair_snd_bot. 
+  rewrite pc_lift_bot.
+  auto.
+Defined.
 
 Definition pc_lift2_iff {A B C} (f : A -> B -> C) :
   forall x y z',
@@ -337,6 +353,17 @@ Proof.
   apply eq_refl.
 Defined.
 
+Definition pc_unit_ntrans2 {A B C} (f : A -> B -> C) x y :
+  pc_lift2 f (pc_unit _ x) (pc_unit _ y) = pc_unit _ (f x y).
+Proof.
+  unfold pc_lift2.
+  destruct (pc_pair_iff (pc_unit A x) (pc_unit B y) x y).
+  pose proof (H (conj eq_refl eq_refl)).
+  rewrite H1.
+  apply pc_unit_ntrans.
+Defined.
+
+  
 Definition pc_hprop_lem {A} : forall P, is_hprop P -> ((P + neg P) -> pc A) -> pc A.
 Proof.
   intros.
