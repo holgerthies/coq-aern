@@ -203,7 +203,7 @@ Section TaylorModels.
     apply X2;auto.
   Defined.
 
-  Lemma polynomial_approx_derivative_bound f t f' t' r :  (r > real_0) -> (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall x, abs x <= r -> defined (f' x)) ->(forall x n, abs x <= r -> derivative (eval_tm (t n)) (eval_tm (t' n)) x) -> forall eps, eps > real_0 -> exists N, forall m n, (n > N)%nat -> (m > N)%nat -> forall x y, abs x <= r -> abs y <= r -> dist (eval_tm (t m) x - eval_tm (t n) x) (eval_tm (t m) y - eval_tm (t n) y) < eps * dist x y.
+  Lemma polynomial_approx_derivative_bound f t f' t' r :  (r > real_0) -> (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall x, abs x <= r -> defined (f' x)) ->(forall x n,  derivative (eval_tm (t n)) (eval_tm (t' n)) x) -> forall eps, eps > real_0 -> exists N, forall m n, (n > N)%nat -> (m > N)%nat -> forall x y, abs x <= r -> abs y <= r -> dist (eval_tm (t m) x - eval_tm (t n) x) (eval_tm (t m) y - eval_tm (t n) y) < eps * dist x y.
   Proof.
     intros.
     destruct (poly_approx_dist _ _ _ H H1 _ H3) as [N NP].
@@ -222,7 +222,7 @@ Section TaylorModels.
     apply NP;auto.
   Qed.
 
-  Lemma polynomial_approx_derivative_helper f t f' t' r :  (r > real_0) -> (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall x, abs x <= r -> defined (f' x)) ->(forall x n, abs x <= r -> derivative (eval_tm (t n)) (eval_tm (t' n)) x) -> forall eps, eps > real_0 -> exists N, forall n x y fx fy, (n >= N)%nat -> abs x <= r ->  abs y <= r -> defined_to (f x) fx -> defined_to (f y) fy -> dist (fy - fx) (eval_tm (t n) y - eval_tm (t n) x) <= eps * dist x y.
+  Lemma polynomial_approx_derivative_helper f t f' t' r :  (r > real_0) -> (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall x, abs x <= r -> defined (f' x)) ->(forall x n, derivative (eval_tm (t n)) (eval_tm (t' n)) x) -> forall eps, eps > real_0 -> exists N, forall n x y fx fy, (n >= N)%nat -> abs x <= r ->  abs y <= r -> defined_to (f x) fx -> defined_to (f y) fy -> dist (fy - fx) (eval_tm (t n) y - eval_tm (t n) x) <= eps * dist x y.
   Proof.
     intros.
     destruct (real_Archimedean _ H3) as [m mlt].
@@ -270,7 +270,7 @@ Section TaylorModels.
     apply real_eq_le;ring.
   Qed.
 
-  Lemma polynomial_approx_derivative f t f' t' r  : r > real_0 ->  (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall x, abs x <= r -> defined (f' x)) -> (forall x n, abs x <= r -> derivative (eval_poly (tm_poly f (t n))) (eval_poly (tm_poly f' (t' n))) x) -> forall x fx', defined (f x) -> (abs x < r) -> defined_to (f' x) fx' -> derivative_pt f fx' x. 
+  Lemma polynomial_approx_derivative f t f' t' r  : r > real_0 ->  (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall x, abs x <= r -> defined (f' x)) -> (forall x n, derivative (eval_poly (tm_poly f (t n))) (eval_poly (tm_poly f' (t' n))) x) -> forall x fx', defined (f x) -> (abs x < r) -> defined_to (f' x) fx' -> derivative_pt f fx' x. 
   Proof.
     intros.
     split;auto.
@@ -278,7 +278,7 @@ Section TaylorModels.
     destruct (real_Archimedean _ H6) as [n np].
     destruct (polynomial_approx_derivative_helper _ _ _ _ _ H H0 H1 H2 X _ (prec_pos (n+1)%nat))as [N0 NP0].
     assert (exists N, (N >= N0)%nat /\ (N >= (n+3))%nat) as [N [NP NP']] by (exists (n+N0+3)%nat;lia).
-    destruct (X x  N (real_lt_le _ _ H4) _ (prec_pos (n+1+1)%nat)) as [d0 [dp0 D0]].
+    destruct (X x  N  _ (prec_pos (n+1+1)%nat)) as [d0 [dp0 D0]].
     assert (exists d, d > real_0 /\ d <= d0 /\ (forall y, dist x y <= d -> abs y < r)) as [d [Dp1 [Dp2 Dp3]]].
     {
       assert (r - abs x > real_0) as R by (apply real_gt_minus_gt_zero;auto).
