@@ -177,23 +177,14 @@ Qed.
     rewrite <-IHn.
     destruct n;simpl;ring.
   Qed.
+
   Definition powerseries_pc (a : nat -> ^Real) : ^Real -> pc ^Real.
   Proof.
-    intros x.
-    assert (is_hprop {y | is_sum (ps a x) y}).
-    {
-      intros x1 x2.      
-      destruct x1 as [y1 X1].
-      destruct x2 as [y2 X2].
-      destruct (sum_is_unique _ _  _ X1 X2).
-      rewrite (irrl _ X1 X2);auto.
-    }
-    apply (pc_hprop_lem _  H).
-    intros [[y p] | r].
-    exact (pc_unit _ y).
-    exact pc_bot.
+    apply pc_ana_fun_to_pc_fun.
+    exists (fun xy => is_sum (ps a (fst xy)) (snd xy)).
+    intros x y1 y2.      
+    apply sum_is_unique.
   Defined.
-
 
   Lemma powerseries_pc_spec a x y: defined_to ((powerseries_pc a) x) y <-> is_sum (ps a x) y.
   Proof.
@@ -395,6 +386,13 @@ Section Addition.
     rewrite seq_S, map_app;auto.
  Qed.
 
+ Lemma length_to_poly a n : length (to_poly a n) = (S n).
+ Proof.
+   induction n;auto.
+   rewrite to_poly_S.
+   rewrite app_length.
+   rewrite IHn;simpl;lia.
+ Qed.
  Lemma sum_to_poly_sum_poly a b : forall n, to_poly (sum a b) n = sum_polyf (to_poly a n) (to_poly b n).
  Proof.
    intros.
@@ -405,8 +403,20 @@ Section Addition.
    simpl;rewrite !app_length, !length_sum_coefficients, !app_length, !map_length.
    simpl;lia.
    intros m M.
+   rewrite app_length, length_sum_coefficients,!length_to_poly, Nat.max_id in M.
+   simpl in M.
    rewrite sum_coefficient_nth.
-Admitted.
+   apply Nat.lt_le_pred in M.
+   apply Nat.le_lteq in M.
+   simpl in M.
+   destruct M.
+   rewrite !app_nth1; [apply sum_coefficient_nth| | |rewrite length_sum_coefficients ]; try (rewrite length_to_poly;lia).
+   rewrite H.
+   rewrite !app_nth2; try rewrite length_sum_coefficients; rewrite !length_to_poly;try lia.
+   rewrite Nat.max_id.
+   replace (n+1 - S n)%nat with 0 by lia.
+   simpl;auto.
+Qed.
 
  Definition sum_pc (a b : bounded_ps) := fun x => (powerseries_pc (series a) x + powerseries_pc (series b) x)%pcreal.
 
@@ -514,10 +524,17 @@ Section Derivative.
  Qed.
 
 
+ Lemma derivative_pt_unique f gx gx' x : derivative_pt f gx x -> derivative_pt f gx' x -> gx' = gx.
+ Proof.
+ Admitted.
  Definition derivative_fun (f : ^Real -> pc ^Real) : (^Real -> pc ^Real).
  Proof.
+   apply pc_ana_fun_to_pc_fun.
+   exists (fun xy => derivative_pt f (snd xy) (fst xy)).
+   simpl.
    intros.
- Admitted.
+   apply (derivative_pt_unique _ _ _ _ H0 H).
+ Qed.
  Lemma derivative_fun_spec f : forall x y, defined_to ((derivative_fun f) x) y <-> derivative_pt f y x.
  Admitted.
   Lemma Nreal_nonneg n : real_0 <= Nreal n.
@@ -675,12 +692,14 @@ Section Derivative.
  Qed.
 
  Lemma powerseries_pc_defined a : forall x, abs x <= eval_radius a -> defined (powerseries_pc (series a) x).
- Admitted.
+ intros.
+ destruct (eval_val _ _ H).
+ exists x0.
+ apply powerseries_pc_spec.
+ apply fast_limit_limit;auto.
+ Qed.
 
 
- Lemma derivative_pt_unique f gx gx' x : derivative_pt f gx x -> derivative_pt f gx' x -> gx' = gx.
- Proof.
- Admitted.
 
  Lemma eval_radius_gt0 (a : bounded_ps) : eval_radius a > real_0.
  Proof.
