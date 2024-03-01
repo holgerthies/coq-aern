@@ -594,6 +594,35 @@ Section Derivative.
      apply real_lt_le.
      add_both_side_by (-r);auto.
  Qed.
+
+  Lemma archimedean_search (x : Real) : (real_0 < x) -> ^M {n | prec n < x}.
+  Proof.
+    intros.
+    apply (M_lift {n | projP1 _ _ (real_lt_semidec (prec n) x) = lazy_bool_true}).
+    - intros.
+      destruct H0 as [n H0].
+      exists n.
+      destruct (real_lt_semidec (prec n) x).
+      apply i.
+      apply H0.
+    - apply multivalued_countable_choice.
+      destruct (real_Archimedean x) as [n N];auto.
+      exists n.
+      destruct (real_lt_semidec (prec n) x).
+      apply i.
+      exact N.
+  Defined.
+
+ Lemma deriv_bounded_ps a : ^M {b : bounded_ps | series b = derivative_sequence (series a) /\ ((bounded_ps_M a) <= (bounded_ps_M b))%nat /\ (bounded_ps_r b) <= (bounded_ps_r a)}.
+ Proof.
+   pose proof (archimedean_search _ (bounded_ps_rgt0 a)).
+   revert X.
+   apply M_lift.
+   intros [n N].
+   apply (deriv_bounded_ps_bounded_r a n).
+   apply real_lt_le;auto.
+ Qed.
+ 
  Lemma eval_to_poly_zero a : (forall n, (a n) = real_0) ->forall x n, eval_poly (to_poly a n) x = real_0.
  Proof.
    intros.
@@ -661,80 +690,44 @@ Section Derivative.
    apply real_half_gt_zero;auto.
  Qed.
 
- Lemma deriv_ps (a : bounded_ps) : {b : bounded_ps | is_ps_for (derivative_fun (powerseries_pc (series a))) b}.
+ 
+
+ Lemma deriv_ps (a : bounded_ps) : ^M {b : bounded_ps | is_ps_for (derivative_fun (powerseries_pc (series a))) b}.
  Proof.
-   destruct (deriv_bounded_ps a) as [a' H].
-   destruct (bounded_ps_change_Mr a (2 * bounded_ps_M a') (bounded_ps_r a')) as [a0 [H0 [H1 H2]]].
-   admit.
-   admit.
+   pose proof (deriv_bounded_ps a).
+   revert X.
+   apply M_lift.
+   intros [a' [A1 [A2 A3]]].
+   destruct (bounded_ps_change_Mr a (2 * bounded_ps_M a') (bounded_ps_r a')) as [a0 [H0 [H1 H2]]];[lia | split;[apply (bounded_ps_rgt0 a')|]  | ];auto.
    rewrite H0 in *.
-   clear H0 a.
-   exists a'.
+   clear H0 a A2 A3.
+   destruct (bounded_ps_change_Mr a' (bounded_ps_M a') (bounded_ps_r a' / d2)) as [a'' [H0' [H1' H2']]]; [lia| split;[apply real_half_gt_zero;apply bounded_ps_rgt0 | apply real_lt_le;apply real_gt_half;apply bounded_ps_rgt0] |].
+   exists a''.
    apply approx_is_ps.
    intros.
-   assert (forall y, is_sum (ps (series a') x) y -> derivative_pt (powerseries_pc (series a0)) y x).
+   assert (forall y, is_sum (ps (series a'') x) y -> derivative_pt (powerseries_pc (series a0)) y x).
    {
+     rewrite <- H0'.
      intros.
      apply (polynomial_approx_derivative (powerseries_pc (series a0)) (to_taylor_model a0) (powerseries_pc (series a')) (to_taylor_model a') (eval_radius a')); try apply to_tm_approx; try apply powerseries_pc_defined.
      apply eval_radius_gt0.
      replace (eval_radius a') with (eval_radius a0) by (unfold eval_radius;rewrite H2;auto).
      apply to_tm_approx.
      apply deriv_bounded_ps_tm;auto.
-     unfold eval_radius; rewrite H2;auto.
-     admit.
+     apply (real_le_le_le _ _ _ H).
+     unfold eval_radius; rewrite H2'; rewrite H2; apply real_lt_le;apply real_gt_half;apply real_half_gt_zero;apply bounded_ps_rgt0.
+     apply (real_le_lt_lt _ _ _ H).
+     unfold eval_radius; rewrite H2'; apply real_gt_half;apply real_half_gt_zero;apply bounded_ps_rgt0.
      apply powerseries_pc_spec;auto.
 
    }
    rewrite to_taylor_model_series.
-   destruct (eval_val _ _ H0) as [y Y].
+   destruct (eval_val _ _ H) as [y Y].
    replace fx with y; try (rewrite dist_symm;auto).
-   apply derivative_fun_spec in H3.
-   apply (derivative_pt_unique _ _ _ _ H3).
-   apply H4.
+   apply derivative_fun_spec in H0.
+   apply (derivative_pt_unique _ _ _ _ H0).
+   apply H3.
    apply fast_limit_limit;auto.
+Qed.
 
- Fixpoint derivative_factor (n : nat) (k : nat) := 
-   match k with
-   | 0 => real_1
-   | (S k') => (Nreal (n+k)) * derivative_factor n k'
-end.
- Lemma derivative_factor_bound (n : nat) (k : nat) : derivative_factor n k <= pow (real_2 * Nreal k) (n+k) * pow real_2 (n+k).
- Proof.
-   induction k.
-   - simpl.
-     rewrite <-(pow_1 n).
-     rewrite Nat.add_0_r.
-     apply pow_nonneg_le;apply real_lt_le.
-     apply real_1_gt_0.
-     apply real_2_gt_1.
-  - rewrite Nat.add_succ_r.
-    simpl.
-    destruct n.
-    simpl.
- Lemma bounded_deriv a M r (rgt0 : r > real_0) k : (bounded_seq a M rgt0) ->  bounded_seq (fun n=> (derivative_factor n k) * a (n+k)%nat) M (real_half_gt_zero _ rgt0).
- Proof.
-   unfold bounded_seq.
-   intros.
-   induction k.
-   - simpl.
-     rewrite real_mult_unit.
-     apply (real_le_le_le _ _ _ (H n)).
-     apply real_le_mult_pos_le; [apply pow_nonneg; apply real_lt_le; apply real_lt_0_2 |].
-     apply pow_nonneg_le; [apply real_lt_le; apply real_pos_inv_pos;auto |].
-     apply inv_le_ge; [| apply real_lt_le; apply real_gt_half]; try apply real_half_gt_zero;auto.
-  - simpl.
- Lemma derivative_ps (a : bounded_ps) (k : nat) : {b : bounded_ps | (forall n, series b n = (derivate_factor n k) * series a n) /\ (bounded_ps_r b) >= (bounded_ps_r a / d2) /\ bounded_ps_M b = bounded_ps_M a}.
-Proof.
-  induction k.
-  - exists a.
-  destruct a as [a M r H1 H2].
-  split; [intros; simpl; ring | split;simpl];auto.
-  apply real_lt_le;apply real_gt_half;auto.
-  - destruct a as [a M r H1 H2];simpl in *.
-    destruct IHk as [b [B1 [B2 B3]]].
-    destruct b as [b M' r' H1' H2'];simpl in *.
-    destruct (mk_bounded_ps (fun n => derivate_factor n k * a n) M (r /d2) (real_half_gt_zero _ H1)). 
-    intros n.
-    unfold bounded_seq in H2'.
-    destruct IHk.
- End Powerseries.
+ End Derivative.
