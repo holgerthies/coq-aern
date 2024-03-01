@@ -14,41 +14,6 @@ Notation "x < y" := (exists x' y', x = Nabla_unit _ x' /\ y = Nabla_unit _ y' /\
 
 (* for parsing and printing reals *)
 
-Inductive my_cnt :=
-  Cnt_zero | Cnt_succ : my_cnt -> my_cnt | Cnt_pred : my_cnt -> my_cnt.
-
-Definition postiive_to_my_cnt : positive -> my_cnt.
-Proof.
-  apply Pos.peano_rect.
-  exact (Cnt_succ (Cnt_zero)).
-  intros _ x.  
-  exact (Cnt_succ x).
-Defined.
-
-(* embedding from positive integer *)
-Definition postiive_to_neg_my_cnt : positive -> my_cnt.
-Proof.
-  apply Pos.peano_rect.
-  exact (Cnt_pred (Cnt_zero)).
-  intros _ x.  
-  exact (Cnt_pred x).
-Defined.
-
-Definition Z_to_my_cnt : Z -> my_cnt :=
-  fun z => match z with
-           | Z0 => Cnt_zero
-           | Zpos p => postiive_to_my_cnt p
-           | Zneg p => postiive_to_neg_my_cnt p
-           end.
-
-Fixpoint my_cnt_to_Z (c : my_cnt) : Z.
-Proof.
-  destruct c.
-  exact 0%Z.
-  exact (my_cnt_to_Z c + 1)%Z.
-  exact (my_cnt_to_Z c - 1)%Z.
-Defined.
-
 Definition c_real_0 := Nabla_unit ^Real real_0.
 
 Definition c_real_1 := Nabla_unit ^Real real_1.

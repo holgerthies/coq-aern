@@ -497,7 +497,7 @@ Section Multiplication.
    rewrite <-E.
    replace (n - (n-i))%nat with i by lia.
    destruct (n - S i)%nat eqn:E'.
-   replace n0 with 0 by lia.
+   replace n0 with 0%nat by lia.
    simpl.
    ring.
    replace n0 with (S n1) by lia.
@@ -531,13 +531,13 @@ Section Multiplication.
   destruct n; [simpl; ring | ].
   rewrite (convolution_coeff_rec_opp _ _ _ (n-1)%nat);try lia.
   destruct n; [simpl;ring|].
-  replace (S (S n) - S (S n - 1))%nat with 1 by lia.
+  replace (S (S n) - S (S n - 1))%nat with 1%nat by lia.
   simpl.
   rewrite Nat.sub_0_r, Nat.sub_diag.
   ring_simplify.
   destruct n.
   ring.
-  replace (S n - n)%nat with 1 by lia.
+  replace (S n - n)%nat with 1%nat by lia.
   ring.
  Qed.
 
@@ -1112,7 +1112,7 @@ Section Derivative.
      rewrite H0;auto.
      rewrite !nth_overflow; try lia.
    }
-   destruct H as [[-> ->] | [H ->]]; [simpl; replace (length p) with 0;simpl;[ring|simpl in H1';rewrite H1';rewrite app_length;simpl;lia]|].
+   destruct H as [[-> ->] | [H ->]]; [simpl; replace (length p) with 0%nat;simpl;[ring|simpl in H1';rewrite H1';rewrite app_length;simpl;lia]|].
    simpl.
    rewrite eval_eval2, eval_poly2_app, <-!eval_eval2.
    rewrite !(real_plus_comm (eval_poly p1 x)).
