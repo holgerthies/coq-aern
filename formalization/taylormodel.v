@@ -103,7 +103,7 @@ Section TaylorModels.
     apply Nat.le_min_l.
   Defined.
   
-  Definition polynomial_approx (f : Real -> pcReal) (t : nat -> (taylor_model f)) r := forall n, (tm_error f (t n)) <= prec n /\ (tm_radius f (t n)) >= r.
+  Definition polynomial_approx (f : Real -> pc_Real) (t : nat -> (taylor_model f)) r := forall n, (tm_error f (t n)) <= prec n /\ (tm_radius f (t n)) >= r.
   
   Lemma polynomial_approx_cont f t r x : (r > real_0) -> defined (f x) -> polynomial_approx f t r -> abs x < r -> cont_at f x.
   Proof.

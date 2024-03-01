@@ -398,3 +398,5 @@ Proof.
   exact pc_bot.
 Defined.
 
+
+Definition is_total_fun {A B} (f : A -> pc B) := forall a, defined (f a). 

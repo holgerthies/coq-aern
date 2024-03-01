@@ -1,10 +1,12 @@
 Require Import Real.
 Require Import ClassicalMonads.
 Require Import Minmax.
-Require Import ClassicalPartiality.
 
 
 Require Import RealAssumption.
+Require Import ClassicalPartiality.
+Require Import ClassicalPartialReals.
+
 
 
 
