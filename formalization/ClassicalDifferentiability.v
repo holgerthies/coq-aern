@@ -41,6 +41,10 @@ Section ConstructiveDerivatives.
      apply real_le_mult_pos_le;[apply real_lt_le|];auto.
   Qed.
 
+  Lemma min_upperbound_exists x : (real_0 < x) -> exists (n: nat), (Nreal n <= x) /\ (x <= Nreal (S n)). 
+  Proof.
+  Admitted.
+    
   Lemma interval_div_by_d x y d : (d > real_0) ->  exists (n : nat) (d' : Real), (real_0 <= d') /\ d' <= d /\ dist x y = Nreal n*d+d'.
   Proof.
     destruct (real_total_order (dist x y) d) as [T1 | [T2 | T3]];intros.
@@ -50,9 +54,19 @@ Section ConstructiveDerivatives.
       simpl;ring.
     - exists 0; exists (dist x y).
       split;simpl;[apply dist_pos | split; [apply real_eq_le;auto | ring]].
-    - assert (exists n, Nreal n * d <= dist x y /\ Nreal (S n) * d >= dist x y) as [n [N1 N2]].
+    -
+      assert (dist x y / (dg0 H) > real_0) by (apply real_lt_mult_pos_move_rr;apply (real_lt_lt_lt _ d);ring_simplify;auto).
+      assert (exists n, Nreal n * d <= dist x y /\ Nreal (S n) * d >= dist x y) as [n [N1 N2]].
       {
-        admit.
+        destruct (min_upperbound_exists _ H0) as [n [N1 N2]].
+        exists n.
+        split.
+        apply (real_le_mult_pos_cancel (/ dg0 H));[apply real_pos_inv_pos|];auto.
+        rewrite real_mult_assoc, (real_mult_comm d),real_mult_inv.
+        ring_simplify;auto.
+        apply (real_le_mult_pos_cancel (/ dg0 H));[apply real_pos_inv_pos|];auto.
+        rewrite real_mult_assoc, (real_mult_comm d),real_mult_inv.
+        ring_simplify;auto.
       }
       exists n.
       exists (dist x y - Nreal n * d).
@@ -62,7 +76,7 @@ Section ConstructiveDerivatives.
       add_both_side_by  (Nreal n * d).
       replace (Nreal n * d + d) with (Nreal (S n) * d) by (simpl;ring).
       apply N2.
-  Admitted.
+  Qed.
 
   Lemma Nreal_nonneg n : real_0 <= Nreal n.
   Proof.
@@ -119,9 +133,10 @@ Section ConstructiveDerivatives.
     right.
   Admitted.  
 
-  Lemma lbc_approx f f' r M :  constructive_derivative f f' r -> (forall x, abs x <= r -> abs (f' x) <= M) -> forall x y eps , (real_0 < eps) -> abs x <= r -> abs y <= r -> dist (f x) (f y) <= (eps+M) * dist x y.
+  Lemma lbc_approx f f' r M :  constructive_derivative f f' r -> (forall x, abs x <= r -> abs (f' x) <= M) -> forall x y eps , (real_0 < eps) -> abs x <= r -> abs y <= r -> dist (f x) (f y) <= (M+eps) * dist x y.
   Proof.
     intros.
+    rewrite real_plus_comm.
     destruct (X eps) as [d [D1 D2]];auto.
     destruct (interval_div_by_d x y d) as [n [d' [N1 [N2 N3]]]];auto.
     rewrite N3.
@@ -167,14 +182,55 @@ Section ConstructiveDerivatives.
       apply real_le_mult_pos_le;auto.
       apply (real_le_le_le _ _ _ (abs_pos (f' x)));auto.
   Qed.
-  
+
+  Lemma lim_zero_eq_zero x : (forall eps, eps > real_0 -> abs x <= eps) -> x = real_0.
+  Proof.
+    intros.
+    apply abs_zero.
+    destruct (real_total_order (abs x) real_0) as [T | [T | T]];auto.
+    apply real_gt_nle in T;contradict T;apply abs_pos.
+    destruct (real_Archimedean _ T).
+    apply real_gt_nle in H0.
+    contradict H0.
+    apply H.
+    apply prec_pos.
+  Qed.
+
+
+  Lemma lim_le_le x y : (forall eps, eps > real_0 -> x <= y + eps) -> x <= y.
+  Proof.
+    intros.
+    destruct (real_total_order x y) as [T | [T |T]]; [apply real_lt_le| apply real_eq_le | ];auto.
+    add_both_side_by (-y).
+    apply real_eq_le.
+    apply lim_zero_eq_zero.
+    intros.
+    rewrite abs_pos_id; add_both_side_by y; [|apply real_lt_le;auto].
+    apply H;auto.
+  Qed.
+  Lemma lim_le_le_mult x y z : z >= real_0 -> (forall eps, eps > real_0 -> x <= (y + eps)*z) -> x <= y*z.
+  Proof.
+    intros.
+    destruct H.
+    apply lim_le_le.
+    intros.
+    assert (eps / dg0 H > real_0) by (apply real_lt_mult_pos_move_rl;ring_simplify;auto).
+    apply (real_le_le_le _ _ _ (H0 _ H2)).
+    unfold real_div;ring_simplify; rewrite real_mult_assoc, real_mult_inv.
+    apply real_eq_le; ring.
+    apply (real_le_le_le _ _ _ (H0 _ real_1_gt_0)).
+    rewrite <-H.
+    apply real_eq_le;ring.
+  Qed.
+
   Lemma lbc f f' r M :  constructive_derivative f f' r -> (forall x, abs x <= r -> abs (f' x) <= M) -> forall x y, abs x <= r -> abs y <= r -> dist (f x) (f y) <= M * dist x y.
   Proof.
     intros.
-    destruct (X real_1).
-  admit.
+    apply lim_le_le_mult; [apply dist_pos|].
+    intros.
+    apply (lbc_approx _ _ _ _ X H x y);auto.
+  Qed.
   
-  Admitted.
   Definition derivative_sum f1 f2 g1 g2 r : constructive_derivative f1 g1 r -> constructive_derivative f2 g2 r -> constructive_derivative (fun x => (f1 x + f2 x)) (fun x => (g1 x + g2 x)) r.
   Proof.
     intros H1 H2 eps epsgt0.
