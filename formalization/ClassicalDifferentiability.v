@@ -9,6 +9,38 @@ Open Scope Real_scope.
 Section toMove.
   Definition uniformly_continuous (f: Real -> Real) r := forall eps, eps > real_0 -> {d : Real | d > real_0 /\ forall x y, abs x <= r -> abs y <= r -> dist x y <= d -> dist (f x) (f y) <= eps}.
 
+  Lemma real_div_gt_0 x y (yd : y <> real_0) : x > real_0 -> y > real_0 -> (x / yd > real_0).
+  Proof.
+    intros.
+    unfold real_div.
+    rewrite real_mult_comm.
+    apply (real_lt_mult_pos_cancel y);auto.
+    rewrite real_mult_assoc, (real_mult_comm x), <-real_mult_assoc, real_mult_inv.
+    ring_simplify;auto.
+  Qed.
+  Lemma dist_abs x y : dist x y = abs (y - x).
+  Proof.
+    rewrite dist_symm;auto.
+  Qed.
+  Lemma abs_plus_one_div_inv x y: (y > real_0) -> (y / (real_gt_neq _ _ (abs_plus_1_gt_0 x))) * abs x <= y. 
+  Proof.
+    intros H.
+    apply (real_le_le_le _ ((y / (real_gt_neq _ _ (abs_plus_1_gt_0 x))) * (abs x + real_1))).  
+    - apply real_le_mult_pos_le.
+      apply real_lt_le.
+      apply real_div_gt_0;try apply abs_plus_1_gt_0;auto.
+      add_both_side_by (- (abs x)).
+      apply real_lt_le.
+      apply real_1_gt_0.
+  - unfold real_div.
+    rewrite real_mult_assoc, real_mult_inv.
+    apply real_eq_le; ring.
+  Qed.
+
+  Lemma half_twice_mult x y : x * y = x / real_2_neq_0 * y + x / real_2_neq_0 * y.
+  Proof.
+    rewrite <-(half_twice x);ring_simplify;rewrite half_twice; ring.    
+  Qed.
 End toMove.
 Section ClassicalDerivatives.
   Definition uniform_derivative (f: Real -> pc Real) (f': Real -> pc Real) r := (forall x, abs x <= r -> defined (f x)) /\ (forall x, abs x <= r -> defined (f' x)) ->  forall eps, eps > real_0 -> exists delta, delta > real_0 /\ forall x y fx fy fx' , abs x <= r -> abs y <= r -> defined_to (f x) fx -> defined_to (f y) fy -> defined_to (f' x) fx' -> abs (fy - fx - fx' * (y-x)) <= eps * abs(y-x).
@@ -244,4 +276,106 @@ Section ConstructiveDerivatives.
     replace (eps * abs (y-x)) with (eps /real_2_neq_0 * abs (y-x) + eps / real_2_neq_0 * abs (y-x)) by (rewrite <-(half_twice eps);ring_simplify;rewrite half_twice; ring).
     apply real_le_le_plus_le; [apply D1 | apply D2];auto; apply (real_le_le_le _ _ _ H4); [apply Minmax.real_min_fst_le | apply Minmax.real_min_snd_le].
  Qed.
+  Lemma derivative_sproduct a f g r : constructive_derivative f g r -> constructive_derivative (fun x => a * f x) (fun x => a * g x) r.
+  Proof.
+    intros H eps epsgt0.
+    destruct (H (eps / (real_gt_neq _  _ (abs_plus_1_gt_0 a)))) as [d [dgt0 D]];[apply real_div_gt_0;try apply abs_plus_1_gt_0;auto |].
+    exists d;split;auto.
+    intros.
+    replace (a*f y - a * f x - a * g x * (y-x)) with (a * (f y - f x - g x * (y- x))) by ring.
+    rewrite abs_mult.
+    apply (real_le_le_le _ (abs a * ((eps / (real_gt_neq _  _ (abs_plus_1_gt_0 a))) * abs (y - x)))).
+    apply real_le_mult_pos_le; [apply abs_pos | apply D];auto.
+    rewrite <-real_mult_assoc.
+    rewrite !(real_mult_comm _( abs (y - x))).
+    apply real_le_mult_pos_le; try apply abs_pos.
+    rewrite (real_mult_comm (abs a)). 
+    apply abs_plus_one_div_inv;auto.
+  Defined.
+  
+  Lemma derivative_product f1 f2 g1 g2 x : derivative f1 g1 x -> derivative f2 g2 x -> derivative (fun x => (f1 x * f2 x)) (fun x => (f1 x * g2 x) + (g1 x * f2 x)) x.
+  Proof.
+    intros H1 H2 eps epsgt0.
+    remember (eps / real_2_neq_0  / (real_gt_neq _  _ (abs_plus_1_gt_0 (g2 x)))) as eps0'.
+    remember (Minmax.real_min real_1 eps0') as eps0.
+    assert (eps0 > real_0) as eps0gt0.
+    {
+      rewrite Heqeps0, Heqeps0'.
+      destruct (Minmax.real_min_cand real_1 (eps / real_2_neq_0  / (real_gt_neq _  _ (abs_plus_1_gt_0 (g2 x))))) as [-> | ->];try apply real_1_gt_0.
+     apply real_div_gt_0; [apply real_half_gt_zero|apply abs_plus_1_gt_0].
+     exact epsgt0.
+    }
+    destruct (derivable_continuous _ _ _ H1 eps0) as [d0 [d0gt0 D0]];auto.
+    remember ((eps / real_2_neq_0 / real_2_neq_0) / (real_gt_neq _ _ (abs_plus_1_gt_0 (f2 x)))) as eps1.
+    assert (eps1 > real_0) as eps1gt0.
+    {
+      rewrite Heqeps1.
+      apply real_div_gt_0; [|apply abs_plus_1_gt_0];auto.     
+      apply real_half_gt_zero.
+      apply real_half_gt_zero;auto.
+    }
+    destruct (H1 eps1) as [d1 [d1gt0 D1]]; auto.
+    remember ((eps / real_2_neq_0 / real_2_neq_0) / (real_gt_neq _ _ (abs_plus_1_gt_0 (f1 x)))) as eps2.
+    assert (eps2 > real_0) as eps2gt0.
+    {
+      rewrite Heqeps2.
+      apply real_div_gt_0; try apply abs_plus_1_gt_0.
+      apply real_half_gt_zero.
+      apply real_half_gt_zero;auto.
+    }
+    destruct (H2 eps2) as [d2 [d2gt0 D2]]; [rewrite Heqeps2;apply real_div_gt_0; [apply real_half_gt_zero|apply abs_plus_1_gt_0];apply real_half_gt_zero;auto|].
+    assert {d | d > real_0 /\ d <= d0 /\ d <= d1 /\ d <= d2} as [d [dgt0 [dd0 [dd1 dd2]]]].
+    {
+      exists (Minmax.real_min d0 (Minmax.real_min d1 d2)).
+      split; [destruct (Minmax.real_min_cand d0 (Minmax.real_min d1 d2)) as [-> | ->];[|destruct (Minmax.real_min_cand d1 d2) as [-> | ->]]|];auto.
+      split; [apply Minmax.real_min_fst_le|split]; apply (real_le_le_le _ _ _ (Minmax.real_min_snd_le _ _)).
+      apply Minmax.real_min_fst_le.
+      apply Minmax.real_min_snd_le.
+    }
+    exists d.
+    split;auto.
+    intros.
+    replace (f1 y * f2 y - f1 x * f2 x - (f1 x * g2 x + g1 x * f2 x) * (y - x)) with ((f1 y - f1 x)*(g2 x)*(y-x) + (f1 y * (f2 y - f2 x - g2 x * (y-x)) + f2 x * (f1 y - f1 x - g1 x * (y-x)))) by ring.
+    apply (real_le_le_le _ _ _ (abs_tri _ _)).
+    rewrite (half_twice_mult eps _).
+    apply real_le_le_plus_le; [|rewrite (half_twice_mult (eps / real_2_neq_0));apply (real_le_le_le _ _ _ (abs_tri _ _));apply real_le_le_plus_le];rewrite !abs_mult.
+    - rewrite !(real_mult_comm _ (abs (y-x))).
+      apply real_le_mult_pos_le; [apply abs_pos |].
+      apply (real_le_le_le _ (eps0 * abs (g2 x))).
+      rewrite !(real_mult_comm _ (abs (g2 x))); apply real_le_mult_pos_le;[apply abs_pos |].
+      rewrite <-dist_abs.
+      apply D0.
+      apply (real_le_le_le _ _ _ H dd0).
+      rewrite Heqeps0.
+      apply (real_le_le_le _ (eps0' * abs (g2 x))); [rewrite !(real_mult_comm _ (abs _));apply real_le_mult_pos_le;try apply abs_pos;apply Minmax.real_min_snd_le | ].
+      rewrite Heqeps0'.
+      apply abs_plus_one_div_inv; apply real_half_gt_zero;auto.
+   -  apply (real_le_le_le _ (abs (f1 y) * (eps2 * abs (y - x)))).
+      apply real_le_mult_pos_le; [apply abs_pos | apply D2;apply (real_le_le_le _ _ _ H dd2)].
+      rewrite !(real_mult_comm _ (abs (y-x))), <-real_mult_assoc,(real_mult_comm _ (abs (y-x))), real_mult_assoc.
+      apply real_le_mult_pos_le;try apply abs_pos.
+      rewrite real_mult_comm.
+      apply (real_le_le_le _ (eps2 *(abs (f1 x)+real_1))).
+      apply real_le_mult_pos_le;[apply real_lt_le|];auto.
+      apply dist_bound.
+      apply (real_le_le_le _ eps0); [apply D0;apply (real_le_le_le _ _ _ H dd0)|].
+      rewrite Heqeps0.
+      apply Minmax.real_min_fst_le.
+      rewrite Heqeps2.
+      unfold real_div.
+      rewrite !real_mult_assoc,real_mult_inv.
+      apply real_eq_le;ring.
+   -  apply (real_le_le_le _ (abs (f2 x) * (eps1 * abs (y - x)))). 
+      apply real_le_mult_pos_le; try apply abs_pos.
+      apply D1.
+      apply (real_le_le_le _ _ _ H dd1).
+      rewrite <-real_mult_assoc, !(real_mult_comm _ (abs (y- x))).
+      apply real_le_mult_pos_le;try apply abs_pos.
+      rewrite Heqeps1.
+      rewrite real_mult_comm.
+      apply abs_plus_one_div_inv.
+      apply real_half_gt_zero.
+      apply real_half_gt_zero;auto.
+  Defined.
+
 End ConstructiveDerivatives.
