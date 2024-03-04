@@ -52,51 +52,131 @@ End toMove.
 
 Section ClassicalDerivatives.
   Definition I r := {x : Real | abs x <= r}.
-  Coercion I_to_real r := fun x : (I r) => proj1_sig x.
+  Coercion I_to_real {r} := fun x : (I r) => proj1_sig x.
 
-
-  Definition uniformly_continuous (f: Real -> pc Real) r := forall eps, eps > 0 -> exists d : Real, d > real_0 /\ forall (x y : (I r)), dist x y <= d -> (pc_dist (f x) (f y) <= pc_unit _ eps)%pcreal.
-
-  Definition uniform_derivative (f: ^Real -> pc ^Real) (f': ^Real -> pc ^Real) r := (forall (x : (I r)), defined (f x) /\ defined (f' x)) /\  forall eps, eps > real_0 -> exists delta, delta > real_0 /\ forall (x y : (I r)), dist x y <= delta -> (pc_abs ((f y) - (f x) - (f' x) * (pc_unit _ (y-x)%Real))%pcreal <= (pc_unit _ (eps * abs(y-x))))%pcreal.
-
-  Definition bounded_by (f : ^Real -> pc ^Real) M r := (forall (x : (I r)), (pc_abs (f x) <= (pc_unit _ M))%pcreal).
-
-
-  Lemma pc_dist_bound {x x' y y' z} : defined_to x x' -> defined_to y y' ->  (pc_dist x y <= pc_unit _ z)%pcreal <-> dist x' y' <= z.
+  Lemma real_to_I {x r} (H: abs x <= r) : (I r).
   Proof.
+   exists x.
+   exact H.
+  Defined.
+
+   Definition uniformly_continuous (f: Real -> pc Real) r := forall eps, eps > 0 -> exists d : Real, d > 0 /\ forall (x y : (I r)), dist x y <= d -> (pc_dist (f x) (f y) <= pc_unit _ eps)%pcreal.
+
+  Lemma uniformly_continuous_unfold f r : uniformly_continuous f r <-> (forall x,abs x <= r -> defined (f x)) /\ forall eps, eps > 0 -> exists d : Real, d > 0 /\ (forall x y fx fy , abs x <= r -> abs y <= r -> dist x y <= d -> defined_to (f x) fx -> defined_to (f y) fy -> dist fx fy <= eps).
+  Proof.
+    split;intros.
+    - split.
+      + intros.
+        destruct (H (abs x + real_1)) as [d [D H']]; [apply (abs_plus_1_gt_0 x)|].
+        specialize (H' (real_to_I H0) (real_to_I H0)).
+        destruct H' as [y [y' [Y _]]].
+        simpl.
+        rewrite dist_axiom_identity.
+        apply real_lt_le; auto.
+        simpl in Y.
+        apply pc_lift2_iff in Y.
+        destruct Y as [fx [_ [Fx _]]].
+        exists fx;auto.
+      + intros.
+        destruct (H _ (H0)) as [d [D1 D2]].
+        exists d;split;auto.
+        intros.
+        specialize (D2 (real_to_I H1) (real_to_I H2) H3).
+        simpl in D2.
+        destruct D2 as [eps' [d' [D21 [D22 D23]]]].
+        apply pc_lift2_iff in D21.
+        apply pc_unit_mono in D22.
+        rewrite D22.
+        destruct D21 as [fx' [fy' [P1 [P2 P3]]]].
+        replace fx with fx' by (apply pc_unit_mono;rewrite <-H4, <-P1;auto).
+        replace fy with fy' by (apply pc_unit_mono;rewrite <-H5, <-P2;auto).
+        rewrite <-P3;auto.
+  - intros eps epsgt0.
+    destruct H.
+    destruct (H0 _ epsgt0) as [d [D1 D2]].
+    exists d;split;auto.
     intros.
+    destruct x,y.
+    simpl in H1.
+    destruct (H x) as [fx FX];auto.
+    destruct (H x0) as [fy FY];auto.
+    exists (dist fx fy).
+    exists eps.
+    simpl.
+    split;[|split;[apply pc_unit_mono;simpl;auto |apply (D2 x x0 fx fy);auto]].
+    apply pc_lift2_iff.
+    exists fx; exists fy;auto.
+  Qed.
+
+  Definition uniform_derivative (f: ^Real -> pc ^Real) (f': ^Real -> pc ^Real) r :=  forall eps, eps > real_0 -> exists delta, delta > real_0 /\ forall (x y : (I r)), dist x y <= delta -> (pc_abs ((f y) - (f x) - (f' x) * (pc_unit _ (y-x)%Real))%pcreal <= (pc_unit _ (eps * abs(y-x))))%pcreal.
+
+  Definition uniform_derivative_unfolded (f: ^Real -> pc ^Real) (f': ^Real -> pc ^Real) r := (forall (x : Real), abs x <= r -> defined (f x) /\ defined (f' x)) /\  forall eps, eps > real_0 -> exists delta, delta > real_0 /\ forall x y fx fy f'x, abs x <= r -> abs y <= r -> defined_to (f x) fx -> defined_to (f y) fy -> defined_to (f' x) f'x -> dist x y <= delta -> (abs (fy - fx - f'x * (y-x)) <= (eps * abs(y-x))).
+
+  Lemma uniform_derivative_unfold  f f' r : uniform_derivative f f' r <-> uniform_derivative_unfolded f f' r.
+  Proof.
+  split.
+  - intros.  
     split.
-   Admitted.
+    + intros.
+      destruct (H (abs x + real_1)) as [d [D H']]; [apply (abs_plus_1_gt_0 x)|].
+      specialize (H' (real_to_I H0) (real_to_I H0)).
+      destruct H' as [y [y' [Y _]]].
+      simpl.
+      rewrite dist_axiom_identity.
+      apply real_lt_le; auto.
+      simpl in Y.
+      unfold pc_abs,defined_to in Y.
+      admit.
+   + intros.
+      destruct (H _ (H0)) as [d [D1 D2]].
+      exists d;split;auto.
+      intros.
+      specialize (D2 (real_to_I H1) (real_to_I H2) H6).
+      simpl in D2.
+      destruct D2 as [eps' [d' [D21 [D22 D23]]]].
+      apply pc_unit_mono in D22.
+      rewrite D22.
+  Admitted.
+
+Definition bounded_by (f : ^Real -> pc ^Real) M r := (forall (x : (I r)), (pc_abs (f x) <= (pc_unit _ M))%pcreal).
+
+  Lemma bounded_by_unfold f M r : bounded_by f M r <-> (forall x fx, abs x <= r -> defined_to (f x) fx -> abs fx <= M).
+  Admitted.
+
   Lemma lbc_helper (f f' : ^Real -> pc ^Real) r M : uniform_derivative f f' r -> bounded_by f' M r  ->forall eps, eps > real_0 -> exists d, d > real_0 /\ (forall (x y : (I r)), (dist x y <= d)%Real -> (pc_dist (f x) (f y) <= pc_unit _ (eps*d + M *d)))%pcreal.
   Proof.
     intros.
-    destruct  H as [X1 X2].
+    apply uniform_derivative_unfold in H.
+    destruct H as [X1 X2].
     destruct (X2 eps) as [d [D1 D2]];auto.
     exists d;split;auto.
     intros.
-    destruct (X1 x) as [[fx Fx] _].
-    destruct (X1 y) as [[fy Fy] _].
-    apply (pc_dist_bound Fx Fy).
+    destruct x as [x X].
+    destruct y as [y Y].
+    destruct (X1 x) as [[fx Fx] _];auto.
+    destruct (X1 y) as [[fy Fy] _];auto.
+    simpl.
+    exists (dist fx fy); exists (eps*d + M*d);split;[|split;[apply pc_unit_mono|];auto].
+    apply pc_lift2_iff; exists fx; exists fy;split;[|split];auto.
     rewrite dist_symm.
     unfold dist.
-    destruct (X1 x) as [_ [fx' P]].
+    destruct (X1 x) as [_ [fx' P]];auto.
     replace (fy - fx) with ((fy - fx - fx' * (y -x)) + fx' * (y - x)) by ring.
     apply (real_le_le_le _ _ _ (abs_tri _ _)).
     apply real_le_le_plus_le.
     - apply (real_le_le_le _ (eps * abs (y-x)) _ ).
-      specialize (D2 _ _ H).
-      apply (pc_dist_bound in D2.
-      apply 
-      [apply D2;auto|].
+      apply D2;auto.
       apply real_le_mult_pos_le;auto.
       apply real_lt_le; auto.
-      rewrite dist_symm in H3;auto.
+      simpl in H.
+      rewrite dist_symm in H;auto.
    - rewrite abs_mult.
      apply (real_le_le_le _ (abs (fx') * d)).
-     apply real_le_mult_pos_le; [apply abs_pos |rewrite dist_symm in H3;auto].
+     apply real_le_mult_pos_le; [apply abs_pos |rewrite dist_symm in H;auto].
      rewrite !(real_mult_comm _ d).
      apply real_le_mult_pos_le;[apply real_lt_le|];auto.
-     apply (H0 x);auto.
+     rewrite (bounded_by_unfold f' M r) in H0.
+     apply (H0 x fx' );auto.
   Qed.
 
   
@@ -185,22 +265,28 @@ Section ClassicalDerivatives.
     right.
   Admitted.  
 
-
-  Lemma lbc_approx f f' r M :  uniform_derivative f f' r -> bounded_by f' M r -> forall (x y : (I r)) eps fx fy , defined_to (f x) fx -> defined_to (f y) fy -> (real_0 < eps) -> dist (fx) (fy) <= (M+eps) * dist x y.
+  Lemma lbc_approx f f' r M :  uniform_derivative f f' r -> bounded_by f' M r -> forall (x y : (I r)) eps, (real_0 < eps) -> (pc_dist (f x) (f y) <= pc_unit _ ((M+eps) * dist x y))%pcreal.
   Proof.
     intros.
     rewrite real_plus_comm.
+    apply uniform_derivative_unfold in H.
     destruct H as [X0 X].
     destruct (X eps) as [d [D1 D2]];auto.
     destruct (interval_div_by_d x y d) as [n [d' [N1 [N2 N3]]]];auto.
     rewrite N3.
+    destruct x as [x Px]; destruct y as [y Py].
+    destruct (X0 x) as [[fx FX] _];auto.
+    destruct (X0 y) as [[fy FY] _];auto.
+    simpl.
+    exists (dist fx fy); exists ((eps+M)*(Nreal n * d + d'));split;[apply pc_lift2_iff;exists fx; exists fy|split;[apply pc_unit_mono|]];auto.
     revert dependent fx; revert dependent x.
+    rewrite bounded_by_unfold in H0.
     induction n.
     - intros.
       simpl;ring_simplify.
       simpl in N3.
       ring_simplify in N3.
-      destruct (X0 x) as [_ [f'x P]].
+      destruct (X0 x) as [_ [f'x P]];auto.
       apply (real_le_le_le _ (eps * dist x y + M * dist x y)).
       rewrite dist_symm in N3.
       rewrite dist_symm, (dist_symm x).
@@ -208,6 +294,8 @@ Section ClassicalDerivatives.
       replace (fy - fx) with ((fy - fx - f'x * (y-x)) + f'x * (y-x)) by ring.
       apply (real_le_le_le _ _ _ (abs_tri _ _)).
       apply real_le_le_plus_le;auto.
+      apply D2;auto.
+      rewrite dist_symm, N3; auto.
       rewrite abs_mult.
       rewrite real_mult_comm, (real_mult_comm M).
       apply real_le_mult_pos_le; [apply abs_pos|auto].
@@ -216,22 +304,20 @@ Section ClassicalDerivatives.
       apply (real_le_le_le _ _ _ (abs_pos (f'x)));auto.
       apply (H0 x);auto.
     - intros.
-      destruct (X0 x) as [_ [f'x P]].
+      destruct (X0 x) as [_ [f'x P]];auto.
       destruct (interval_subdivision_step _ _ _ _ _ D1 N1 N2 N3) as [x' [P1 [P2 P3]]].
-      assert (abs x' <= r).
-      destruct P3; apply (real_le_le_le _ _ _ H);destruct x; destruct y; auto.
-      assert { x'' :  (I r) | (proj1_sig x'') = x'} as [x'' Px] by (exists (exist _ x' H);auto).
-      destruct (X0 x'') as [[fx' P'] _].
+      simpl in P3.
+      assert (abs x' <= r) by (destruct P3; apply (real_le_le_le _ _ _ H);auto).
+      destruct (X0 x') as [[fx' P'] _];auto.
       apply (real_le_le_le _ _ _ (dist_tri _ (fx') _)).
       replace ((eps+M)*(Nreal (S n) * d + d')) with ((eps*d + M*d) + (eps+M)*(Nreal n *d + d')) by (simpl;ring).
       apply real_le_le_plus_le.
       rewrite dist_symm.
       unfold dist.
-      replace (fx' - fx) with ((fx' - fx - f'x * (x''-x)) + f'x * (x''-x)) by ring.
+      replace (fx' - fx) with ((fx' - fx - f'x * (x'-x)) + f'x * (x'-x)) by ring.
       apply (real_le_le_le _ _ _ (abs_tri _ _)).
       apply real_le_le_plus_le;auto.
-      apply (real_le_le_le _ (eps * abs (x''-x))); [| apply real_le_mult_pos_le; [apply real_lt_le |rewrite dist_symm in P1]];auto; destruct x'';simpl in *;rewrite Px;auto.
-      destruct x'';simpl in *;rewrite Px;auto.
+      apply (real_le_le_le _ (eps * abs (x'-x))); [| apply real_le_mult_pos_le; [apply real_lt_le |rewrite dist_symm in P1]];auto; destruct x'';simpl in *;rewrite Px;auto.
       rewrite abs_mult.
       apply (real_le_le_le _ (M * abs (x' -x))).
       rewrite real_mult_comm, (real_mult_comm M).
@@ -242,7 +328,7 @@ Section ClassicalDerivatives.
       apply (real_le_le_le _ _ _ (abs_pos (f'x)));auto.
       apply (H0 x);auto.
       rewrite dist_symm in P1;auto.
-      apply (IHn x'');destruct x'';simpl in *; rewrite Px in *;auto.
+      apply (IHn x' H);auto.
   Qed.
 
   Lemma lim_zero_eq_zero x : (forall eps, eps > real_0 -> abs x <= eps) -> x = real_0.
