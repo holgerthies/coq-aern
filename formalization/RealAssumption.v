@@ -57,8 +57,14 @@ Proof.
   exact (my_cnt_to_Z c - 1)%Z.
 Defined.
 
-Definition real_add1 := fun x => x + real_1.
+Definition real_add1 : ^Real -> ^Real := fun x => x + real_1.
 
-Definition real_sub1 := fun x => x - real_1.
+Definition real_sub1 : ^Real -> ^Real := fun x => x - real_1.
 
-Number Notation Real Z_to_my_cnt my_cnt_to_Z (via my_cnt mapping [real_0 => Cnt_zero, real_add1 => Cnt_succ, real_sub1 => Cnt_pred]) : Real_scope.
+Definition _real_0 : ^Real := real_0.
+
+Definition _real_1 : ^Real := real_1.
+
+Definition REAL := (@Real types).
+
+Number Notation REAL Z_to_my_cnt my_cnt_to_Z (via my_cnt mapping [_real_0 => Cnt_zero, real_add1 => Cnt_succ, real_sub1 => Cnt_pred]) : Real_scope.
