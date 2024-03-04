@@ -1,2 +1,2 @@
 Require Export RealAssumption.
-Require Export ClassicalMonads ClassicalPartiality ClassicalPartialReals ClassicalContinuity ClassicalContinuousPartialRealFunctions.
+Require Export ClassicalMonads ClassicalPartiality ClassicalPartialReals ClassicalContinuity ClassicalContinuousPartialRealFunctions ClassicalTopology.
