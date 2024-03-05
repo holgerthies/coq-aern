@@ -140,6 +140,41 @@ Section ClassicalDerivatives.
 
   Definition uniform_derivative_unfolded (f: ^Real -> pc ^Real) (f': ^Real -> pc ^Real) r := (forall (x : Real), abs x <= r -> defined (f x) /\ defined (f' x)) /\  forall eps, eps > real_0 -> exists delta, delta > real_0 /\ forall x y fx fy f'x, abs x <= r -> abs y <= r -> defined_to (f x) fx -> defined_to (f y) fy -> defined_to (f' x) f'x -> dist x y <= delta -> (abs (fy - fx - f'x * (y-x)) <= (eps * abs(y-x))).
 
+  Lemma opp_involutive x : x = (- - x)%pcreal.
+  Proof.
+    destruct (pc_case x).
+    rewrite H.
+    rewrite !pc_lift_bot;auto.
+    destruct H as [x' ->].
+    rewrite !pc_unit_ntrans.
+    replace (- - x') with x' by ring;auto.
+  Qed.
+
+  Lemma defined_to_opp x y : defined_to (-x)%pcreal y <-> defined_to x (-y).
+  Proof.
+    rewrite (opp_involutive x) at 2.
+    split.
+    intros.
+    destruct (pc_case x).
+    rewrite H0 in H.
+    unfold defined_to in H.
+    rewrite pc_lift_bot in H.
+    contradict (pc_bot_defined_to_absurd H).
+    destruct H0 as [x' ->].
+    rewrite pc_unit_ntrans in H.
+    rewrite pc_unit_ntrans.
+    rewrite H.
+    rewrite pc_unit_ntrans.
+    unfold defined_to;auto.
+
+    intros.
+    replace y with (- (-y )) by ring.
+    unfold defined_to.
+    rewrite <-pc_unit_ntrans.
+    rewrite <-H.
+    apply opp_involutive.
+  Qed.
+
   Lemma uniform_derivative_unfold  f f' r : uniform_derivative f f' r <-> uniform_derivative_unfolded f f' r.
   Proof.
   split.
@@ -155,8 +190,10 @@ Section ClassicalDerivatives.
       destruct Dx' as [x0 [y0 [Dx' [Dy _]]]].
       apply pc_lift2_iff in Dx'.
       destruct Dx' as [fx [_ [Fx _]]].
+      rewrite <-pc_unit_ntrans2 in Dy.
+      apply defined_to_opp in Dy.
       apply pc_lift2_iff in Dy.
-      destruct Dy as [fy [_ [Fy _]]].
+       destruct Dy as [fy [_ [Fy _]]]. 
       split;[exists fx | exists fy];auto.
    + intros.
       destruct (H _ (H0)) as [d [D1 D2]].
@@ -166,7 +203,9 @@ Section ClassicalDerivatives.
       rewrite pc_abs_le in D2.
       simpl in D2.
       destruct D2 as [l [rt [L [R A]]]].
-      assert  (l = fy - fx -f'x*(y-x)) as <- by (apply pc_unit_mono;rewrite <-L, <-!pc_unit_ntrans2, <- H3, <-H4, <-H5;auto).
+      assert  (l = fy - fx -f'x*(y-x)) as <-.
+      admit.
+      (* apply pc_unit_mono;rewrite <-L, <-!pc_unit_ntrans2, <- H3, <-H4, <-H5;auto). *)
       replace (eps * abs(y-x)) with rt by (apply pc_unit_mono; rewrite <-R;auto).
       apply A.
   - intros [D H] eps epsgt0.
@@ -184,9 +223,9 @@ Section ClassicalDerivatives.
     rewrite <-!pc_unit_ntrans2.
     rewrite Fx,F'x,Fy.
     rewrite !pc_unit_ntrans2;auto.
- Qed.
+Admitted.
 
-Definition bounded_by (f : ^Real -> pc ^Real) M r := (forall (x : (I r)), (pc_abs (f x) <= (pc_unit _ M))%pcreal).
+    Definition bounded_by (f : ^Real -> pc ^Real) M r := (forall (x : (I r)), (pc_abs (f x) <= (pc_unit _ M))%pcreal).
 
   Lemma bounded_by_unfold f M r : bounded_by f M r <-> (forall x, abs x <= r -> defined (f x)) /\ (forall x fx, abs x <= r -> defined_to (f x) fx -> abs fx <= M).
   split.
@@ -507,6 +546,7 @@ Admitted.
     apply (restrict_to_interval_spec1 f r y fy);auto.
     apply (restrict_to_interval_spec2 f r y);exists fy;auto.
   Qed.
+
   Lemma real_lt_or_ge x y : (x < y) \/ (x >= y).
   Admitted.
 
@@ -548,6 +588,7 @@ Admitted.
   Lemma uniformly_continuous_inv f r : uniformly_continuous f r -> uniformly_continuous (fun x => - f x)%pcreal r.
   Proof.
   Admitted.
+  
   Lemma uniformly_continuous_bound_below f r : uniformly_continuous f r -> exists M, forall x, abs x <= r -> ((f x) >= pc_unit _ M)%pcreal.
   Proof.
     intros.
@@ -562,12 +603,12 @@ Admitted.
      destruct (P _ H1) as [fx' [M' [F1 [F2 H2]]]].
      apply pc_unit_mono in F2.
      rewrite F2.
-     apply pc_lift2_iff in F1.
-     destruct F1 as [z [fx'' [Z1 [Z2 ->]]]].
-     apply pc_unit_mono in Z1.
-     replace (-fx) with (z - fx'');auto.
-     rewrite <-Z1;ring_simplify; replace (fx'') with fx;auto.
-     apply pc_unit_mono;rewrite <-Fx;auto.
+     replace (-fx) with fx';auto.
+     apply pc_unit_mono.
+     replace fx with (- - fx) in Fx by ring.
+     apply defined_to_opp in Fx.
+     rewrite <-Fx.
+     rewrite F1;auto.
   Qed.
 
   Lemma pc_le_unit_l x x' y : (defined_to x x') -> ((x <= pc_unit _ y)%pcreal <-> x' <= y).
@@ -575,6 +616,7 @@ Admitted.
 
   Lemma pc_le_unit_r x y y' : (defined_to y y') -> ((pc_unit _ x <= y)%pcreal <-> x <= y').
   Admitted.
+
   Lemma uniformly_continuous_bounded f r : uniformly_continuous f r -> exists M, forall x, abs x <= r -> (pc_abs (f x) <= pc_unit _ M)%pcreal.
   Proof.
     intros.
@@ -630,14 +672,97 @@ Admitted.
     replace x with y;auto.
     apply dist_zero;rewrite dist_symm;auto.
   Qed.
-
-  Lemma uniform_derivative_uniform_continuous f g r : uniform_derivative f g r -> uniformly_continuous f r.
-    intros H eps.
-    
   Lemma derivative_bounded f g r: uniform_derivative f g r -> exists M, bounded_by g M r.
-  Admitted.
-    
+  intros.
+  apply derivative_is_uniformly_continuous in H.
+  destruct (uniformly_continuous_bounded _ _ H) as [M Mprp].
+  exists M.
+  intros x.
+  destruct x as [x P].
+  apply Mprp;apply P.
+ Qed.
+  Lemma abs_plus_one_div_le x y : x >= 0 ->  x / (real_gt_neq _  _ (abs_plus_1_gt_0 y)) <= x.
+  Proof.
+    intros.
+    unfold real_div.
+    apply (real_le_mult_pos_cancel (abs y + real_1)); [apply abs_plus_1_gt_0|].
+    rewrite real_mult_assoc, real_mult_inv.
+    ring_simplify.
+    add_both_side_by (-x).
+    apply real_le_pos_mult_pos_pos;auto.
+    apply abs_pos.
+  Qed.
+  Lemma uniform_derivative_uniform_continuous f g r : uniform_derivative f g r -> uniformly_continuous f r.
+    intros H eps epsgt0.
+    destruct (derivative_bounded _ _ _ H) as [M P].
+    apply uniform_derivative_unfold in H.
+    destruct H.
+    destruct (H0 _ (real_half_gt_zero _ epsgt0)) as [d [dgt0 D]].
+    Search abs (_ + _).
+    assert (exists d',  d' > real_0 /\ (forall x y, dist x y <= d' -> dist x y <= d /\ dist x y <= real_1 /\ dist x y <= ((eps / d2) / (real_gt_neq _  _ (abs_plus_1_gt_0 M))))) as [d' [d'gt0 P']].
+    {
+      exists (real_min d (real_min real_1 ((eps / d2) / (real_gt_neq _  _ (abs_plus_1_gt_0 M))))).
+      split.
+      - destruct (real_min_cand d (real_min real_1 ((eps / d2) / (real_gt_neq _  _ (abs_plus_1_gt_0 M))))) as [-> | ->]; auto;destruct (real_min_cand real_1 ((eps / d2) / (real_gt_neq _  _ (abs_plus_1_gt_0 M)))) as [-> | ->];auto.
+       apply real_1_gt_0.
+       apply real_div_gt_0; [apply real_half_gt_zero;auto|apply abs_plus_1_gt_0].
+     - intros.
+       split; [|split]; apply (real_le_le_le _ _ _ H1); [apply real_min_fst_le | |];apply (real_le_le_le _ _ _ (real_min_snd_le _ _)).
+       apply real_min_fst_le.
+       apply real_min_snd_le.
+    } 
+    exists d';split;auto.
+    intros.
+    destruct x as [x xr]; destruct y as [y yr]; simpl in *.
+    destruct (P' _ _ H1) as [L1 [L2 L3]].
+    destruct (H x) as [[fx Fx] [gx Gx]];auto.
+    destruct (H y) as [[fy Fy] _];auto.
+    assert (defined_to (pc_dist (f x) (f y)) (dist fx fy)).
+    {
+      unfold defined_to.
+      rewrite <-pc_unit_ntrans2.
+      rewrite Fx, Fy;auto.
+    }
+    apply (pc_le_unit_l _ _ _ H2).
+    rewrite dist_symm.
+    unfold dist.
+    replace (fy - fx) with ((fy - fx - gx * (y-x)) + gx * (y-x)) by ring.
+    rewrite <-(half_twice eps).
+    apply (real_le_le_le _ _ _ (abs_tri _ _)).
+    apply real_le_le_plus_le.
+    - apply (real_le_le_le _ ((eps / d2) * abs (y - x))).
+      apply D;auto.
+      apply (real_le_le_le _ ((eps / d2) * real_1)); [|apply real_eq_le; ring_simplify;auto].
+      apply real_le_mult_pos_le; [apply real_lt_le;apply real_half_gt_zero| rewrite <-dist_abs];auto.
+    - rewrite abs_mult.
+      apply (real_le_le_le _ (abs gx * ( (eps / d2) / (real_gt_neq _ _ (abs_plus_1_gt_0 M))))); [apply real_le_mult_pos_le; [apply abs_pos|rewrite <-dist_abs];auto|].
+      apply (real_le_le_le _ (M * ((eps / d2)/ real_gt_neq _ _ (abs_plus_1_gt_0 M)))).
+      rewrite !(real_mult_comm _ ((eps / _) / _)).
+      apply real_le_mult_pos_le.
+      apply (real_le_le_le _ _ _ (dist_pos x y));auto.
+      apply bounded_by_unfold in P.
+      apply (proj2 P x);auto.
+      replace M with (abs M) at 1.
+      rewrite real_mult_comm.
+      apply abs_plus_one_div_inv; apply real_half_gt_zero;auto.
+      apply abs_pos_id.
+      apply bounded_by_unfold in P.
+      apply (real_le_le_le _ _ _ (abs_pos gx)).
+      apply (proj2 P x);auto.
+  Qed.
+
+  Lemma differentiable_bounded f g r: uniform_derivative f g r -> exists M, bounded_by f M r.
+  Proof.
+    intros.
+    apply uniform_derivative_uniform_continuous in H.
+    destruct (uniformly_continuous_bounded _ _ H) as [M Mprp].
+    exists M.
+    intros x.
+    destruct x as [x P].
+    apply Mprp;apply P.
+ Qed.
 End ClassicalDerivatives.
+
 Section Operations.
   Lemma sum_defined x y : defined x -> defined y -> defined (x + y)%pcreal.
   Proof.
@@ -717,10 +842,8 @@ Section Operations.
   Proof.
     intros H1 H2.
     destruct (derivative_bounded _ _ _ H2) as [Mg g2M].
-    assert (exists Mf1, bounded_by f1 Mf1 r) as [Mf1 f1M].
-    admit.
-    assert (exists Mf2, bounded_by f2 Mf2 r) as [Mf2 f2M].
-    admit.
+    destruct (differentiable_bounded _ _ _ H1) as [Mf1 f1M].
+    destruct (differentiable_bounded _ _ _ H2) as [Mf2 f2M].
     apply bounded_by_unfold in g2M, f1M, f2M.
     (* split; [intros; split;destruct (proj1 H1 x);destruct (proj1 H2 x); try apply sum_defined;try apply product_defined;auto|]. *)
     intros eps epsgt0.
