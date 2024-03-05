@@ -418,5 +418,118 @@ Proof.
   exact pc_bot.
 Defined.
 
+Definition pc_ana_fun_to_pc_fun_defined_to A B : forall f : pc_ana_fun A B,
+  forall x,
+    forall fx, projP1 _ _ f (x, fx) <-> defined_to (pc_ana_fun_to_pc_fun A B f x) fx.
+Proof.
+  intros.
+  split.
+  destruct f.
+  simpl.
+  intro.
+  apply pc_hprop_lem_reduce_eq.
+  intros.
+  destruct t.
+  rewrite (e _ _ _ H x2).
+  auto.
+  intros.
+  assert False.
+  apply t.
+  exists fx.
+  auto.
+  contradiction H0.
+  intros.
+  destruct f.
+  simpl.
+  unfold pc_ana_fun_to_pc_fun in H.
+  apply Prop_dn_elim.
+  pose proof (dn_lem {y : B | x0 (x, y)}).
+  apply (@dn_lift ({y : B | x0 (x, y)} + neg {y : B | x0 (x, y)})).
+  intro.
+  clear H0.
+  destruct X.
+  destruct s.
+  assert (pc_unit _  x1 = pc_unit B fx).
+  rewrite <- H.
+  apply eq_sym.
+  apply pc_hprop_lem_reduce_eq.
+  intros.
+  destruct t.
+  rewrite (e _ _ _ x2 x4).
+  auto.
+
+  intros.
+  assert False.
+  apply t.
+  exists x1; auto.
+  contradict H0.
+
+  apply pc_unit_mono in H0.
+  rewrite H0 in x2; auto.
+  assert (pc_bot = pc_unit B fx).
+  rewrite <- H.
+  apply eq_sym.
+  apply pc_hprop_lem_reduce_eq.
+  intros.
+  contradict (n t).
+  intros.
+  auto.
+  contradict H0.
+  intro.
+  apply (@pc_bot_defined_to_absurd B fx).
+  auto.
+  auto.
+Defined.
+
+Definition pc_ana_fun_to_pc_fun_bot A B : forall f : pc_ana_fun A B,
+  forall x,
+    (~ exists fx, projP1 _ _ f (x, fx)) <->  (pc_ana_fun_to_pc_fun A B f x) = pc_bot.
+Proof.
+  intros.
+  split.
+  intro.
+  destruct f.
+  simpl.
+  apply pc_hprop_lem_reduce_eq.
+  intros.
+  destruct t.
+  contradict H.
+  exists x1.
+  simpl.
+  auto.
+  auto.
+  intros.
+  intro.
+  destruct H0.
+  destruct f.
+  simpl in H0, H.
+  apply Prop_dn_elim.
+  pose proof (dn_lem {y : B | x1 (x, y)}).
+  apply (@dn_lift ({y : B | x1 (x, y)} + neg {y : B | x1 (x, y)})).
+  intro.
+  clear H1.
+  destruct X.
+  destruct s.
+  assert (pc_unit _  x0 = pc_bot).
+  rewrite <- H.
+  apply eq_sym.
+  apply pc_hprop_lem_reduce_eq.
+  intros.
+  destruct t.
+  
+  rewrite (e _ _ _ H0 x5).
+  auto.
+  intro.
+  assert (False).
+  apply t.
+  exists x0; auto.
+  contradict H1.
+  apply (@pc_bot_defined_to_absurd B x0).
+  apply eq_sym in H1.
+  auto.
+  apply n.
+  exists x0; auto.
+  auto.
+Defined.    
 
 Definition is_total_fun {A B} (f : A -> pc B) := forall a, defined (f a). 
