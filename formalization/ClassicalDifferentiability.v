@@ -110,6 +110,34 @@ Section ClassicalDerivatives.
 
   Definition uniform_derivative (f: ^Real -> pc ^Real) (f': ^Real -> pc ^Real) r :=  forall eps, eps > real_0 -> exists delta, delta > real_0 /\ forall (x y : (I r)), dist x y <= delta -> (pc_abs ((f y) - (f x) - (f' x) * (pc_unit _ (y-x)%Real))%pcreal <= (pc_unit _ (eps * abs(y-x))))%pcreal.
 
+  Lemma pc_abs_le x y : (pc_abs x <= y)%pcreal <-> (exists x' y', defined_to x x' /\ defined_to y y' /\ (abs x' <= y')).
+  Proof.
+    split.
+    - intros.
+      destruct H as [a' [y' [Da [Dy' H]]]].
+      unfold pc_abs in Da.
+      destruct (pc_case x).
+      rewrite H0 in Da.
+      rewrite pc_lift_bot in Da.
+      apply pc_bot_defined_to_absurd in Da;contradict Da;auto.
+      destruct H0 as [x' Dx'].
+      exists x'; exists y'.
+      split;[|split];auto.
+      rewrite Dx' in Da.
+      rewrite pc_unit_ntrans in Da.
+      apply pc_unit_mono in Da.
+      rewrite Da;auto.
+   - intros.
+     destruct H as [x' [y' [D1 [D2 H]]]].
+     exists (abs x').
+     exists y'.
+     split; [|split];auto.
+     unfold pc_abs.
+     apply pc_unit_mono.
+     rewrite <-(pc_unit_ntrans _ _ abs); simpl.
+     rewrite D1;auto.
+  Qed.
+
   Definition uniform_derivative_unfolded (f: ^Real -> pc ^Real) (f': ^Real -> pc ^Real) r := (forall (x : Real), abs x <= r -> defined (f x) /\ defined (f' x)) /\  forall eps, eps > real_0 -> exists delta, delta > real_0 /\ forall x y fx fy f'x, abs x <= r -> abs y <= r -> defined_to (f x) fx -> defined_to (f y) fy -> defined_to (f' x) f'x -> dist x y <= delta -> (abs (fy - fx - f'x * (y-x)) <= (eps * abs(y-x))).
 
   Lemma uniform_derivative_unfold  f f' r : uniform_derivative f f' r <-> uniform_derivative_unfolded f f' r.
@@ -120,28 +148,63 @@ Section ClassicalDerivatives.
     + intros.
       destruct (H (abs x + real_1)) as [d [D H']]; [apply (abs_plus_1_gt_0 x)|].
       specialize (H' (real_to_I H0) (real_to_I H0)).
-      destruct H' as [y [y' [Y _]]].
-      simpl.
-      rewrite dist_axiom_identity.
-      apply real_lt_le; auto.
-      simpl in Y.
-      unfold pc_abs,defined_to in Y.
-      admit.
+      rewrite pc_abs_le in H'.
+      simpl in H'.
+      destruct H' as [x' [_ [Dx' _]]]; [rewrite dist_axiom_identity;apply real_lt_le;auto|].
+      apply pc_lift2_iff in Dx'.
+      destruct Dx' as [x0 [y0 [Dx' [Dy _]]]].
+      apply pc_lift2_iff in Dx'.
+      destruct Dx' as [fx [_ [Fx _]]].
+      apply pc_lift2_iff in Dy.
+      destruct Dy as [fy [_ [Fy _]]].
+      split;[exists fx | exists fy];auto.
    + intros.
       destruct (H _ (H0)) as [d [D1 D2]].
       exists d;split;auto.
       intros.
       specialize (D2 (real_to_I H1) (real_to_I H2) H6).
+      rewrite pc_abs_le in D2.
       simpl in D2.
-      destruct D2 as [eps' [d' [D21 [D22 D23]]]].
-      apply pc_unit_mono in D22.
-      rewrite D22.
-  Admitted.
+      destruct D2 as [l [rt [L [R A]]]].
+      assert  (l = fy - fx -f'x*(y-x)) as <- by (apply pc_unit_mono;rewrite <-L, <-!pc_unit_ntrans2, <- H3, <-H4, <-H5;auto).
+      replace (eps * abs(y-x)) with rt by (apply pc_unit_mono; rewrite <-R;auto).
+      apply A.
+  - intros [D H] eps epsgt0.
+    destruct (H _ epsgt0) as [d [dP P]].
+    exists d; split;auto.
+    intros.
+    destruct x as [x xP]; destruct y as [y yP].
+    apply pc_abs_le.
+    simpl.
+    destruct (D x) as [[fx Fx] [f'x F'x]];auto.
+    destruct (D y) as [[fy Fy] _];auto.
+    exists (fy - fx -f'x*(y-x)); exists (eps * abs (y-x)).
+    split; [|split;[apply pc_unit_mono|]];auto.
+    apply pc_unit_mono.
+    rewrite <-!pc_unit_ntrans2.
+    rewrite Fx,F'x,Fy.
+    rewrite !pc_unit_ntrans2;auto.
+ Qed.
 
 Definition bounded_by (f : ^Real -> pc ^Real) M r := (forall (x : (I r)), (pc_abs (f x) <= (pc_unit _ M))%pcreal).
 
-  Lemma bounded_by_unfold f M r : bounded_by f M r <-> (forall x fx, abs x <= r -> defined_to (f x) fx -> abs fx <= M).
-  Admitted.
+  Lemma bounded_by_unfold f M r : bounded_by f M r <-> (forall x, abs x <= r -> defined (f x)) /\ (forall x fx, abs x <= r -> defined_to (f x) fx -> abs fx <= M).
+  split.
+  - intros.
+    unfold bounded_by in H.
+    split;intros;specialize (H (real_to_I H0));apply pc_abs_le in H;destruct H as [x' [y' [X [Y H]]]];simpl in X.
+    exists x';auto.
+    replace M with y' by (apply pc_unit_mono;auto).
+    replace fx with x' by (apply pc_unit_mono;rewrite <-H1;auto).
+    apply H.
+  - intros [H1 H2] x.
+    apply pc_abs_le.
+    destruct x as [x P].
+    destruct (H1 _ P) as [x' X].
+    exists x';exists M.
+    split;[|split;[apply pc_unit_mono|]];auto.
+    apply (H2 x);auto.
+  Qed.
 
   Lemma lbc_helper (f f' : ^Real -> pc ^Real) r M : uniform_derivative f f' r -> bounded_by f' M r  ->forall eps, eps > real_0 -> exists d, d > real_0 /\ (forall (x y : (I r)), (dist x y <= d)%Real -> (pc_dist (f x) (f y) <= pc_unit _ (eps*d + M *d)))%pcreal.
   Proof.
@@ -176,6 +239,7 @@ Definition bounded_by (f : ^Real -> pc ^Real) M r := (forall (x : (I r)), (pc_ab
      rewrite !(real_mult_comm _ d).
      apply real_le_mult_pos_le;[apply real_lt_le|];auto.
      rewrite (bounded_by_unfold f' M r) in H0.
+     destruct H0 as [_ H0].
      apply (H0 x fx' );auto.
   Qed.
 
@@ -281,6 +345,7 @@ Definition bounded_by (f : ^Real -> pc ^Real) M r := (forall (x : (I r)), (pc_ab
     exists (dist fx fy); exists ((eps+M)*(Nreal n * d + d'));split;[apply pc_lift2_iff;exists fx; exists fy|split;[apply pc_unit_mono|]];auto.
     revert dependent fx; revert dependent x.
     rewrite bounded_by_unfold in H0.
+    destruct H0 as [_ H0].
     induction n.
     - intros.
       simpl;ring_simplify.
@@ -376,7 +441,12 @@ Definition bounded_by (f : ^Real -> pc ^Real) M r := (forall (x : (I r)), (pc_ab
     intros.
     apply lim_le_le_mult; [apply dist_pos|].
     intros.
-    apply (lbc_approx _ _ _ _ H H0 x y);auto.
+    pose proof (lbc_approx _ _ _ _ H H0 x y _ H3).
+    destruct H4 as [d [l [D [L H4]]]].
+    simpl in D.
+    replace ((M+eps)*dist x y) with l by (apply pc_unit_mono;rewrite L;auto).
+    replace (dist fx fy) with d by (apply pc_unit_mono; rewrite <-pc_unit_ntrans2, <-H1, <-H2;auto).
+    apply H4.
   Qed.
   
     
