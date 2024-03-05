@@ -620,4 +620,18 @@ Proof.
   
 Defined.
 
+(* Lemma pc_extreme_value_theorem :  *)
+(*   forall (f : ^Real -> pc ^Real) l u, *)
+(*     l <= u -> *)
+(*     (forall x, l <= x <= u -> cont_at f x) -> *)
+(*     exists M, *)
+(*       (exists x, l <= x <= u /\  *)
+(*                 (forall x, l <= x <= u -> cont_at f x) -> *)
+(*     W_is_bounded_above (fun y => exists x, l <= x <= u /\ defined_to (f x) y). *)
+
    
+(* Lemma pc_cont_fun_on_closed_interval_is_bounded_above : *)
+(*   forall (f : ^Real -> pc ^Real) l u, *)
+(*     l <= u -> *)
+(*     (forall x, l <= x <= u -> cont_at f x) -> *)
+(*     W_is_bounded_above (fun y => exists x, l <= x <= u /\ defined_to (f x) y). *)

@@ -370,6 +370,15 @@ Proof.
   exact (Nabla_hprop_lem P H X).
 Defined.
 
+Definition pc_hprop_lem_reduce {A} P (h : is_hprop P) :
+  forall (f : (P + neg P) -> pc A) t,
+    pc_hprop_lem P h f = f t. 
+Proof.
+  intros.
+  apply Nabla_hprop_lem_reduce.
+Defined.
+
+
 
 Definition pc_Prop_lem {A} : forall P : Prop, ((P + ~ P) -> pc A) -> pc A.
 Proof.
@@ -380,6 +389,17 @@ Proof.
   apply Nabla_hprop_lem.
   exact H.
 Defined.
+
+
+Definition pc_hprop_lem_reduce_eq A P (h : is_hprop P) :
+  forall (f : ((P + neg P) -> pc A)) y,
+    (forall t : P, f (inl t) = y) ->  (forall t : neg P, f (inr t) = y) ->
+    @pc_hprop_lem A P h f = y.
+Proof.
+  intros.
+  apply Nabla_hprop_lem_reduce_eq; auto.
+Defined.
+
 
 Definition pc_ana_fun A B := {S : A * B -> Prop | forall x y1 y2, S (x, y1) -> S (x, y2) -> y1 = y2}.
 

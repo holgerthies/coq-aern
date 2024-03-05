@@ -8,9 +8,10 @@ Open Scope creal_scope.
 Definition c_Real := (Nabla ^Real).
 
 Notation "x + y" := (@Nabla_lift_binary _ _ _ (fun a b => a + b)%Real x y) : creal_scope.
-Notation "x - y" := (@Nabla_lift_binary _ _ _ (fun a b => a - b)%Real x y) : creal_scope.
+Notation "- x" := (@Nabla_fun_map _ _ (fun a => - a)%Real x) : creal_scope.
 Notation "x * y" := (@Nabla_lift_binary _ _ _ (fun a b => a * b)%Real x y) : creal_scope.
 Notation "x < y" := (exists x' y', x = Nabla_unit _ x' /\ y = Nabla_unit _ y' /\ x' < y')%Real : creal_scope. 
+Notation "x - y" := (x + - y) : creal_scope.
 
 (* for parsing and printing reals *)
 
@@ -33,7 +34,8 @@ Open Scope pcreal_scope.
 Definition pc_Real := (pc ^Real).
 
 Notation "x + y" := (pc_lift2 (fun a b : ^Real => a + b)%Real x y) : pcreal_scope.
-Notation "x - y" := (pc_lift2 (fun a b => a - b)%Real x y) : pcreal_scope.
+Notation "- y" := (pc_lift (fun b => - b)%Real y) : pcreal_scope.
+Notation "x - y" := (x + - y) : pcreal_scope.
 Notation "x * y" := (pc_lift2 (fun a b => a * b)%Real x y) : pcreal_scope.
 Notation "x < y" := (exists x' y', defined_to x x' /\ defined_to y y' /\ x' < y')%Real : pcreal_scope. 
 Notation "x > y" := (y < x)%pcreal : pcreal_scope.
@@ -83,8 +85,6 @@ Defined.
 Notation "/ x" := (pc_recip x) : pcreal_scope.
 
 Notation "x / y" := (x * / y) : pcreal_scope.  
-
-Notation "- x" := (0 - x) : pcreal_scope.
 
 Definition pc_dist := pc_lift2 dist.
 

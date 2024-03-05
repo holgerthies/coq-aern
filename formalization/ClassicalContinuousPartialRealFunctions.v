@@ -15,7 +15,9 @@ Defined.
 
 Lemma real_le_eq_or_lt : forall x y, (x <= y -> x = y \/ x < y)%Real.
 Proof.
-Admitted.
+  intros.
+  destruct H; auto.
+Defined.  
 
 Lemma dist_axiom_positivity : forall x y, x <> y -> dist x y > real_0.
 Proof.
@@ -94,6 +96,122 @@ Section ClassicalContinuityRealOps.
     apply real_le_le_plus_le; [apply abs_pos|apply real_le_triv].
   Qed.
 
+  Lemma real_const_cont : forall x c,
+      cont_at (fun y => pc_unit _ c)%pcreal x.
+  Proof.
+    intros.
+    split.
+    exists c.
+    apply eq_refl.
+    intros.
+    exists eps.
+    split; auto.
+    intros.
+    rewrite H2 in H1.
+    apply pc_unit_mono in H1.
+    rewrite H1.
+    rewrite metric_axiom_identity.
+    pose proof (metric_non_negativity x y).
+    exact (real_le_le_le _ _ _ H3 H0).
+  Defined.
+
+  Lemma real_le_or_le : forall x y,
+      x <= y \/ y <=x.
+  Proof.
+    intros.
+    destruct (lem (x < y)).
+    left; left; auto.
+    right; apply real_nge_le; auto.
+  Defined.
+  
+  Lemma real_metric_plus_inv_invariant : forall x y,
+      dist (- x) (- y) = dist (x) (y).
+  Proof.
+    intros.
+    apply eq_sym.
+    destruct (real_le_or_le x y).
+    pose proof (real_le_plus_le (-x -y) _ _ H).
+    replace (-x -y + x) with (- y) in H0 by ring.
+    replace (- x - y + y) with (- x) in H0 by ring.
+    rewrite (le_metric _ _ H).
+    rewrite dist_symm.
+    rewrite (le_metric _ _ H0).
+    ring.
+    pose proof (real_le_plus_le (-x -y) _ _ H).
+    replace (-x -y + x) with (- y) in H0 by ring.
+    replace (- x - y + y) with (- x) in H0 by ring.
+    
+    rewrite (le_metric _ _ H0).
+    rewrite dist_symm.
+    rewrite (le_metric _ _ H).
+    ring.
+  Defined.
+      
+  Lemma real_plus_inv_cont : forall x,
+      cont_at (fun y => - pc_unit _ y)%pcreal x.
+  Proof.
+    intros.
+    split.
+    exists (- x).
+    rewrite pc_unit_ntrans.
+    apply eq_refl.
+
+    intros.
+    exists eps.
+    split; auto.
+    intros.
+    rewrite pc_unit_ntrans in H1, H2.
+    apply pc_unit_mono in H1, H2.
+    rewrite <- H1, <- H2.
+    unfold metric; simpl.
+    rewrite real_metric_plus_inv_invariant.
+    exact H0.
+  Defined.
+
+  
+  Lemma pc_recip_non_zero : forall x (p : x <> real_0), pc_recip (pc_unit _ x) = pc_unit _  (/ p).
+  Proof.
+    intros.
+    unfold pc_recip.
+    apply pc_hprop_lem_reduce_eq.
+    intros.
+    destruct t.
+    unfold pc_Prop_lem.
+    apply pc_hprop_lem_reduce_eq.
+    intros.
+    rewrite t in d.
+    contradict p.
+    apply pc_unit_mono in d.
+    exact d.
+    intros.
+    apply pc_unit_mono in d.
+    destruct d.
+    assert (t = p) by apply irrl.
+    rewrite H; auto.
+
+    intros.
+    contradict t.
+    apply dn_unit.
+    exists x.
+    apply eq_refl.
+  Defined.
+      
+  
+  Lemma real_mult_inv_cont :
+    forall x, x <> 0 ->
+              cont_at (fun y => / pc_unit _ y)%pcreal x.
+  Proof.
+    intros.
+    split.
+    exists (/ H).
+    rewrite (pc_recip_non_zero _ H).
+    apply eq_refl.
+
+    intros.
+  Admitted.
+  
+    
+  
   Lemma real_plus_cont : forall x,
       @cont_at (^Real * ^Real) prod_max_metric_space _ _ (fun x => Nabla_unit _ (Some ((fst x) + (snd x)))) x.
   Proof.

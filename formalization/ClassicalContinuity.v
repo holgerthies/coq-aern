@@ -19,6 +19,23 @@ Class MetricSpace (A : Type) :=
     metric_axiom_triangle : forall x y z, metric x z <= metric x y + metric y z 
   }.
 
+Section MetricSpaceProperties.
+  Generalizable Variables A.
+  Context `{mA : MetricSpace A}.
+
+  Lemma metric_non_negativity : forall x y, real_0 <= metric x y.
+  Proof.
+    intros.
+    destruct (lem (x = y)).
+    rewrite H.
+    rewrite metric_axiom_identity.
+    right; auto.
+    left.
+    exact (metric_axiom_positivity x y H).
+  Defined.
+  
+End MetricSpaceProperties.
+
 Section ClassicalContinuity1.
 
   Generalizable Variables A B C.
