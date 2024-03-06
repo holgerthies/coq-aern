@@ -635,3 +635,501 @@ Defined.
 (*     l <= u -> *)
 (*     (forall x, l <= x <= u -> cont_at f x) -> *)
 (*     W_is_bounded_above (fun y => exists x, l <= x <= u /\ defined_to (f x) y). *)
+
+Require Import RealSubsets.
+Require Import List.
+  
+Section ClassicallyCompact.
+
+  Lemma closed_interval_is_closed x y : x <= y -> is_closed (fun a => x <= a <= y).
+  Proof.
+    intros h z H.
+    assert (z < x \/ y < z).
+    destruct (lem (z < x \/ y < z)); auto.
+    contradict H.
+    unfold complement.
+    apply dn_unit.
+    split.
+    destruct (lem (x <= z)); auto.
+    apply real_nle_ge in H.
+    contradict H0.
+    auto.
+    destruct (lem (z <= y)); auto.
+    apply real_nle_ge in H.
+    contradict H0.
+    auto.
+    destruct H0.
+    assert (real_0 < x - z).
+    apply (real_lt_plus_lt (-z)) in H0.
+    replace (-z + z) with real_0 in H0 by ring.
+    replace (-z + x) with (x - z) in H0 by ring.
+    auto.
+    pose proof (real_Archimedean _ H1) as [n p].
+    exists n.
+    intros.
+    intro.
+    assert (y0 < x).
+    pose proof (dist_lt_prop z y0 (prec n)) as [i _].
+    pose proof (i H2) as [j _].
+    apply (real_lt_plus_lt (y0 + prec n)) in j.
+    replace (y0 + prec n + - prec n) with y0 in j by ring.
+    replace (y0 + prec n + (z - y0)) with (z + prec n) in j by ring.
+    apply (real_lt_plus_lt z) in p.
+    replace (z + (x - z)) with x in p by ring.
+    apply (real_lt_lt_lt _ _ _ j p).
+    destruct H3.
+    contradict (real_gt_nle _ _ H4 H3).
+
+    assert (real_0 < z - y).
+    apply (real_lt_plus_lt (-y)) in H0.
+    replace (-y + y) with real_0 in H0 by ring.
+    replace (-y + z) with (z - y) in H0 by ring.
+    auto.
+    pose proof (real_Archimedean _ H1) as [n p].
+    exists n.
+    intros.
+    intro.
+    assert (y < y0).
+    pose proof (dist_lt_prop z y0 (prec n)) as [i _].
+    pose proof (i H2) as [_ j].
+    apply (real_lt_plus_lt (y0 - prec n)) in j.
+    replace (y0 - prec n + prec n) with y0 in j by ring.
+    replace (y0 - prec n + (z - y0)) with (z - prec n) in j by ring.
+    apply (real_lt_plus_lt (y - prec n)) in p.
+    replace (y - prec n + prec n) with y in p by ring.
+    replace (y - prec n + (z - y)) with (z - prec n) in p by ring.
+    apply (real_lt_lt_lt _ _ _ p j).
+    destruct H3.
+    contradict (real_gt_nle _ _ H4 H5).
+  Defined.
+
+  Definition open_ball := (^Real * {r : Real | real_0 < r})%type.
+
+  Definition center (o : open_ball) := fst o.
+
+  Definition radius (o : open_ball) := projP1 _ _  (snd o).
+
+  Definition radius_is_positive (o : open_ball) : real_0 < radius o.
+  Proof.
+    destruct o.
+    destruct s.
+    auto.
+  Defined.
+
+  Definition open_ball_in x o :=
+    dist x (center o) < radius o.
+  
+  Definition open_ball_inclusion a b :=
+    forall x, open_ball_in x a -> open_ball_in x b.
+
+  Lemma open_ball_finer_open_ball x : forall o : open_ball,
+      open_ball_in x o ->
+      exists o', center o' = x /\ open_ball_inclusion o' o.
+  Proof.
+    intros.
+    destruct o as [c [r p]].
+     
+    destruct (real_le_or_le c x).
+    unfold open_ball_in in H.
+    simpl in H.
+    simpl in H.
+    unfold radius in H.
+    simpl in H.
+    rewrite dist_symm in H.
+    rewrite (le_metric _ _ H0) in H.
+    assert (real_0 < r - x + c).
+    apply (real_lt_plus_lt (-x + c)) in H.
+    replace ( - x + c + (x - c)) with real_0 in H by ring.
+    replace ( - x + c + r) with (r - x + c) in H by ring.
+    auto.
+    exists (x, exist _ _ H1).
+    simpl.
+    split; auto.
+    intro.
+    unfold open_ball_in.
+    simpl.
+    unfold radius; simpl.
+    intro.
+    pose proof (le_metric _ _ H0).
+    pose proof (dist_tri x0 x c).
+    rewrite (dist_symm c x) in H3.
+    apply (real_lt_plus_lt (dist x c)) in H2.
+    rewrite real_plus_comm in H2.
+    pose proof (real_le_lt_lt _ _ _ H4 H2).
+    rewrite H3 in H5.
+    replace (x - c + (r - x + c)) with r in H5 by ring.
+    exact H5.
+
+    unfold open_ball_in in H.
+    simpl in H.
+    simpl in H.
+    unfold radius in H.
+    simpl in H.
+    rewrite (le_metric _ _ H0) in H.
+    assert (real_0 < r - c + x).
+    apply (real_lt_plus_lt (-c + x)) in H.
+    replace ( - c + x + (c - x)) with real_0 in H by ring.
+    replace ( - c + x + r) with (r - c + x) in H by ring.
+    auto.
+    exists (x, exist _ _ H1).
+    simpl.
+    split; auto.
+    intro.
+    unfold open_ball_in.
+    simpl.
+    unfold radius; simpl.
+    intro.
+    pose proof (le_metric _ _ H0).
+    pose proof (dist_tri x0 x c).
+    apply (real_lt_plus_lt (dist x c)) in H2.
+    rewrite real_plus_comm in H2.
+    pose proof (real_le_lt_lt _ _ _ H4 H2).
+    rewrite H3 in H5.
+    replace ( c - x + (r - c + x)) with r in H5 by ring.
+    exact H5.
+  Defined.
+  
+  Lemma mid_point_le_le x y : x <= y -> x <= (x + y)/d2 <= y.
+  Proof.
+  Admitted.
+
+  Lemma mid_point_left_or_right x y z : x <= y <= z -> (x <= y <= (x + z)/d2) \/ ((x + z)/d2 <= y <= z).
+  Admitted.
+
+  Lemma dist_form_l_to_mid_point x y : x <= y -> dist x ((x + y)/d2) = (dist x y) /d2.
+  Admitted.
+
+  Lemma dist_form_l_to_mid_point' x y : x <= y -> ((x + y)/d2) - x = (y - x) /d2.
+  Admitted.
+  
+  Lemma dist_form_u_to_mid_point' x y : x <= y -> y - ((x + y)/d2) = (y - x) /d2.
+  Admitted.
+
+  
+  Definition is_open_cover {A} (o : A -> open_ball) S :=
+    forall x, S x -> exists a, dist x (center (o a)) < radius (o a). 
+  
+  Definition is_finite_sub_cover {A} (c : list A) (o : A -> open_ball) S := 
+    forall x, S x -> Exists (fun b => dist x (center (o b)) < radius (o b)) c.
+
+  Definition is_compact S := forall A (o : A -> open_ball),
+      is_open_cover o S ->   
+      exists l : list A, is_finite_sub_cover l o S.
+
+  Definition is_left_or_right_half a b :=
+    (fst a = fst b /\ snd a = (fst b + snd b)/d2) \/
+    (snd a = snd b /\ fst a = (fst b + snd b)/d2).
+      
+    Lemma closed_unit_interval_is_compact : forall x y,
+      x <= y -> x = real_0 -> y = real_1 -> 
+      is_compact (fun a => x <= a <= y).
+  Proof.
+    intros x y H jjjx jjjy.
+    intros A o ho.
+    apply Prop_dn_elim.
+    intro.
+    assert (exists f : nat -> {i : Real * Real | fst i <= snd i /\ neg (exists l : list A, is_finite_sub_cover l o (fun a : ^Real => fst i <= a <= snd i))},
+               f O = exist _ (x, y) (conj H H0) /\
+                 forall n, is_left_or_right_half (projP1 _ _ (f (S n))) (projP1 _ _ (f n))).
+
+    apply (dependent_choice
+             {i : Real * Real | fst i <= snd i /\ neg (exists l : list A, is_finite_sub_cover l o (fun a : ^Real => fst i <= a <= snd i))}
+             (fun i j => is_left_or_right_half (projP1 _ _ j) (projP1 _ _ i))
+          ).
+    intros [[a b] [ord_ab ab_no_cover]].
+    simpl in ord_ab, ab_no_cover.
+    simpl.
+    pose (c := (a + b)/d2).
+    assert (a <= c <= b).
+    apply mid_point_le_le.
+    auto.
+    
+    destruct (lem (exists l : list A, is_finite_sub_cover l o (fun a0 : ^Real => a <= a0 <= c))).
+    destruct (lem (exists l : list A, is_finite_sub_cover l o (fun a0 : ^Real => c <= a0 <= b))).
+    {
+      (* then contradiction *)
+      contradict ab_no_cover.
+      apply dn_unit.
+      destruct H2.
+      destruct H3.
+      exists (x0 ++ x1).
+      intro.
+      intro.
+      destruct (mid_point_left_or_right _ _ _ H4).
+      apply Exists_app.
+      left.
+      auto.
+      apply Exists_app.
+      right.
+      auto.
+    }
+    {
+      (* refine right *)
+      destruct H1.   
+      exists (exist _ (c, b) (conj H4 H3)).
+      right.
+      simpl.
+      split; auto.
+    }
+    {
+      (* refine left *)
+      destruct H1.   
+      exists (exist _ (a, c) (conj H1 H2)).
+      left.
+      simpl.
+      split; auto.
+    }
+    destruct H1 as [f [h1 h2]].
+    simpl in h1.
+
+    assert (exists l, x <= l <= y /\ forall n, exists m, dist (fst (projP1 _ _ (f m))) l <= prec n /\
+                                                           (snd (projP1 _ _ (f m))) - (fst (projP1 _ _ (f m))) = prec n)
+      as
+      [l [l_ord m]].
+    {
+
+      assert (forall n, x <= (fst (projP1 _ _ (f n))) /\ (snd (projP1 _ _ (f n))) <= y) as j.
+      {
+        intros.
+        induction n.
+        rewrite h1.
+        simpl.
+        split; right; auto.
+        
+        destruct (h2 n).
+        destruct (f n).
+        destruct (f (S n)).
+        simpl.
+        destruct x0, x1.
+        simpl in a, a0.
+        simpl in H1.
+        simpl in IHn.
+        simpl.
+        destruct H1.
+        induction H1.
+        destruct IHn.
+        split; auto.
+        destruct a0.
+        destruct (mid_point_le_le _ _ H4).
+        rewrite H2.
+        destruct a.
+        destruct (mid_point_le_le _ _ H8).
+        apply (real_le_le_le _ _ _ H11 H3).
+
+        destruct (f n).
+        destruct (f (S n)).
+        simpl.
+        destruct x0, x1.
+        simpl in a, a0.
+        simpl in H1.
+        simpl in IHn.
+        simpl.
+        destruct H1.
+        split; auto.
+        destruct a.
+        destruct (mid_point_le_le _ _ H3).
+        rewrite H2.
+        destruct IHn.
+        apply (real_le_le_le _ _ _ H7 H5).
+        destruct IHn.
+        induction H1.
+        auto.
+      }
+      
+
+      
+      assert (forall n, (snd (projP1 _ _ (f n))) - (fst (projP1 _ _ (f n))) = prec n) as jj.
+      {
+        intros.
+        induction n.
+        simpl.
+        rewrite h1.
+        simpl.
+        rewrite jjjx, jjjy.
+        ring.
+
+        destruct (h2 n).
+        destruct (f n).
+        destruct (f (S n)).
+        simpl.
+        destruct x0, x1.
+        simpl in a, a0.
+        simpl in H1.
+        simpl in IHn.
+        simpl.
+        destruct H1.
+        rewrite H2.
+        destruct H1.
+        destruct a.
+        rewrite dist_form_l_to_mid_point'.
+        rewrite IHn.
+        auto.
+        auto.
+        
+
+        
+        destruct (f n).
+        destruct (f (S n)).
+        simpl.
+        destruct x0, x1.
+        simpl in a, a0.
+        simpl in H1.
+        simpl in IHn.
+        simpl.
+        destruct H1.
+        rewrite H1, H2.
+        auto.
+        rewrite dist_form_u_to_mid_point'; auto.
+        rewrite IHn; auto.
+        destruct a; auto.
+      }
+      
+      assert (is_fast_cauchy (fun n => fst (projP1 _ _ (f n)))) as jjj.
+      {
+        
+        apply MultiLimit.consecutive_converging_fast_cauchy.
+        intros.
+        destruct (h2 n).
+        destruct (f n).
+        destruct (f (S n)).
+        simpl.
+        destruct x0, x1.
+        simpl in a, a0.
+        simpl in H1.
+        simpl.
+        destruct H1.
+        rewrite H1.
+        rewrite dist_axiom_identity.
+        assert (real_0 <= prec (S n)).
+        left.
+        apply prec_pos.
+        simpl in H3; auto.
+
+        pose proof (jj n).
+        destruct (f n).
+        destruct (f (S n)).
+        simpl.
+        destruct x0, x1.
+        simpl in a, a0.
+        simpl in H1, H2.
+        simpl.
+        destruct H1.
+        rewrite H3.
+        
+        destruct a.
+        pose proof (mid_point_le_le _ _ H4).
+        destruct H6.
+        
+        rewrite (dist_form_l_to_mid_point _ _ H4).
+        pose proof (le_metric _ _ H4).
+        rewrite H8.
+        rewrite H2.
+        right; auto.
+      }
+
+      (* apply is_fast_cauchy_iff_p in jjj. *)
+      pose proof (real_limit _  jjj) as [l p].
+      exists l.
+      split.
+      pose proof (is_closed_is_seq_complete _ (closed_interval_is_closed x y H)).
+      apply (H1 _ jjj).
+      intros.
+      unfold w_approx.
+      exists  (fst
+         (projP1 (^Real * ^Real)
+            (fun i : ^Real * ^Real =>
+             fst i <= snd i /\
+             neg (exists l0 : list A, is_finite_sub_cover l0 o (fun a : ^Real => fst i <= a <= snd i))) 
+            (f n))).
+      split.
+      split.
+      destruct (j n); auto.
+      destruct (j n).
+      destruct (f n).
+      simpl.
+      simpl in H2, H3, a.
+      destruct a.
+      apply (real_le_le_le _ _ _ H4 H3).
+      
+      rewrite dist_axiom_identity.
+      left; apply prec_pos.
+      exact p.
+
+      intros.
+      exists n.
+      pose proof (p n).
+      destruct (jj n).
+      simpl.
+      simpl in H1.
+      
+      destruct (f n).
+      simpl.
+      simpl in  H1.
+      rewrite dist_symm.
+      auto.      
+    }
+    
+
+    pose proof (ho l l_ord) as [a al_dist].
+    pose proof (open_ball_finer_open_ball _ _ al_dist) as [o' [p1 p2]].
+    
+    pose proof (real_Archimedean _ (radius_is_positive (o'))) as [p p_ord].
+    pose proof (m (S (S p))) as [i [q1 q2]].
+    destruct (f i).
+    simpl in a0.
+    simpl in q1, q2.
+    destruct a0.
+    assert False; apply H2.
+    exists (cons a nil).
+    unfold is_finite_sub_cover.
+    intros.
+    apply Exists_exists.
+    exists a.
+    split; auto.
+    simpl.
+    left; auto.
+    assert (open_ball_in x1 o').
+    {
+      unfold open_ball_in.
+      rewrite p1.
+      assert (dist x1 l < prec p).
+      assert (dist x1 (fst x0) < prec (S p)).
+      destruct H3.
+      rewrite dist_symm.
+      rewrite (le_metric _ _ H3).
+      assert (snd x0 - fst x0 <= prec p / real_2_neq_0 / real_2_neq_0) by (right; auto).
+
+      pose proof (real_le_le_plus_le _ _ _ _ H4 H5).
+      apply (real_le_plus_le (- snd x0)) in H6.
+      replace  (- snd x0 + (x1 + (snd x0 - fst x0))) with (x1 - fst x0) in H6 by ring.
+      simpl.
+      replace (- snd x0 + (snd x0 + prec p / real_2_neq_0/ real_2_neq_0)) with (prec p / real_2_neq_0 / real_2_neq_0) in H6 by ring.
+      assert (prec (S (S p)) < prec (S p)).
+      apply prec_monotone.
+      auto.
+      simpl in H7.
+      apply (real_le_lt_lt _ _ _ H6 H7).
+
+      assert (prec (S (S p)) < prec (S p)) as k.
+      apply prec_monotone.
+      auto.
+      pose proof (real_le_lt_lt _ _ _ q1 k) as k1.
+        
+      pose proof (real_lt_lt_plus_lt _ _ _ _ k1 H4).
+      pose proof (dist_tri x1 (fst x0) l).
+      rewrite real_plus_comm in H6.
+      pose proof (real_le_lt_lt _ _ _ H6 H5).
+      simpl in H7.
+      pose proof (prec_twice p).
+      replace (p + 1)%nat with (1 + p)%nat in H8 by (apply Nat.add_comm).
+      simpl in H8.
+      rewrite H8 in H7.
+      exact H7.
+      apply (real_lt_lt_lt _ _ _ H4 p_ord).
+    }
+    apply p2.
+    exact H4.
+    contradict H3.
+  Defined.
+  
+End ClassicallyCompact.

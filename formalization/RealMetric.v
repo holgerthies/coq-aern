@@ -795,6 +795,68 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     exact H4.
   Defined.
 
+  Lemma dist_lt_prop : forall a b c, dist a b < c <-> - c < a - b < c.
+  Proof.
+    intros.
+    split.
+    intros.
+    destruct (dist_prop a b).
+    destruct H1.
+    destruct (real_total_order a b).
+    rewrite (H2 H3) in H.
+    split; auto.
+    apply (real_lt_plus_lt (a - b - c)) in H; ring_simplify in H; auto.
+    apply (fun a => real_lt_lt_lt _ _ _ a H).
+    pose proof (real_lt_plus_lt (-a) _ _ H3).
+    pose proof (real_lt_plus_lt (-b) _ _ H3).
+    replace (-a + a) with real_0 in H4 by ring.
+    replace (-b + b) with real_0 in H5 by ring.
+    pose proof (real_lt_lt_lt _ _ _ H5 H4).
+    replace (a - b) with (-b + a) by ring; replace (b - a) with (- a + b) by ring; auto.
+    destruct H3.
+    induction H3.
+    rewrite (H1 (eq_refl)) in H.
+    split.
+    replace (a - a) with real_0 by ring.                                       
+    apply (real_lt_plus_lt (-c )) in H.
+    replace (- c + c) with real_0 in H by ring.
+    replace (- c + real_0) with (-c) in H by ring.
+    auto.
+    replace (a - a) with real_0 by ring.
+    auto.
+    rewrite (H0 H3) in H.
+    split; auto.
+    apply (real_lt_plus_lt (- b)) in H3.
+    replace (-b + b) with real_0 in H3 by ring.
+    
+    replace (-b + a) with (a - b) in H3 by ring.
+    pose proof (real_lt_lt_lt _ _ _ H3 H).
+    apply (real_lt_plus_lt (-c)) in H4.
+    replace (- c + real_0) with (-c) in H4 by ring.
+    replace (-c + c) with real_0 in H4 by ring.
+    apply (real_lt_lt_lt  _ _ _ H4 H3).
+    intro.
+    pose proof (dist_prop a b).
+    destruct H0.
+    destruct H1.
+    destruct (real_total_order a b).
+    rewrite (H2 H3).
+    destruct H.
+    apply (real_lt_plus_lt (c + b - a)) in H.
+    ring_simplify in H.
+    exact H.
+    destruct H3.
+    induction H3.
+    rewrite (H1 eq_refl).
+    destruct H.
+    replace (a - a) with real_0 in H3 by ring.
+    exact H3.
+    destruct H.
+    rewrite (H0 H3).
+    exact H4.
+  Defined.
+
+
 
   Lemma real_lt_pos_mult_neg_neg : forall z1 z2 : Real, z1 > real_0 -> z2 < real_0 -> z1 * z2 < real_0.
   Proof.
