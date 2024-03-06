@@ -3,6 +3,11 @@ Axiom lem : forall P : Prop, P \/ ~P.
 Axiom Prop_ext : forall P Q : Prop, (P -> Q) -> (Q -> P) -> P = Q.
 Axiom dfun_ext : forall A (P : A -> Type) (f g: forall a : A, P a), (forall x, f x = g x) -> f = g.
 Axiom countable_choice : forall A (P : nat -> A -> Prop), (forall n, exists x, P n x) -> exists f : nat -> A , forall n, P n (f n).
+Axiom dependent_choice : forall A (R : A -> A -> Prop),
+    (forall x, exists y, R x y) -> forall x0,
+      (exists f : nat -> A, f 0 = x0 /\ forall n, R (f n) (f (S n))).
+
+
 
 Record RealTypes : Type := mkRealTypes
 {
