@@ -10,6 +10,7 @@ Require Import List.
 Import ListNotations.
 Require Import ClassicalAnalysis.
 Require Import ClassicalPartialReals.
+Require Import ClassicalDifferentiability.
 Require Import Poly.
 Require Import Taylormodel.
 
@@ -87,7 +88,7 @@ Section Series.
 
   Fixpoint partial_sum (a : nat -> Real) n :=
     match n with
-    | 0 => (a 0)
+    | 0 => (a 0%nat)
     | (S n') => (a n)+partial_sum a n'
     end.
 
@@ -115,7 +116,7 @@ Section Series.
     induction n.
     - unfold real_2.
       simpl.
-      apply (real_le_le_le _ _ _ (H 0)).
+      apply (real_le_le_le _ _ _ (H 0%nat)).
       simpl.
       ring_simplify.
       apply real_eq_le;auto.
@@ -161,7 +162,7 @@ Section Powerseries.
     intros.
     rewrite (IHi (S i));try lia.
     rewrite IHi; try lia.
-    replace (S i - i)%nat with 1 by lia.
+    replace (S i - i)%nat with 1%nat by lia.
     replace (n-i)%nat with (S (n - S i))%nat  by lia.
     simpl.
     ring.
@@ -172,7 +173,7 @@ Qed.
     unfold ps.
     induction n; [simpl;ring|].
     rewrite (eval_series_to_poly a x (S n) n); try lia.
-    replace (S n - n)%nat with 1 by lia.
+    replace (S n - n)%nat with 1%nat by lia.
     simpl.
     rewrite <-IHn.
     destruct n;simpl;ring.
@@ -414,7 +415,7 @@ Section Addition.
    rewrite H.
    rewrite !app_nth2; try rewrite length_sum_coefficients; rewrite !length_to_poly;try lia.
    rewrite Nat.max_id.
-   replace (n+1 - S n)%nat with 0 by lia.
+   replace (n+1 - S n)%nat with 0%nat by lia.
    simpl;auto.
 Qed.
 
@@ -492,7 +493,7 @@ End Addition.
 Section Derivative.
   Definition derivative_sequence (a : nat -> Real) n := Nreal (n+1) * (a (n+1)%nat).
 
-  Lemma derivative_sequence_spec a : forall n x, derivative (eval_poly (to_poly a (S n))) (eval_poly (to_poly (derivative_sequence a) n)) x.
+  Lemma derivative_sequence_spec a r : forall n, uniform_derivative_fun (eval_poly (to_poly a (S n))) (eval_poly (to_poly (derivative_sequence a) n)) r.
   Proof.
     intros.
     assert (to_poly (derivative_sequence a) n = derive_poly (to_poly a (S n))) as ->.
@@ -509,10 +510,10 @@ Section Derivative.
        rewrite H2.
        unfold derivative_sequence, to_poly.
        remember (fun n0 => (Nreal (n0+1)) * (a (n0+1)%nat)) as f.
-       rewrite (@nth_indep _ _ _ real_0 (f 0));[| rewrite Heqf;auto].
+       rewrite (@nth_indep _ _ _ real_0 (f 0%nat));[| rewrite Heqf;auto].
        unfold to_poly in M.
        rewrite map_length, seq_length in M.
-       rewrite (@nth_indep _ _ _ real_0 (a 0));[|rewrite map_length, seq_length;lia].
+       rewrite (@nth_indep _ _ _ real_0 (a 0%nat));[|rewrite map_length, seq_length;lia].
        rewrite !map_nth.
        rewrite !seq_nth;auto;try lia.
        rewrite Heqf.
@@ -523,27 +524,22 @@ Section Derivative.
     apply derive_poly_spec.
  Qed.
 
+ Definition derivative_fun (f : ^Real -> pc ^Real) (r : ^Real) : (^Real -> pc ^Real).
+ Proof.
+ Admitted.
 
- Lemma derivative_pt_unique f gx gx' x : derivative_pt f gx x -> derivative_pt f gx' x -> gx' = gx.
- Proof.
+ Lemma derivative_fun_spec f r : uniform_derivative f (derivative_fun f r) r.
  Admitted.
- Definition derivative_fun (f : ^Real -> pc ^Real) : (^Real -> pc ^Real).
- Proof.
-   apply pc_ana_fun_to_pc_fun.
-   exists (fun xy => derivative_pt f (snd xy) (fst xy)).
-   simpl.
-   intros.
-   apply (derivative_pt_unique _ _ _ _ H0 H).
- Qed.
- Lemma derivative_fun_spec f : forall x y, defined_to ((derivative_fun f) x) y <-> derivative_pt f y x.
- Admitted.
-  Lemma Nreal_nonneg n : real_0 <= Nreal n.
-  Proof.
-    destruct n;[apply real_eq_le;simpl;auto|].
-    apply real_lt_le.
-    apply Nreal_pos.
-    lia.
-  Qed.
+
+ (* Lemma derivative_fun_spec f : forall x y, defined_to ((derivative_fun f) x) y <-> derivative_pt f y x. *)
+ (* Admitted. *)
+ (*  Lemma Nreal_nonneg n : real_0 <= Nreal n. *)
+ (*  Proof. *)
+ (*    destruct n;[apply real_eq_le;simpl;auto|]. *)
+ (*    apply real_lt_le. *)
+ (*    apply Nreal_pos. *)
+ (*    lia. *)
+ (*  Qed. *)
 
   Lemma derivative_factor_bound : forall n, Nreal (n+1) <= npow real_2 n.
   Proof.
@@ -600,7 +596,7 @@ Section Derivative.
        apply inv_le_ge; [apply prec_pos|auto].
    - exists (mk_bounded_ps _ _ _ _ H1 );simpl;split;[|split];auto.
      assert (1 <= Npow2 m)%nat.
-     replace 1 with (2 ^ 0) by auto.
+     replace 1%nat with (2 ^ 0) by auto.
      rewrite Npow2_pow.
      apply Nat.pow_le_mono_r;lia.
      nia.
@@ -657,7 +653,7 @@ Section Derivative.
    ring.
  Qed.
 
- Lemma M_zero_is_zero a : (bounded_ps_M a = 0) -> forall n, (series a n) = real_0. 
+ Lemma M_zero_is_zero a : (bounded_ps_M a = 0%nat) -> forall n, (series a n) = real_0. 
  Proof.
    destruct a;simpl.
    intros.
@@ -668,7 +664,7 @@ Section Derivative.
    simpl;ring.
  Qed.
 
- Lemma M_zero_tm a : (bounded_ps_M a = 0) -> forall n x, (eval_tm (to_taylor_model a n) x) = real_0.
+ Lemma M_zero_tm a : (bounded_ps_M a = 0%nat) -> forall n x, (eval_tm (to_taylor_model a n) x) = real_0.
  Proof.
    intros.
    unfold eval_tm, to_taylor_model; simpl tm_poly.
@@ -677,13 +673,13 @@ Section Derivative.
    exact H.
  Qed.
 
- Lemma deriv_bounded_ps_tm a b : series b = derivative_sequence (series a) -> (bounded_ps_M a) = (2 * bounded_ps_M b)%nat -> forall x n, derivative (eval_tm (to_taylor_model a n)) (eval_tm (to_taylor_model b n)) x.
+ Lemma deriv_bounded_ps_tm a b : series b = derivative_sequence (series a) -> (bounded_ps_M a) = (2 * bounded_ps_M b)%nat -> forall r n, uniform_derivative_fun (eval_tm (to_taylor_model a n)) (eval_tm (to_taylor_model b n)) r.
  Proof.
    intros.
    destruct (bounded_ps_M b) eqn: Mb.
-   - apply (derive_ext _ (fun x => real_0)); [apply M_zero_tm;lia|].
-     apply (derive_ext2 _ (fun x => real_0)); [apply M_zero_tm|];auto.
-     apply derivative_const.
+   - apply (derive_ext_fun _ (fun x => real_0)); [apply M_zero_tm;lia|].
+     apply (derive_ext_fun2 _ (fun x => real_0)); [apply M_zero_tm|];auto.
+     apply derivative_const_fun.
    - unfold eval_tm, to_taylor_model;simpl tm_poly.
      rewrite H0, Mb,H.
      rewrite Nat.log2_double;try lia.
@@ -710,8 +706,7 @@ Section Derivative.
  Qed.
 
  
-
- Lemma deriv_ps (a : bounded_ps) : ^M {b : bounded_ps | is_ps_for (derivative_fun (powerseries_pc (series a))) b}.
+ Lemma deriv_ps (a : bounded_ps) : ^M {b : bounded_ps | uniform_derivative (powerseries_pc (series a)) (powerseries_pc (series b)) (eval_radius b)}.
  Proof.
    pose proof (deriv_bounded_ps a).
    revert X.
@@ -721,32 +716,15 @@ Section Derivative.
    rewrite H0 in *.
    clear H0 a A2 A3.
    destruct (bounded_ps_change_Mr a' (bounded_ps_M a') (bounded_ps_r a' / d2)) as [a'' [H0' [H1' H2']]]; [lia| split;[apply real_half_gt_zero;apply bounded_ps_rgt0 | apply real_lt_le;apply real_gt_half;apply bounded_ps_rgt0] |].
-   exists a''.
-   apply approx_is_ps.
-   intros.
-   assert (forall y, is_sum (ps (series a'') x) y -> derivative_pt (powerseries_pc (series a0)) y x).
-   {
-     rewrite <- H0'.
-     intros.
-     apply (polynomial_approx_derivative (powerseries_pc (series a0)) (to_taylor_model a0) (powerseries_pc (series a')) (to_taylor_model a') (eval_radius a')); try apply to_tm_approx; try apply powerseries_pc_defined.
-     apply eval_radius_gt0.
-     replace (eval_radius a') with (eval_radius a0) by (unfold eval_radius;rewrite H2;auto).
-     apply to_tm_approx.
-     apply deriv_bounded_ps_tm;auto.
-     apply (real_le_le_le _ _ _ H).
-     unfold eval_radius; rewrite H2'; rewrite H2; apply real_lt_le;apply real_gt_half;apply real_half_gt_zero;apply bounded_ps_rgt0.
-     apply (real_le_lt_lt _ _ _ H).
-     unfold eval_radius; rewrite H2'; apply real_gt_half;apply real_half_gt_zero;apply bounded_ps_rgt0.
-     apply powerseries_pc_spec;auto.
-
-   }
-   rewrite to_taylor_model_series.
-   destruct (eval_val _ _ H) as [y Y].
-   replace fx with y; try (rewrite dist_symm;auto).
-   apply derivative_fun_spec in H0.
-   apply (derivative_pt_unique _ _ _ _ H0).
-   apply H3.
-   apply fast_limit_limit;auto.
+   exists a'.
+   apply (polynomial_approx_derivative (powerseries_pc (series a0)) (to_taylor_model a0) (powerseries_pc (series a')) (to_taylor_model a') (eval_radius a'));try apply to_tm_approx; try (split;destruct x;simpl;apply powerseries_pc_defined;auto).
+    - replace (eval_radius a') with (eval_radius a0) by (unfold eval_radius;rewrite H2;auto).
+      apply to_tm_approx.
+    - apply (real_le_le_le _ _ _ r).
+      unfold eval_radius.
+      rewrite H2.
+      apply real_le_triv.
+  - apply deriv_bounded_ps_tm;auto.
 Qed.
 
  End Derivative.
