@@ -125,15 +125,51 @@ Section ProductMaxDist.
 
   Lemma max_metric_axiom_positivity : forall x y, x <> y -> max_metric x y > real_0.
   Proof.
-  Admitted.
-  
+    intros [x y] [a b] nc.
+    assert (x <> a \/ y <> b).
+    destruct (lem ( x <> a \/ y <> b)); auto.
+    assert (x = a).
+    apply Prop_dn_elim.
+    intro.
+    contradict H.
+    left; auto.
+    assert (y = b).
+    apply Prop_dn_elim.
+    intro.
+    contradict H.
+    right; auto.
+    contradict nc.
+    rewrite H0, H1; auto.
+    destruct H.
+    pose proof (real_max_fst_ge (metric x a) (metric y b)).
+    pose proof (@metric_axiom_positivity A mA x a H).
+    apply (real_lt_le_lt _ _ _ H1 H0).
+    pose proof (real_max_snd_ge (metric x a) (metric y b)).
+    pose proof (metric_axiom_positivity _ _  H).
+    apply (real_lt_le_lt _ _ _ H1 H0).
+  Defined.
+    
   Lemma max_metric_axiom_symmetry : forall x y, max_metric x y = max_metric y x.
   Proof.
-  Admitted.
+    intros [x y] [a b].
+    unfold max_metric.
+    rewrite (metric_axiom_symmetry x a).
+    rewrite (metric_axiom_symmetry y b).
+    auto.
+  Defined.
   
   Lemma max_metric_axiom_triangle : forall x y z, max_metric x z <= max_metric x y + max_metric y z.
   Proof.
-  Admitted.
+    intros [x y] [a b] [i j].
+    unfold max_metric.
+    rewrite !real_max_plus_eq.
+    apply real_max_compwise_le.
+    apply real_max_fst_le_le.
+    apply metric_axiom_triangle.
+    apply real_max_snd_le_le.
+    apply metric_axiom_triangle.
+  Defined.
+  
 
   Instance prod_max_metric_space : MetricSpace (A * B) :=
     {
