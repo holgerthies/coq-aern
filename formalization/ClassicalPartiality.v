@@ -257,13 +257,6 @@ Proof.
   auto.
 Defined.
 
-
-Lemma pc_mult_ntrans : forall (A B : Type) (f : A -> B) (x : pc (pc A)),
-    pc_mult B (pc_lift (pc_lift f) x) = pc_lift f (pc_mult A x).
-Proof.
-Admitted.
-
-
 Definition pc_bind {A B} (f : A -> pc B) : pc A -> pc B.
 Proof.
   intro.

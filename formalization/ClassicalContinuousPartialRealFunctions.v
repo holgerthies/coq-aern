@@ -195,20 +195,86 @@ Section ClassicalContinuityRealOps.
     exists x.
     apply eq_refl.
   Defined.
-      
   
-  Lemma real_mult_inv_cont :
-    forall x, x <> 0 ->
-              cont_at (fun y => / pc_unit _ y)%pcreal x.
+  Lemma min_upperbound_exists x : (real_0 < x) -> exists (n: nat), (Nreal n <= x) /\ (x <= Nreal (S n)).
   Proof.
-    intros.
-    split.
-    exists (/ H).
-    rewrite (pc_recip_non_zero _ H).
-    apply eq_refl.
+    intros o.
+    assert (exists n, x <= Nreal (S n)).
+    pose proof (nat_bound_above _ o) as [n p].
+    exists n.
+    assert (Nreal n < Nreal (S n)).
+    apply Nreal_strict_monotone.
+    auto.
+    left.
+    apply (real_lt_lt_lt _ _ _ p H).
+    pose proof (dec_inh_nat_subset_has_unique_least_element (fun n => x <= Nreal (S n)) (fun _ => lem _) H).
+    destruct H0 as [n [[p q] r]].
+    exists n.
+    split; auto.
+    destruct (lem (Nreal n <= x)); auto.
+    apply real_nle_ge in H0.
 
-    intros.
-  Admitted.
+    destruct n.
+    simpl in H0.
+    pose proof (real_lt_lt_lt _ _ _ o H0).
+    contradict (real_nlt_triv _ H1).
+    assert (x <= Nreal (S n)).
+    left; auto.
+    pose proof (q n H1).
+    contradict H2.
+    apply Nat.nle_succ_diag_l.
+  Defined.
+  
+(*   Lemma real_mult_inv_cont : *)
+(*     forall x, x <> 0 -> *)
+(*               cont_at (fun y => / pc_unit _ y)%pcreal x. *)
+(*   Proof. *)
+(*     intros. *)
+(*     split. *)
+(*     exists (/ H). *)
+(*     rewrite (pc_recip_non_zero _ H). *)
+(*     apply eq_refl. *)
+    
+(*     intros. *)
+(*     destruct (real_le_or_le (abs x) real_1). *)
+(*     destruct (real_le_or_le eps real_1). *)
+
+(*     (* case 1: *)
+(*      * - when |x| <= 1 and eps <= 1: \delta = eps |x| / 2 *) *)
+(*     { *)
+(*       exists (eps * abs x / real_2_neq_0). *)
+(*       split. *)
+(*       apply real_lt_pos_mult_pos_pos. *)
+(*       apply real_lt_pos_mult_pos_pos. *)
+(*       auto. *)
+(*       destruct (abs_pos x); auto. *)
+(*       apply eq_sym in H3. *)
+(*       pose proof (abs_zero x). *)
+(*       apply H4 in H3. *)
+(*       contradict (H H3). *)
+(*       apply d2_pos. *)
+
+(*       intros. *)
+(*       unfold defined_to in H4. *)
+(*       assert (y <> 0). *)
+      
+(* Check pc_unit_ntrans2. *)
+(*     admit. *)
+
+(*     (* case 2: *)
+(*      * - when |x| <= 1 and 1 <= eps: \delta = |x| *) *)
+(*     admit. *)
+
+(*     destruct (real_le_or_le eps real_1). *)
+(*     (* case 3: *)
+(*      * - when 1 <= |x| and eps <= 1: \delta = eps / 2 *) *)
+(*     admit. *)
+
+(*   (* case 4: *)
+(*    * - when 1 <= |x| and 1 <= eps : \delta = 1 *) *)
+
+    
+(*   Admitted. *)
   
     
   
