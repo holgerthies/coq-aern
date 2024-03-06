@@ -959,8 +959,63 @@ Section Operations.
       apply real_half_gt_zero.
       apply real_half_gt_zero;auto.
   Defined.
-End Section.
+End Operations.
 
+
+Section FunctionDerivatives.
+
+  Definition uniform_derivative_fun (f : ^Real -> ^Real) (g : ^Real -> ^Real) r := forall eps, (eps > 0) -> exists delta, delta > 0 /\ forall (x y : (I r)), dist x y <= delta -> abs (f y - f x - g x * (y - x)) <= eps*abs (y-x).
+
+  Definition derivative_function_iff (f : ^Real -> ^Real) (g : ^Real -> ^Real) r : uniform_derivative (fun x => pc_unit _ (f x)) (fun x => pc_unit _ (g x)) r <-> uniform_derivative_fun f g r.
+  Proof.
+  rewrite uniform_derivative_unfold.
+  split;intros.
+  - intros eps epsgt0. 
+    destruct (proj2 H _ epsgt0) as [d [dgt0 D]].
+    exists d; split;auto.
+    intros.
+    destruct x as [x px]; destruct y as [y py].
+    simpl.
+    apply D;auto;apply pc_unit_mono;auto.
+  - split; [intros; split; [exists (f x) | exists (g x)];apply pc_unit_mono;auto |].
+    intros eps epsgt0.
+    destruct (H _ epsgt0) as [d [dgt0 D]].
+    exists d;split;auto.
+    intros.
+    apply pc_unit_mono in H2,H3, H4.
+    rewrite <-H2, <-H3, <-H4;auto.
+    apply (D (real_to_I H0) (real_to_I H1));auto.
+  Qed.
+
+  Lemma sum_rule f1 f2 g1 g2 r : uniform_derivative_fun f1 g1 r -> uniform_derivative_fun f2 g2 r -> uniform_derivative_fun (fun x => (f1 x + f2 x)) (fun x => (g1 x + g2 x)) r.
+  Proof.
+    rewrite <-!derivative_function_iff.
+    intros.
+    pose proof (derivative_sum _ _ _ _ _ H H0).
+    simpl in H1.
+    intros eps epsgt0.
+    destruct (H1 _ epsgt0) as [d [dgt0 D]].
+    exists d;split;auto;intros.
+    specialize (D _ _ H2).
+    rewrite <-!pc_unit_ntrans2 in *.
+    rewrite <-!pc_unit_ntrans in *.
+    apply D.
+ Qed.
+  Lemma product_rule f1 f2 g1 g2 r : uniform_derivative_fun f1 g1 r -> uniform_derivative_fun f2 g2 r -> uniform_derivative_fun (fun x => (f1 x * f2 x)) (fun x => (f1 x * g2 x + g1 x * f2 x )) r.
+  Proof.
+    rewrite <-!derivative_function_iff.
+    intros.
+    pose proof (derivative_product _ _ _ _ _ H H0).
+    simpl in *.
+    intros eps epsgt0.
+    destruct (H1 _ epsgt0) as [d [dgt0 D]].
+    exists d;split;auto;intros.
+    specialize (D _ _ H2).
+    rewrite <-!pc_unit_ntrans2 in *.
+    rewrite <-!pc_unit_ntrans in *.
+    apply D.
+  Qed.
+End FunctionDerivatives.
 (* Section ConstructiveDerivatives. *)
 (*   Definition constructive_derivative (f: Real -> Real) (g : Real -> Real) r := forall eps, eps > real_0 -> {d : Real | d > real_0 /\ forall x y, abs x <= r -> abs y <= r -> dist x y <= d -> abs (f y - f x - g x * (y -x)) <= eps * abs(y-x) }. *)
 
