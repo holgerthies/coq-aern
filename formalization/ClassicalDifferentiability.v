@@ -391,7 +391,7 @@ Lemma min_upperbound_exists x : (real_0 < x) -> exists (n: nat), (Nreal n <= x) 
     right;apply real_lt_le;auto.
   Qed.
 
-  Lemma interval_subdivision_step x y d d' n : (d > real_0) -> (real_0 <= d') -> (d' <= d) -> (dist x y = (Nreal (S n) * d) + d')-> exists x1, dist x x1 <= d /\ dist x1 y = Nreal n * d + d' /\ (abs x1 <= abs x \/ abs x1 <= abs y).
+  Lemma interval_subdivision_step x y d d' n : (d > real_0) -> (real_0 <= d') -> (d' <= d) -> (dist x y = (Nreal (S n) * d) + d')-> exists x1, dist x x1 <= d /\ dist x1 y = Nreal n * d + d'  /\ (abs x1 <= abs x \/ abs x1 <= abs y). 
   Proof.
     destruct (real_le_or_ge x y) as [T | T].
     - intros.
@@ -408,42 +408,24 @@ Lemma min_upperbound_exists x : (real_0 < x) -> exists (n: nat), (Nreal n <= x) 
       rewrite abs_pos_id;auto.
       apply (real_le_le_le _ _ _ H3);auto.
     - intros.
-      rewrite dist_symm in H2.
-      destruct (interval_subdivision_step_lt y x d d' n T H H0 H1 H2) as [x1 [P1 [P2 [P3 P4]]]].
-      exists (y + Nreal n*d + d').
-      split;[rewrite dist_symm|split];auto.
-      replace x with (y + dist y x).
-      rewrite H2.
-      rewrite dist_abs.
-      replace (y + (Nreal (S n) * d + d') - (y+Nreal n*d + d')) with d by (simpl;ring).
-      rewrite abs_pos_id;auto;try apply real_le_triv.
-      apply (real_le_le_le _ _ _ H0);auto.
-      rewrite le_metric;auto;ring_simplify;auto.
-      unfold dist.
-      rewrite abs_pos_id; ring_simplify;auto.
-      apply (real_le_le_le _ _ _ H0).
-      add_both_side_by (-d').
-      apply real_le_pos_mult_pos_pos;auto.
-      apply Nreal_nonneg.
-      apply (real_le_le_le _ _ _ H0);auto.
-      assert (y = (x - (Nreal (S n)*d + d'))) by (rewrite <-H2, le_metric;try ring_simplify;auto).
-      rewrite H3.
-      replace (x - (Nreal (S n)*d + d') + Nreal n * d + d') with (x - d) by (simpl;ring_simplify;auto).
-      destruct (real_le_or_ge (x-d) real_0).
+      assert (T': - x <= -y) by (add_both_side_by (x+y);auto).
+      rewrite <-real_metric_plus_inv_invariant in H2.
+      destruct (interval_subdivision_step_lt (-x) (-y) d d' n T' H H0 H1 H2) as [x1 [P1 [P2 [P3 P4]]]]. 
+      exists (-x1).
+      split;[|split];try (rewrite <-real_metric_plus_inv_invariant; (replace (- -x1) with x1 by ring));auto.
+      rewrite <-abs_symm.
+      destruct (real_le_or_ge x1 real_0).
+      left.
+      rewrite abs_neg_id_neg,abs_pos_id;auto.
+      add_both_side_by (x1-x);auto.
+      apply (real_le_le_le _ (-x1)).
+      add_both_side_by x1;auto.
+      add_both_side_by (x1-x);auto.
       right.
-      rewrite !abs_pos_id.
-      simpl;ring_simplify.
-      add_both_side_by (x-d-d').
-      apply (real_le_le_le _ real_0); [add_both_side_by d';auto |].
-      apply real_le_pos_mult_pos_pos;[apply (real_le_le_le _ d') |apply Nreal_nonneg];auto.
-      rewrite <-H3.
-      admit.
-
-      apply (real_le_le_le _ (x-d) );auto.
-      simpl;ring_simplify.
-      add_both_side_by (d-x + Nreal n*d).
-      apply (real_le_le_le _ real_0).
-  Admitted.  
+      rewrite abs_pos_id, abs_neg_id_neg;auto.
+      add_both_side_by (-y).
+      apply (real_le_le_le _ _ _ H3);auto.
+  Qed. 
 
   Lemma lbc_approx f f' r M :  uniform_derivative f f' r -> bounded_by f' M r -> forall (x y : (I r)) eps, (real_0 < eps) -> (pc_dist (f x) (f y) <= pc_unit _ ((M+eps) * dist x y))%pcreal.
   Proof.
