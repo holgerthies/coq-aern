@@ -892,53 +892,22 @@ Section Derivative.
   (*     apply real_half_gt_zero;auto. *)
   (* Defined. *)
 
-  Lemma derivative_id : forall x, derivative (fun x => x) (fun x => real_1) x.
-  Proof.
-    intros x eps H.
-    exists real_1.
-   split; [apply real_1_gt_0|].
-   intros.
-   replace (y-x-real_1 * (y-x)) with real_0 by ring.
-   rewrite (proj2 (abs_zero real_0)); try apply real_le_triv;auto.
-   apply real_le_pos_mult_pos_pos.
-   apply real_lt_le;auto.
-   apply abs_pos.
- Qed.
 
- Lemma derivative_monomial n : forall x, derivative (fun x => (npow x (S n))) (fun x => (Nreal (S n) * npow x n)) x.
+ Lemma derivative_monomial n : forall x, uniform_derivative_fun (fun x => (npow x (S n))) (fun x => (Nreal (S n) * npow x n)) x.
  Proof.
    intros.
    induction n.
    - simpl.
      replace ((real_1+real_0)*real_1) with real_1 by ring.
      replace (fun x => x*real_1) with (fun (x : ^Real) => x) by (apply fun_ext;intros;ring).
-     apply derivative_id.
+     apply derivative_id_fun.
   - replace (fun x => Nreal (S (S n)) * npow x (S n)) with (fun (x : ^Real) => x*(Nreal (S n) * npow x n) + real_1 * npow x ((S n))) by (apply fun_ext;intros;simpl;ring).
     simpl.
-    apply derivative_product.
-    apply derivative_id.
+    apply product_rule.
+    apply derivative_id_fun.
     apply IHn.
  Qed.
 
- Lemma derive_ext f1 f2 g x : (forall x, f1 x = f2 x) ->  derivative f2 g x -> derivative f1 g x.
- Proof.
-   intros H D eps epsgt0.
-   destruct (D eps epsgt0) as [d [dgt dP]].
-   exists d;split;auto.
-   intros.
-   rewrite !H.
-   apply dP;auto.
- Qed.
-
- Lemma derive_ext2 f g1 g2 x : (forall x, g2 x = g1 x) ->  derivative f g1 x -> derivative f g2 x.
- Proof.
-   intros H D eps epsgt0.
-   destruct (D eps epsgt0) as [d [dgt dP]].
-   exists d;split;auto.
-   intros.
-   rewrite H.
-   apply dP;auto.
- Qed.
  Lemma monomial_poly a n : {p : poly | forall x, eval_poly p x = a * npow x n}.
  Proof.
    exists ((repeat real_0 n) ++ [a]).
@@ -949,21 +918,21 @@ Section Derivative.
    ring.
  Defined.
 
- Lemma derive_poly_helper p1 p2 p1' p2' : (forall x, derivative (eval_poly p1) (eval_poly p1') x) -> (forall x, derivative (fun x => (npow x (length p1)) * (eval_poly p2 x)) (eval_poly p2') x) -> forall x, derivative (eval_poly (p1++p2)) (fun x => (eval_poly p1' x + eval_poly p2' x)) x.
+ Lemma derive_poly_helper p1 p2 p1' p2' r : uniform_derivative_fun (eval_poly p1) (eval_poly p1') r -> uniform_derivative_fun (fun x => (npow x (length p1)) * (eval_poly p2 x)) (eval_poly p2') r -> uniform_derivative_fun (eval_poly (p1++p2)) (fun x => (eval_poly p1' x + eval_poly p2' x)) r.
  Proof.
-   intros H1 H2 x.
-   apply (derive_ext _ (fun x => eval_poly p1 x + npow x (length p1) * eval_poly p2 x)); [intros;rewrite !eval_eval2;apply eval_poly2_app | ].
-   apply derivative_sum;auto.
+   intros H1 H2.
+   apply (derive_ext_fun _ (fun x => eval_poly p1 x + npow x (length p1) * eval_poly p2 x)); [intros;rewrite !eval_eval2;apply eval_poly2_app | ].
+   apply sum_rule;auto.
  Qed.
 
- Lemma derive_monomial a n : {p & forall x, derivative (fun x => a * npow x n) (eval_poly p) x}.
+ Lemma derive_monomial a n : {p & forall r, uniform_derivative_fun (fun x => a * npow x n) (eval_poly p) r}.
  Proof.
-   destruct n; [exists []; simpl; apply derivative_const|].
+   destruct n; [exists []; simpl; apply derivative_const_fun|].
    destruct (monomial_poly (a * (Nreal (S n))) n) as [p P].
    exists p.
    replace (eval_poly p) with (fun x => a * (Nreal (S n) * npow x n)) by (apply fun_ext;intros; rewrite P;ring).
    intros x.
-   apply derivative_sproduct.
+   apply derivative_fun_sproduct.
    apply derivative_monomial.
  Defined.
 
@@ -1048,22 +1017,22 @@ Section Derivative.
    ring.
  Qed.
 
- Lemma derive_poly_spec p : forall x, derivative (eval_poly p) (eval_poly (derive_poly p)) x.
+ Lemma derive_poly_spec p : forall r, uniform_derivative_fun (eval_poly p) (eval_poly (derive_poly p)) r.
  Proof.
    unfold derive_poly.
    induction p as [| a p IH] using poly_rev_ind.
    - intros.
      destruct (poly_deriv_exists []) as [p' [H1 H2]].
      simpl;replace p' with (@nil ^Real) by (rewrite length_zero_iff_nil in H1;auto).
-     simpl;apply derivative_const.
+     simpl;apply derivative_const_fun.
    - intros x.
      pose proof (derive_poly_app p a).
-     apply (derive_ext2 _ _ _ x H).
+     apply (derive_ext_fun2 _ _ _ x H).
      apply derive_poly_helper;auto.
      intros.
      destruct (derive_monomial a (length p)) as [m M].
      simpl.
-     apply (derive_ext _ (fun x => a * npow x (length p))); [intros;ring|].
+     apply (derive_ext_fun _ (fun x => a * npow x (length p))); [intros;ring|].
      apply M.
  Qed.
  (* Lemma derive_poly (p : poly) : {p' & forall x, derivative (eval_poly p) (eval_poly p') x }. *)
