@@ -961,7 +961,40 @@ Section Operations.
   Defined.
 End Operations.
 
-
+Section Examples.
+  Lemma derivative_const c r f:  (forall (x : (I r)), defined_to (f x) c) -> uniform_derivative (fun x => (pc_unit _ c)) (fun x => pc_unit _ real_0 ) r.
+  Proof.
+   intros H eps epsgt0.
+   exists real_1.
+   split; [apply real_1_gt_0|].
+   intros.
+   rewrite !pc_unit_ntrans2, !pc_unit_ntrans, !pc_unit_ntrans2.
+   replace (c+-c+-(real_0 * (y-x))) with real_0 by ring.
+   unfold pc_abs.
+   rewrite pc_unit_ntrans.
+   rewrite (proj2 (abs_zero real_0)); try apply real_le_triv;auto.
+   exists (real_0); exists (eps * abs (y-x)); split;[|split]; unfold defined_to;auto.
+   apply real_le_pos_mult_pos_pos.
+   apply real_lt_le;auto.
+   apply abs_pos.
+ Qed.
+  
+  Lemma derivative_id r f : (forall (x : (I r)), defined_to (f x) x) -> uniform_derivative (fun x => pc_unit _ x) (fun x => pc_unit _ real_1) r.
+  Proof.
+   intros H eps epsgt0.
+   exists real_1.
+   split; [apply real_1_gt_0|].
+   intros.
+   rewrite !pc_unit_ntrans2, !pc_unit_ntrans, !pc_unit_ntrans2.
+   replace (y+-x+-(real_1 * (y-x))) with real_0 by ring.
+   unfold pc_abs.
+   rewrite pc_unit_ntrans.
+   rewrite (proj2 (abs_zero real_0)); try apply real_le_triv;auto.
+   exists (real_0); exists (eps * abs (y-x)); split;[|split]; unfold defined_to;auto.
+   apply real_le_pos_mult_pos_pos.
+   apply real_lt_le;auto.
+   apply abs_pos.
+ Qed.
 Section FunctionDerivatives.
 
   Definition uniform_derivative_fun (f : ^Real -> ^Real) (g : ^Real -> ^Real) r := forall eps, (eps > 0) -> exists delta, delta > 0 /\ forall (x y : (I r)), dist x y <= delta -> abs (f y - f x - g x * (y - x)) <= eps*abs (y-x).
@@ -1014,6 +1047,26 @@ Section FunctionDerivatives.
     rewrite <-!pc_unit_ntrans2 in *.
     rewrite <-!pc_unit_ntrans in *.
     apply D.
+  Qed.
+
+  Lemma derivative_const_fun c r: uniform_derivative_fun (fun x => c) (fun x => real_0) r. 
+  Proof.
+    rewrite <-!derivative_function_iff.
+    intros.
+    pose proof (derivative_const c r (fun x => pc_unit _ c)).
+    apply H.
+    intros.
+    apply pc_unit_mono;auto.
+ Qed.
+
+  Lemma derivative_id_fun r : uniform_derivative_fun (fun x => x) (fun x => real_1) r.
+  Proof.
+    rewrite <-!derivative_function_iff.
+    intros.
+    pose proof (derivative_id r (fun x => pc_unit _ x)).
+    apply H.
+    intros.
+    apply pc_unit_mono;auto.
   Qed.
 End FunctionDerivatives.
 (* Section ConstructiveDerivatives. *)

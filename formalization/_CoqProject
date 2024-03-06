@@ -53,6 +53,8 @@ ClassicalContinuity.v
 ClassicalContinuousPartialRealFunctions.v
 ClassicalTopology.v
 ClassicalAnalysis.v
+ClassicalDifferentiability.v
+
 
 
 Poly.v
