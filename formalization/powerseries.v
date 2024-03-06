@@ -189,7 +189,15 @@ Qed.
 
   Lemma powerseries_pc_spec a x y: defined_to ((powerseries_pc a) x) y <-> is_sum (ps a x) y.
   Proof.
-  Admitted.
+  Search pc_ana_fun_to_pc_fun.
+  split.
+  intros.
+  unfold powerseries_pc in H.
+  rewrite <-pc_ana_fun_to_pc_fun_defined_to in H.
+  apply H.
+  intros.
+  apply pc_ana_fun_to_pc_fun_defined_to;auto.
+  Qed.
 
   Definition bounded_seq (a : nat -> Real) M {r : Real} (H : real_0 < r)  :=  forall n, abs (a n) <= Nreal M * (npow (real_inv (real_gt_neq _ _ H))  n).
                                                                                    
@@ -524,22 +532,6 @@ Section Derivative.
     apply derive_poly_spec.
  Qed.
 
- Definition derivative_fun (f : ^Real -> pc ^Real) (r : ^Real) : (^Real -> pc ^Real).
- Proof.
- Admitted.
-
- Lemma derivative_fun_spec f r : uniform_derivative f (derivative_fun f r) r.
- Admitted.
-
- (* Lemma derivative_fun_spec f : forall x y, defined_to ((derivative_fun f) x) y <-> derivative_pt f y x. *)
- (* Admitted. *)
- (*  Lemma Nreal_nonneg n : real_0 <= Nreal n. *)
- (*  Proof. *)
- (*    destruct n;[apply real_eq_le;simpl;auto|]. *)
- (*    apply real_lt_le. *)
- (*    apply Nreal_pos. *)
- (*    lia. *)
- (*  Qed. *)
 
   Lemma derivative_factor_bound : forall n, Nreal (n+1) <= npow real_2 n.
   Proof.
