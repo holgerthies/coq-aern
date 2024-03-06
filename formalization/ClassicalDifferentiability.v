@@ -203,9 +203,15 @@ Section ClassicalDerivatives.
       rewrite pc_abs_le in D2.
       simpl in D2.
       destruct D2 as [l [rt [L [R A]]]].
+      rewrite H3, H4, H5 in L.
+      rewrite !pc_unit_ntrans2 in L.
+      rewrite !pc_unit_ntrans in L.
+      rewrite !pc_unit_ntrans2 in L.
       assert  (l = fy - fx -f'x*(y-x)) as <-.
-      admit.
-      (* apply pc_unit_mono;rewrite <-L, <-!pc_unit_ntrans2, <- H3, <-H4, <-H5;auto). *)
+      {
+        apply pc_unit_mono; rewrite <-L.
+        auto.
+      }
       replace (eps * abs(y-x)) with rt by (apply pc_unit_mono; rewrite <-R;auto).
       apply A.
   - intros [D H] eps epsgt0.
@@ -220,10 +226,12 @@ Section ClassicalDerivatives.
     exists (fy - fx -f'x*(y-x)); exists (eps * abs (y-x)).
     split; [|split;[apply pc_unit_mono|]];auto.
     apply pc_unit_mono.
-    rewrite <-!pc_unit_ntrans2.
-    rewrite Fx,F'x,Fy.
+    rewrite <-pc_unit_ntrans2.
+    rewrite Fx, Fy, F'x.
+    rewrite !pc_unit_ntrans2.
+    rewrite !pc_unit_ntrans.
     rewrite !pc_unit_ntrans2;auto.
-Admitted.
+Qed.
 
     Definition bounded_by (f : ^Real -> pc ^Real) M r := (forall (x : (I r)), (pc_abs (f x) <= (pc_unit _ M))%pcreal).
 
@@ -895,7 +903,7 @@ Section Operations.
     destruct (proj1 H2 x) as [[f2x F2x] [g2x G2x]];auto.
     destruct (proj1 H2 y) as [[f2y F2y] _];auto.
     exists (f1y * f2y - f1x * f2x - (f1x * g2x + g1x * f2x) * (y - x)); exists (eps * abs(y-x)).
-    split; [rewrite <-!pc_unit_ntrans2, F1x, F1y, F2x, F2y, G1x, G2x, !pc_unit_ntrans2;apply pc_unit_mono;auto|split;[apply pc_unit_mono;auto|]].
+    split; [rewrite F1x, F1y, F2x, F2y, G1x, G2x, !pc_unit_ntrans2,!pc_unit_ntrans, !pc_unit_ntrans2;apply pc_unit_mono;auto|split;[apply pc_unit_mono;auto|]].
     replace (f1y * f2y - f1x * f2x - (f1x * g2x + g1x * f2x) * (y - x)) with ((f1y - f1x)*(g2x)*(y-x) + (f1y * (f2y - f2x - g2x * (y-x)) + f2x * (f1y - f1x - g1x * (y-x)))) by ring.
     apply (real_le_le_le _ _ _ (abs_tri _ _)).
     rewrite (half_twice_mult eps _).
