@@ -382,23 +382,15 @@ Lemma min_upperbound_exists x : (real_0 < x) -> exists (n: nat), (Nreal n <= x) 
    - add_both_side_by (-x);apply real_lt_le;auto.
   Qed. 
 
-  Lemma real_le_or_ge : forall x y, (x <= y) \/ (y <= x).
-  Proof.
-    intros.
-    destruct (real_total_order x y) as [T | [T | T]].
-    left;apply real_lt_le;auto.
-    left;apply real_eq_le;auto.
-    right;apply real_lt_le;auto.
-  Qed.
 
   Lemma interval_subdivision_step x y d d' n : (d > real_0) -> (real_0 <= d') -> (d' <= d) -> (dist x y = (Nreal (S n) * d) + d')-> exists x1, dist x x1 <= d /\ dist x1 y = Nreal n * d + d'  /\ (abs x1 <= abs x \/ abs x1 <= abs y). 
   Proof.
-    destruct (real_le_or_ge x y) as [T | T].
+    destruct (real_le_or_le x y) as [T | T].
     - intros.
       destruct (interval_subdivision_step_lt x y d d' n T H H0 H1 H2) as [x1 [P1 [P2 [P3 P4]]]].
       exists x1.
       split;[|split];auto.
-      destruct (real_le_or_ge x1 real_0).
+      destruct (real_le_or_le x1 real_0).
       left.
       rewrite !abs_neg_id_neg;auto.
       add_both_side_by (x1+x);auto.
@@ -414,7 +406,7 @@ Lemma min_upperbound_exists x : (real_0 < x) -> exists (n: nat), (Nreal n <= x) 
       exists (-x1).
       split;[|split];try (rewrite <-real_metric_plus_inv_invariant; (replace (- -x1) with x1 by ring));auto.
       rewrite <-abs_symm.
-      destruct (real_le_or_ge x1 real_0).
+      destruct (real_le_or_le x1 real_0).
       left.
       rewrite abs_neg_id_neg,abs_pos_id;auto.
       add_both_side_by (x1-x);auto.
@@ -559,10 +551,40 @@ Lemma min_upperbound_exists x : (real_0 < x) -> exists (n: nat), (Nreal n <= x) 
 
  Lemma restrict_to_interval_spec1 f r : forall x fx, abs x <= r -> (defined_to (f x) fx <-> defined_to (restrict_to_interval f r x) fx).
  Proof.
- Admitted.
+  intros.
+  split.
+  intros.
+  apply pc_hprop_lem_reduce_eq.
+  intros.
+  rewrite H0;auto.
+  intros.
+  contradict H.
+  apply t.
+  intros.
+  unfold defined_to.
+  rewrite <-H0.
+  apply eq_sym.
+  apply pc_hprop_lem_reduce_eq;auto.
+  intros.
+  contradict H.
+  apply t.
+ Qed.
+
 Lemma restrict_to_interval_spec2 f r : forall x, defined (restrict_to_interval f r x) -> abs x <= r.
 Proof.
-Admitted.
+  intros.
+  destruct H.
+  apply Prop_dn_elim.
+  intros H0.
+  apply (@pc_bot_defined_to_absurd _ x0).
+  unfold defined_to.
+  rewrite <-H.
+  apply eq_sym.
+  apply pc_hprop_lem_reduce_eq;auto.
+  intros.
+  contradict t.
+  apply H0.
+Qed.
 
  Lemma uniformly_continuous_continuous f r : uniformly_continuous f r -> 
     (forall x, abs x <= r -> cont_at (restrict_to_interval f r) x).
@@ -582,10 +604,21 @@ Admitted.
   Qed.
 
   Lemma real_lt_or_ge x y : (x < y) \/ (x >= y).
-  Admitted.
+  Proof.
+    destruct (real_total_order x y) as [H | [H | H]]; [left | right;apply real_eq_le | right;apply real_lt_le];auto.
+  Qed.
 
   Lemma abs_le_iff x y: abs x <= y <-> -y <= x <= y.
-  Admitted.
+  Proof.
+    split.
+    - intros.
+      destruct (real_abs_cand _ _ H);split;auto.
+      add_both_side_by (y-x);auto.
+    - intros.
+      destruct H.
+      destruct (real_le_or_le x real_0);[rewrite abs_neg_id_neg| rewrite abs_pos_id];auto.
+      add_both_side_by (x - y);auto.
+  Qed.
 
   Lemma uniformly_continuous_bound_above f r : uniformly_continuous f r -> exists M, forall x, abs x <= r -> ((f x) <= pc_unit _ M)%pcreal.
   Proof.
@@ -619,9 +652,24 @@ Admitted.
      apply abs_le_iff;auto.
      apply restrict_to_interval_spec1;auto.
   Qed.
+
   Lemma uniformly_continuous_inv f r : uniformly_continuous f r -> uniformly_continuous (fun x => - f x)%pcreal r.
   Proof.
-  Admitted.
+    intros H eps epsgt0.
+    destruct (H _ epsgt0) as [d [dgt0 D]].
+    exists d;split;auto.
+    intros.
+    destruct (D _ _ H0) as [l [rt [L [R P]]]].
+    exists l; exists rt.
+    split;[|split];auto.
+    apply pc_lift2_iff.
+    apply pc_lift2_iff in L.
+    destruct L as [x' [y' [Dx' [Dy' ->]]]].
+    exists (-x'), (-y').
+    assert (forall x, (- - x) = x) by (intros;ring).
+    split; [|split];try (apply defined_to_opp;rewrite H1;auto).
+    rewrite <-real_metric_plus_inv_invariant;auto.
+  Qed.
   
   Lemma uniformly_continuous_bound_below f r : uniformly_continuous f r -> exists M, forall x, abs x <= r -> ((f x) >= pc_unit _ M)%pcreal.
   Proof.
@@ -646,10 +694,34 @@ Admitted.
   Qed.
 
   Lemma pc_le_unit_l x x' y : (defined_to x x') -> ((x <= pc_unit _ y)%pcreal <-> x' <= y).
-  Admitted.
+  Proof.
+    intros.
+    split.
+    - intros.
+      destruct H0 as [l [r [L [R H0]]]].
+      rewrite H in L.
+      apply pc_unit_mono in L,R.
+      rewrite L, R;auto.
+   -  intros.
+      exists x'; exists y.
+      split;[|split];auto.
+      apply pc_unit_mono;auto.
+  Qed.
 
   Lemma pc_le_unit_r x y y' : (defined_to y y') -> ((pc_unit _ x <= y)%pcreal <-> x <= y').
-  Admitted.
+  Proof.
+    intros.
+    split.
+    - intros.
+      destruct H0 as [l [r [L [R H0]]]].
+      rewrite H in R.
+      apply pc_unit_mono in L,R.
+      rewrite L, R;auto.
+   - intros.
+     exists x; exists y'.
+      split;[|split];auto.
+      apply pc_unit_mono;auto.
+  Qed.
 
   Lemma uniformly_continuous_bounded f r : uniformly_continuous f r -> exists M, forall x, abs x <= r -> (pc_abs (f x) <= pc_unit _ M)%pcreal.
   Proof.
