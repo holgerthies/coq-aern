@@ -11,7 +11,7 @@ Require Import Poly.
 
 Require Import RealAssumption.
 Require Import ClassicalAnalysis.
-Require Import ClassicalPartialReals.
+Require Import ClassicalPartialReals ClassicalDifferentiability.
 
 Section TaylorModels.
 
@@ -62,7 +62,7 @@ Section TaylorModels.
    destruct (proj1 (pc_lift2_iff _ _ _ _ ) H0) as [f1x [f2x [Hf1x [Hf2x ->]]]].
    rewrite H3.
    unfold dist.
-   replace (f1x * f2x - eval_poly p1 x * eval_poly p2 x) with (eval_poly p1 x * (f2x -  eval_poly p2 x) + eval_poly p2 x * (f1x  - eval_poly p1 x) + (f1x - eval_poly p1 x )* ((f2x) - eval_poly p2 x))  by ring.
+  replace (f1x * f2x - eval_poly p1 x * eval_poly p2 x) with (eval_poly p1 x * (f2x -  eval_poly p2 x) + eval_poly p2 x * (f1x  - eval_poly p1 x) + (f1x - eval_poly p1 x )* ((f2x) - eval_poly p2 x))  by ring.
     apply (real_le_le_le _ _ _ (abs_tri _ _ )).
     rewrite Heqr in *.
     pose proof (real_le_le_le _ _ _ H (Minmax.real_min_fst_le r1 r2)).
@@ -105,41 +105,25 @@ Section TaylorModels.
   
   Definition polynomial_approx (f : Real -> pc_Real) (t : nat -> (taylor_model f)) r := forall n, (tm_error f (t n)) <= prec n /\ (tm_radius f (t n)) >= r.
   
-  Lemma polynomial_approx_cont f t r x : (r > real_0) -> defined (f x) -> polynomial_approx f t r -> abs x < r -> cont_at f x.
+  Lemma polynomial_approx_cont (f : Real -> pc_Real) t r : (forall x : (I r), defined (f x)) -> polynomial_approx f t r -> uniformly_continuous f r.
   Proof.
     intros.
-    split;auto.
+    apply uniformly_continuous_unfold.
+    split;[intros; apply (H (real_to_I H1)) | ].
+    intros eps epsgt0.
+    destruct (real_Archimedean _ epsgt0) as [n N].
+    destruct (continuous_poly (tm_poly f (t (n+1+1)%nat)) r (prec (n+1)%nat)) as [d [Dp D]]; try apply prec_pos.
+    exists d ; split;auto.
     intros.
-    destruct (real_Archimedean _ H3) as [n N].
-    destruct (continuous_poly (tm_poly f (t (n+1+1)%nat)) x (prec (n+1)%nat)) as [d [Dp D]]; try apply prec_pos.
-    assert (exists c, c > real_0 /\ c <= d /\ forall y, dist x y <= c -> abs y < r) as [c [C0 [C1 C2]]].
-    {
-      assert (r - abs x > real_0) as R by (apply real_gt_minus_gt_zero;auto).
-      destruct (real_Archimedean _ R) as [m M].
-      exists (Minmax.real_min d (prec m)).
-      split; [destruct (Minmax.real_min_cand d (prec m)) as [-> | ->]|split;try apply Minmax.real_min_fst_le];try apply prec_pos;auto.
-      intros.
-      replace y with ((y - x) + x) by ring.
-      apply (real_le_lt_lt _ _ _ (abs_tri _ _)).
-      apply (real_lt_le_lt _ ((r - abs x) + abs x) _); [|ring_simplify;apply real_le_triv].
-      apply real_lt_plus_r_lt;auto.
-      apply (real_le_lt_lt _ (prec m));auto.
-      rewrite <-dist_abs.
-      apply (real_le_le_le _ _ _ H4).
-      apply Minmax.real_min_snd_le.
-    }
-    exists c ; split;auto.
-    intros.
-    simpl.
     unfold dist.
     replace (fx - fy) with ((fx - (eval_tm (t (n+1+1)%nat) x)) + ((eval_tm (t (n+1+1)%nat) y)- fy) + ((eval_tm (t (n+1+1)%nat) x) - (eval_tm (t (n+1+1)%nat) y))) by ring.
     apply (real_le_le_le _ (prec n) _); [| apply real_lt_le; auto].
     apply (real_le_le_le _ _ _ (abs_tri _ _)).
     rewrite <-prec_twice.
-    apply real_le_le_plus_le; [|apply D;apply (real_le_le_le _ _ _ H4);auto].
+    apply real_le_le_plus_le; [|apply (D (real_to_I H1) (real_to_I H2));auto].
     apply (real_le_le_le _ _ _ (abs_tri _ _)).
     rewrite <-prec_twice.
-    specialize (H1 (n+1+1)%nat) as [H1 H1'].
+    specialize (H0 (n+1+1)%nat) as [H0 H0'].
     destruct (t (n+1+1)%nat).
     unfold eval_tm.
     simpl in *.
@@ -147,86 +131,71 @@ Section TaylorModels.
     apply real_le_le_plus_le; apply (real_le_le_le _ tm_error0);auto.
     rewrite dist_symm.
     apply tm_spec0;auto.
-    apply real_lt_le.
-    apply (real_lt_le_lt _ r);auto.
+    apply (real_le_le_le _ r);auto.
     apply tm_spec0;auto.
-    apply real_lt_le.
-    apply (real_lt_le_lt _ r _);auto.
+    apply (real_le_le_le _ r _);auto.
   Qed.
 
-  Lemma poly_approx_spec f t r x n : r > real_0 -> abs x <= r -> (polynomial_approx f t r) -> forall fx, defined_to (f x) fx -> dist (fx) (eval_tm (t n) x) <= prec n. 
+  Lemma poly_approx_spec f t r n : forall (x : I r), (polynomial_approx f t r) -> forall fx, defined_to (f x) fx -> dist (fx) (eval_tm (t n) x) <= prec n. 
   Proof.
     intros.
-    specialize (H1 n) as [H1 H1'].
+    specialize (H n) as [H1 H1'].
     unfold eval_tm.
     destruct (t n).
     simpl in *.
     apply (real_le_le_le _ tm_error0);auto.
     apply tm_spec0;auto.
+    destruct x.
     apply (real_le_le_le _ r);auto.
  Qed.
 
-  Lemma poly_approx_dist f t r : r > real_0 -> (polynomial_approx f t r) -> forall eps, eps > real_0 -> exists N, forall m n, (n > N)%nat -> (m > N)%nat -> forall x, defined (f x) -> abs x <= r -> dist (eval_tm (t n) x) (eval_tm (t m) x) < eps. 
+  Lemma poly_approx_dist f t r : (polynomial_approx f t r) -> forall eps, eps > real_0 -> exists N, forall m n, (n > N)%nat -> (m > N)%nat -> forall (x : I r), defined (f x)  -> dist (eval_tm (t n) x) (eval_tm (t m) x) <= eps. 
   Proof.
-    intros.
-   destruct (real_Archimedean _ H1) as [N Np].
+   intros.
+   destruct (real_Archimedean _ H0) as [N Np].
    exists (N+1)%nat.
    intros.
    unfold dist.
-   destruct H4 as [fx Fx].
+   destruct H3 as [fx Fx].
    replace (eval_tm (t n) x - eval_tm (t m) x) with ((eval_tm (t n) x - fx) + (fx - eval_tm (t m) x)) by ring.
-   apply (real_lt_lt_lt _ (prec N));auto.
+   apply real_lt_le.
+   apply (real_le_lt_lt _ (prec N));auto.
    rewrite <- prec_twice.
-   apply (real_le_lt_lt _ _ _ (abs_tri _ _ )).
-   apply real_lt_lt_plus_lt.
-   - apply (real_le_lt_lt _ (prec n)); try apply prec_monotone;auto.
+   apply (real_le_le_le _ _ _ (abs_tri _ _ )).
+   apply real_le_le_plus_le.
+   - apply real_lt_le; apply (real_le_lt_lt _ (prec n)); try apply prec_monotone;auto.
      rewrite <-dist_abs.
-     apply (poly_approx_spec _ _ _ _ n H H5 H0);auto.
-   - apply (real_le_lt_lt _ (prec m)); try apply prec_monotone;auto.
-     apply (poly_approx_spec _ _ _ _ m H H5 H0);auto.
+     apply (poly_approx_spec _ _ _ n x H _ Fx);auto.
+   - apply real_lt_le; apply (real_le_lt_lt _ (prec m)); try apply prec_monotone;auto.
+     apply (poly_approx_spec _ _ _ m x H _ Fx);auto.
  Qed.
 
-  Lemma lbc f f' r M : (forall x, abs x <= r -> derivative f f' x) -> (forall x, abs x <= r -> abs (f' x) < M) -> forall x y, abs x <= r -> abs y <= r -> dist (f x) (f y) < M * dist x y.
-  Proof.
-    intros.
-  Admitted.
 
-  Lemma derivative_inv f g x : derivative f g x -> derivative (fun x => - f x) (fun x => - g x) x.
+  Lemma polynomial_approx_derivative_bound {f} {t : nat -> (taylor_model f)} {f' t'  r} :  (polynomial_approx f' t' r)  -> (forall (x : I r), defined (f' x)) ->  (forall n,  uniform_derivative_fun (eval_tm (t n)) (eval_tm (t' n)) r) -> forall eps, eps > real_0 -> exists N, forall m n, (n > N)%nat -> (m > N)%nat -> forall (x y : (I r)), dist (eval_tm (t m) x - eval_tm (t n) x) (eval_tm (t m) y - eval_tm (t n) y) <= eps * dist x y.
   Proof.
     intros.
-    intros eps epsgt0.
-    destruct (X _ epsgt0) as [d [X1 X2]].
-    exists d;split;auto.
-    intros.
-    rewrite abs_symm.
-    replace (- (- f y - - f x - - g x *(y-x))) with (f y - f x - g x * (y-x)) by ring.
-    apply X2;auto.
-  Defined.
-
-  Lemma polynomial_approx_derivative_bound f t f' t' r :  (r > real_0) -> (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall x, abs x <= r -> defined (f' x)) ->(forall x n,  derivative (eval_tm (t n)) (eval_tm (t' n)) x) -> forall eps, eps > real_0 -> exists N, forall m n, (n > N)%nat -> (m > N)%nat -> forall x y, abs x <= r -> abs y <= r -> dist (eval_tm (t m) x - eval_tm (t n) x) (eval_tm (t m) y - eval_tm (t n) y) < eps * dist x y.
-  Proof.
-    intros.
-    destruct (poly_approx_dist _ _ _ H H1 _ H3) as [N NP].
+    destruct (poly_approx_dist _ _ _ H _ H2) as [N NP].
     exists N.
     intros.
-    assert (forall x, abs x <= r -> derivative (fun x => (eval_tm (t m)) x - eval_tm (t n) x) (fun x => (eval_tm (t' m) x - eval_tm (t' n) x )) x).
+    assert (uniform_derivative_fun (fun x => (eval_tm (t m)) x - eval_tm (t n) x) (fun x => (eval_tm (t' m) x - eval_tm (t' n) x )) r).
     {
       intros.
-      apply derivative_sum;auto.
-      apply derivative_inv;auto.
+      apply sum_rule;auto.
+      apply derivative_opp_fun;auto.
     }
-    specialize (NP _ _ H4 H5).
-    apply (lbc _ _ _ eps X0 );auto.
-    intros.
+    specialize (NP _ _ H3 H4).
+
+    apply (lbc_fun _ _ _ eps H5 );auto.
+    intros x'.
     rewrite <-dist_abs.
     apply NP;auto.
   Qed.
 
-  Lemma polynomial_approx_derivative_helper f t f' t' r :  (r > real_0) -> (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall x, abs x <= r -> defined (f' x)) ->(forall x n, derivative (eval_tm (t n)) (eval_tm (t' n)) x) -> forall eps, eps > real_0 -> exists N, forall n x y fx fy, (n >= N)%nat -> abs x <= r ->  abs y <= r -> defined_to (f x) fx -> defined_to (f y) fy -> dist (fy - fx) (eval_tm (t n) y - eval_tm (t n) x) <= eps * dist x y.
+  Lemma polynomial_approx_derivative_helper {f t f' t' r} :   (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall (x : I r), defined (f' x)) ->(forall n, uniform_derivative_fun (eval_tm (t n)) (eval_tm (t' n)) r) -> forall eps, eps > real_0 -> exists N, forall n (x y : (I r)) fx fy, (n >= N)%nat -> defined_to (f x) fx -> defined_to (f y) fy -> dist (fy - fx) (eval_tm (t n) y - eval_tm (t n) x) <= eps * dist x y.
   Proof.
     intros.
     destruct (real_Archimedean _ H3) as [m mlt].
-    destruct (polynomial_approx_derivative_bound _ _ _ _ _ H H0 H1 H2 X _ (prec_pos (m+1)%nat)) as [N NP].
+    destruct (polynomial_approx_derivative_bound H0 H1  H2 _ (prec_pos (m+1)%nat)) as [N NP].
     exists (N+1)%nat.
     intros.
     destruct (dist_pos x y).
@@ -234,10 +203,11 @@ Section TaylorModels.
     assert (prec (m+1)%nat * dist x y > real_0) by (apply real_lt_pos_mult_pos_pos;auto;apply prec_pos).
     apply (real_le_le_le _ (prec (m+1)%nat * dist x y + (prec (m+1)%nat)*dist x y)); [|apply (real_le_le_le _ (prec m * dist x y)); [rewrite <-(prec_twice m);ring_simplify;apply real_eq_le|rewrite !(real_mult_comm _ (dist _ _));apply real_le_mult_pos_le];try apply real_lt_le];auto.
     unfold dist.
-    destruct (real_Archimedean _ H10) as [N' NP'].
+    destruct (real_Archimedean _ H8) as [N' NP'].
     replace (fy - fx - (eval_tm (t n) y - eval_tm (t n) x)) with ((fy - (eval_tm (t (N+N'+1)%nat)) y) + (eval_tm (t (N+N'+1)%nat) x - fx) + ((eval_tm (t (N+N'+1)%nat) y - eval_tm (t n) y) - ((eval_tm (t (N+N'+1)%nat) x) - eval_tm (t n) x))) by ring.
     apply (real_le_le_le _ _ _ (abs_tri _ _)).
-    apply real_le_le_plus_le; [|rewrite <-!dist_abs, (dist_symm y);apply real_lt_le;apply NP;auto;lia].
+    apply real_le_le_plus_le; [|rewrite <-!dist_abs, (dist_symm y);apply NP;auto;lia].
+
     apply (real_le_le_le _ (prec N'));auto.
     apply (real_le_le_le _ (prec (N + N'))); [|destruct N; [apply real_eq_le;auto|apply real_lt_le; apply prec_monotone;lia]].
     rewrite <-prec_twice.
@@ -247,16 +217,16 @@ Section TaylorModels.
     rewrite <-dist_abs.
     apply (poly_approx_spec _ _ _ _ _ H);auto.
     apply real_lt_le;auto.
-    rewrite <-H9.
+    rewrite <-H7.
     replace (eps*real_0) with real_0 by ring.
     apply real_eq_le.
     apply dist_zero.
     rewrite (proj1 (dist_zero x y));auto.
     replace fy with fx.
     ring_simplify;auto.
-    rewrite (proj1 (dist_zero x y)) in H7; auto.
-    rewrite H7 in H8.
-    apply pc_unit_mono in H8.
+    rewrite (proj1 (dist_zero x y)) in H5; auto.
+    rewrite H5 in H6.
+    apply pc_unit_mono in H6.
     auto.
  Qed.
 
@@ -270,35 +240,21 @@ Section TaylorModels.
     apply real_eq_le;ring.
   Qed.
 
-  Lemma polynomial_approx_derivative f t f' t' r  : r > real_0 ->  (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall x, abs x <= r -> defined (f' x)) -> (forall x n, derivative (eval_poly (tm_poly f (t n))) (eval_poly (tm_poly f' (t' n))) x) -> forall x fx', defined (f x) -> (abs x < r) -> defined_to (f' x) fx' -> derivative_pt f fx' x. 
+  Lemma polynomial_approx_derivative f t f' t' r  : (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall (x : I r), defined (f x) /\ defined (f' x) ) -> (forall n, uniform_derivative_fun (eval_poly (tm_poly f (t n))) (eval_poly (tm_poly f' (t' n))) r) -> uniform_derivative f f' r. 
   Proof.
     intros.
-    split;auto.
+    apply uniform_derivative_unfold.
+    split;[intros;  apply (H1 (real_to_I H3)) |].
     intros.
-    destruct (real_Archimedean _ H6) as [n np].
-    destruct (polynomial_approx_derivative_helper _ _ _ _ _ H H0 H1 H2 X _ (prec_pos (n+1)%nat))as [N0 NP0].
+    destruct (real_Archimedean _ H3) as [n np].
+    assert (forall (x : I r), defined (f' x)) as H1' by (intros; apply H1).
+    destruct (polynomial_approx_derivative_helper H H0 H1' H2 _ (prec_pos (n+1)%nat))as [N0 NP0].
     assert (exists N, (N >= N0)%nat /\ (N >= (n+3))%nat) as [N [NP NP']] by (exists (n+N0+3)%nat;lia).
-    destruct (X x  N  _ (prec_pos (n+1+1)%nat)) as [d0 [dp0 D0]].
-    assert (exists d, d > real_0 /\ d <= d0 /\ (forall y, dist x y <= d -> abs y < r)) as [d [Dp1 [Dp2 Dp3]]].
-    {
-      assert (r - abs x > real_0) as R by (apply real_gt_minus_gt_zero;auto).
-      destruct (real_Archimedean _ R) as [m M].
-      exists (Minmax.real_min d0 (prec m)).
-      split; [destruct (Minmax.real_min_cand d0 (prec m)) as [-> | ->]|split;try apply Minmax.real_min_fst_le];try apply prec_pos;auto.
-      intros.
-      replace y with ((y - x) + x) by ring.
-      apply (real_le_lt_lt _ _ _ (abs_tri _ _)).
-      apply (real_lt_le_lt _ ((r - abs x) + abs x) _); [|ring_simplify;apply real_le_triv].
-      apply real_lt_plus_r_lt;auto.
-      apply (real_le_lt_lt _ (prec m));auto.
-      rewrite <-dist_abs.
-      apply (real_le_le_le _ _ _ H7).
-      apply Minmax.real_min_snd_le.
-    }
+    destruct (H2 N  _ (prec_pos (n+1+1)%nat)) as [d [dp0 D0]].
     exists d.
     split;auto.
     intros.
-    replace (fy - fx - fx'*(y-x)) with (((fy - fx) - ( (eval_tm (t N) y) - (eval_tm (t N) x))) + (((eval_tm (t' N) x) - fx')*(y-x)+((eval_tm (t N) y)-(eval_tm (t N) x)-(eval_tm (t' N) x)*(y-x)))) by ring.
+    replace (fy - fx - f'x*(y-x)) with (((fy - fx) - ( (eval_tm (t N) y) - (eval_tm (t N) x))) + (((eval_tm (t' N) x) - f'x)*(y-x)+((eval_tm (t N) y)-(eval_tm (t N) x)-(eval_tm (t' N) x)*(y-x)))) by ring.
     apply (real_le_le_le _ (prec n * abs (y -x))); [|rewrite !(real_mult_comm _ (abs _));apply real_le_mult_pos_le;[apply abs_pos|apply real_lt_le;auto]].
     rewrite <-prec_twice, (real_mult_comm (_ + _)), real_mult_plus_distr.
     apply (real_le_le_le _ _ _ (abs_tri  _ _)).
@@ -306,7 +262,7 @@ Section TaylorModels.
     - rewrite real_mult_comm.
       rewrite <-!dist_abs.
       rewrite dist_symm.
-      apply NP0;try apply real_lt_le;auto.
+      apply (NP0 N (real_to_I H4) (real_to_I H5));auto.
     - apply (real_le_le_le _ _ _ (abs_tri  _ _)).
       rewrite <-prec_twice, real_mult_plus_distr.
       apply real_le_le_plus_le.
@@ -314,10 +270,9 @@ Section TaylorModels.
         apply real_le_mult_pos_le; try apply abs_pos.
         apply (real_le_le_le _ (prec N)); [|apply real_lt_le;apply prec_monotone;lia].
         rewrite <-dist_abs.
-        apply (poly_approx_spec _ _ _ _ N H (real_lt_le _ _ H4) H1 _ H5).
+        apply (poly_approx_spec  _ _ _ N (real_to_I H4) H0 );auto.
       + rewrite (real_mult_comm (abs _)).
-        apply D0;auto.
-        apply (real_le_le_le _ d);auto.
+        apply (D0 (real_to_I H4) (real_to_I H5));auto.
   Qed.
   
   Definition is_fast_cauchy_poly (p : nat -> poly) r := forall x n m, abs x < r -> dist (eval_poly (p n) x) (eval_poly (p m) x) <= prec n + prec m.
@@ -330,235 +285,6 @@ Section TaylorModels.
     intros n m.
     apply H;auto.
   Qed.
-
-
-  Definition not A := A -> False.
-
-  Lemma dn_elimm : forall P : Prop, not (not P) -> P.
-  Proof.
-    intros.
-    destruct (lem P); auto.
-    contradict (H H0).
-  Defined.
-  
-  Lemma hprop_Nabla_hprop : forall P, is_hprop P -> is_hprop (Nabla P).
-  Proof.
-    intros.
-    intros [p1 h1] [p2 h2].
-    assert (p1 = p2).
-    apply fun_ext.
-    intros.
-    apply Prop_ext.
-    intro.
-    destruct h2.
-    destruct H1.
-    rewrite (H x x0).
-    exact H1.
-    intro.
-    destruct h1.
-    destruct H1.
-    rewrite (H x x0).
-    exact H1.
-    destruct H0.
-    assert (h1 = h2).
-    apply irrl.
-    destruct H0.
-    auto.
-  Defined.
-  
-  Lemma False_hprop : is_hprop False.
-  Proof.
-    intros x y.
-    contradict x.
-  Defined.
-
-  Definition dn_lift {A B} (f : A -> B) : not (not A) -> not (not B).
-  Proof.
-    intros.
-    
-    intro.
-    exact (H (fun a : A => H0 (f a))).
-  Defined.
-  
-  Lemma dn_hprop : forall P, is_hprop (not (not P)).
-  Proof.
-    intros.
-    intros x y.
-    apply fun_ext.
-    intros.
-    apply False_hprop.
-  Defined.
-  
-    
-  Definition Nabla_dn_shift : forall P A, is_hprop P -> (not (not P) -> Nabla A) -> P -> Nabla A.
-  Proof.
-    intros.
-    apply X.
-    intro.
-    exact (H0 X0).
-  Defined.
-  
-  Definition Nabla_dn_extend : forall P A, is_hprop P -> (P -> Nabla A) -> (not (not P) -> Nabla A).
-  Proof.
-    intros.
-    apply (Nabla_bind X).
-    clear X A.
-    exists (fun p : P => True).
-    destruct (lem (exists p : P, True)).
-    destruct H1.
-    exists x.
-    split.
-    auto.
-    intros.
-    apply H.
-    assert (forall p : P, False).
-    intro.
-    contradict H1.
-    exists p; auto.
-    contradict (H0 H2).
-  Defined.
-  
-  Lemma Nabla_dn_sheaf_1 : forall P A h x, 
-      Nabla_dn_shift P A h (Nabla_dn_extend P A h x) = x.
-  Proof.
-    intros.
-    apply fun_ext.
-    intro.
-    unfold Nabla_dn_extend.
-    unfold Nabla_bind.
-    unfold Nabla_dn_shift.
-    destruct (lem (exists _ : P, True)).
-    destruct e.
-    induction (h x0 x1).
-    assert ((exist (fun P0 : P -> Prop => exists ! a : P, P0 a) (fun _ : P => True)
-               (ex_intro (unique (fun _ : P => True)) x0 (conj t (fun (x' : P) (_ : True) => h x0 x')))) = Nabla_unit _ x0).
-    apply hprop_Nabla_hprop.
-    exact h.
-    rewrite H.
-    rewrite Nabla_unit_ntrans.
-    rewrite Nabla_coh1.
-    exact eq_refl.
-    contradict n.
-  Defined.
-  
-  Lemma Nabla_dn_sheaf_2 : forall P A h x, 
-      Nabla_dn_extend P A h (Nabla_dn_shift P A h x) = x.
-  Proof.
-    intros.
-    apply fun_ext.
-    intros.
-    unfold Nabla_dn_extend.
-    unfold Nabla_bind.
-    unfold Nabla_dn_shift.
-    destruct (lem (exists _ : P, True)).
-    destruct e.
-    assert ((exist (fun P0 : P -> Prop => exists ! a : P, P0 a) (fun _ : P => True)
-               (ex_intro (unique (fun _ : P => True)) x1 (conj t (fun (x' : P) (_ : True) => h x1 x')))) = Nabla_unit _ x1).
-    apply hprop_Nabla_hprop.
-    exact h.
-    rewrite H.
-    rewrite Nabla_unit_ntrans.
-    rewrite Nabla_coh1.
-    rewrite (dn_hprop P  (fun H0 : not P => H0 x1) x0).
-    apply eq_refl.
-    contradict n.
-    destruct (lem (not P)).
-    contradict (x0 H).
-    apply dn_elimm.
-    apply (dn_lift (fun p : P => ex_intro _ p I)). 
-    exact x0.
-  Defined.
-
-  Lemma dn_lem : forall A, not (not (A + not A)).
-  Proof.
-    intros.
-    intro p.
-    assert (not A).
-    intro.
-    assert (A + not A).
-    left; auto.
-    exact (p X0).
-    assert (A + not A).
-    right; auto.
-    exact (p X).
-  Defined.     
-
-  Definition Nabla_hprop_lem {A} : forall P, is_hprop P -> ((P + not P) -> Nabla A) -> Nabla A.
-  Proof.
-    intros P h f.
-    apply (Nabla_dn_extend (P + not P) A).
-    intros x y.
-    destruct x, y.
-    rewrite (h p p0); auto.
-    contradict (n p).
-    contradict (n p).
-    assert (n = n0).
-    apply fun_ext.
-    intro.
-    contradict (n x).
-    rewrite H; auto.
-    exact f.
-    apply dn_lem.
-  Defined.
-
-  Definition Nabla_Prop_lem {A} : forall P : Prop, ((P + ~ P) -> Nabla A) -> Nabla A.
-  Proof.
-    intro P.
-    assert (is_hprop P).
-    intros x y.
-    apply irrl.
-    apply Nabla_hprop_lem.
-    exact H.
-  Defined.
-
-  Definition pc_hprop_lem {A} : forall P, is_hprop P -> ((P + not P) -> pc A) -> pc A.
-  Proof.
-    intros.
-    exact (Nabla_hprop_lem P H X).
-  Defined.
-  
-    
-  Definition pc_Prop_lem {A} : forall P : Prop, ((P + ~ P) -> pc A) -> pc A.
-  Proof.
-    intro P.
-    assert (is_hprop P).
-    intros x y.
-    apply irrl.
-    apply Nabla_hprop_lem.
-    exact H.
-  Defined.
-
-  Definition pc_ana_fun A B := {S : A * B -> Prop | forall x y1 y2, S (x, y1) -> S (x, y2) -> y1 = y2}.
-
-  Definition pc_ana_fun_to_pc_fun A B : pc_ana_fun A B -> A -> pc B.
-  Proof.
-    intros [S p] x. 
-    apply (pc_hprop_lem ({y | S (x, y)})).
-    intros [a h1] [b h2].
-    pose proof (p x a b h1 h2).
-    destruct H.
-    rewrite (irrl _ h1 h2).
-    apply eq_refl.
-    intros [l|r].
-    destruct l.
-    exact (pc_unit _ x0).
-    exact pc_bot.
-  Defined.
-    
-  
-  Definition limit_cfun' (p : nat -> poly) : pc_ana_fun ^Real ^Real. 
-  Proof.
-   exists (fun xy => is_fast_limit_p (snd xy)  (fun n => (eval_poly (p n) (fst xy)))).
-   intros.
-   simpl in H0.
-   apply (limit_is_unique _ _ _ H H0).
-  Qed.
-
-  Definition limit_cfun (p : nat -> poly) : ^Real -> pc ^Real. 
-  Proof.
-    apply pc_ana_fun_to_pc_fun.
-    exact (limit_cfun' p).
-  Defined.
   
     
 End TaylorModels.

@@ -978,6 +978,26 @@ Section Operations.
       apply real_half_gt_zero.
       apply real_half_gt_zero;auto.
   Defined.
+
+  Lemma derivative_opp f g r : uniform_derivative f g r -> uniform_derivative (fun x => (- f x)%pcreal) (fun x => (- g x)%pcreal) r.
+  Proof.
+    rewrite !uniform_derivative_unfold.
+    intros.
+    split.
+
+    intros.
+    destruct (proj1 H x) as [[fx Fx] [gx Gx]];auto.
+    split; [exists (-fx) | exists (-gx)];apply defined_to_opp; assert (forall y, (- - y) = y) as -> by (intros;ring);auto.
+
+    intros eps epsgt0.
+    destruct (proj2 H _ epsgt0) as [d [X1 X2]].
+    exists d;split;auto.
+    intros.
+    apply defined_to_opp in H2,H3,H4.
+    rewrite abs_symm.
+    replace (- (fy - fx -f'x*(y-x))) with (-fy - - fx - - f'x*(y-x)) by ring.
+    apply X2;auto.
+  Defined.
 End Operations.
 
 Section Examples.
@@ -1017,6 +1037,28 @@ Section Examples.
 End Examples.
 Section FunctionDerivatives.
 
+  Definition uniform_continuous_fun (f : ^Real -> ^Real) r := forall eps, (eps > 0) -> exists delta, delta > 0 /\ forall (x y : (I r)), dist x y <= delta -> dist (f x) (f y) <= eps.
+
+  Definition uniform_continuous_iff (f : ^Real -> ^Real) r : uniformly_continuous (fun x => pc_unit _ (f x)) r <-> uniform_continuous_fun f r.
+  Proof.
+    rewrite uniformly_continuous_unfold.
+    split;intros.
+    - intros eps epsgt0.
+    destruct (proj2 H _ epsgt0) as [d [dgt0 D]].
+    exists d; split;auto.
+    intros.
+    destruct x as [x px]; destruct y as [y py].
+    simpl.
+    apply (D x y (f x) (f y));auto;apply pc_unit_mono;auto.
+  - split; [intros; exists (f x);apply pc_unit_mono;auto |].
+    intros eps epsgt0.
+    destruct (H _ epsgt0) as [d [dgt0 D]].
+    exists d;split;auto.
+    intros.
+    apply pc_unit_mono in H3, H4.
+    rewrite <-H3, <-H4;auto.
+    apply (D (real_to_I H0) (real_to_I H1));auto.
+  Qed.
   Definition uniform_derivative_fun (f : ^Real -> ^Real) (g : ^Real -> ^Real) r := forall eps, (eps > 0) -> exists delta, delta > 0 /\ forall (x y : (I r)), dist x y <= delta -> abs (f y - f x - g x * (y - x)) <= eps*abs (y-x).
 
   Definition derivative_function_iff (f : ^Real -> ^Real) (g : ^Real -> ^Real) r : uniform_derivative (fun x => pc_unit _ (f x)) (fun x => pc_unit _ (g x)) r <-> uniform_derivative_fun f g r.
@@ -1083,7 +1125,22 @@ Lemma product_rule f1 f2 g1 g2 r : uniform_derivative_fun f1 g1 r -> uniform_der
     apply D.
   Qed.
 
-  Lemma derivative_const_fun c r: uniform_derivative_fun (fun x => c) (fun x => real_0) r. 
+  Lemma derivative_opp_fun f g r : uniform_derivative_fun f g r -> uniform_derivative_fun (fun x => - f x) (fun x => - g x) r.
+  Proof.
+    rewrite <-!derivative_function_iff.
+    intros.
+    pose proof (derivative_opp _ _ _ H).
+    simpl in *.
+    intros eps epsgt0.
+    destruct (H0 _ epsgt0) as [d [dgt0 D]].
+    exists d;split;auto;intros.
+    specialize (D _ _ H1).
+    rewrite <-!pc_unit_ntrans2 in *.
+    rewrite <-!pc_unit_ntrans in *.
+    apply D.
+ Qed.
+
+ Lemma derivative_const_fun c r: uniform_derivative_fun (fun x => c) (fun x => real_0) r. 
   Proof.
     rewrite <-!derivative_function_iff.
     intros.
@@ -1122,6 +1179,17 @@ Lemma product_rule f1 f2 g1 g2 r : uniform_derivative_fun f1 g1 r -> uniform_der
    rewrite H.
    apply dP;auto.
  Qed.
+  Lemma lbc_fun f f' r M :  uniform_derivative_fun f f' r -> (forall (x : I r), abs (f' x) <= M) -> forall (x y : (I r)), dist (f x) (f y) <= M * dist x y.
+    intros.
+    apply derivative_function_iff in H.
+    assert (bounded_by (fun x : ^Real => pc_unit _ (f' x)) M r).
+    {
+      intros x0.
+      exists (abs (f' x0));exists M;split; [apply pc_unit_ntrans |split; [apply pc_unit_mono |]];auto.
+    }
+    pose proof (lbc (fun x => pc_unit _ (f x)) (fun x => pc_unit _ (f' x)) r M H H1).
+    apply H2;apply pc_unit_mono;auto.
+  Qed.
 End FunctionDerivatives.
 (* Section ConstructiveDerivatives. *)
 (*   Definition constructive_derivative (f: Real -> Real) (g : Real -> Real) r := forall eps, eps > real_0 -> {d : Real | d > real_0 /\ forall x y, abs x <= r -> abs y <= r -> dist x y <= d -> abs (f y - f x - g x * (y -x)) <= eps * abs(y-x) }. *)
