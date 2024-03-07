@@ -1096,6 +1096,143 @@ Section Operations.
     replace (- (fy - fx -f'x*(y-x))) with (-fy - - fx - - f'x*(y-x)) by ring.
     apply X2;auto.
   Defined.
+
+
+  Lemma derivative_comp_split1 gx gy fgx fgy g'x f'gx  x y eps: abs (fgy - fgx - f'gx * (gy -gx) ) <= (eps / d2)  * abs (y-x) ->  abs (f'gx) * abs (gy - gx - g'x * (y-x)) <= eps/ d2 * abs (y-x) -> abs (fgy - fgx - g'x*f'gx*(y-x)) <= eps * abs (y-x).
+  Proof.
+    intros H0 H1.
+    replace (fgy - fgx -g'x*f'gx*(y-x)) with ((fgy - fgx - f'gx*(gy - gx)) + f'gx * (gy - gx - g'x*(y-x))) by ring.
+    rewrite <-(half_twice eps),(real_mult_comm _ (abs _)), real_mult_plus_distr, (real_mult_comm  (abs _)).
+    apply (real_le_le_le _ _ _ (abs_tri _ _ )).
+    apply real_le_le_plus_le;auto.
+    rewrite abs_mult;auto.
+  Qed.
+
+  Lemma derivative_comp_split2 x y M fgx fgy f'gx gx gy eps: eps > 0 -> abs (gy - gx) <= M * abs (y-x) ->  abs (fgy - fgx - f'gx * (gy -gx) ) <= (eps / (real_gt_neq _ _ (abs_plus_1_gt_0 M))) * abs (gy-gx) -> abs (fgy - fgx - f'gx * (gy -gx) ) <= eps * abs (y - x).
+  Proof.
+    intros epsgt H H0.
+    destruct (real_lt_or_ge M 0).
+    assert (abs (gy - gx) = real_0).
+    {
+      apply real_abs_le0_eq0.
+      rewrite abs_pos_id;try apply abs_pos.
+      apply (real_le_le_le _ _ _ H).
+      rewrite real_mult_comm.
+      replace real_0 with (abs (y -x) * real_0) by ring.
+      apply real_le_mult_pos_le;try apply abs_pos.
+      apply real_lt_le;auto.
+    }
+    rewrite H2 in H0.
+    ring_simplify in H0.
+    apply (real_le_le_le _ _ _ H0).
+    apply real_le_pos_mult_pos_pos; [apply real_lt_le;auto | apply abs_pos].
+
+    apply (real_le_le_le _ _ _ H0).
+    apply (real_le_le_le _ ((eps / (real_gt_neq _ _ (abs_plus_1_gt_0 M))) *  (M * abs (y -x)))).
+    apply real_le_mult_pos_le;auto.
+    apply real_lt_le.
+    apply real_lt_mult_pos_move_rr_n; try ring_simplify;auto.
+    apply abs_plus_1_gt_0.
+    rewrite <-real_mult_assoc.
+    rewrite !(real_mult_comm _ (abs _)).
+    apply real_le_mult_pos_le;try apply abs_pos.
+    replace M with (abs M) at 4.
+    apply abs_plus_one_div_inv;auto.
+    apply abs_pos_id;auto.
+  Qed.
+
+  Lemma uniform_derivative_lipschitz_cont f g r : uniform_derivative f g r -> exists L, forall x y fx fy, abs x <= r -> abs y <= r ->  defined_to (f x) fx -> defined_to (f y) fy -> dist fy fx <= L * dist y x.
+  Proof.
+    intros.
+    destruct (derivative_bounded _ _ _ H) as [L B].
+    exists L.
+    intros.
+    apply (lbc _ _ _ _ H B (real_to_I H1) (real_to_I H0));auto.
+   Qed.
+
+  Lemma derivative_comp f f' g g' rf rg : uniform_derivative f f' rf -> uniform_derivative g g' rg -> bounded_by g rf rg -> uniform_derivative (comp f g) (fun x => ((g' x) * (comp f' g x))%pcreal) rg.
+  Proof.
+    intros.
+    destruct (uniform_derivative_lipschitz_cont _ _ _ H0) as [M Mp].
+    pose proof (uniform_derivative_uniform_continuous _ _ _ H0).
+    destruct (derivative_bounded _ _ _ H) as [Mf Mfp].
+    rewrite !uniform_derivative_unfold,uniformly_continuous_unfold, bounded_by_unfold in *.
+    destruct H as [domf Df]; destruct H0 as [domg Dg]; destruct H1 as [_ B]; destruct H2 as [_ CG]; destruct Mfp as [_ Mfp].
+    split.
+    - intros.
+      destruct (domg x) as [[gx Gx] [g'x G'x]];auto.
+      destruct (domf gx) as [[fgx Fgx] [f'gx F'gx]]; [apply (B x gx)|];auto.
+
+      split; [exists fgx;apply comp_iff;exists gx;auto | exists (g'x * f'gx)  ].
+      rewrite G'x.
+      unfold defined_to.
+      rewrite <-pc_unit_ntrans2.
+      replace (comp f' g x) with (pc_unit _ f'gx);auto.
+      apply eq_sym.
+      apply comp_iff.
+      exists gx;auto.
+   - intros eps epsgt0.
+     remember ((eps / d2) / (real_gt_neq _ _ (abs_plus_1_gt_0 M))) as eps'.
+     remember ((eps / d2) / (real_gt_neq _ _ (abs_plus_1_gt_0 Mf))) as eps''.
+     assert (eps' > 0) as eps'gt0 by (rewrite Heqeps';apply real_div_gt_0;[apply real_half_gt_zero;auto | apply abs_plus_1_gt_0 ]).
+     assert (eps'' > 0) as eps''gt0 by (rewrite Heqeps'';apply real_div_gt_0;[apply real_half_gt_zero;auto | apply abs_plus_1_gt_0 ]).
+     destruct (Df _ eps'gt0) as [df [dfgt0 DF]].
+     destruct (CG _ dfgt0) as [dg [dggt0 DG]].
+     destruct (Dg _ eps''gt0) as [dg' [dg'gt0 DG']].
+     assert (exists d, d > 0 /\ d <= df /\ d <= dg /\ d <= dg') as [d [dgt0 [ddf [ddg ddg']]]].
+     {
+       exists (real_min df (real_min dg dg')).
+       split; [|split;[|split]].
+       destruct (real_min_cand df (real_min dg dg')) as [-> | ->];try (destruct (real_min_cand dg dg') as [-> | ->]);auto.
+       apply real_min_fst_le.
+       apply (real_le_le_le _ _ _ (real_min_snd_le _ _));apply real_min_fst_le.
+       apply (real_le_le_le _ _ _ (real_min_snd_le _ _));apply real_min_snd_le.
+     }
+     exists d.
+     intros;split;auto.
+     intros.
+     apply comp_iff in H1,H2.
+     destruct H1 as [gx [H11 H12]].
+     destruct H2 as [gy [H21 H22]].
+     apply pc_lift2_iff in H3.
+     destruct H3 as [g'x [c [H31 [H3 ->]]]].
+     apply comp_iff in H3.
+     rewrite H11 in H3.
+     destruct H3 as [gx' [H32 H33]].
+     apply pc_unit_mono in H32.
+     rewrite <-H32 in *; clear H32.
+     apply (derivative_comp_split1 gx gy);auto.
+     apply (derivative_comp_split2 x y M);try apply real_half_gt_zero;auto.
+     apply Mp;auto.
+     rewrite <-Heqeps'.
+     apply DF;auto.
+     apply (B x);auto.
+     apply (B y);auto.
+     apply (DG x y);auto.
+     apply (real_le_le_le _ _ _ H4);auto.
+     apply (real_le_le_le _ ((abs c)*(eps'' * abs (y-x)))).
+     apply real_le_mult_pos_le; try apply abs_pos.
+     apply DG';auto.
+     apply (real_le_le_le _ _ _ H4);auto.
+     destruct (domf gx) as [_ [f'gx F'gx]].
+     apply (B x);auto.
+     rewrite F'gx in *.
+     apply pc_unit_mono in H33.
+     rewrite <-H33.
+     apply (real_le_le_le _ (Mf * (eps'' * abs (y-x)))).
+     rewrite !(real_mult_comm _ (eps''* _)).
+     apply real_le_mult_pos_le.
+     apply real_le_pos_mult_pos_pos; [apply real_lt_le;auto|apply abs_pos].
+     apply (Mfp (gx));auto.
+     apply (B x);auto.
+     replace Mf with (abs Mf) by (apply abs_pos_id;apply (real_le_le_le _ _ _ (abs_pos f'gx));apply (Mfp gx);auto;apply (B x);auto).
+    rewrite <-real_mult_assoc, !(real_mult_comm _ (abs _)).
+    apply real_le_mult_pos_le; try apply abs_pos.
+    rewrite real_mult_comm.
+    rewrite Heqeps''.
+    apply abs_plus_one_div_inv.
+    apply real_half_gt_zero;auto.
+ Qed.
 End Operations.
 
 Section Examples.
@@ -1223,6 +1360,38 @@ Lemma product_rule f1 f2 g1 g2 r : uniform_derivative_fun f1 g1 r -> uniform_der
     apply D.
   Qed.
 
+  Lemma chain_rule f g f' g' r1 r2 : uniform_derivative_fun f f' r1 -> uniform_derivative_fun g g' r2 -> (forall x, (abs x <= r2) -> abs (g x) <= r1) -> uniform_derivative_fun (fun x => (f (g x))) (fun x => (g' x * f' (g x))) r2.
+  Proof.
+    rewrite <-!derivative_function_iff.
+    intros.
+    assert (bounded_by (fun x => pc_unit _ (g x)) r1 r2).
+    {
+      intros [x xl].
+      simpl.
+      unfold pc_abs.
+      rewrite pc_unit_ntrans.
+      exists (abs (g x)); exists (r1); split;[|split]; try apply pc_unit_mono;auto.
+    }
+    pose proof (derivative_comp _ _ _ _ _ _ H H0 H2).
+    simpl in *.
+    intros eps epsgt0.
+    destruct (H3 _ epsgt0) as [d [dgt0 D]].
+    exists d;split;auto;intros.
+    specialize (D _ _ H4).
+    destruct D as [a [b [D1 [D2 D3]]]].
+    exists a; exists b; split;[|split];auto.
+    unfold defined_to.
+    rewrite <-D1.
+    rewrite !pc_unit_ntrans2, !pc_unit_ntrans, !pc_unit_ntrans2.
+    destruct (comp_iff (fun x => (pc_unit _ (f x))) (fun x => (pc_unit _ (g x))) y (f (g y))) as [_ ->].
+    destruct (comp_iff (fun x => (pc_unit _ (f x))) (fun x => (pc_unit _ (g x))) x  (f (g x))) as [_ ->].
+    destruct (comp_iff (fun x => (pc_unit _ (f' x))) (fun x => (pc_unit _ (g x))) x  (f' (g x))) as [_ ->].
+    rewrite !pc_unit_ntrans2, !pc_unit_ntrans, !pc_unit_ntrans2;auto.
+    exists (g x); split;apply pc_unit_mono; auto.
+    exists (g x); split;apply pc_unit_mono; auto.
+    exists (g y); split;apply pc_unit_mono; auto.
+  Qed.
+  
   Lemma derivative_opp_fun f g r : uniform_derivative_fun f g r -> uniform_derivative_fun (fun x => - f x) (fun x => - g x) r.
   Proof.
     rewrite <-!derivative_function_iff.
