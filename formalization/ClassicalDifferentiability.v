@@ -1391,7 +1391,6 @@ Lemma product_rule f1 f2 g1 g2 r : uniform_derivative_fun f1 g1 r -> uniform_der
     exists (g x); split;apply pc_unit_mono; auto.
     exists (g y); split;apply pc_unit_mono; auto.
   Qed.
-  
   Lemma derivative_opp_fun f g r : uniform_derivative_fun f g r -> uniform_derivative_fun (fun x => - f x) (fun x => - g x) r.
   Proof.
     rewrite <-!derivative_function_iff.
@@ -1427,7 +1426,7 @@ Lemma product_rule f1 f2 g1 g2 r : uniform_derivative_fun f1 g1 r -> uniform_der
     apply pc_unit_mono;auto.
   Qed.
 
- Lemma derive_ext_fun f1 f2 g x : (forall x, f1 x = f2 x) ->  uniform_derivative_fun f2 g x -> uniform_derivative_fun f1 g x.
+ Lemma derive_ext_fun f1 f2 g r : (forall x, abs x <= r -> f1 x = f2 x) ->  uniform_derivative_fun f2 g r -> uniform_derivative_fun f1 g r.
  Proof.
    intros H D eps epsgt0.
    destruct (D eps epsgt0) as [d [dgt dP]].
@@ -1435,9 +1434,11 @@ Lemma product_rule f1 f2 g1 g2 r : uniform_derivative_fun f1 g1 r -> uniform_der
    intros.
    rewrite !H.
    apply dP;auto.
+   destruct x as [x xp];auto.
+   destruct y as [y yp];auto.
  Qed.
 
- Lemma derive_ext_fun2 f g1 g2 x : (forall x, g2 x = g1 x) ->  uniform_derivative_fun f g1 x -> uniform_derivative_fun f g2 x.
+ Lemma derive_ext_fun2 f g1 g2 r : (forall x, abs x <= r -> g2 x = g1 x) ->  uniform_derivative_fun f g1 r -> uniform_derivative_fun f g2 r.
  Proof.
    intros H D eps epsgt0.
    destruct (D eps epsgt0) as [d [dgt dP]].
@@ -1445,7 +1446,8 @@ Lemma product_rule f1 f2 g1 g2 r : uniform_derivative_fun f1 g1 r -> uniform_der
    intros.
    rewrite H.
    apply dP;auto.
- Qed.
+   destruct x as [x xp];auto.
+Qed.
   Lemma lbc_fun f f' r M :  uniform_derivative_fun f f' r -> (forall (x : I r), abs (f' x) <= M) -> forall (x y : (I r)), dist (f x) (f y) <= M * dist x y.
     intros.
     apply derivative_function_iff in H.

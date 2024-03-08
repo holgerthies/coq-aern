@@ -8,7 +8,6 @@ Require Import Euclidean.
 Require Import List.
 Import ListNotations.
 
-
 Section RealHelpers.
  Lemma real_le_mult_pos_le_le r1 r2 r3 r4 : (real_0 <= r1) -> (real_0 <= r2) -> (r1 <= r3) -> (r2 <= r4) -> (r1 * r2 <= r3 * r4).
  Proof.
@@ -731,7 +730,9 @@ Section Derivative.
      simpl;apply derivative_const_fun.
    - intros x.
      pose proof (derive_poly_app p a).
-     apply (derive_ext_fun2 _ _ _ x H).
+     apply (derive_ext_fun2 _  (fun x =>  eval_poly (derive_poly p) x +
+      eval_poly (projT1 (derive_monomial a (length p))) x
+)  _ x);auto.
      apply derive_poly_helper;auto.
      intros.
      destruct (derive_monomial a (length p)) as [m M].
