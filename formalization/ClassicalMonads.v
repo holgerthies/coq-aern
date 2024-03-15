@@ -1016,6 +1016,8 @@ End SomeMoreNabla.
 Section NablaIsClassical.
   Definition neg A := A -> False.
 
+ 
+
   Lemma Prop_dn_elim : forall P : Prop, neg (neg P) -> P.
   Proof.
     intros.
@@ -1068,7 +1070,85 @@ Section NablaIsClassical.
     intro.
     exact (H X).
   Defined.
+
+  Definition Propize A := exists x : A, True.
+
+
+  Definition Propize_intro A : A -> Propize A.
+  Proof.
+    intro.
+    exists X; auto.
+  Defined.   
   
+  Definition dn A := neg (neg A).
+
+  
+
+  Definition dn_to_Propize (P : Type) : is_hprop P -> dn P -> Propize P.
+  Proof.
+    intros.
+    destruct (lem (Propize P)); auto.
+    unfold dn in H0.
+    assert False.
+    apply H0.
+    intro.
+    contradict H1.
+    exists X; auto.
+    contradict H2.
+  Defined.
+  
+  Definition Propize_to_dn (P : Type) : is_hprop P -> Propize P -> dn P.
+  Proof.
+    intros.
+    destruct H0.
+    intro.
+    exact (H1 x).    
+  Defined.
+
+  Definition Nabla_to_Propize (P : Type) : is_hprop P -> Nabla P -> Propize P.
+  Proof.
+    intros.
+    apply test.
+    apply (Nabla_fun_map P).
+    intro.
+    exists X0; auto.
+    exact X.
+  Defined.
+
+  Definition Propize_to_Nabla (P : Type) : is_hprop P -> Propize P -> Nabla P .
+  Proof.
+    intros.
+    exists (fun _ => True).
+    destruct H0.
+    exists x.
+    split; auto.
+  Defined. 
+  
+  Lemma Propize_to_dn_is_equiv P (h : is_hprop P) : is_equiv (Propize_to_dn P h).
+  Proof.
+    exists (dn_to_Propize P h).
+    split.
+    apply fun_ext.
+    intro.
+    apply irrl.
+    apply fun_ext.
+    intro.
+    apply irrl.
+  Defined.
+
+    
+  Lemma Propize_to_Nabla_is_equiv P (h : is_hprop P) : is_equiv (Propize_to_Nabla P h).
+  Proof.
+    exists (Nabla_to_Propize P h).
+    split.
+    apply fun_ext.
+    intro.
+    apply irrl.
+    apply fun_ext.
+    intro.
+    apply (hprop_Nabla_hprop _ h). 
+  Defined.
+   
   Lemma dn_hprop : forall P, is_hprop (neg (neg P)).
   Proof.
     intros.
