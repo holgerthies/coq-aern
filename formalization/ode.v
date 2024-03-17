@@ -233,22 +233,88 @@ Section IVP.
   Qed.
 
   Definition poly_norm (p : poly) : ^Real.
-  Admitted.
+  Proof.
+    induction p.
+    apply real_0.
+    apply (Minmax.real_max (abs a) IHp).
+  Defined.
 
+  Lemma polynorm_empty : poly_norm [] = real_0.
+  Proof.
+    simpl;auto.
+  Qed.
+
+  Lemma polynorm_nonneg p : real_0 <= poly_norm p. 
+  Proof.
+    induction p.
+    rewrite polynorm_empty;apply real_le_triv.
+    simpl.
+    destruct (Minmax.real_max_cand (abs a) (poly_norm p)) as [-> | ->].
+    apply abs_pos.
+    apply IHp.
+  Qed.
+  
   Lemma polynorm_le p : forall n, abs (nth n p real_0) <= poly_norm p.
-  Admitted.
-
+  Proof.
+   induction p.
+   intros.
+   rewrite polynorm_empty.
+   rewrite nth_overflow;simpl;try lia.
+   rewrite abs_pos_id;apply real_le_triv.
+   simpl poly_norm.
+   destruct n.
+   simpl.
+   apply Minmax.real_max_fst_ge.
+   simpl.
+   apply (real_le_le_le _ (poly_norm p)).
+   apply IHp.
+   apply Minmax.real_max_snd_ge.
+  Qed.
   Lemma polynorm_mult p q : poly_norm (mult_coefficients p q) = poly_norm p * poly_norm q.
   Admitted.
 
+
   Lemma polynorm_deriv_bound p : poly_norm (derive_poly p) <= (Nreal (length p))*poly_norm p.
+  Proof.
+    simpl.
+    induction p.
+    unfold derive_poly.
+    destruct (poly_deriv_exists []) as [p' [P1 P2]].
+    simpl.
+    simpl in P1.
+    apply length_zero_iff_nil in P1.
+    rewrite P1.
+    rewrite polynorm_empty.
+    apply real_eq_le;ring.
   Admitted.
+    
+  Lemma smul_length p x : length (pr1 _ _  (smul_poly x p)) = length p.
+  Proof.
+    induction p;simpl;auto.
+    destruct (smul_poly x p).
+    simpl in *.
+    rewrite IHp;auto.
+  Qed.
+  Lemma derive_poly_length p : length (derive_poly p) = (length p - 1)%nat.
+  Proof.
+    unfold derive_poly.
+    destruct (poly_deriv_exists p) as [p' [P1 P2]].
+    simpl;auto.
+  Qed.
 
-  Lemma polynorm_nonneg p : real_0 <= poly_norm p. 
-  Admitted.
+  Lemma smul_norm p x : poly_norm (pr1 _ _ (smul_poly x p)) = abs x * poly_norm p.
+  Proof.
+    induction p.
+    simpl.
+    ring.
+    simpl.
+    destruct (smul_poly x p).
+    simpl in *.
+    rewrite IHp.
+    rewrite abs_mult.
+    rewrite real_max_hom; try apply abs_pos;auto.
+  Qed.
 
-  Lemma polynorm_empty : poly_norm [] = real_0.
-  Admitted.
   Lemma poly_deriv_bound (p : poly) M r : (forall n, abs (nth n p real_0) <= M * npow r n) -> (forall n, abs (nth n (derive_poly p) real_0) <= Nreal (S n) * M * npow r (S n)).
   Proof.
     intros.
@@ -264,76 +330,7 @@ Section IVP.
     apply H.
   Qed.
   
-  Lemma mult_coeffs_bound p1 p2 n  M1 M2 r : (forall m, abs (nth m p1 real_0) <= M1*npow r m) -> (forall m, (abs (nth m p2 real_0) <=  Nreal (fact (n+m+1)) * (npow (Nreal (m+1)) n) * M2 * (npow r m)))  -> forall m, abs (nth m (mult_coefficients p1 p2) real_0) <=  Nreal (fact (n+m+2)) * (npow (Nreal (m+1)) (n+1)) * M1 * M2 * npow r m.
-  Proof.
-    intros.
-    assert (real_0 <= r).
-    admit.
-    assert (real_0 <= M1).
-    admit.
-    assert (real_0 <= M2).
-    admit.
-    destruct (Nat.lt_ge_cases m (length (mult_coefficients p1 p2))).
-    rewrite length_mult_coefficients in H4.
-    rewrite mult_coefficients_spec;auto.
-    admit.
 
-    rewrite nth_overflow;auto.
-    rewrite abs_pos_id;try apply real_le_triv.
-    apply real_le_pos_mult_pos_pos;try apply npow_nonneg;auto.
-    apply real_le_pos_mult_pos_pos;auto.
-    apply real_le_pos_mult_pos_pos;auto.
-    apply real_le_pos_mult_pos_pos;try apply npow_nonneg;try apply Nreal_nonneg.
-  Admitted.
-
-
-  Lemma pn_bound p n M r : (forall m, abs (nth m p real_0) <= M * npow r m) -> forall m, abs (nth m (pn p n) real_0) <=  Nreal (fact (n + m+1)) * (npow (Nreal (S m)) n) *  (M * npow (M * r) n) * npow r m.
-  Proof.
-    intros H.
-    induction n.
-    intros.
-    simpl.
-    simpl;ring_simplify.
-    apply (real_le_le_le _ _ _ (H m)).
-    rewrite real_mult_assoc.
-    replace (M*npow r m) with (real_1 * (M * npow r m)) at 1 by ring.
-    apply real_le_mult_pos_le_le; [ apply real_lt_le;apply real_1_gt_0| apply real_le_pos_mult_pos_pos; [|apply npow_nonneg] | |apply real_le_triv].
-    admit.
-    admit.
-    replace (real_1) with (Nreal (fact 1)) by (simpl;ring).
-    apply Nreal_monotone.
-    apply fact_le;lia.
-
-    intros.
-    pose proof (poly_deriv_bound (pn p n) ).
-    simpl.
-    apply (real_le_le_le _ (Nreal (fact (n+m+2)) * (npow (Nreal (m+1)) (n+1)) * M * (npow (M*r) (S n)) * (npow r m))).
-    apply mult_coeffs_bound.
-    intros.
-    apply H.
-    intros m'.
-    
-    (* replace (Nreal (fact (S n)) * (M * (npow (M * r)) (S n)) * npow r m') with ((Nreal (S n) * (Nreal (fact n) * M * npow (M*r) n)) * npow r (S m')). *)
-    (* pose proof poly_deriv_bound. *)
-    (* rewrite mult_coeffs_zero. *)
-    (* rewrite abs_mult. *)
-    (* apply real_le_mult_pos_le_le; try apply abs_pos. *)
-    (* apply (real_le_le_le _  (M * npow r 0)); [apply H | simpl; ring_simplify; apply real_le_triv]. *)
-    (* apply (real_le_le_le _ _ _ (poly_deriv_bound (pn p n) _ _ (IHn ))). *)
-    Admitted.
-
-  Lemma p0_bound p n M r : (forall m, abs (nth m p real_0) <= M * npow r m) -> abs (nth 0 (pn p n) real_0) <= Nreal (fact (n+1)) * M * npow (M*r) n.
-  Proof.
-    intros.
-    apply (real_le_le_le _ _ _ (pn_bound _ _ _ _ H 0)).
-    simpl.
-    ring_simplify.
-    replace (n+0+1)%nat with (n+1)%nat by lia.
-    replace (real_1+real_0) with (real_1) by ring.
-    rewrite npow_1.
-    ring_simplify;auto.
-    apply real_le_triv.
-  Qed.
 
   Lemma Nreal_neq0 n : Nreal (S n) <> real_0.
   Proof.
@@ -347,15 +344,6 @@ Section IVP.
                      | S n' => pr1 _ _ (smul_poly (/ Nreal_neq0 n') (mult_coefficients p (derive_poly (an p n'))))
                     end.
 
-  Lemma smul_length p x : length (pr1 _ _  (smul_poly x p)) = length p.
-  Admitted.
-
-  Lemma derive_poly_length p : length (derive_poly p) = (length p - 1)%nat.
-  Admitted.
-
-  Lemma smul_norm p x : poly_norm (pr1 _ _ (smul_poly x p)) = x * poly_norm p.
-  Proof.
-  Admitted.
 
  Lemma an_length p n : (length (an p n) = ((n+1)*(length p))-2*n)%nat.
   Proof.
@@ -380,10 +368,11 @@ Section IVP.
     induction n.
 
     simpl.
-    destruct p;simpl.
-    rewrite polynorm_empty.
+    destruct p.
+    simpl.
     apply real_eq_le;ring.
     ring_simplify.
+    simpl length; simpl Nreal.
     add_both_side_by (-poly_norm (r::p)).
     apply real_le_pos_mult_pos_pos.
     apply polynorm_nonneg.
@@ -405,6 +394,7 @@ Section IVP.
     }
     apply (real_le_le_le _ (((/ Nreal_neq0 n) * poly_norm p) *  (Nreal ((n+1)*length p) * (npow (Nreal (length p) * poly_norm p) (S n))))).
     rewrite <-real_mult_assoc.
+    rewrite abs_pos_id; try (apply real_lt_le;apply invSn_gt0).
     apply real_le_mult_pos_le.
     apply real_le_pos_mult_pos_pos.
     apply real_lt_le.
