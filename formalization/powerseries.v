@@ -669,8 +669,8 @@ Section Derivative.
  Proof.
    intros.
    destruct (bounded_ps_M b) eqn: Mb.
-   - apply (derive_ext_fun _ (fun x => real_0)); [apply M_zero_tm;lia|].
-     apply (derive_ext_fun2 _ (fun x => real_0)); [apply M_zero_tm|];auto.
+   - apply (derive_ext_fun _ (fun x => real_0)); [intros;apply M_zero_tm;lia|].
+     apply (derive_ext_fun2 _ (fun x => real_0)); [intros;apply M_zero_tm|];auto.
      apply derivative_const_fun.
    - unfold eval_tm, to_taylor_model;simpl tm_poly.
      rewrite H0, Mb,H.
