@@ -156,7 +156,7 @@ Section IVP.
 
   Definition pivp_solution  p y y0 r := (y 0) = y0 /\ uniform_derivative_fun y (fun t => (eval_poly p (y t))) r.
 
-  Lemma pivp_to_pivp0 p y y0 r : {p' : poly | pivp_solution p y y0 r <-> pivp0_solution p' (fun t => y t - y0) r }.
+  Lemma pivp_to_pivp0 p y0 : {p' : poly | forall y r, pivp_solution p y y0 r <-> pivp0_solution p' (fun t => y t - y0) r }.
   Proof.
     destruct (shift_poly p (-y0)) as [p' P'].
     exists p'.
@@ -464,30 +464,59 @@ Section IVP.
     rewrite <-Nreal_S; apply Nreal_nonneg.
     apply H.
   Qed.
-  
-  Lemma mult_coeffs_bound' p1 p2 M1 M2 : (forall m, abs (nth m p1 real_0) <= M1) -> (forall m, (abs (nth m p2 real_0) <=  M2)  -> forall m, abs (nth m (mult_coefficients p1 p2) real_0) <= Nreal (m+1)* M1 * M2).
+  Definition pivp_ps_exists q y0 : {a : bounded_ps | forall y r, pivp_solution q y y0 r  -> is_ps_for (fun t => (pc_unit _ ((y t) - y0))) a}.
   Proof.
-  Admitted.
-
-  Lemma pn_bound' p n M : (forall m, (m <= n)%nat -> abs (nth m p real_0) <= M) -> forall m, (m <= n)%nat -> abs (nth m (pn p n) real_0) <=  Nreal (fact (S n)) * (npow (Nreal (S n)) n) *  npow M (S n).
-  Proof.
-    intros.
-    induction n.
-    simpl.
+    destruct  (pivp_to_pivp0 q y0) as [p P].
+    assert (Nreal (length p) * poly_norm p > 0).
     admit.
-    simpl pn.
-    specialize (IHn H H0).
-    pose proof (poly_deriv_bound' _ _ )
-  Lemma poly_M p : {M | (forall n, abs (nth n p real_0) <= M) /\ M > 0}.
-  Proof.
+    assert (Nreal (length p) * poly_norm p <> 0).
+    admit.
+    assert (real_0 < / H0).
+    admit.
+    assert (/ (real_gt_neq _ _ H1) = (Nreal (length p)) * poly_norm p).
+    admit.
+    assert (bounded_seq (an0 p) 1 H1).
+    {
+      intros n.
+      simpl;ring_simplify.
+      rewrite H2.
+      apply an0_bound.
+    }
+    exists (mk_bounded_ps _ _ _ _ H3).
+    intros.
+    apply P in H4.
   Admitted.
 
-  Lemma nth_to_poly a m n : (m <= n)%nat -> nth m (to_poly a n) real_0 = (a m).
+  Lemma local_solution (p : poly) (y0 : ^Real) : {ty1 : Real*Real | (fst ty1) > 0 /\ forall y r, pivp_solution p y y0 r  -> (snd ty1) = (y (fst ty1))}.
   Proof.
-    induction n.
-    simpl;auto.
+    destruct (pivp_ps_exists p y0) as [a P].
+    destruct (eval_val a (eval_radius a)) as [y1 P1].
+    admit.
+    Search eval_seq.
+    apply fast_limit_limit in P1.
+    exists ((eval_radius a), y1+y0).
+    split.
+    apply eval_radius_gt0.
+    intros.
+    simpl.
   Admitted.
 
+  Lemma solve_ivp (p : poly) y0 (n : nat) : {l : list (Real * Real) | length l = S n /\ forall y r, pivp_solution p y y0 r -> forall ty, In ty l -> (snd ty) = (y (fst ty))}.
+   Proof.
+   induction n.
+   exists [(0, y0)];split;simpl;auto.
+   intros.
+   destruct H.
+   destruct H0; [ |contradict H0].
+   rewrite <- H0.
+   simpl;rewrite H;auto.
+
+   destruct IHn as [l [L1 L2]].
+   destruct (local_solution p (snd (last l (0,0)))) as [[t yn] P].
+   exists (l ++ [((fst (last l (0,0)))+t, yn)]).
+   intros;split.
+   rewrite app_length;simpl;lia.
+   Admitted.
   Lemma pivp_ps_taylor_series p : forall y r, pivp0_solution p y r -> forall n, (is_taylor_polynomial (to_poly (an0 p) n) y r).
   Proof.
     intros y r H.
@@ -523,84 +552,6 @@ Section IVP.
       apply an0_spec.
   Qed.
 
-  Lemma y_bound p y r M : pivp0_solution p y r -> forall (x : I r), abs (eval_poly p x) <= M -> forall r', M*r' <= r -> forall (t : I r'), abs (y t) <= r.
-  Proof.
-    intros.
-    destruct (differentiable_bounded_fun _ _ _ (proj2 H)) as [ymax Y].
-    destruct (bound_polynomial p ymax) as [M' M'p].
-    assert (r' <= r).
-    admit.
-    assert ((y t) <= M' * r').
-    admit.
-  Definition pivp_ps (p : poly) : bounded_ps.
-  Proof.
-    pose proof (poly_M p).
-    revert X.
-    (* apply M_lift. *)
-    intros [M [Mp1 Mp2]].
-    assert (/ (real_gt_neq _ _ Mp2) > 0).
-    admit.
-    apply (mk_bounded_ps (an0 p) 1 _ H).
-    unfold an0.
-    intros n.
-    destruct n.
-    admit.
-    rewrite an_spec.
-    rewrite abs_mult.
-    apply (real_le_le_le _ (abs (/ Nreal_fact_neq0 (S n))* (Nreal (fact (n+1)) * M * npow (M) n))).
-    apply real_le_mult_pos_le; try apply abs_pos.
-    rewrite eval_poly_zero.
-    replace M with (M * real_1) at 2 by ring.
-    apply p0_bound.
-    intros.
-    rewrite npow_1;ring_simplify.
-    apply Mp1.
-  Admitted.
-
-
-  Lemma y_bound p y r : r > 0 -> pivp0_solution p y r -> {r' : Real | r' > 0 /\ forall (t : I r'), abs (y t) <= r}.
-  Proof.
-    intros rgt0 H.
-    destruct H as [H0 H].
-    destruct (bound_polynomial p r) as [M Mp].
-    assert (forall (x : I r), abs (eval_poly p x) <= M) as MP'.
-    {
-      intros.
-      destruct x.
-      apply Mp;auto.
-    }
-    assert (M >= 0).
-    {
-      apply (real_le_le_le _ (abs (eval_poly p 0))).
-      apply abs_pos.
-      apply Mp.
-      rewrite abs_pos_id;[apply real_lt_le | apply real_le_triv];auto.
-    }
-    exists (r / (real_gt_neq _ _ (abs_plus_1_gt_0 M))).
-    split; [apply real_div_gt_0;[|apply abs_plus_1_gt_0];auto|].
-    intros.
-    destruct t as [T Tp];simpl.
-    apply (real_le_le_le _ (dist (y T) (y 0))); [rewrite H0;unfold dist; replace ((y T) - 0) with (y T) ;try apply real_le_triv |].
-    admit.
-    apply (real_le_le_le _ (M * dist T 0)).
-    (* pose proof (lbc_fun _ _ _ M H MP'). *)
-  Admitted.
-
-  Definition pivp_ps_exists p : {a : bounded_ps | forall y r, pivp0_solution p y r  -> is_ps_for (fun t => (pc_unit _ (y t))) a}.
-  Proof.
-    exists (pivp_ps p).
-    intros.
-    Search is_ps_for.
-    apply approx_is_ps.
-    intros.
-  Admitted.
-
-  
-
-  Fixpoint pn p n := match n with
-                     |  0 => p
-                     | S n' => mult_coefficients p (derive_poly (pn p n'))
-                    end.
 
   
 End IVP.
