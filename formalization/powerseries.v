@@ -342,7 +342,7 @@ Qed.
    apply (real_le_le_le _ (eval_radius b));auto.
    apply half_le_le;auto.
  Qed.
- Lemma to_tm_approx (a : bounded_ps) : polynomial_approx (powerseries_pc (series a)) (to_taylor_model a) (eval_radius a).
+ Lemma to_tm_approx (a : bounded_ps) : represents (powerseries_pc (series a)) (to_taylor_model a) (eval_radius a).
  Proof.
    split;apply real_le_triv.
  Qed.
@@ -698,7 +698,7 @@ Section Derivative.
  Qed.
 
  
- Lemma deriv_ps (a : bounded_ps) : ^M {b : bounded_ps | uniform_derivative (powerseries_pc (series a)) (powerseries_pc (series b)) (eval_radius b)}.
+ Lemma derive_ps (a : bounded_ps) : ^M {b : bounded_ps | uniform_derivative (powerseries_pc (series a)) (powerseries_pc (series b)) (eval_radius b)}.
  Proof.
    pose proof (deriv_bounded_ps a).
    revert X.

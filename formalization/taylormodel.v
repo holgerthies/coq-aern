@@ -20,7 +20,9 @@ Section TaylorModels.
                                        tm_poly : poly;
                                        tm_radius: Real;
                                        tm_error : Real;
-                                       tm_spec : forall x, abs x <= tm_radius -> forall fx, defined_to (f x) fx -> dist (fx) (eval_poly tm_poly x) <= tm_error             
+                                       tm_spec : forall x, abs x <= tm_radius
+                                        -> forall fx, defined_to (f x) fx
+                                        -> dist (fx) (eval_poly tm_poly x) <= tm_error             
                                      }.
 
  Definition eval_tm {f} t x := (eval_poly (tm_poly f t) x).
@@ -103,9 +105,9 @@ Section TaylorModels.
     apply Nat.le_min_l.
   Defined.
   
-  Definition polynomial_approx (f : Real -> pc_Real) (t : nat -> (taylor_model f)) r := forall n, (tm_error f (t n)) <= prec n /\ (tm_radius f (t n)) >= r.
+  Definition represents (f : Real -> pc_Real) (t : nat -> (taylor_model f)) r := forall n, (tm_error f (t n)) <= prec n /\ (tm_radius f (t n)) >= r.
   
-  Lemma polynomial_approx_cont (f : Real -> pc_Real) t r : (forall x : (I r), defined (f x)) -> polynomial_approx f t r -> uniformly_continuous f r.
+  Lemma represents_cont (f : Real -> pc_Real) t r : (forall x : (I r), defined (f x)) -> represents f t r -> uniformly_continuous f r.
   Proof.
     intros.
     apply uniformly_continuous_unfold.
@@ -136,7 +138,7 @@ Section TaylorModels.
     apply (real_le_le_le _ r _);auto.
   Qed.
 
-  Lemma poly_approx_spec f t r n : forall (x : I r), (polynomial_approx f t r) -> forall fx, defined_to (f x) fx -> dist (fx) (eval_tm (t n) x) <= prec n. 
+  Lemma poly_approx_spec f t r n : forall (x : I r), (represents f t r) -> forall fx, defined_to (f x) fx -> dist (fx) (eval_tm (t n) x) <= prec n. 
   Proof.
     intros.
     specialize (H n) as [H1 H1'].
@@ -149,7 +151,7 @@ Section TaylorModels.
     apply (real_le_le_le _ r);auto.
  Qed.
 
-  Lemma poly_approx_dist f t r : (polynomial_approx f t r) -> forall eps, eps > real_0 -> exists N, forall m n, (n > N)%nat -> (m > N)%nat -> forall (x : I r), defined (f x)  -> dist (eval_tm (t n) x) (eval_tm (t m) x) <= eps. 
+  Lemma poly_approx_dist f t r : (represents f t r) -> forall eps, eps > real_0 -> exists N, forall m n, (n > N)%nat -> (m > N)%nat -> forall (x : I r), defined (f x)  -> dist (eval_tm (t n) x) (eval_tm (t m) x) <= eps. 
   Proof.
    intros.
    destruct (real_Archimedean _ H0) as [N Np].
@@ -171,7 +173,7 @@ Section TaylorModels.
  Qed.
 
 
-  Lemma polynomial_approx_derivative_bound {f} {t : nat -> (taylor_model f)} {f' t'  r} :  (polynomial_approx f' t' r)  -> (forall (x : I r), defined (f' x)) ->  (forall n,  uniform_derivative_fun (eval_tm (t n)) (eval_tm (t' n)) r) -> forall eps, eps > real_0 -> exists N, forall m n, (n > N)%nat -> (m > N)%nat -> forall (x y : (I r)), dist (eval_tm (t m) x - eval_tm (t n) x) (eval_tm (t m) y - eval_tm (t n) y) <= eps * dist x y.
+  Lemma polynomial_approx_derivative_bound {f} {t : nat -> (taylor_model f)} {f' t'  r} :  (represents f' t' r)  -> (forall (x : I r), defined (f' x)) ->  (forall n,  uniform_derivative_fun (eval_tm (t n)) (eval_tm (t' n)) r) -> forall eps, eps > real_0 -> exists N, forall m n, (n > N)%nat -> (m > N)%nat -> forall (x y : (I r)), dist (eval_tm (t m) x - eval_tm (t n) x) (eval_tm (t m) y - eval_tm (t n) y) <= eps * dist x y.
   Proof.
     intros.
     destruct (poly_approx_dist _ _ _ H _ H2) as [N NP].
@@ -191,7 +193,7 @@ Section TaylorModels.
     apply NP;auto.
   Qed.
 
-  Lemma polynomial_approx_derivative_helper {f t f' t' r} :   (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall (x : I r), defined (f' x)) ->(forall n, uniform_derivative_fun (eval_tm (t n)) (eval_tm (t' n)) r) -> forall eps, eps > real_0 -> exists N, forall n (x y : (I r)) fx fy, (n >= N)%nat -> defined_to (f x) fx -> defined_to (f y) fy -> dist (fy - fx) (eval_tm (t n) y - eval_tm (t n) x) <= eps * dist x y.
+  Lemma polynomial_approx_derivative_helper {f t f' t' r} :   (represents f t r)  ->  (represents f' t' r) -> (forall (x : I r), defined (f' x)) ->(forall n, uniform_derivative_fun (eval_tm (t n)) (eval_tm (t' n)) r) -> forall eps, eps > real_0 -> exists N, forall n (x y : (I r)) fx fy, (n >= N)%nat -> defined_to (f x) fx -> defined_to (f y) fy -> dist (fy - fx) (eval_tm (t n) y - eval_tm (t n) x) <= eps * dist x y.
   Proof.
     intros.
     destruct (real_Archimedean _ H3) as [m mlt].
@@ -240,7 +242,7 @@ Section TaylorModels.
     apply real_eq_le;ring.
   Qed.
 
-  Lemma polynomial_approx_derivative f t f' t' r  : (polynomial_approx f t r)  ->  (polynomial_approx f' t' r) -> (forall (x : I r), defined (f x) /\ defined (f' x) ) -> (forall n, uniform_derivative_fun (eval_poly (tm_poly f (t n))) (eval_poly (tm_poly f' (t' n))) r) -> uniform_derivative f f' r. 
+  Lemma polynomial_approx_derivative f t f' t' r  : (represents f t r)  ->  (represents f' t' r) -> (forall (x : I r), defined (f x) /\ defined (f' x) ) -> (forall n, uniform_derivative_fun (eval_poly (tm_poly f (t n))) (eval_poly (tm_poly f' (t' n))) r) -> uniform_derivative f f' r. 
   Proof.
     intros.
     apply uniform_derivative_unfold.
