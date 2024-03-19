@@ -32,8 +32,8 @@ RealCoqReal.v
 
 # RealEquivalent.v
 
-# magnitude.v
-# sqrt.v
+#magnitude.v
+#sqrt.v
 
 Dyadic.v
 ClassicalSubsets.v
@@ -60,3 +60,4 @@ ClassicalDifferentiability.v
 Poly.v
 Taylormodel.v
 Powerseries.v
+Ode.v

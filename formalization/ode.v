@@ -464,6 +464,31 @@ Section IVP.
     rewrite <-Nreal_S; apply Nreal_nonneg.
     apply H.
   Qed.
+  Lemma real_inv_inv p (pn0 : p <> 0) (pn1 : (/ pn0) <> 0) : (/ pn1) = p.
+  Admitted.
+  Lemma  test0 p : (Nreal (length p) * poly_norm p > 0).
+  Admitted.
+  Definition pivp_ps_exists_np (q : poly) (y0 : ^Real) : bounded_ps.
+  Proof.
+    destruct  (pivp_to_pivp0 q y0) as [p P].
+    assert (Nreal (length p) * poly_norm p > 0).
+    apply test0.
+    assert (Nreal (length p) * poly_norm p <> 0).
+    apply real_gt_neq;auto.
+    assert (real_0 < / H0) by (apply real_pos_inv_pos;auto).
+    assert (/ (real_gt_neq _ _ H1) = (Nreal (length p)) * poly_norm p).
+    apply real_inv_inv.
+
+    assert (bounded_seq (an0 p) 1 H1).
+    {
+      intros n.
+      simpl;ring_simplify.
+      rewrite H2.
+      apply an0_bound.
+    }
+    apply (mk_bounded_ps (an0 p) _ _ H1 H3).
+
+  Qed.
   Definition pivp_ps_exists q y0 : {a : bounded_ps | forall y r, pivp_solution q y y0 r  -> is_ps_for (fun t => (pc_unit _ ((y t) - y0))) a}.
   Proof.
     destruct  (pivp_to_pivp0 q y0) as [p P].
@@ -487,20 +512,23 @@ Section IVP.
     apply P in H4.
   Admitted.
 
+  Lemma test p y y0 r ty: pivp_solution p y y0 r -> snd ty = y (fst (ty)).
+  Admitted.
+
   Lemma local_solution (p : poly) (y0 : ^Real) : {ty1 : Real*Real | (fst ty1) > 0 /\ forall y r, pivp_solution p y y0 r  -> (snd ty1) = (y (fst ty1))}.
   Proof.
-    destruct (pivp_ps_exists p y0) as [a P].
+    pose proof (pivp_ps_exists_np p y0) as a.
     destruct (eval_val a (eval_radius a)) as [y1 P1].
-    admit.
-    Search eval_seq.
+    rewrite abs_pos_id;try apply real_le_triv.
+    apply real_lt_le.
+    apply eval_radius_gt0.
     apply fast_limit_limit in P1.
     exists ((eval_radius a), y1+y0).
     split.
     apply eval_radius_gt0.
     intros.
-    simpl.
-  Admitted.
-
+    apply (test _ _ _ _ _ H).
+  Qed.
   Lemma solve_ivp (p : poly) y0 (n : nat) : {l : list (Real * Real) | length l = S n /\ forall y r, pivp_solution p y y0 r -> forall ty, In ty l -> (snd ty) = (y (fst ty))}.
    Proof.
    induction n.
@@ -516,7 +544,15 @@ Section IVP.
    exists (l ++ [((fst (last l (0,0)))+t, yn)]).
    intros;split.
    rewrite app_length;simpl;lia.
-   Admitted.
+   intros.
+   apply (test _ _ _ _ _ H).
+   Qed.
+
+   Lemma nth_to_poly a m n : (m <= n)%nat -> nth m (to_poly a n) real_0 = (a m).
+  Proof.
+    induction n.
+    simpl;auto.
+  Admitted.
   Lemma pivp_ps_taylor_series p : forall y r, pivp0_solution p y r -> forall n, (is_taylor_polynomial (to_poly (an0 p) n) y r).
   Proof.
     intros y r H.
@@ -551,7 +587,12 @@ Section IVP.
       rewrite (proj1 H).
       apply an0_spec.
   Qed.
-
-
   
 End IVP.
+
+
+Section Examples.
+Definition exp_example := pr1 _ _ (solve_ivp [3] 2 100).
+
+
+End Examples.
