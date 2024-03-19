@@ -76,20 +76,42 @@ Section HigherDerivatives.
 
  Lemma inv_factorial0 : inv_factorial 0 = real_1.
  Proof.
- Admitted.
-
- Lemma inv_factorialS n : inv_factorial (S n) = (/ dSn n) * inv_factorial n.
- Admitted.
+   unfold inv_factorial.
+   apply (real_eq_mult_cancel (Nreal (fact 0))).
+   simpl.
+   replace (real_1 + real_0) with real_1 by ring.
+   apply real_1_neq_0.
+   rewrite real_mult_inv.
+   simpl;ring_simplify;auto.
+ Qed.
 
  Lemma inv_factorial1 : inv_factorial 1 = real_1.
  Proof.
-   rewrite inv_factorialS.
-   rewrite inv_factorial0.
-   assert (/ dSn 0 = / d1) as ->.
-   admit.
-   rewrite real_1_inv_1.
-   ring_simplify;auto.
- Admitted.
+   unfold inv_factorial.
+   apply (real_eq_mult_cancel (Nreal (fact 1))).
+   simpl.
+   replace (real_1 + real_0) with real_1 by ring.
+   apply real_1_neq_0.
+   rewrite real_mult_inv.
+   simpl;ring_simplify;auto.
+ Qed.
+
+ Lemma inv_factorialS n : inv_factorial (S n) = (/ dSn n) * inv_factorial n.
+ Proof.
+   unfold inv_factorial.
+   apply (real_eq_mult_cancel (Nreal (fact n))).
+   apply Nreal_fact_neq0.
+   rewrite real_mult_assoc, real_mult_inv.
+   apply (real_eq_mult_cancel (Nreal (fact (S n)))).
+   apply Nreal_fact_neq0.
+   rewrite real_mult_assoc, (real_mult_comm (Nreal _)), <-real_mult_assoc, real_mult_inv.
+   ring_simplify.
+   apply (real_eq_mult_cancel (Nreal (S n))).
+   apply real_gt_neq.
+   apply Nreal_pos;lia.
+   rewrite real_mult_assoc, (real_mult_comm (Nreal (fact (S n)))), <-real_mult_assoc, real_mult_inv.
+   simpl;ring_simplify;rewrite Nreal_hom, Nreal_mult;ring.
+ Qed.
 
  Definition is_taylor_polynomial a f r:= forall n, (n < length a)%nat -> (exists g, nth_derivative f g r n /\ nth n a 0 = inv_factorial n * (g 0)). 
 
