@@ -409,7 +409,7 @@ Section IVP.
     rewrite mult_coeff_spec, !scalar_mult_poly_spec, mult_coeff_spec.
     ring.
   Qed.
-  Lemma an_spec p n : pn p n = scalar_mult_poly (inv_factorial (S n)) (dn p n).
+  Lemma pn_spec p n : pn p n = scalar_mult_poly (inv_factorial (S n)) (dn p n).
   Proof.
     apply (nth_ext _ _ real_0 real_0); [rewrite smul_length;apply pn_length|].
     induction n;intros.
@@ -468,6 +468,18 @@ Section IVP.
     apply H.
     intros.
     apply (B (real_to_I H0)).
+  Qed.
+
+  Definition pn0 p n :=
+    match n with
+      | 0 => 0
+      | S n' => (eval_poly (pn p n') real_0)
+      end.
+  Lemma pn0_spec p n : pn0 p (S n) = (inv_factorial (S n)) * (eval_poly (dn p n) real_0).
+  Proof.
+    unfold pn0.
+    rewrite pn_spec.
+    rewrite scalar_mult_poly_spec;auto.
   Qed.
 
   Definition poly_norm (p : poly) : ^Real.
@@ -622,13 +634,6 @@ Section IVP.
   Qed.
 
 
-  Definition an0 p n :=
-    match n with
-      | 0 => 0
-      | S n' => (eval_poly (an p n') real_0)
-      end.
-  Lemma an0_spec p n : an0 p (S n) = (inv_factorial (S n)) * (eval_poly (pn p n) real_0).
-  Admitted.
 
   Lemma eval_poly_zero p : eval_poly p real_0 = nth 0 p real_0.
   Proof.
