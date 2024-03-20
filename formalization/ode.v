@@ -772,38 +772,9 @@ Section IVP.
     apply H8.
   Qed.
 
-  Lemma real_inv_inv p (pn0 : p <> 0) (pn1 : (/ pn0) <> 0) : (/ pn1) = p.
-  Admitted.
-  Lemma  test0 p : (Nreal (length p) * poly_norm p > 0).
-  Admitted.
-  Definition pivp_ps_exists_np (q : poly) (y0 : ^Real) : bounded_ps.
+  Lemma local_solution (p : poly) (y0 : ^Real) : {ty1 : Real*Real | (fst ty1) > 0 /\ exists r, forall y,  pivp_solution p y y0 r  -> (snd ty1) = (y (fst ty1))}.
   Proof.
-    destruct  (pivp_to_pivp0 q y0) as [p P].
-    assert (Nreal (length p) * poly_norm p > 0).
-    apply test0.
-    assert (Nreal (length p) * poly_norm p <> 0).
-    apply real_gt_neq;auto.
-    assert (real_0 < / H0) by (apply real_pos_inv_pos;auto).
-    assert (/ (real_gt_neq _ _ H1) = (Nreal (length p)) * poly_norm p).
-    apply real_inv_inv.
-
-    assert (bounded_seq (an0 p) 1 H1).
-    {
-      intros n.
-      simpl;ring_simplify.
-      rewrite H2.
-      apply an0_bound.
-    }
-    apply (mk_bounded_ps (an0 p) _ _ H1 H3).
-
-  Qed.
-
-  Lemma test p y y0 r ty: pivp_solution p y y0 r -> snd ty = y (fst (ty)).
-  Admitted.
-
-  Lemma local_solution (p : poly) (y0 : ^Real) : {ty1 : Real*Real | (fst ty1) > 0 /\ forall y r, pivp_solution p y y0 r  -> (snd ty1) = (y (fst ty1))}.
-  Proof.
-    pose proof (pivp_ps_exists_np p y0) as a.
+    destruct (pivp_ps_exists p y0) as [a A].
     destruct (eval_val a (eval_radius a)) as [y1 P1].
     rewrite abs_pos_id;try apply real_le_triv.
     apply real_lt_le.
@@ -813,8 +784,30 @@ Section IVP.
     split.
     apply eval_radius_gt0.
     intros.
-    apply (test _ _ _ _ _ H).
+    simpl.
+    exists (eval_radius a).
+    intros.
+    specialize (A y H (eval_radius a)).
+    apply (real_eq_plus_cancel (-y0)).
+    ring_simplify.
+    replace (-y0 + y (eval_radius a)) with (y (eval_radius a) - y0) by ring.
+    apply pc_unit_mono.
+    rewrite <-A.
+    pose proof (powerseries_pc_spec (series a) (eval_radius a) y1).
+    apply eq_sym.
+    apply H0.
+    apply P1.
+    rewrite abs_pos_id.
+    apply real_le_triv.
+    apply real_lt_le.
+    apply eval_radius_gt0.
+    apply unit_defined.
   Qed.
+
+
+  Lemma test p y y0 r ty: pivp_solution p y y0 r -> snd ty = y (fst (ty)).
+  Admitted.
+
   Lemma solve_ivp (p : poly) y0 (n : nat) : {l : list (Real * Real) | length l = S n /\ forall y r, pivp_solution p y y0 r -> forall ty, In ty l -> (snd ty) = (y (fst ty))}.
    Proof.
    induction n.
