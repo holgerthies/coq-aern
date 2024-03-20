@@ -539,8 +539,9 @@ Section IVP.
   Admitted.
     
 
-  Lemma smul_norm p x : poly_norm (pr1 _ _ (smul_poly x p)) = abs x * poly_norm p.
+  Lemma smul_norm p x : poly_norm (scalar_mult_poly x p) = abs x * poly_norm p.
   Proof.
+    unfold scalar_mult_poly.
     induction p.
     simpl.
     ring.
@@ -566,16 +567,54 @@ Section IVP.
     rewrite <-Nreal_S; apply Nreal_nonneg.
     apply H.
   Qed.
-  
 
+  Lemma invSn_gt0 : forall n, (/ dSn n) > real_0.
+  Proof.
+    intros.
+    apply real_pos_inv_pos2.
+  Qed.
 
-
-
-
-  Lemma invSn_gt0 : forall n, (/ Nreal_neq0 n) > real_0.
+   Lemma nth_to_poly a m n : (m <= n)%nat -> nth m (to_poly a n) real_0 = (a m).
+  Proof.
+    induction n.
+    simpl;auto.
   Admitted.
+  Lemma pivp_ps_taylor_series p : forall y r, pivp0_solution p y r -> forall n, (is_taylor_polynomial (to_poly (pn0 p) n) y r).
+  Proof.
+    intros y r H.
+    induction n.
+    - unfold to_poly.
+      destruct H as [H H'].
+      simpl.
+      intros n H0.
+      rewrite Nat.lt_1_r in H0.
+      rewrite H0.
+      exists y.
+      split; [apply zero_derivative|].
+      rewrite H.
+      rewrite inv_factorial0.
+      simpl;ring_simplify;auto.
+   -  simpl.
+      intros m M.
+      rewrite length_to_poly in M.
+      rewrite Nat.lt_succ_r in M.
+      destruct (Lt.le_lt_or_eq_stt _ _ M).
+      destruct (IHn m).
+      rewrite length_to_poly;auto.
+      exists x.
+      rewrite nth_to_poly in H1; try lia.
+      rewrite nth_to_poly; try lia.
+      split; try apply H1.
+      rewrite H0.
+      exists (fun t  => eval_poly (dn p n) (y t)).
+      split.
+      apply dn_spec;auto.
+      rewrite nth_to_poly; try lia.
+      rewrite (proj1 H).
+      apply pn0_spec.
+  Qed.
 
-  Lemma an_norm p n : poly_norm (an p n) <= npow (Nreal (length p)*poly_norm p) (S n).
+  Lemma pn_norm p n : poly_norm (pn p n) <= npow (Nreal (length p)*poly_norm p) (S n).
   Proof.
     induction n.
 
@@ -590,29 +629,42 @@ Section IVP.
     apply polynorm_nonneg.
     apply Nreal_nonneg.
 
-    simpl an.
+    simpl pn.
     rewrite smul_norm.
     rewrite polynorm_mult.
-    pose proof (polynorm_deriv_bound (an p n)).
-    assert (poly_norm (derive_poly (an p n)) <= Nreal ((n+1)*length p) * (npow (Nreal (length p) * poly_norm p) (S n))).
+    pose proof (polynorm_deriv_bound (pn p n)).
+    assert (poly_norm (derive_poly (pn p n)) <= Nreal ((n+1)*length p) * (npow (Nreal (length p) * poly_norm p) (S n))).
     {
       apply (real_le_le_le _ _ _ H).
-      rewrite an_length.
-      apply (real_le_le_le _ (Nreal ((n+1) *length p)*poly_norm (an p n))).
+      rewrite pn_length.
+      rewrite dn_length.
+      apply (real_le_le_le _ (Nreal ((n+1) *length p)*poly_norm (pn p n))).
       apply real_le_mult_pos_le_le; try apply Nreal_nonneg; try apply polynorm_nonneg; try apply real_le_triv.
       apply Nreal_monotone;lia.
       apply real_le_mult_pos_le; try apply Nreal_nonneg.
       apply IHn.
     }
-    apply (real_le_le_le _ (((/ Nreal_neq0 n) * poly_norm p) *  (Nreal ((n+1)*length p) * (npow (Nreal (length p) * poly_norm p) (S n))))).
+    apply (real_le_le_le _ (((/ dSn n) * poly_norm p) *  (Nreal ((n+1)*length p) * (npow (Nreal (length p) * poly_norm p) (S n))))).
     rewrite <-real_mult_assoc.
     rewrite abs_pos_id; try (apply real_lt_le;apply invSn_gt0).
-    apply real_le_mult_pos_le.
+    apply real_le_mult_pos_le_le.
     apply real_le_pos_mult_pos_pos.
     apply real_lt_le.
-    apply invSn_gt0.
+    apply (invSn_gt0 (S n)).
     apply polynorm_nonneg.
+    apply polynorm_nonneg.
+    rewrite !(real_mult_comm _ (poly_norm p)).
+    apply real_le_mult_pos_le.
+    apply polynorm_nonneg.
+    apply inv_le_ge.
+    apply Nreal_pos;lia.
+    simpl.
+    add_both_side_by (- real_1 - Nreal n).
+    apply real_lt_le.
+    apply real_1_gt_0.
     apply H0.
+    apply real_lt_le.
+    apply (invSn_gt0 (S n)).
     ring_simplify.
     simpl.
     apply real_le_mult_pos_le_le; try apply real_le_triv.
@@ -626,7 +678,8 @@ Section IVP.
     rewrite real_mult_assoc.
     apply real_le_mult_pos_le;try apply Nreal_nonneg.
     rewrite <-real_mult_assoc.
-    replace (Nreal (n+1) * / Nreal_neq0 n) with real_1.
+    rewrite real_mult_comm.
+    replace (Nreal (n+1) * / dSn n) with real_1.
     ring_simplify;apply real_le_triv.
     rewrite real_mult_comm.
     replace (n+1)%nat with (S n) by lia.
@@ -748,45 +801,6 @@ Section IVP.
    apply (test _ _ _ _ _ H).
    Qed.
 
-   Lemma nth_to_poly a m n : (m <= n)%nat -> nth m (to_poly a n) real_0 = (a m).
-  Proof.
-    induction n.
-    simpl;auto.
-  Admitted.
-  Lemma pivp_ps_taylor_series p : forall y r, pivp0_solution p y r -> forall n, (is_taylor_polynomial (to_poly (an0 p) n) y r).
-  Proof.
-    intros y r H.
-    induction n.
-    - unfold to_poly.
-      destruct H as [H H'].
-      simpl.
-      intros n H0.
-      rewrite Nat.lt_1_r in H0.
-      rewrite H0.
-      exists y.
-      split; [apply zero_derivative|].
-      rewrite H.
-      rewrite inv_factorial0.
-      simpl;ring_simplify;auto.
-   -  simpl.
-      intros m M.
-      rewrite length_to_poly in M.
-      rewrite Nat.lt_succ_r in M.
-      destruct (Lt.le_lt_or_eq_stt _ _ M).
-      destruct (IHn m).
-      rewrite length_to_poly;auto.
-      exists x.
-      rewrite nth_to_poly in H1; try lia.
-      rewrite nth_to_poly; try lia.
-      split; try apply H1.
-      rewrite H0.
-      exists (fun t  => eval_poly (pn p n) (y t)).
-      split.
-      apply pk_spec;auto.
-      rewrite nth_to_poly; try lia.
-      rewrite (proj1 H).
-      apply an0_spec.
-  Qed.
   
 End IVP.
 
