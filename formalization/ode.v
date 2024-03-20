@@ -805,27 +805,21 @@ Section IVP.
   Qed.
 
 
-  Lemma test p y y0 r ty: pivp_solution p y y0 r -> snd ty = y (fst (ty)).
-  Admitted.
-
-  Lemma solve_ivp (p : poly) y0 (n : nat) : {l : list (Real * Real) | length l = S n /\ forall y r, pivp_solution p y y0 r -> forall ty, In ty l -> (snd ty) = (y (fst ty))}.
+  Lemma solve_ivp (p : poly) y0 (n : nat) : {l : list (Real * Real) | length l = S n /\
+      forall m, (m < n)%nat -> (fst (nth m l (0,0)) < (fst (nth (S m) l (0,0)))) /\
+      exists r, forall y, pivp_solution p y y0 r -> forall ty, In ty l -> (snd ty) = (y (fst ty))}.
    Proof.
    induction n.
-   exists [(0, y0)];split;simpl;auto.
-   intros.
-   destruct H.
-   destruct H0; [ |contradict H0].
-   rewrite <- H0.
-   simpl;rewrite H;auto.
+   exists [(0, y0)];split;simpl;auto;lia.
 
    destruct IHn as [l [L1 L2]].
    destruct (local_solution p (snd (last l (0,0)))) as [[t yn] P].
    exists (l ++ [((fst (last l (0,0)))+t, yn)]).
    intros;split.
    rewrite app_length;simpl;lia.
-   intros.
-   apply (test _ _ _ _ _ H).
-   Qed.
+   split.
+   admit.
+   Admitted.
 
   
 End IVP.
