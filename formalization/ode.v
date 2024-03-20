@@ -695,13 +695,13 @@ Section IVP.
     ring_simplify;auto.
   Qed.
   
-  Lemma an0_bound p n : abs (an0 p n) <= npow (Nreal (length p) * poly_norm p) n.
+  Lemma pn0_bound p n : abs (pn0 p n) <= npow (Nreal (length p) * poly_norm p) n.
   Proof.
     destruct n;[apply real_lt_le; rewrite abs_pos_id; try apply real_1_gt_0;apply real_le_triv|].
-    simpl an0.
+    simpl pn0.
     rewrite eval_poly_zero.
     apply (real_le_le_le _ _ _ (polynorm_le _ _)).
-    apply an_norm.
+    apply pn_norm.
   Qed.
   
   Lemma poly_deriv_bound' (p : poly) M: (forall n, abs (nth n p real_0) <= M) -> (forall n, abs (nth n (derive_poly p) real_0) <= Nreal (S n) * M).
@@ -717,6 +717,61 @@ Section IVP.
     rewrite <-Nreal_S; apply Nreal_nonneg.
     apply H.
   Qed.
+
+  Lemma taylor_series_converges a f r : (forall n, is_taylor_polynomial (to_poly a n) f r) -> forall (x : I r), is_sum (ps a x) (f x).
+  Proof.
+    intros.
+  Admitted.
+
+  Definition pivp_ps_exists q y0 : {a : bounded_ps | forall y, pivp_solution q y y0 (eval_radius a)  -> is_ps_for (fun t => (pc_unit _ ((y t) - y0))) a}.
+  Proof.
+    destruct  (pivp_to_pivp0 q y0) as [p P].
+    remember (abs (Nreal (length p) * poly_norm p) + real_1) as r.
+    assert (r > 0).
+    {
+      rewrite Heqr.
+      apply abs_plus_1_gt_0.
+    }
+    assert (r <> 0) by (apply real_gt_neq;auto).
+    assert (real_0 < / H0) by (apply real_pos_inv_pos;auto).
+    (* assert (/ (real_gt_neq _ _ H1) = (Nreal (length p)) * poly_norm p). *)
+    (* admit. *)
+    assert (bounded_seq (pn0 p) 1 H1).
+    {
+      intros n.
+      simpl;ring_simplify.
+      apply (real_le_le_le _ _ _ (pn0_bound p n)).
+      apply npow_nonneg_le.
+      apply real_le_pos_mult_pos_pos.
+      apply Nreal_nonneg.
+      apply polynorm_nonneg.
+      apply (real_le_mult_pos_cancel (/ H0));auto.
+      rewrite real_mult_inv.
+      rewrite <-(abs_pos_id (_ * (poly_norm p))).
+      apply (real_le_mult_pos_cancel r);auto.
+      rewrite real_mult_assoc.
+      rewrite real_mult_inv.
+      ring_simplify.
+      rewrite Heqr.
+      add_both_side_by (- (abs (Nreal (length p) * poly_norm p)));apply real_lt_le;apply real_1_gt_0.
+      apply real_le_pos_mult_pos_pos.
+      apply Nreal_nonneg.
+      apply polynorm_nonneg.
+    }
+    exists (mk_bounded_ps _ _ _ _ H2).
+    intros.
+    apply P in H3.
+    unfold is_ps_for.
+    unfold eval_radius in *.
+    simpl in *.
+    intros.
+    pose proof (powerseries_pc_spec (pn0 p) x (y x - y0)).
+    apply H6.
+    pose proof (pivp_ps_taylor_series _ _ _ H3).
+    pose proof (taylor_series_converges (pn0 p) (fun t => (y t) - y0) _ H7 (real_to_I H4)).
+    apply H8.
+  Qed.
+
   Lemma real_inv_inv p (pn0 : p <> 0) (pn1 : (/ pn0) <> 0) : (/ pn1) = p.
   Admitted.
   Lemma  test0 p : (Nreal (length p) * poly_norm p > 0).
@@ -742,28 +797,6 @@ Section IVP.
     apply (mk_bounded_ps (an0 p) _ _ H1 H3).
 
   Qed.
-  Definition pivp_ps_exists q y0 : {a : bounded_ps | forall y r, pivp_solution q y y0 r  -> is_ps_for (fun t => (pc_unit _ ((y t) - y0))) a}.
-  Proof.
-    destruct  (pivp_to_pivp0 q y0) as [p P].
-    assert (Nreal (length p) * poly_norm p > 0).
-    admit.
-    assert (Nreal (length p) * poly_norm p <> 0).
-    admit.
-    assert (real_0 < / H0).
-    admit.
-    assert (/ (real_gt_neq _ _ H1) = (Nreal (length p)) * poly_norm p).
-    admit.
-    assert (bounded_seq (an0 p) 1 H1).
-    {
-      intros n.
-      simpl;ring_simplify.
-      rewrite H2.
-      apply an0_bound.
-    }
-    exists (mk_bounded_ps _ _ _ _ H3).
-    intros.
-    apply P in H4.
-  Admitted.
 
   Lemma test p y y0 r ty: pivp_solution p y y0 r -> snd ty = y (fst (ty)).
   Admitted.
