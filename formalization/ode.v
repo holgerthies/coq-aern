@@ -174,9 +174,10 @@ Section HigherDerivatives.
   (*   Admitted. *)
 End HigherDerivatives.
 Section IVP.
+  Definition pivp_solution  p y y0 r := (y 0) = y0 /\ uniform_derivative_fun y (fun t => (eval_poly p (y t))) r.
+
   Definition pivp0_solution p y r := (y 0) = 0 /\ uniform_derivative_fun y (fun t => (eval_poly p (y t))) r.
 
-  Definition pivp_solution  p y y0 r := (y 0) = y0 /\ uniform_derivative_fun y (fun t => (eval_poly p (y t))) r.
 
   Lemma pivp_to_pivp0 p y0 : {p' : poly | forall y r, pivp_solution p y y0 r <-> pivp0_solution p' (fun t => y t - y0) r }.
   Proof.
@@ -205,11 +206,226 @@ Section IVP.
       replace (y x) with ((y x - y0) - - y0 ) at 2 by ring.
       apply P'.
   Qed.
+
+  Lemma eval_poly_deriv_ext a b p1 p2 : length p1 = length p2 -> derive_poly (a :: p1) = derive_poly (b :: p2) -> p1 = p2.
+  Proof.
+    unfold derive_poly.
+    intros.
+    destruct (poly_deriv_exists (a :: p1)) as [p1' [P1 Q1]].
+    destruct (poly_deriv_exists (b :: p2)) as [p2' [P2 Q2]].
+    simpl in *.
+    apply (nth_ext _ _ real_0 real_0);auto.
+    intros.
+    apply (real_eq_mult_cancel (Nreal (S n))).
+    apply real_gt_neq; apply Nreal_pos;lia.
+    rewrite !(real_mult_comm _ (Nreal _)).
+    simpl.
+    rewrite <-Q1.
+    rewrite <-Q2.
+    rewrite H0;auto.
+  Qed.
+
+  Lemma derivative_unique f g1 g2 r : r > 0 -> uniform_derivative_fun f g1 r -> uniform_derivative_fun f g2 r -> forall (x : I r), g1 x = g2 x. 
+  Proof.
+    intros.
+    assert (g1 x - g2 x = real_0).
+    {
+      apply lim_zero_eq_zero.
+      intros.
+      destruct (H0 (eps / d2)) as [d1 [d1gt0 D1]].
+      admit.
+      destruct (H1 (eps / d2)) as [d2 [d2gt0 D2]].
+      admit.
+      assert (exists (y : I r), dist x y <= d1 /\ dist x y <= d2 /\ dist x y > 0) as [y [Y1 [Y2 Y3]]].
+      admit.
+      admit.
+    }
+    replace (g1 x) with ((g1 x - g2 x) + g2 x) by ring;rewrite H2; ring.
+  Admitted.
+
+  Lemma poly_deriv_eval_ext p1 p2 : (forall x, eval_poly p1 x = eval_poly p2 x) -> forall x, eval_poly (derive_poly p1) x = eval_poly (derive_poly p2) x.
+  Proof.
+    revert p2.
+    intros.
+    pose proof (derive_poly_spec p1).
+    pose proof (derive_poly_spec p2).
+    assert (forall r, uniform_derivative_fun (eval_poly p1) (eval_poly (derive_poly p2)) r).
+    {
+      intros.
+      apply (derive_ext_fun _ (eval_poly p2)).
+      intros;auto.
+      apply H1.
+    }
+    assert (abs x <= abs x + real_1).
+    {
+      add_both_side_by (-abs x).
+      apply real_lt_le.
+      apply real_1_gt_0.
+    }
+    pose proof (derivative_unique (eval_poly p1) (eval_poly (derive_poly p1)) (eval_poly (derive_poly p2)) _ (abs_plus_1_gt_0 x) (H0 (abs x + real_1)) (H2 (abs x + real_1)) (real_to_I H3)).
+    apply H4.
+  Qed.
+
+  Lemma derive_poly_length p : length (derive_poly p) = (length p - 1)%nat.
+  Proof.
+    unfold derive_poly.
+    destruct (poly_deriv_exists p) as [p' [P1 P2]].
+    simpl;auto.
+  Qed.
   
+  Lemma eval_poly_ext_helper p1 p2 n : length p1 = n -> length p2 = n -> (forall x, eval_poly p1 x = eval_poly p2 x) -> p1 = p2.
+  Proof.
+     revert p1; revert p2.
+     induction n.
+     intros.
+     rewrite length_zero_iff_nil in H0,H;auto.
+     rewrite H, H0;auto.
+
+     intros.
+     destruct p1.
+     contradict H;simpl;lia.
+     destruct p2.
+     contradict H0;simpl;lia.
+    assert (r0 = r) as ->.
+    {
+      specialize (H1 real_0).
+      simpl in H1.
+      ring_simplify in H1;auto.
+    }
+    replace p2 with p1; auto.
+    apply (eval_poly_deriv_ext r r).
+    simpl in *;lia.
+    apply IHn; try (rewrite derive_poly_length;simpl in *;lia).
+    apply poly_deriv_eval_ext.
+    apply H1.
+  Qed.
+
+  Lemma eval_poly_ext p1 p2 : length p1 = length p2 -> (forall x, eval_poly p1 x = eval_poly p2 x) -> p1 = p2.
+  Proof.
+    intros.
+    apply (eval_poly_ext_helper _ _ (length p1));auto.
+  Qed.
+  Definition scalar_mult_poly m p := pr1 _ _ (smul_poly m p).
+
+  Lemma scalar_mult_poly_spec m p x: eval_poly (scalar_mult_poly m p) x = m * eval_poly p x.
+  Proof.
+    unfold scalar_mult_poly.
+    destruct smul_poly.
+    simpl;auto.
+  Qed.
+  Lemma smul_length x p : length (scalar_mult_poly x p) = length p.
+  Proof.
+    unfold scalar_mult_poly.
+    induction p;simpl;auto.
+    destruct (smul_poly x p).
+    simpl in *.
+    rewrite IHp;auto.
+  Qed.
+  Lemma scalar_mult_cons m a p : scalar_mult_poly m (a :: p) = (m*a) :: scalar_mult_poly m p.
+  Proof.
+    apply eval_poly_ext.
+    simpl;rewrite !smul_length;simpl;auto.
+    intros.
+    simpl.
+    rewrite scalar_mult_poly_spec.
+    simpl.
+    rewrite scalar_mult_poly_spec.
+    ring.
+  Qed.
+  
+  Lemma scalar_mult_nth m p n : nth n (scalar_mult_poly m p) real_0  = m* nth n p real_0.
+  Proof.
+    revert n.
+    induction p.
+    destruct n;simpl;ring.
+    intros.
+    rewrite scalar_mult_cons.
+    destruct n.
+    simpl;auto.
+    simpl.
+    apply IHp.
+ Qed.
+
+  Fixpoint dn p n := match n with
+                     |  0 => p
+                     | S n' => mult_coefficients p (derive_poly (dn p n'))
+                    end.
+
+  
+ Lemma dn_length p n : (length (dn p n) = ((n+1)*(length p))-2*n)%nat.
+  Proof.
+    induction n; [simpl;lia|].
+    simpl dn.
+    rewrite length_mult_coefficients.
+    rewrite derive_poly_length.
+    rewrite IHn.
+    simpl.
+    ring_simplify.
+    replace (n+0)%nat with n by lia.
+    destruct (length p); try lia.
+    destruct n0;lia.
+  Qed.
+
   Fixpoint pn p n := match n with
                      |  0 => p
-                     | S n' => mult_coefficients p (derive_poly (pn p n'))
+                     | S n' => scalar_mult_poly (/ dSn n) (mult_coefficients p (derive_poly (pn p n')))
                     end.
+  
+  Lemma pn_length p n : (length (pn p n)) = length (dn p n).
+  Proof.
+     induction n; [simpl; lia|].
+     simpl.
+     rewrite smul_length.
+     rewrite !length_mult_coefficients.
+     rewrite !derive_poly_length.
+     rewrite IHn;lia.
+  Qed.
+
+
+  Lemma derive_poly_nth p n : nth n (derive_poly p) real_0 = (Nreal (S n)) * nth (S n) p real_0.
+  Proof.
+    unfold derive_poly.
+    destruct (poly_deriv_exists p) as [p' [P1 P2]].
+    simpl;auto.
+    rewrite P2.   
+    simpl;ring.
+  Qed.
+
+  Lemma derive_scalar_mult p m : derive_poly (scalar_mult_poly m p) = scalar_mult_poly m (derive_poly p).
+  Proof.
+    apply (nth_ext _ _ real_0 real_0).
+    rewrite derive_poly_length, !smul_length, derive_poly_length;auto.
+    intros.
+    rewrite derive_poly_nth.
+    rewrite !scalar_mult_nth.
+    rewrite derive_poly_nth.
+    ring.
+  Qed.
+  Lemma mult_coeff_scalar_mult p q m : mult_coefficients p (scalar_mult_poly m q) = scalar_mult_poly m (mult_coefficients p q).
+  Proof.
+    apply eval_poly_ext.
+    rewrite length_mult_coefficients, !smul_length, length_mult_coefficients;auto.
+    intros.
+    rewrite mult_coeff_spec, !scalar_mult_poly_spec, mult_coeff_spec.
+    ring.
+  Qed.
+  Lemma an_spec p n : pn p n = scalar_mult_poly (inv_factorial (S n)) (dn p n).
+  Proof.
+    apply (nth_ext _ _ real_0 real_0); [rewrite smul_length;apply pn_length|].
+    induction n;intros.
+    rewrite scalar_mult_nth;rewrite inv_factorial1; simpl; ring.
+    simpl.
+    rewrite !scalar_mult_nth.
+    rewrite (inv_factorialS ( S n)).
+    rewrite !real_mult_assoc.
+    apply real_eq_mult_eq.
+    apply nth_ext in IHn.
+    rewrite IHn.
+    rewrite derive_scalar_mult, mult_coeff_scalar_mult.
+    rewrite scalar_mult_nth;auto.
+    rewrite smul_length.
+    apply pn_length.
+  Qed.  
 
   Lemma differentiable_bounded_fun f g r: uniform_derivative_fun f g r -> exists M, forall (x : I r), abs (f x) <= M.
   Proof.
@@ -230,7 +446,7 @@ Section IVP.
     rewrite P;auto.
   Qed.
 
-  Lemma pk_spec p (y : Real -> Real) r n : pivp0_solution p y r -> nth_derivative y (fun t  => eval_poly (pn p n) (y t)) r (S n).
+  Lemma dn_spec p (y : Real -> Real) r n : pivp0_solution p y r -> nth_derivative y (fun t  => eval_poly (dn p n) (y t)) r (S n).
   Proof.
     intros H.
     assert (exists r', (forall (t : I r), abs (y t) <= r')).
@@ -243,10 +459,10 @@ Section IVP.
     induction n.
     apply fst_derivative; apply H.
     apply nth_derivative_S.
-    exists (fun t => eval_poly (pn p n) (y t)).
+    exists (fun t => eval_poly (dn p n) (y t)).
     split;[apply IHn|].
     simpl.
-    apply (derive_ext_fun2 _ (fun t => eval_poly p (y t) * eval_poly (derive_poly (pn p n)) (y t)));[intros;apply mult_coeff_spec|].
+    apply (derive_ext_fun2 _ (fun t => eval_poly p (y t) * eval_poly (derive_poly (dn p n)) (y t)));[intros;apply mult_coeff_spec|].
     apply (chain_rule _ _ _ _ r').
     apply derive_poly_spec.
     apply H.
@@ -310,19 +526,6 @@ Section IVP.
     apply real_eq_le;ring.
   Admitted.
     
-  Lemma smul_length p x : length (pr1 _ _  (smul_poly x p)) = length p.
-  Proof.
-    induction p;simpl;auto.
-    destruct (smul_poly x p).
-    simpl in *.
-    rewrite IHp;auto.
-  Qed.
-  Lemma derive_poly_length p : length (derive_poly p) = (length p - 1)%nat.
-  Proof.
-    unfold derive_poly.
-    destruct (poly_deriv_exists p) as [p' [P1 P2]].
-    simpl;auto.
-  Qed.
 
   Lemma smul_norm p x : poly_norm (pr1 _ _ (smul_poly x p)) = abs x * poly_norm p.
   Proof.
@@ -354,33 +557,8 @@ Section IVP.
   
 
 
-  Lemma Nreal_neq0 n : Nreal (S n) <> real_0.
-  Proof.
-    apply real_gt_neq.
-    apply Nreal_pos.
-    lia.
-  Qed.
-  
-  Fixpoint an p n := match n with
-                     |  0 => p
-                     | S n' => pr1 _ _ (smul_poly (/ Nreal_neq0 n') (mult_coefficients p (derive_poly (an p n'))))
-                    end.
 
 
- Lemma an_length p n : (length (an p n) = ((n+1)*(length p))-2*n)%nat.
-  Proof.
-    induction n; [simpl;lia|].
-    simpl an.
-    rewrite smul_length.
-    rewrite length_mult_coefficients.
-    rewrite derive_poly_length.
-    rewrite IHn.
-    simpl.
-    ring_simplify.
-    replace (n+0)%nat with n by lia.
-    destruct (length p); try lia.
-    destruct n0;lia.
-  Qed.
 
   Lemma invSn_gt0 : forall n, (/ Nreal_neq0 n) > real_0.
   Admitted.
@@ -443,11 +621,6 @@ Section IVP.
     rewrite real_mult_inv;auto.
   Qed.
 
-  Lemma an_spec p n x : (eval_poly (an p n) x) = (/ Nreal_fact_neq0 (S n)) * (eval_poly (pn p n) x).
-  Proof.
-    induction n.
-    simpl.
-  Admitted.
 
   Definition an0 p n :=
     match n with
