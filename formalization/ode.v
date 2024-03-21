@@ -229,17 +229,47 @@ Section IVP.
   Proof.
     intros.
     assert (g1 x - g2 x = real_0).
-    {
-      apply lim_zero_eq_zero.
+    - apply lim_zero_eq_zero.
       intros.
       destruct (H0 (eps / d2)) as [d1 [d1gt0 D1]].
-      admit.
+      apply real_half_gt_zero;auto.
       destruct (H1 (eps / d2)) as [d2 [d2gt0 D2]].
+      apply real_half_gt_zero;auto.
+      assert (exists d, d > 0 /\ d <= r /\ d <= d1 /\ d <= d2) as [d [D'1 [D'2 [D'3 D'4]]]].
       admit.
+      assert (abs (x+d) <= r \/ abs (x - d) <= r).
+      {
+        destruct (real_lt_or_ge x 0).
+        left.
+        apply Minmax.real_abs_le_le_le.
+        apply (real_le_le_le _ d);auto.
+        add_both_side_by (-d);auto.
+        apply real_lt_le;auto.
+        add_both_side_by d.
+        apply (real_le_le_le _ r).
+        destruct x.
+        simpl.
+        apply Minmax.real_abs_le_neg_le;auto.
+        add_both_side_by (-r);apply real_lt_le;auto.
+        right.
+        apply Minmax.real_abs_le_le_le.
+        apply (real_le_le_le _ x).
+        add_both_side_by (d-x).
+        apply real_lt_le;auto.
+        destruct x.
+        simpl.
+        apply Minmax.real_abs_le_pos_le;auto.
+       apply (real_le_le_le _ d);auto.
+       add_both_side_by (-d+x);auto.
+      }
       assert (exists (y : I r), dist x y <= d1 /\ dist x y <= d2 /\ dist x y > 0) as [y [Y1 [Y2 Y3]]].
+      {
+        destruct H3; exists (real_to_I H3);simpl.
+        admit.
+        admit.
+      }
       admit.
-      admit.
-    }
+    -
     replace (g1 x) with ((g1 x - g2 x) + g2 x) by ring;rewrite H2; ring.
   Admitted.
 
