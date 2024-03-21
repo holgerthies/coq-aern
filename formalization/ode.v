@@ -608,8 +608,62 @@ Section IVP.
   Qed.
   Lemma polynorm_mult p q : poly_norm (mult_coefficients p q) <= (Nreal (length p)) * poly_norm p * poly_norm q.
   Proof.
-  Admitted.
-  
+    destruct (poly_norm_nth (mult_coefficients p q)) as [n H].
+    rewrite H.
+    destruct (Nat.lt_ge_cases n (length p + length q - 1)).
+    - rewrite mult_coefficients_spec;auto.
+      clear H.
+      revert dependent n.
+      induction p; intros.
+      simpl.
+      unfold convolution_coeff.
+      rewrite convolution_coeff_rec_nil.
+      rewrite abs_pos_id; try apply real_le_triv.
+      replace (real_0 * real_0) with real_0 by ring.
+      replace (real_0 * poly_norm q) with real_0 by ring.
+      apply real_le_triv.
+
+      destruct n.
+      + unfold convolution_coeff.
+        simpl convolution_coeff_rec.
+        replace (a * nth 0 q real_0  + real_0) with (a * nth 0 q real_0) by ring.
+        rewrite abs_mult.
+        apply (real_le_le_le _ (real_1 * (poly_norm (a :: p) * poly_norm q))).
+        ring_simplify.
+        apply real_le_mult_pos_le_le; try apply abs_pos.
+        apply Minmax.real_max_fst_ge.
+        apply polynorm_le.
+        rewrite real_mult_assoc.
+        apply real_le_mult_pos_le_le.
+        apply real_lt_le; apply real_1_gt_0.
+        apply real_le_pos_mult_pos_pos; try apply polynorm_nonneg.
+        simpl Nreal.
+        add_both_side_by (-real_1);apply Nreal_nonneg.
+        apply real_le_triv.
+      + rewrite convolution_coeff_cons.
+      simpl.
+      apply (real_le_le_le _ _ _ (abs_tri _ _)).
+      ring_simplify.
+      rewrite real_plus_comm.
+      apply real_le_le_plus_le.
+      simpl in H0.
+      apply (real_le_le_le _ (Nreal (length p) * poly_norm p * poly_norm q)); [apply IHp;lia|].
+      rewrite !real_mult_assoc.
+      apply real_le_mult_pos_le.
+      apply Nreal_nonneg.
+      rewrite !(real_mult_comm _ (poly_norm q)).
+      apply real_le_mult_pos_le.
+      apply polynorm_nonneg.
+      apply Minmax.real_max_snd_ge.
+      rewrite abs_mult.
+      apply real_le_mult_pos_le_le; try apply abs_pos.
+      apply Minmax.real_max_fst_ge.
+      apply polynorm_le.
+    - rewrite nth_overflow.
+      rewrite abs_pos_id;try apply real_le_triv.
+      apply real_le_pos_mult_pos_pos; [apply real_le_pos_mult_pos_pos|];try apply polynorm_nonneg;try apply Nreal_nonneg.
+      rewrite length_mult_coefficients;auto.
+  Qed.
   Lemma polynorm_deriv_bound p : poly_norm (derive_poly p) <= (Nreal (length p))*poly_norm p.
   Proof.
     simpl.
