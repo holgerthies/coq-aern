@@ -387,8 +387,6 @@ Section IVP.
     unfold derive_poly.
     destruct (poly_deriv_exists p) as [p' [P1 P2]].
     simpl;auto.
-    rewrite P2.   
-    simpl;ring.
   Qed.
 
   Lemma derive_scalar_mult p m : derive_poly (scalar_mult_poly m p) = scalar_mult_poly m (derive_poly p).
@@ -772,7 +770,7 @@ Section IVP.
     apply H8.
   Qed.
 
-  Lemma local_solution (p : poly) (y0 : ^Real) : {ty1 : Real*Real | (fst ty1) > 0 /\ exists r, forall y,  pivp_solution p y y0 r  -> (snd ty1) = (y (fst ty1))}.
+  Lemma local_solution (p : poly) (y0 : ^Real) : {ty1 : Real*Real | (fst ty1) > 0 /\ exists r, r > 0 /\ (fst ty1) <= r /\ (forall y,  pivp_solution p y y0 r  -> (snd ty1) = (y (fst ty1)))}.
   Proof.
     destruct (pivp_ps_exists p y0) as [a A].
     destruct (eval_val a (eval_radius a)) as [y1 P1].
@@ -783,9 +781,9 @@ Section IVP.
     exists ((eval_radius a), y1+y0).
     split.
     apply eval_radius_gt0.
-    intros.
     simpl.
     exists (eval_radius a).
+    split; [apply eval_radius_gt0|split;[apply real_le_triv|]].
     intros.
     specialize (A y H (eval_radius a)).
     apply (real_eq_plus_cancel (-y0)).
@@ -804,24 +802,152 @@ Section IVP.
     apply unit_defined.
   Qed.
 
+  Lemma uniform_derivative_smaller_r f g r1 r2 : (r2 <= r1) -> uniform_derivative_fun f g r1 -> uniform_derivative_fun f g r2.
+  Proof.
+    intros.
+    intros eps epsgt0.
+    destruct (H0 _ epsgt0) as [d [H' H'']].
+    exists d.
+    split;auto.
+    intros.
+    assert (abs x <= r1 /\ (abs y) <= r1) as [X Y].
+    destruct x;destruct y;split;apply (real_le_le_le  _ r2);auto.
+    apply (H'' (real_to_I X) (real_to_I Y));auto.
+  Qed.
+
+  Lemma pivp_solution_smaller_r p y y0 r1 r2 : (r2 <= r1) -> pivp_solution p y y0 r1 -> pivp_solution p y y0 r2.
+  Proof.
+    intros.
+    destruct H0.
+    split;auto.
+    apply (uniform_derivative_smaller_r _ _ r1 r2);auto.
+  Qed.
+
+  Lemma uniform_derivative_shift f g r t0 : uniform_derivative_fun f g r -> uniform_derivative_fun (fun t => (f (t0+t))) (fun t => (g (t0+t))) (r-(abs t0)).
+  Proof.
+    intros H eps epsgt0.
+    destruct (H _ epsgt0) as [d [D1 D2]].
+    exists d.
+    split;auto.
+    intros.
+    assert (abs (t0+x) <= r /\ abs (t0+y) <= r) as [X Y].
+    {
+      destruct x;destruct y;simpl in *.
+      split;apply (real_le_le_le _ _ _ (abs_tri _ _));add_both_side_by (- abs t0); apply (real_le_le_le _ (r-abs t0));auto;apply real_eq_le;ring.
+    }
+    replace (y - x) with (t0 + y - (t0+x)) by ring.
+    apply (D2 (real_to_I X) (real_to_I Y)).
+    simpl.
+    unfold dist.
+    replace (t0+x - (t0+y)) with (x-y) by ring.
+    apply H0.
+  Qed.
+
+  Lemma pivp_solution_time_independent p y y0 r t0 : ((y t0) = y0 /\ uniform_derivative_fun y (fun t => (eval_poly p (y t))) r) -> pivp_solution p (fun t => y (t0+t)) y0 (r - abs t0).
+  Proof.
+    intros.
+    destruct H.
+    split.
+    replace 0 with real_0 by auto;rewrite real_plus_comm, real_plus_unit;auto.
+    apply (uniform_derivative_shift _ _ _ _ H0).
+  Qed.  
 
   Lemma solve_ivp (p : poly) y0 (n : nat) : {l : list (Real * Real) | length l = S n /\
-      forall m, (m < n)%nat -> (fst (nth m l (0,0)) < (fst (nth (S m) l (0,0)))) /\
-      exists r, forall y, pivp_solution p y y0 r -> forall ty, In ty l -> (snd ty) = (y (fst ty))}.
+      (forall m, fst (nth m l (0,0)) >= 0)  /\
+      (forall m, (m < n)%nat -> (fst (nth m l (0,0)) < (fst (nth (S m) l (0,0))))) /\
+      exists r, (r > 0) /\ (fst (nth n l (0,0))) <= r /\  forall y, pivp_solution p y y0 r -> forall ty, In ty l ->  (snd ty) = (y (fst ty))}.
    Proof.
    induction n.
-   exists [(0, y0)];split;simpl;auto;lia.
+   - exists [(0, y0)];split;[|split; [|split]];simpl;auto.
+     intros;destruct m;[|destruct m];simpl;auto;apply real_le_triv.
+     intros;simpl;auto;intros;try lia.
+     destruct (local_solution p y0) as [[t y1] [P1 P2]].
+     destruct P2 as [r [rgt0 _]].
+     exists r.
+     split;auto;split.
+     apply real_lt_le;auto.
+     intros.
+     destruct H0 as [<-|]; try contradict H0.
+     simpl;rewrite (proj1 H);auto.
+   - destruct IHn as [l [L1 [L2 [L3 L4]]]].
+     destruct (local_solution p (snd (nth n l (0,0)))) as [[t yn] [P1 P2]].
+     exists (l ++ [((fst (nth n l (0,0)))+t, yn)]).
+     intros;split.
+     rewrite app_length;simpl;lia.
+     split; [|split].
+     +  intros.
+        destruct (Nat.lt_ge_cases m (S (length l))).
+        destruct (Lt.le_lt_or_eq_stt _ _ H).
+        rewrite app_nth1;try lia.
+        apply L2.
+        apply Nat.succ_inj in H0.
+        rewrite H0.
+        rewrite nth_middle.
+        simpl.
+        Search (_ <= _ + _ ).
+        replace 0 with (real_0) at 3 by auto;replace real_0 with (real_0 + real_0) by ring.
+        apply real_le_le_plus_le.
+        apply L2.
+        apply real_lt_le;auto.
+        rewrite nth_overflow;simpl;[apply real_le_triv|rewrite app_length;simpl;lia].
+     +  intros.
+        rewrite Nat.lt_succ_r in H.
+        apply Lt.le_lt_or_eq_stt in H.
+        destruct H.
+        rewrite !app_nth1; try lia.
+        apply L3;auto.
+        rewrite H.
+        rewrite <- L1.
+        rewrite nth_middle.
+        rewrite app_nth1;try lia.
+        simpl.
+        add_both_side_by (- (fst (nth n l (0,0)))).
+        apply P1.
+     + destruct L4 as [r0 [r0gt0 R0]].
+       destruct P2 as [r [rgt0 [tler R]]].
+       exists (r0 + r).
+       split; [apply real_gt0_gt0_plus_gt0;auto|].
+       split.
+       rewrite <-L1.
+       rewrite nth_middle.
+       simpl.
+       apply real_le_le_plus_le;auto;apply R0.
+       intros.
+       apply in_app_or in H0.
+       destruct H0.
+       apply R0;auto.
+       apply (pivp_solution_smaller_r _ _ _ (r0 + r));auto.
+       add_both_side_by (-r0);apply real_lt_le;auto.
 
-   destruct IHn as [l [L1 L2]].
-   destruct (local_solution p (snd (last l (0,0)))) as [[t yn] P].
-   exists (l ++ [((fst (last l (0,0)))+t, yn)]).
-   intros;split.
-   rewrite app_length;simpl;lia.
-   split.
-   admit.
-   Admitted.
-
-  
+       simpl in H0.
+       destruct H0;[|contradict H0].
+       rewrite <-H0.
+       simpl.
+       simpl in R.
+       specialize (R (fun t => (y (fst (nth n l (0,0))+t)))).
+       apply R.
+       remember (fst (nth n l (0,0))) as tsn.
+       remember (snd (nth n l (0,0))) as ysn.
+       simpl in *.
+       pose proof (pivp_solution_time_independent p y ysn (r+abs tsn) tsn).
+       replace r with (r + abs tsn - abs tsn) by ring.
+       apply H1.
+       split.
+       rewrite Heqtsn, Heqysn.
+       apply eq_sym.
+       apply R0.
+       apply (pivp_solution_smaller_r _ _ _ (r0+r));auto.
+       add_both_side_by (-r0);apply real_lt_le;auto.
+       apply nth_In;lia.
+       destruct H.
+       apply (uniform_derivative_smaller_r _ _ (r0+r));auto.
+       rewrite real_plus_comm.
+       add_both_side_by (-r).
+       rewrite abs_pos_id.
+       apply R0.
+       rewrite Heqtsn.
+       apply L2.
+  Qed.
 End IVP.
 
 
