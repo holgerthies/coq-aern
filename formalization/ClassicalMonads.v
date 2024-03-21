@@ -1177,19 +1177,11 @@ Section NablaIsClassical.
     intros.
     apply (Nabla_bind X).
     clear X A.
-    exists (fun p : P => True).
-    destruct (lem (exists p : P, True)).
-    destruct H1.
-    exists x.
-    split.
-    auto.
-    intros.
-    apply H.
-    assert (forall p : P, False).
-    intro.
-    contradict H1.
-    exists p; auto.
-    contradict (H0 H2).
+    apply Propize_to_Nabla.
+    exact H.
+    apply dn_to_Propize.
+    exact H.
+    exact H0.
   Defined.
   
   Lemma Nabla_dn_sheaf_1 : forall P A h x, 
@@ -1199,21 +1191,15 @@ Section NablaIsClassical.
     apply fun_ext.
     intro.
     unfold Nabla_dn_extend.
-    unfold Nabla_bind.
     unfold Nabla_dn_precompose.
-    destruct (lem (exists _ : P, True)).
-    destruct e.
-    induction (h x0 x1).
-    assert ((exist (fun P0 : P -> Prop => exists ! a : P, P0 a) (fun _ : P => True)
-                   (ex_intro (unique (fun _ : P => True)) x0 (conj t (fun (x' : P) (_ : True) => h x0 x')))) = Nabla_unit _ x0).
+    assert (((Propize_to_Nabla P h (dn_to_Propize P h (dn_unit x0)))) = Nabla_unit _ x0).
     apply hprop_Nabla_hprop.
     exact h.
-    rewrite H.
+    rewrite H.   
+    unfold Nabla_bind.
     rewrite Nabla_unit_ntrans.
     rewrite Nabla_coh1.
-    exact eq_refl.
-    contradict n.
-    exists x0; auto.
+    apply eq_refl.
   Defined.
   
   Lemma Nabla_dn_sheaf_2 : forall P A h x, 
@@ -1223,28 +1209,30 @@ Section NablaIsClassical.
     apply fun_ext.
     intros.
     unfold Nabla_dn_extend.
-    unfold Nabla_bind.
     unfold Nabla_dn_precompose.
-    destruct (lem (exists _ : P, True)).
-    destruct e.
-    assert ((exist (fun P0 : P -> Prop => exists ! a : P, P0 a) (fun _ : P => True)
-                   (ex_intro (unique (fun _ : P => True)) x1 (conj t (fun (x' : P) (_ : True) => h x1 x')))) = Nabla_unit _ x1).
+    assert (exists x1, x0 = dn_unit x1).
+    {
+      destruct (lem (exists x1 : P, x0 = dn_unit x1)); auto.
+      assert False.
+      apply x0.
+      intro.
+      contradict H.
+      exists X.
+      apply irrl.
+      contradict H0.
+    }
+    destruct H as [x1 h1].
+    rewrite h1.
+    assert ((Propize_to_Nabla P h (dn_to_Propize P h (dn_unit x1)) = Nabla_unit _ (x1))).
     apply hprop_Nabla_hprop.
     exact h.
     rewrite H.
+    unfold Nabla_bind.
     rewrite Nabla_unit_ntrans.
     rewrite Nabla_coh1.
-    unfold dn_unit.
-    rewrite (dn_hprop P  (fun H0 : neg P => H0 x1) x0).
     apply eq_refl.
-    contradict n.
-    destruct (lem (neg P)).
-    contradict (x0 H).
-    apply Prop_dn_elim.
-    apply (dn_lift (fun p : P => ex_intro _ p I)). 
-    exact x0.
   Defined.
-
+  
   Lemma dn_lem : forall A, neg (neg (A + neg A)).
   Proof.
     intros.
@@ -1327,7 +1315,5 @@ Section NablaIsClassical.
     apply Nabla_hprop_lem.
     exact H.
   Defined.
-
-  
   
 End NablaIsClassical.
