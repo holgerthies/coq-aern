@@ -891,7 +891,9 @@ Section IVP.
     rewrite <-Nreal_S; apply Nreal_nonneg.
     apply H.
   Qed.
-  Definition analytic f r := forall a, (forall n, is_taylor_polynomial (to_poly a n) f r) -> forall (x : I r), is_sum (ps a x) (f x).
+  Definition analytic_r f r := forall a, (forall n,  is_taylor_polynomial (to_poly a n) f r) -> forall (x : I r), is_sum (ps a x) (f x).
+  Definition analytic f r := forall r', (r' <= r) -> analytic_r f r'.
+
   (* Later we will show that the solution is indeed analytic *)
 
   Definition pivp_ps_exists q y0 : {a : bounded_ps | forall y, (analytic (fun t => ((y t)-y0)) (eval_radius a)) ->  pivp_solution q y y0 (eval_radius a)  -> is_ps_for (fun t => (pc_unit _ ((y t) - y0))) a}.
@@ -939,7 +941,7 @@ Section IVP.
     pose proof (powerseries_pc_spec (pn0 p) x (y x - y0)).
     apply H7.
     pose proof (pivp_ps_taylor_series _ _ _ H4).
-    apply (H3 (pn0 p) H8 (real_to_I H5)).
+    apply (H3 _ (real_le_triv (/ H0 / real_2_neq_0)) (pn0 p) H8 (real_to_I H5)).
   Qed.
 
   Lemma analytic_plus f x0 r :  analytic f r -> analytic (fun x => (f x) + x0) r.
@@ -1018,9 +1020,39 @@ Section IVP.
     replace (t0+x - (t0+y)) with (x-y) by ring.
     apply H0.
   Qed.
+
+  Lemma nth_derivative_smaller f g n r1 r2 : (r2 <= r1) -> nth_derivative f g r1 n -> nth_derivative f g r2 n.
+  Proof.
+     intros.
+     revert dependent g.
+     revert dependent f.
+     induction n;intros.
+     intros [x xp].
+     simpl.
+     assert (abs x <= r1).
+     apply (real_le_le_le _ r2);auto.
+     apply (H0 (real_to_I H1)).
+
+     destruct (H0) as [f' [F'1 F'2]].
+     exists f'.
+     split.
+     apply (uniform_derivative_smaller_r _ _ r1);auto.
+     apply IHn.
+     apply F'2.
+   Qed.
+  
   Lemma analytic_smaller f r1 r2 : (r2 <= r1) -> analytic f r1 -> analytic f r2.
-  Admitted.
+  Proof.
+    intros.
+    intros r rlt.
+    apply H0.
+    apply (real_le_le_le _ r2);auto.
+  Qed.
+
   Lemma analytic_shift f r x0 :  analytic f r -> analytic (fun x => f (x0+x)) (r- abs x0).
+  Proof.
+    intros.
+    intros r' r'p.
   Admitted.
   
   Lemma pivp_solution_time_independent p y y0 r t0 : ((y t0) = y0 /\ uniform_derivative_fun y (fun t => (eval_poly p (y t))) r) -> pivp_solution p (fun t => y (t0+t)) y0 (r - abs t0).
