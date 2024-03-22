@@ -115,14 +115,14 @@ Section HigherDerivatives.
 
  Definition is_taylor_polynomial a f r:= forall n, (n < length a)%nat -> (exists g, nth_derivative f g r n /\ nth n a 0 = inv_factorial n * (g 0)). 
 
- Lemma taylor_sub_polynomial a aN f r : is_taylor_polynomial (a ++ aN) f r -> is_taylor_polynomial a f r.
- Proof.
-   intros [H1 H2].
- Admitted.
+ (* Lemma taylor_sub_polynomial a aN f r : is_taylor_polynomial (a ++ aN) f r -> is_taylor_polynomial a f r. *)
+ (* Proof. *)
+ (*   intros [H1 H2]. *)
+ (* Admitted. *)
 
- Theorem TaylorsTheorem a f r M : is_taylor_polynomial a f r -> (exists g, nth_derivative f g r (length a) /\ (forall (x : I r), abs (g x) <= M)) -> forall (x : I r), dist (eval_poly a x) (f x) <= inv_factorial (length a) * M * npow r (length a).
- Proof.
- Admitted.
+ (* Theorem TaylorsTheorem a f r M : is_taylor_polynomial a f r -> (exists g, nth_derivative f g r (length a) /\ (forall (x : I r), abs (g x) <= M)) -> forall (x : I r), dist (eval_poly a x) (f x) <= inv_factorial (length a) * M * npow r (length a). *)
+ (* Proof. *)
+ (* Admitted. *)
   (*  induction a. *)
   (*  - intros a M [H1 H2] [g [G1 G2]] x. *)
   (*    assert (abs 0 <= r) as H0. *)
@@ -891,13 +891,10 @@ Section IVP.
     rewrite <-Nreal_S; apply Nreal_nonneg.
     apply H.
   Qed.
+  Definition analytic f r := forall a, (forall n, is_taylor_polynomial (to_poly a n) f r) -> forall (x : I r), is_sum (ps a x) (f x).
+  (* Later we will show that the solution is indeed analytic *)
 
-  Lemma taylor_series_converges a f r : (forall n, is_taylor_polynomial (to_poly a n) f r) -> forall (x : I r), is_sum (ps a x) (f x).
-  Proof.
-    intros.
-  Admitted.
-
-  Definition pivp_ps_exists q y0 : {a : bounded_ps | forall y, pivp_solution q y y0 (eval_radius a)  -> is_ps_for (fun t => (pc_unit _ ((y t) - y0))) a}.
+  Definition pivp_ps_exists q y0 : {a : bounded_ps | forall y, (analytic (fun t => ((y t)-y0)) (eval_radius a)) ->  pivp_solution q y y0 (eval_radius a)  -> is_ps_for (fun t => (pc_unit _ ((y t) - y0))) a}.
   Proof.
     destruct  (pivp_to_pivp0 q y0) as [p P].
     remember (abs (Nreal (length p * length p) * poly_norm p) + real_1) as r.
@@ -934,19 +931,21 @@ Section IVP.
     }
     exists (mk_bounded_ps _ _ _ _ H2).
     intros.
-    apply P in H3.
+    apply P in H4.
     unfold is_ps_for.
     unfold eval_radius in *.
     simpl in *.
     intros.
     pose proof (powerseries_pc_spec (pn0 p) x (y x - y0)).
-    apply H6.
-    pose proof (pivp_ps_taylor_series _ _ _ H3).
-    pose proof (taylor_series_converges (pn0 p) (fun t => (y t) - y0) _ H7 (real_to_I H4)).
-    apply H8.
+    apply H7.
+    pose proof (pivp_ps_taylor_series _ _ _ H4).
+    apply (H3 (pn0 p) H8 (real_to_I H5)).
   Qed.
 
-  Lemma local_solution (p : poly) (y0 : ^Real) : {ty1 : Real*Real | (fst ty1) > 0 /\ exists r, r > 0 /\ (fst ty1) <= r /\ (forall y,  pivp_solution p y y0 r  -> (snd ty1) = (y (fst ty1)))}.
+  Lemma analytic_plus f x0 r :  analytic f r -> analytic (fun x => (f x) + x0) r.
+  Proof.
+  Admitted.
+  Lemma local_solution (p : poly) (y0 : ^Real) : {ty1 : Real*Real | (fst ty1) > 0 /\ exists r, r > 0 /\ (fst ty1) <= r /\ (forall y, analytic y r ->  pivp_solution p y y0 r  -> (snd ty1) = (y (fst ty1)))}.
   Proof.
     destruct (pivp_ps_exists p y0) as [a A].
     destruct (eval_val a (eval_radius a)) as [y1 P1].
@@ -961,7 +960,8 @@ Section IVP.
     exists (eval_radius a).
     split; [apply eval_radius_gt0|split;[apply real_le_triv|]].
     intros.
-    specialize (A y H (eval_radius a)).
+    assert (analytic (fun t => (y t) - y0) (eval_radius a)) as H' by (apply analytic_plus;auto).
+    specialize (A y H' H0 (eval_radius a)).
     apply (real_eq_plus_cancel (-y0)).
     ring_simplify.
     replace (-y0 + y (eval_radius a)) with (y (eval_radius a) - y0) by ring.
@@ -969,7 +969,7 @@ Section IVP.
     rewrite <-A.
     pose proof (powerseries_pc_spec (series a) (eval_radius a) y1).
     apply eq_sym.
-    apply H0.
+    apply H1.
     apply P1.
     rewrite abs_pos_id.
     apply real_le_triv.
@@ -1018,7 +1018,11 @@ Section IVP.
     replace (t0+x - (t0+y)) with (x-y) by ring.
     apply H0.
   Qed.
-
+  Lemma analytic_smaller f r1 r2 : (r2 <= r1) -> analytic f r1 -> analytic f r2.
+  Admitted.
+  Lemma analytic_shift f r x0 :  analytic f r -> analytic (fun x => f (x0+x)) (r- abs x0).
+  Admitted.
+  
   Lemma pivp_solution_time_independent p y y0 r t0 : ((y t0) = y0 /\ uniform_derivative_fun y (fun t => (eval_poly p (y t))) r) -> pivp_solution p (fun t => y (t0+t)) y0 (r - abs t0).
   Proof.
     intros.
@@ -1031,7 +1035,7 @@ Section IVP.
   Lemma solve_ivp (p : poly) y0 (n : nat) : {l : list (Real * Real) | length l = S n /\
       (forall m, fst (nth m l (0,0)) >= 0)  /\
       (forall m, (m < n)%nat -> (fst (nth m l (0,0)) < (fst (nth (S m) l (0,0))))) /\
-      exists r, (r > 0) /\ (fst (nth n l (0,0))) <= r /\  forall y, pivp_solution p y y0 r -> forall ty, In ty l ->  (snd ty) = (y (fst ty))}.
+      exists r, (r > 0) /\ (fst (nth n l (0,0))) <= r /\  forall y, analytic y r -> pivp_solution p y y0 r -> forall ty, In ty l ->  (snd ty) = (y (fst ty))}.
    Proof.
    induction n.
    - exists [(0, y0)];split;[|split; [|split]];simpl;auto.
@@ -1042,7 +1046,7 @@ Section IVP.
      exists r.
      split;auto;split.
      apply real_lt_le;auto.
-     intros.
+     intros y ana H ty H0.
      destruct H0 as [<-|]; try contradict H0.
      simpl;rewrite (proj1 H);auto.
    - destruct IHn as [l [L1 [L2 [L3 L4]]]].
@@ -1060,7 +1064,6 @@ Section IVP.
         rewrite H0.
         rewrite nth_middle.
         simpl.
-        Search (_ <= _ + _ ).
         replace 0 with (real_0) at 3 by auto;replace real_0 with (real_0 + real_0) by ring.
         apply real_le_le_plus_le.
         apply L2.
@@ -1088,10 +1091,14 @@ Section IVP.
        rewrite nth_middle.
        simpl.
        apply real_le_le_plus_le;auto;apply R0.
-       intros.
+       intros y ana H ty H0.
        apply in_app_or in H0.
        destruct H0.
        apply R0;auto.
+
+       apply (analytic_smaller _ (r0+r));auto.
+       add_both_side_by (-r0);apply real_lt_le;auto.
+
        apply (pivp_solution_smaller_r _ _ _ (r0 + r));auto.
        add_both_side_by (-r0);apply real_lt_le;auto.
 
@@ -1102,16 +1109,36 @@ Section IVP.
        simpl in R.
        specialize (R (fun t => (y (fst (nth n l (0,0))+t)))).
        apply R.
+
+       remember (fst (nth n l (0,0))) as tsn.
+       remember (snd (nth n l (0,0))) as ysn.
+       simpl in *.
+       pose proof (analytic_shift (fun t => (y t)) (r+abs tsn) tsn).
+       replace r with (r + abs tsn - abs tsn) by ring.
+       apply H1.
+       apply (analytic_smaller _ (r0+r));auto.
+       rewrite real_plus_comm.
+       add_both_side_by (-r).
+       rewrite abs_pos_id.
+       apply R0.
+       rewrite Heqtsn.
+       apply L2.
+
        remember (fst (nth n l (0,0))) as tsn.
        remember (snd (nth n l (0,0))) as ysn.
        simpl in *.
        pose proof (pivp_solution_time_independent p y ysn (r+abs tsn) tsn).
        replace r with (r + abs tsn - abs tsn) by ring.
+
        apply H1.
        split.
        rewrite Heqtsn, Heqysn.
        apply eq_sym.
        apply R0.
+
+       apply (analytic_smaller _ (r0+r));auto.
+       add_both_side_by (-r0);apply real_lt_le;auto.
+
        apply (pivp_solution_smaller_r _ _ _ (r0+r));auto.
        add_both_side_by (-r0);apply real_lt_le;auto.
        apply nth_In;lia.
