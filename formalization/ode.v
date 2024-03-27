@@ -462,7 +462,7 @@ Section IVP.
     unfold derive_poly.
     destruct (poly_deriv_exists p) as [p' [P1 P2]].
     simpl;auto.
-    try apply P2.
+    (* try apply P2. *)
   Qed.
 
   Lemma derive_scalar_mult p m : derive_poly (scalar_mult_poly m p) = scalar_mult_poly m (derive_poly p).
@@ -944,9 +944,89 @@ Section IVP.
     apply (H3 _ (real_le_triv (/ H0 / real_2_neq_0)) (pn0 p) H8 (real_to_I H5)).
   Qed.
 
+  Lemma nth_derivative_shift x0 f g r n : nth_derivative (fun x => (f x + x0)) g r (S n) -> nth_derivative f g r (S n).
+  Proof.
+    intros.
+    induction n.
+    - apply fst_derivative.
+      destruct H as [f' [F1 F2]].
+      intros eps epsgt0.
+      destruct (F1 _ epsgt0) as [delta [D1 D2]].
+      exists delta; split;auto.
+      intros.
+      rewrite <-F2.
+      replace (f y - f x - f' x * (y - x)) with (f y + x0 - (f x + x0) - f' x * (y-x)) by ring.
+      apply D2;auto.
+   -  destruct H as [f' [F1 F2]].
+      exists f';split;auto.
+      intros eps epsgt0.
+      destruct (F1 _ epsgt0) as [delta [D1 D2]].
+      exists delta; split;auto.
+      intros.
+      replace (f y - f x - f' x * (y - x)) with (f y + x0 - (f x + x0) - f' x * (y-x)) by ring.
+      apply D2;auto.
+  Qed.
+
   Lemma analytic_plus f x0 r :  analytic f r -> analytic (fun x => (f x) + x0) r.
   Proof.
-  Admitted.
+    intros.
+    intros r' R' a A x.
+    assert (forall n, is_taylor_polynomial (to_poly (fun n => match n with 0%nat => f 0 | (S n') => a n end) n) f r').
+    {
+      intros.
+      intros n' N'.
+      induction n.
+      simpl in *.
+      exists f.
+      rewrite Nat.lt_1_r in N'.
+      rewrite N', inv_factorial0.
+      split;[apply zero_derivative | ring].
+      rewrite length_to_poly in *.
+      rewrite Nat.lt_succ_r in N'.
+      destruct (Lt.le_lt_or_eq_stt _ _ N').
+      destruct (IHn H0) as [g [G1 G2]].
+      exists g; split;auto.
+      rewrite <-G2.
+      rewrite !nth_to_poly;try lia;auto.
+
+      rewrite H0.
+      destruct (A (S n) (S n)) as [f' [F1 F2]].
+      rewrite length_to_poly;lia. 
+      exists f'.
+      split;auto.
+      apply (nth_derivative_shift x0);auto.
+      rewrite <-F2.
+      rewrite !nth_to_poly; try lia;auto.
+    }
+    intros eps epsgt0.
+    destruct (H _ R' _ H0 x _ epsgt0) as [N P].
+    exists N.
+    intros n np.
+    specialize (P _ np).
+    replace (partial_sum (ps a x) n) with ((partial_sum (ps (fun n => match n with 0%nat => f 0 | (S n') => a n end) x) n)+x0).
+    rewrite <-real_metric_inv;auto.
+    clear P np.
+    induction n.
+    unfold ps;simpl.
+    destruct (A 0%nat 0%nat) as [f' [A0 A1]];simpl in *; try lia.
+    rewrite A1.
+    rewrite inv_factorial0.
+    ring_simplify.
+    assert (abs 0 <= r').
+    {
+      destruct x.
+      rewrite abs_pos_id;[|apply real_le_triv].
+      apply (real_le_le_le _ _ _ (abs_pos x));auto.
+    }
+    specialize (A0 (real_to_I H1)).
+    simpl in A0.
+    rewrite <- A0;auto.
+    simpl.
+    rewrite real_plus_assoc.
+    rewrite IHn.
+    apply real_eq_plus_eq.
+    unfold ps;auto.
+  Qed.
   Lemma local_solution (p : poly) (y0 : ^Real) : {ty1 : Real*Real | (fst ty1) > 0 /\ exists r, r > 0 /\ (fst ty1) <= r /\ (forall y, analytic y r ->  pivp_solution p y y0 r  -> (snd ty1) = (y (fst ty1)))}.
   Proof.
     destruct (pivp_ps_exists p y0) as [a A].
