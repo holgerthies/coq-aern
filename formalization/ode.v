@@ -891,9 +891,49 @@ Section IVP.
     rewrite <-Nreal_S; apply Nreal_nonneg.
     apply H.
   Qed.
-  Definition analytic_r f r := forall a, (forall n,  is_taylor_polynomial (to_poly a n) f r) -> forall (x : I r), is_sum (ps a x) (f x).
-  Definition analytic f r := forall r', (r' <= r) -> analytic_r f r'.
 
+  Definition is_taylor_polynomial_at x0 a f r := is_taylor_polynomial a (fun x => f (x + x0)) r.
+  Definition analytic_r f r x0 := forall a, (forall n, is_taylor_polynomial_at x0 (to_poly a n) f r) -> forall (x : I r), is_sum (ps a x) (f (x+x0)).
+  Definition analytic f r := forall (x0 : I r) r', (r' <= r-abs x0) -> analytic_r f r' x0.
+  Definition analytic0 f r := (forall r', (r' <= r) -> ((forall a, (forall n, is_taylor_polynomial (to_poly a n) f r') -> forall (x : I r'), is_sum (ps a x) (f x)))).
+  Lemma analytic_analytic0 f r : analytic f r -> analytic0 f r.
+  Proof.
+    unfold analytic0.
+    intros.
+    assert (forall n, is_taylor_polynomial_at 0 (to_poly a n) f r').
+    {
+      intros.
+      unfold is_taylor_polynomial_at.
+      replace (fun x0 => f (x0 + 0)) with f;auto.
+      apply fun_ext.
+      intros.
+      replace (0) with real_0 by auto.
+      replace (x0 + real_0) with x0 by ring;auto.
+    }
+    unfold analytic in H.
+    assert (abs 0 <= r).
+    {
+      rewrite abs_pos_id;try apply real_le_triv.
+      destruct x.
+      apply (real_le_le_le _ _ _ (abs_pos x));auto.
+      apply (real_le_le_le _ _ _ r0);auto.
+    }.
+    assert (r' <= r - abs (real_to_I H3)).
+    {
+      rewrite abs_pos_id;try apply real_le_triv.
+      simpl.
+      replace 0 with real_0 by auto.
+      replace (r-real_0) with r by ring.
+      apply H0.
+    }
+    specialize (H _ _ H4 a H2).
+    simpl in H.
+    destruct x.
+    simpl.
+    replace x with (x+real_0) at 2 by ring.
+    replace real_0 with 0 by auto.
+    apply (H (real_to_I r0)).
+  Qed.
   (* Later we will show that the solution is indeed analytic *)
 
   Definition pivp_ps_exists q y0 : {a : bounded_ps | forall y, (analytic (fun t => ((y t)-y0)) (eval_radius a)) ->  pivp_solution q y y0 (eval_radius a)  -> is_ps_for (fun t => (pc_unit _ ((y t) - y0))) a}.
@@ -933,6 +973,7 @@ Section IVP.
     }
     exists (mk_bounded_ps _ _ _ _ H2).
     intros.
+    apply analytic_analytic0 in H3.
     apply P in H4.
     unfold is_ps_for.
     unfold eval_radius in *.
@@ -970,17 +1011,17 @@ Section IVP.
   Lemma analytic_plus f x0 r :  analytic f r -> analytic (fun x => (f x) + x0) r.
   Proof.
     intros.
-    intros r' R' a A x.
-    assert (forall n, is_taylor_polynomial (to_poly (fun n => match n with 0%nat => f 0 | (S n') => a n end) n) f r').
+    intros x1 r' R' a A x.
+    assert (forall n, is_taylor_polynomial_at x1 (to_poly (fun n => match n with 0%nat => f (0+x1) | (S n') => a n end) n) f r').
     {
       intros.
       intros n' N'.
       induction n.
       simpl in *.
-      exists f.
+      exists (fun x => f (x+x1)).
       rewrite Nat.lt_1_r in N'.
       rewrite N', inv_factorial0.
-      split;[apply zero_derivative | ring].
+      split; [apply zero_derivative|ring].
       rewrite length_to_poly in *.
       rewrite Nat.lt_succ_r in N'.
       destruct (Lt.le_lt_or_eq_stt _ _ N').
@@ -999,11 +1040,11 @@ Section IVP.
       rewrite !nth_to_poly; try lia;auto.
     }
     intros eps epsgt0.
-    destruct (H _ R' _ H0 x _ epsgt0) as [N P].
+    destruct (H _ _ R' _ H0 x _ epsgt0) as [N P].
     exists N.
     intros n np.
     specialize (P _ np).
-    replace (partial_sum (ps a x) n) with ((partial_sum (ps (fun n => match n with 0%nat => f 0 | (S n') => a n end) x) n)+x0).
+    replace (partial_sum (ps a x) n) with ((partial_sum (ps (fun n => match n with 0%nat => f (0+x1) | (S n') => a n end) x) n)+x0).
     rewrite <-real_metric_inv;auto.
     clear P np.
     induction n.
@@ -1124,17 +1165,68 @@ Section IVP.
   Lemma analytic_smaller f r1 r2 : (r2 <= r1) -> analytic f r1 -> analytic f r2.
   Proof.
     intros.
-    intros r rlt.
-    apply H0.
-    apply (real_le_le_le _ r2);auto.
+    intros x0 r rlt.
+    assert (abs x0 <= r1).
+    {
+      destruct x0.
+      simpl.
+      apply (real_le_le_le _ r2);auto.
+    }
+    apply (H0 (real_to_I H1)).
+    simpl.
+    apply (real_le_le_le _ (r2 - abs x0));auto.
+    add_both_side_by (abs x0);auto.
   Qed.
+
 
   Lemma analytic_shift f r x0 :  analytic f r -> analytic (fun x => f (x0+x)) (r- abs x0).
   Proof.
     intros.
-    intros r' r'p.
-  Admitted.
-  
+    intros x1 r1 rlt.
+    assert (r1 <= r - abs (x0+x1)).
+    {
+      add_both_side_by (abs (x0+x1)).
+      apply (real_le_le_le _ (r1 + (abs x0 + abs x1))).
+      apply real_le_plus_le.
+      apply abs_tri.
+      add_both_side_by (-abs x0 - abs x1).
+      apply (real_le_le_le _ _ _ rlt).
+      ring_simplify;apply real_le_triv.
+    }
+    destruct (real_lt_or_ge r1 real_0).
+    intros a Ht x.
+    destruct x.
+    apply real_gt_nle in H1.
+    contradict H1.
+    apply (real_le_le_le _ _ _ (abs_pos x));auto.
+
+    assert (abs (x0+x1) <= r).
+    {
+      apply (real_le_le_le _ (abs (x0+x1)+r1)).
+      add_both_side_by (-abs (x0+x1));auto.
+      add_both_side_by (-(abs (x0+x1))).
+      apply (real_le_le_le _ _ _ H0);ring_simplify;apply real_le_triv.
+    }
+    specialize (H (real_to_I H2) _ H0).
+    intros a Ht.
+    assert (forall n, is_taylor_polynomial_at (x0+x1) (to_poly a n) f r1).
+    {
+      intros.
+      unfold is_taylor_polynomial_at.
+      replace (fun x => f (x+(x0+x1))) with (fun x => f (x0 + (x+x1))).
+      apply Ht.
+      apply fun_ext.
+      intros.
+      replace (x0 + (x+x1)) with (x+ (x0+x1)) by ring.
+      reflexivity.
+    }
+    specialize (H _ H3).
+    intros.
+    replace ((x0 + (x + x1))) with ((x + (x0+x1))).
+    apply H.
+    ring.
+  Qed.
+    
   Lemma pivp_solution_time_independent p y y0 r t0 : ((y t0) = y0 /\ uniform_derivative_fun y (fun t => (eval_poly p (y t))) r) -> pivp_solution p (fun t => y (t0+t)) y0 (r - abs t0).
   Proof.
     intros.
