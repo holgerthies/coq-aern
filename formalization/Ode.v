@@ -1359,7 +1359,7 @@ End IVP.
 
 
 Section Examples.
-Definition exp_example := pr1 _ _ (solve_ivp [3] 2 100).
-
+Definition exp_example steps := pr1 _ _ (solve_ivp [0;1] 1 steps).
+Definition tan_example steps := pr1 _ _ (solve_ivp [1;0;1] 0 steps).
 
 End Examples.

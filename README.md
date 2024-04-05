@@ -45,6 +45,8 @@ For example, the extracted version of `real_max` is in file `Max.hs`.
 1. Add the following statements after the last import statement in the generated file:
 
     ```Haskell
+	import Prelude ((+),(-),(/))
+	import qualified Prelude as P
     import MixedTypesNumPrelude (ifThenElse)
     import qualified Numeric.OrdGenericBool as OGB
     import qualified Unsafe.Coerce as UC
@@ -85,7 +87,17 @@ For example, the extracted version of `real_max` is in file `Max.hs`.
   [0 ± ~0.0000 ~2^(-1228)]
   ```
 
-### 3.2. Compiling benchmark executable
+### 3.2. ODE solver example
+- The examples  `ode_exp.hs` and  `ode_tan.hs` in the `extracted-examples/src` folder are extracted from the examples in the `ode.v` script. 
+- The extracted programs demonstrate the step wise ODE solver for the initial value problems  `y' = y; y(0) =1` which is solved by the exponential function  and `y' = 1+y^2; y(0) = 0` which is solved by the tan function.
+- See the below example on how to execute the example interactively for an arbitrary number of steps.
+- The program returns a list of real number pairs corresponding to (t, y(t)).
+  ```Text
+  $ stack repl src/ode_exp.hs --ghci-options "-Wno-unused-matches -Wno-unused-imports -Wno-type-defaults"
+
+  *> exp_example 100
+  ```
+### 3.3. Compiling benchmark executable
 
 - Run `stack install` in the `extracted-examples` folder.
   

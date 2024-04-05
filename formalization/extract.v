@@ -252,7 +252,8 @@ Extract Inductive prod => "(,)"  [ "(,)" ].
 Extract Constant Nat.log2 => "(MNP.integer P.. Logs.integerLog2)".
 
 Require Import Ode.
-Extraction "ode1" exp_example.
+Extraction "ode_exp" exp_example.
+Extraction "ode_tan" tan_example.
 
 (* Sewon's lab seminar talk material*)
 (* Maximum *)
