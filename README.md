@@ -16,7 +16,7 @@ Coq formalization of constructive reals for exact real computation and code extr
 
 Our formalization is implemented in the [Coq proof assistant](https://coq.inria.fr/).
 You should have Coq installed and running.
-We tested our code with Coq version 8.13.2.
+We tested our code with Coq version 8.17.1.
 
 To built the code you can just clone this repository and run `make` in the `formalization` subfolder.
 

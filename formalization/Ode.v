@@ -917,7 +917,7 @@ Section IVP.
       destruct x.
       apply (real_le_le_le _ _ _ (abs_pos x));auto.
       apply (real_le_le_le _ _ _ r0);auto.
-    }.
+    }
     assert (r' <= r - abs (real_to_I H3)).
     {
       rewrite abs_pos_id;try apply real_le_triv.

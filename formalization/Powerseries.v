@@ -15,7 +15,7 @@ Require Import Poly.
 Require Import Taylormodel.
 
 
-Section ToMove.
+Section RealHelpers.
 
  Lemma min_le_both r1 r2 : Minmax.real_min r1 r2 <= r1 /\ Minmax.real_min r1 r2 <= r2.
  Proof.
@@ -82,7 +82,7 @@ Qed.
    assert (p1 = p2) as -> by apply irrl.
    apply real_le_triv.
  Qed.
-End ToMove.
+End RealHelpers.
 
 Section Series.
 

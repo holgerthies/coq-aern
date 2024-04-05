@@ -6,7 +6,7 @@ Require Import Minmax.
 Require Import Psatz.
 Open Scope Real_scope.
 
-Section toMove.
+Section RealHelpers.
 
   Lemma real_div_gt_0 x y (yd : y <> real_0) : x > real_0 -> y > real_0 -> (x / yd > real_0).
   Proof.
@@ -48,7 +48,7 @@ Section toMove.
     apply Nreal_pos.
     lia.
   Qed.
-End toMove.
+End RealHelpers.
 
 Section ClassicalDerivatives.
   Definition I r := {x : Real | abs x <= r}.
