@@ -123,77 +123,77 @@ sqrt_bench1 sqrtfn = sqrtfn 2
 sqrt_bench2 :: (Floating t) => (t -> t) -> t
 sqrt_bench2 sqrtfn = sqrtfn $ sqrtfn 2
 
-complex_i :: Complex c -> c
-complex_i = snd . complex_destruct
+-- complex_i :: Complex c -> c
+-- complex_i = snd . complex_destruct
 
-complex_r :: Complex c -> c
-complex_r = fst . complex_destruct
+-- complex_r :: Complex c -> c
+-- complex_r = fst . complex_destruct
 
-csqrt_bench0 :: (Floating t) => (Complex t -> Complex t) -> Complex t
-csqrt_bench0 csqrtfn = csqrtfn (complex 0 0)
+-- csqrt_bench0 :: (Floating t) => (Complex t -> Complex t) -> Complex t
+-- csqrt_bench0 csqrtfn = csqrtfn (complex 0 0)
 
-csqrt_bench0i :: (Floating t) => (Complex t -> Complex t) -> t
-csqrt_bench0i csqrtfn = 
-   complex_i $ csqrt_bench0 csqrtfn
+-- csqrt_bench0i :: (Floating t) => (Complex t -> Complex t) -> t
+-- csqrt_bench0i csqrtfn = 
+--    complex_i $ csqrt_bench0 csqrtfn
 
-csqrt_bench0r :: (Floating t) => (Complex t -> Complex t) -> t
-csqrt_bench0r csqrtfn = 
-   complex_r $ csqrt_bench0 csqrtfn
+-- csqrt_bench0r :: (Floating t) => (Complex t -> Complex t) -> t
+-- csqrt_bench0r csqrtfn = 
+--    complex_r $ csqrt_bench0 csqrtfn
 
-csqrt_bench1 :: (Floating t) => (Complex t -> Complex t) -> Complex t
-csqrt_bench1 csqrtfn = csqrtfn (complex (-2) 0)
+-- csqrt_bench1 :: (Floating t) => (Complex t -> Complex t) -> Complex t
+-- csqrt_bench1 csqrtfn = csqrtfn (complex (-2) 0)
 
-csqrt_bench1i :: (Floating t) => (Complex t -> Complex t) -> t
-csqrt_bench1i csqrtfn = 
-   complex_i $ csqrt_bench1 csqrtfn
+-- csqrt_bench1i :: (Floating t) => (Complex t -> Complex t) -> t
+-- csqrt_bench1i csqrtfn = 
+--    complex_i $ csqrt_bench1 csqrtfn
 
-csqrt_bench1r :: (Floating t) => (Complex t -> Complex t) -> t
-csqrt_bench1r csqrtfn = 
-   complex_r $ csqrt_bench1 csqrtfn
+-- csqrt_bench1r :: (Floating t) => (Complex t -> Complex t) -> t
+-- csqrt_bench1r csqrtfn = 
+--    complex_r $ csqrt_bench1 csqrtfn
 
-csqrt_bench2 :: (Floating t) => (Complex t -> Complex t) -> Complex t
-csqrt_bench2 csqrtfn = csqrtfn (complex 0 (2))
+-- csqrt_bench2 :: (Floating t) => (Complex t -> Complex t) -> Complex t
+-- csqrt_bench2 csqrtfn = csqrtfn (complex 0 (2))
 
-csqrt_bench2i :: (Floating t) => (Complex t -> Complex t) -> t
-csqrt_bench2i csqrtfn = 
-   complex_i $ csqrt_bench2 csqrtfn
+-- csqrt_bench2i :: (Floating t) => (Complex t -> Complex t) -> t
+-- csqrt_bench2i csqrtfn = 
+--    complex_i $ csqrt_bench2 csqrtfn
 
-csqrt_bench2r :: (Floating t) => (Complex t -> Complex t) -> t
-csqrt_bench2r csqrtfn = 
-   complex_r $ csqrt_bench2 csqrtfn
+-- csqrt_bench2r :: (Floating t) => (Complex t -> Complex t) -> t
+-- csqrt_bench2r csqrtfn = 
+--    complex_r $ csqrt_bench2 csqrtfn
 
-csqrt_bench3 :: (Floating t) => (Complex t -> Complex t) -> Complex t
-csqrt_bench3 csqrtfn = csqrtfn (complex 0 (2^^(-1000 :: Int)))
+-- csqrt_bench3 :: (Floating t) => (Complex t -> Complex t) -> Complex t
+-- csqrt_bench3 csqrtfn = csqrtfn (complex 0 (2^^(-1000 :: Int)))
 
-csqrt_bench3i :: (Floating t) => (Complex t -> Complex t) -> t
-csqrt_bench3i csqrtfn = 
-   complex_i $ csqrt_bench3 csqrtfn
+-- csqrt_bench3i :: (Floating t) => (Complex t -> Complex t) -> t
+-- csqrt_bench3i csqrtfn = 
+--    complex_i $ csqrt_bench3 csqrtfn
 
-csqrt_bench3r :: (Floating t) => (Complex t -> Complex t) -> t
-csqrt_bench3r csqrtfn = 
-   complex_r $ csqrt_bench3 csqrtfn
+-- csqrt_bench3r :: (Floating t) => (Complex t -> Complex t) -> t
+-- csqrt_bench3r csqrtfn = 
+--    complex_r $ csqrt_bench3 csqrtfn
 
-csqrt_bench4 :: (Floating t) => (Complex t -> Complex t) -> Complex t
-csqrt_bench4 csqrtfn = csqrtfn (complex 0 (2^^(-10000 :: Int)))
+-- csqrt_bench4 :: (Floating t) => (Complex t -> Complex t) -> Complex t
+-- csqrt_bench4 csqrtfn = csqrtfn (complex 0 (2^^(-10000 :: Int)))
 
-csqrt_bench4i :: (Floating t) => (Complex t -> Complex t) -> t
-csqrt_bench4i csqrtfn = 
-   complex_i $ csqrt_bench4 csqrtfn
+-- csqrt_bench4i :: (Floating t) => (Complex t -> Complex t) -> t
+-- csqrt_bench4i csqrtfn = 
+--    complex_i $ csqrt_bench4 csqrtfn
 
-csqrt_bench4r :: (Floating t) => (Complex t -> Complex t) -> t
-csqrt_bench4r csqrtfn = 
-   complex_r $ csqrt_bench4 csqrtfn
+-- csqrt_bench4r :: (Floating t) => (Complex t -> Complex t) -> t
+-- csqrt_bench4r csqrtfn = 
+--    complex_r $ csqrt_bench4 csqrtfn
 
-csqrt_bench5 :: (Floating t) => (Complex t -> Complex t) -> Complex t
-csqrt_bench5 csqrtfn = csqrtfn (complex 0 (2^^(1000 :: Int)))
+-- csqrt_bench5 :: (Floating t) => (Complex t -> Complex t) -> Complex t
+-- csqrt_bench5 csqrtfn = csqrtfn (complex 0 (2^^(1000 :: Int)))
 
-csqrt_bench5i :: (Floating t) => (Complex t -> Complex t) -> t
-csqrt_bench5i csqrtfn = 
-   complex_i $ csqrt_bench5 csqrtfn
+-- csqrt_bench5i :: (Floating t) => (Complex t -> Complex t) -> t
+-- csqrt_bench5i csqrtfn = 
+--    complex_i $ csqrt_bench5 csqrtfn
 
-csqrt_bench5r :: (Floating t) => (Complex t -> Complex t) -> t
-csqrt_bench5r csqrtfn = 
-   complex_r $ csqrt_bench5 csqrtfn
+-- csqrt_bench5r :: (Floating t) => (Complex t -> Complex t) -> t
+-- csqrt_bench5r csqrtfn = 
+--    complex_r $ csqrt_bench5 csqrtfn
 
 magnitude_bench1 :: (Fractional t) => (t -> Integer) -> Integer
 magnitude_bench1 magFn = magFn (0.5^(10000 :: Int))
@@ -205,7 +205,7 @@ main =
   putStrLn $ bench benchName (read pS)
   where
   bench "realmaxE" p =
-    showR $ (realmax_bench Max.r_real_max :: CReal) ? (prec p)
+    showR $ (realmax_bench Max.real_max :: CReal) ? (prec p)
   bench "realmaxH" p =
     showR $ (realmax_bench real_max :: CReal) ? (prec p)
   bench "realmaxN" p =
@@ -218,14 +218,14 @@ main =
   --   showR $ ((runWithPrec (prec p) $ realmax_bench max) :: CN MPBall)
 
   bench "magnitude1E" _p =
-    show $ (magnitude_bench1 (Magnitude.r_magnitude :: CReal -> Integer))
+    show $ (magnitude_bench1 (Magnitude.magnitude :: CReal -> Integer))
   bench "magnitude1H" _p =
     show $ (magnitude_bench1 (magnitude :: CReal -> Integer))
   -- bench "magnitude1N" p =
   --   showR $ (magnitude_bench1 sqrt :: CReal) ? (prec p)
 
   bench "sqrt1E" p =
-    showR $ (sqrt_bench1 Sqrt.r_sqrt2 :: CReal) ? (prec p)
+    showR $ (sqrt_bench1 Sqrt.sqrt :: CReal) ? (prec p)
   bench "sqrt1H" p =
     showR $ (sqrt_bench1 sqrt2 :: CReal) ? (prec p)
   bench "sqrt1N" p =
@@ -238,7 +238,7 @@ main =
   --   showR $ ((runWithPrec (prec p) $ sqrt_bench1 sqrt) :: CN MPBall)
 
   bench "sqrt2E" p =
-    showR $ (sqrt_bench2 Sqrt.r_sqrt2 :: CReal) ? (prec p)
+    showR $ (sqrt_bench2 Sqrt.sqrt :: CReal) ? (prec p)
   bench "sqrt2H" p =
     showR $ (sqrt_bench2 sqrt2 :: CReal) ? (prec p)
   bench "sqrt2N" p =
@@ -250,37 +250,37 @@ main =
   -- bench "sqrt2MBN" p =
   --   showR $ ((runWithPrec (prec p) $ sqrt_bench2 sqrt) :: CN MPBall)
 
-  bench "csqrt0rE" p =
-    showR $ (csqrt_bench0r CSqrt.c_sqrt2 :: CReal) ? (prec p)
-  bench "csqrt0iE" p =
-    showR $ (csqrt_bench0i CSqrt.c_sqrt2 :: CReal) ? (prec p)
-  bench "csqrt1rE" p =
-    showR $ (csqrt_bench1r CSqrt.c_sqrt2 :: CReal) ? (prec p)
-  bench "csqrt1iE" p =
-    showR $ (csqrt_bench1i CSqrt.c_sqrt2 :: CReal) ? (prec p)
-  bench "csqrt2rE" p =
-    showR $ (csqrt_bench2r CSqrt.c_sqrt2 :: CReal) ? (prec p)
-  bench "csqrt2iE" p =
-    showR $ (csqrt_bench2i CSqrt.c_sqrt2 :: CReal) ? (prec p)
-  bench "csqrt3rE" p =
-    showR $ (csqrt_bench3r CSqrt.c_sqrt2 :: CReal) ? (prec p)
-  bench "csqrt3iE" p =
-    showR $ (csqrt_bench3i CSqrt.c_sqrt2 :: CReal) ? (prec p)
-  bench "csqrt4rE" p =
-    showR $ (csqrt_bench4r CSqrt.c_sqrt2 :: CReal) ? (prec p)
-  bench "csqrt4iE" p =
-    showR $ (csqrt_bench4i CSqrt.c_sqrt2 :: CReal) ? (prec p)
-  bench "csqrt5rE" p =
-    showR $ (csqrt_bench5r CSqrt.c_sqrt2 :: CReal) ? (prec p)
-  bench "csqrt5iE" p =
-    showR $ (csqrt_bench5i CSqrt.c_sqrt2 :: CReal) ? (prec p)
+  -- bench "csqrt0rE" p =
+  --   showR $ (csqrt_bench0r CSqrt.csqrt :: CReal) ? (prec p)
+  -- bench "csqrt0iE" p =
+  --   showR $ (csqrt_bench0i CSqrt.csqrt :: CReal) ? (prec p)
+  -- bench "csqrt1rE" p =
+  --   showR $ (csqrt_bench1r CSqrt.csqrt :: CReal) ? (prec p)
+  -- bench "csqrt1iE" p =
+  --   showR $ (csqrt_bench1i CSqrt.csqrt :: CReal) ? (prec p)
+  -- bench "csqrt2rE" p =
+  --   showR $ (csqrt_bench2r CSqrt.csqrt :: CReal) ? (prec p)
+  -- bench "csqrt2iE" p =
+  --   showR $ (csqrt_bench2i CSqrt.csqrt :: CReal) ? (prec p)
+  -- bench "csqrt3rE" p =
+  --   showR $ (csqrt_bench3r CSqrt.csqrt :: CReal) ? (prec p)
+  -- bench "csqrt3iE" p =
+  --   showR $ (csqrt_bench3i CSqrt.csqrt :: CReal) ? (prec p)
+  -- bench "csqrt4rE" p =
+  --   showR $ (csqrt_bench4r CSqrt.csqrt :: CReal) ? (prec p)
+  -- bench "csqrt4iE" p =
+  --   showR $ (csqrt_bench4i CSqrt.csqrt :: CReal) ? (prec p)
+  -- bench "csqrt5rE" p =
+  --   showR $ (csqrt_bench5r CSqrt.csqrt :: CReal) ? (prec p)
+  -- bench "csqrt5iE" p =
+  --   showR $ (csqrt_bench5i CSqrt.csqrt :: CReal) ? (prec p)
 
   bench "civt1E" p =
-    showR $ (civt_bench1 IVT.r_CIVT :: CReal) ? (prec p)
+    showR $ (civt_bench1 IVT.cIVT :: CReal) ? (prec p)
   bench "civt2E" p =
-    showR $ (civt_bench2 IVT.r_CIVT :: CReal) ? (prec p)
+    showR $ (civt_bench2 IVT.cIVT :: CReal) ? (prec p)
   bench "civt3E" p =
-    showR $ (civt_bench3 IVT.r_CIVT Sqrt.r_sqrt2 :: CReal) ? (prec p)
+    showR $ (civt_bench3 IVT.cIVT Sqrt.sqrt :: CReal) ? (prec p)
   bench "civt1H" p =
     showR $ (civt_bench1 cIVT :: CReal) ? (prec p)
   bench "civt2H" p =
@@ -298,7 +298,7 @@ main =
   -- bench "civt2MBH" p =
   --   showR $ (runWithPrec (prec p) $ civt_bench2 cIVT)
   -- bench "civt3MBH" p =
-  --   showR $ (runWithPrec (prec p) $ civt_bench3 cIVT restr_sqrt)
+  --   showR $ (runWithPrec (prec p) $ civt_bench3 cIVT res_sqrt)
 
   bench name _p = 
     error $ "unrecognised benchmark name: " <> name
