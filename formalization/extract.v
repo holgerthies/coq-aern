@@ -127,6 +127,7 @@ Extraction Implicit choose [ types mvmM ].
 Extract Constant choose => "(unCNfn2 AERN2.select)".
 
 Extraction Implicit M_paths  [ types mvmM ].
+Extract Constant M_paths => "(\ x0 f -> (\n -> P.foldl (P.flip f) (x0) [0 .. ((n :: P.Integer) P.- 1)]))".
 
 Extraction Implicit semidec_or [ types mvmM ].
 Extraction Implicit semidec_and [ types mvmM ].
