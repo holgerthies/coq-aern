@@ -118,13 +118,13 @@ Extract Constant M_base_monad_traces_lift => "(\ x0 f -> (\n -> P.foldl (P.flip 
 (* Extract Inlined Constant M_base_monad_hprop_elim => "__uc". *)
 
 Extraction Implicit multivalued_choice [ types MultivalueMonad_M ].
-Extract Constant multivalued_choice => "AERN2.select".
+Extract Constant multivalued_choice => "(unCNfn2 AERN2.select)".
 
 Extraction Implicit M_hprop_elim_f [ types mvmM ].
 Extract Constant M_hprop_elim_f => "P.id".
 
 Extraction Implicit choose [ types mvmM ].
-Extract Constant choose => "AERN2.select".
+Extract Constant choose => "(unCNfn2 AERN2.select)".
 
 Extraction Implicit M_paths  [ types mvmM ].
 
@@ -138,7 +138,7 @@ Extraction Implicit semidec_and [ types mvmM ].
 (* (\ _ m -> m) *)
 
 Extraction Implicit select  [ types mvmM ].
-Extract Constant select => "AERN2.select".
+Extract Constant select => "(unCNfn2 AERN2.select)".
 
 Extraction Implicit multivalued_countable_choice  [ types MultivalueMonad_M ].
 Extract Constant multivalued_countable_choice => "AERN2.selectCountable".
