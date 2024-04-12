@@ -4,7 +4,7 @@ github:              "holgerthies/coq-aern"
 license:             MIT
 author:              "Michal Konečný, Holger Thies, Sewon Park"
 maintainer:          "mikkonecny@gmail.com"
-copyright:           "2022 Michal Konečný, Holger Thies, Sewon Park"
+copyright:           "2022, 2024 Michal Konečný, Holger Thies, Sewon Park"
 
 # extra-source-files:
 # - README.md
@@ -21,7 +21,7 @@ description:         Please see the README on GitHub at <https://github.com/holg
 dependencies:
 - base == 4.*
 - integer-logarithms
-- collect-errors >= 0.1.4
+- collect-errors >= 0.1.6
 - mixed-types-num >= 0.5.3
 - aern2-mp >= 0.2.1
 - aern2-real >= 0.2.1
