@@ -7,6 +7,7 @@ import qualified Prelude
 import Prelude ((+),(-),(/))
 import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
+import Numeric.CollectErrors (unCNfn2)
 import qualified Numeric.OrdGenericBool as OGB
 import qualified Unsafe.Coerce as UC
 import qualified Control.Monad
@@ -549,7 +550,7 @@ mjoin = P.id
 type Semidec = AERN2.CKleenean
 
 choose :: Semidec -> Semidec -> M P.Bool
-choose = AERN2.select
+choose = (unCNfn2 AERN2.select)
 
 real_0 :: AERN2.CReal
 real_0 = 0

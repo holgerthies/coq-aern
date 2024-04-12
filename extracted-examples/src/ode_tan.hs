@@ -17,6 +17,7 @@ import qualified IOExts
 import Prelude ((+),(-),(/))
 import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
+import Numeric.CollectErrors (unCNfn2)
 import qualified Numeric.OrdGenericBool as OGB
 import qualified Unsafe.Coerce as UC
 import qualified Control.Monad
@@ -181,7 +182,7 @@ mjoin = P.id
 type Semidec = AERN2.CKleenean
 
 choose :: Semidec -> Semidec -> M P.Bool
-choose = AERN2.select
+choose = (unCNfn2 AERN2.select)
 
 data SemiDecOrderedField_Real =
    Build_SemiDecOrderedField_Real MultivalueMonad_M AERN2.CReal AERN2.CReal 
@@ -274,7 +275,7 @@ sum_polyf p1 =
   list_rect (\p2 -> p2) (\a0 p1' s p2 ->
     case p2 of {
      ([]) -> (:) a0 p1';
-     (:) a l -> (:) ((+) a0 a) (s l)}) p1
+     (:) r l -> (:) ((+) a0 r) (s l)}) p1
 
 sum_poly :: Poly -> Poly -> Poly
 sum_poly =
@@ -425,8 +426,8 @@ solve_ivp p y0 n =
   nat_rect ((:) ((,) _real_0 y0) ([])) (\n0 iHn ->
     let {s = local_solution p (snd (nth n0 iHn ((,) _real_0 _real_0)))} in
     case s of {
-     (,) a b ->
-      app iHn ((:) ((,) ((+) (fst (nth n0 iHn ((,) _real_0 _real_0))) a) b)
+     (,) r r0 ->
+      app iHn ((:) ((,) ((+) (fst (nth n0 iHn ((,) _real_0 _real_0))) r) r0)
         ([]))}) n
 
 tan_example :: Prelude.Integer -> ([]) ((,) AERN2.CReal AERN2.CReal)

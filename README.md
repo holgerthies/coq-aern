@@ -9,7 +9,8 @@ Coq formalization of constructive reals for exact real computation and code extr
   - [2.1. Post-processing](#21-post-processing)
 - [3. Executing extracted code](#3-executing-extracted-code)
   - [3.1. Executing interactively](#31-executing-interactively)
-  - [3.2. Compiling benchmark executable](#32-compiling-benchmark-executable)
+  - [3.2. ODE solver example](#32-ode-solver-example)
+  - [3.3. Compiling benchmark executable](#33-compiling-benchmark-executable)
 - [4. Benchmark measurements](#4-benchmark-measurements)
 
 ## 1. Installation instructions
@@ -48,6 +49,7 @@ For example, the extracted version of `real_max` is in file `Max.hs`.
 	import Prelude ((+),(-),(/))
 	import qualified Prelude as P
     import MixedTypesNumPrelude (ifThenElse)
+    import Numeric.CollectErrors (unCNfn2)
     import qualified Numeric.OrdGenericBool as OGB
     import qualified Unsafe.Coerce as UC
     import qualified Control.Monad

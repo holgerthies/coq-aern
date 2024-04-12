@@ -4,16 +4,6 @@
 module Max where
 
 import qualified Prelude
-import Prelude ((+),(-),(/))
-import qualified Prelude as P
-import MixedTypesNumPrelude (ifThenElse)
-import qualified Numeric.OrdGenericBool as OGB
-import qualified Unsafe.Coerce as UC
-import qualified Control.Monad
-import qualified Data.Functor
-import qualified MixedTypesNumPrelude as MNP
-import qualified Math.NumberTheory.Logarithms as Logs
-import qualified AERN2.Real as AERN2
 
 #ifdef __GLASGOW_HASKELL__
 import qualified GHC.Base
@@ -24,6 +14,25 @@ import qualified GHC.Exts
 -- HUGS
 import qualified IOExts
 #endif
+
+import Prelude ((+),(-),(/))
+import qualified Prelude as P
+import MixedTypesNumPrelude (ifThenElse)
+import Numeric.CollectErrors (unCNfn2)
+import qualified Numeric.OrdGenericBool as OGB
+import qualified Unsafe.Coerce as UC
+import qualified Control.Monad
+import qualified Data.Functor
+import qualified MixedTypesNumPrelude as MNP
+import qualified Math.NumberTheory.Logarithms as Logs
+import qualified AERN2.Real as AERN2
+
+__uc :: a -> b
+__uc = UC.unsafeCoerce
+__K :: a -> AERN2.CKleenean
+__K = UC.unsafeCoerce
+__R :: a -> AERN2.CReal
+__R = UC.unsafeCoerce
 
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any
@@ -46,7 +55,7 @@ mjoin = P.id
 type Semidec = AERN2.CKleenean
 
 choose :: Semidec -> Semidec -> M P.Bool
-choose = AERN2.select
+choose = (unCNfn2 AERN2.select)
 
 prec :: Prelude.Integer -> AERN2.CReal
 prec = ((0.5 :: AERN2.CReal) P.^)
