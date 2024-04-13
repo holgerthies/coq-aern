@@ -100,16 +100,17 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     left; apply prec_S.
     apply Tn_rad.
   Qed.
-  Lemma Tn_ball_intersects (n k j : nat) : (j + k+ 1 <= (Npow2 n))%nat ->  intersects (ball_to_subset (Tn_ball n k j)) T.
+  Lemma Tn_ball_intersects (n k j : nat) : (j + k+ 1 <= (Npow2 n))%nat ->  intersects (closed_ball_to_subset (Tn_ball n k j)) T.
   Proof using Type.
     intros H.
     exists (fst (Tn_ball n k j)).
     split.
-    unfold ball_to_subset.
+    unfold closed_ball_to_subset.
     (* Search euclidean_max_dist. *)
     pose proof (euclidean_max_dist_id (fst (Tn_ball n k j)) (fst (Tn_ball n k j))).
     destruct H0.
     rewrite H1.
+    apply real_lt_le.
     apply prec_pos.
     reflexivity.
     split.
@@ -144,7 +145,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   induction n; simpl; lia.
   Qed.
 
-  Lemma Tn_col_intersects_T n k j : (k <= Npow2 n - 1)%nat -> (j <= (Npow2 n)-k-1)%nat -> forall l, Forall (fun b => intersects (ball_to_subset b) T) l ->  Forall (fun b => intersects (ball_to_subset b) T) (Tn_col n k j l).
+  Lemma Tn_col_intersects_T n k j : (k <= Npow2 n - 1)%nat -> (j <= (Npow2 n)-k-1)%nat -> forall l, Forall (fun b => intersects (closed_ball_to_subset b) T) l ->  Forall (fun b => intersects (closed_ball_to_subset b) T) (Tn_col n k j l).
   Proof using Type.
     intros Klt Jlt.
     induction j as [ | j' IH].
@@ -163,7 +164,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      exact H.
   Qed.
 
-  Lemma Tn_row_intersects_T n k : (k <= Npow2 n - 1)%nat -> forall l, Forall (fun b => intersects (ball_to_subset b) T) l ->  Forall (fun b => intersects (ball_to_subset b) T) (Tn_row n k l).
+  Lemma Tn_row_intersects_T n k : (k <= Npow2 n - 1)%nat -> forall l, Forall (fun b => intersects (closed_ball_to_subset b) T) l ->  Forall (fun b => intersects (closed_ball_to_subset b) T) (Tn_row n k l).
   Proof using Type.
     intros Klt.
     induction k as [ | k' IH].
@@ -178,7 +179,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Qed.
 
 
-  Lemma Tn_intersects_T n :  Forall (fun b => intersects (ball_to_subset b) T) (Tn n).
+  Lemma Tn_intersects_T n :  Forall (fun b => intersects (closed_ball_to_subset b) T) (Tn n).
   Proof using Type.
     apply Tn_row_intersects_T; unfold n1,n2; try lia.
     apply Forall_nil.
@@ -492,11 +493,11 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply real_le_mult_pos_le.
    left; apply Nreal_Npow2_pos.
    exact T3.
-   unfold ball_to_subset.
+   unfold closed_ball_to_subset.
    unfold euclidean_max_dist.
    rewrite prp.
    simpl.
-   apply real_max_lt_lt_lt.
+   apply real_max_le_le_le.
    destruct Hk as [[-> ->] | ].
    simpl.
    rewrite real_plus_unit, real_plus_comm, real_plus_unit, real_mult_unit, <-abs_symm.
@@ -556,7 +557,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply (prec_pos (S (pred n))).
  Qed.
 
-  Definition multi_triangles (n : nat) : (@euclidean_subset types 2).
+  Definition multi_triangles (n : nat) : (@euclidean_subset 2 types).
   Proof.
     induction n.
     apply empty_set.
@@ -567,7 +568,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply (make_euclidean2 (- /real_2_neq_0) (- /real_2_neq_0)).
  Defined.
 
- Lemma empty_set_is_covert : is_covert 2 (empty_set 2).
+ Lemma empty_set_is_located : located (@empty_set 2 types).
  Proof.
     intro n.
     exists nil.
@@ -582,16 +583,14 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply Exists_exists.
     contradict H.
  Qed.
- Lemma multi_triangles_covert (n : nat) : is_covert 2 (multi_triangles n).
+ Lemma multi_triangles_located (n : nat) : located (multi_triangles n).
  Proof.
    induction n.
-   apply empty_set_is_covert.
-   apply is_covert_union.
-   apply T_is_covert.
-   apply is_covert_translation.
+   apply empty_set_is_located.
+   apply located_union.
+   apply T_is_located.
+   apply located_translation.
    apply IHn.
  Defined.
 
 End SimpleTriangle.
-
-
