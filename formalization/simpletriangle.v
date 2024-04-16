@@ -417,7 +417,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Qed.
 
 
-  Lemma T_is_located : located T.
+  Lemma T_located : located T.
   Proof.
    intro n.
    exists (Tn (pred n)).
@@ -588,7 +588,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    induction n.
    apply empty_set_is_located.
    apply located_union.
-   apply T_is_located.
+   apply T_located.
    apply located_translation.
    apply IHn.
  Defined.

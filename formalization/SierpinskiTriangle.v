@@ -782,7 +782,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Qed.
 
 
-  Definition STR_is_covert := 
+  Definition STR_located := 
     ST_located n2
       STR_vs STR_initial_ball
       STR_initial_ball_radius_bound
