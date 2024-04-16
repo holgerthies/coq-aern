@@ -112,6 +112,18 @@ Lemma ball_to_subset_scalar_mult s c1 r1 p1:
     apply real_lt_le;auto.
 Defined.
 
+
+Lemma closed_ball_to_subset_scalar_mult s c1 r1 p1:
+    s >= real_0 ->
+    closed_ball_to_subset (c1, r1) p1 ->
+    closed_ball_to_subset (euclidean_scalar_mult s c1, s * r1) (euclidean_scalar_mult s p1).
+  Proof.
+    unfold closed_ball_to_subset; simpl.
+    intros.
+    rewrite euclidean_max_dist_scalar_mult.
+    apply real_le_mult_pos_le; auto. auto.
+Defined.
+
 Lemma ball_to_subset_plus c1 r1 p1 c2 r2 p2 :
     ball_to_subset (c1, r1) p1 ->
     ball_to_subset (c2, r2) p2 ->
@@ -122,6 +134,18 @@ Proof.
     apply (real_le_lt_lt _ (euclidean_max_dist p1 c1 + euclidean_max_dist p2 c2)).
     apply euclidean_max_dist_plus_le.
     apply real_lt_lt_plus_lt; auto.
+Defined.
+
+Lemma closed_ball_to_subset_plus c1 r1 p1 c2 r2 p2 :
+    closed_ball_to_subset (c1, r1) p1 ->
+    closed_ball_to_subset (c2, r2) p2 ->
+    closed_ball_to_subset (euclidean_plus c1 c2, r1 + r2) (euclidean_plus p1 p2).
+Proof.
+    unfold closed_ball_to_subset; simpl.
+    intros.
+    apply (real_le_le_le _ (euclidean_max_dist p1 c1 + euclidean_max_dist p2 c2)).
+    apply euclidean_max_dist_plus_le.
+    apply real_le_le_plus_le; auto.
 Defined.
 End EuclideanBalls.
 

@@ -1,6 +1,6 @@
 (* this file proves various properties of subsets of real numbers *)
 Require Import Lia.
-Require Import Real Euclidean List Vector Minmax Subsets.
+Require Import Real Euclidean List Vector Minmax Subsets ClassicalSubsets EuclideanSubsets.
 
 Section SierpinskiTriangle.
 
@@ -13,7 +13,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
 #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
 
-#[local] Notation "^ball" := (@ball types) (at level 0).
+#[local] Notation "^ball" := (@ball 2 types) (at level 0).
 
 (* ring structure on Real *)
 Ltac IZReal_tac t :=
@@ -87,13 +87,13 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply In_cons_hd.
   Qed.
 
-  Variable ST_initial_ball : ^ball 2.
+  Variable ST_initial_ball : ^ball.
   Variable ST_initial_ball_radius_bound : snd ST_initial_ball <= real_1.
   Variable ST_initial_ball_contains_vs : 
-    Forall (ball_to_subset 2 ST_initial_ball) ST_vs.
+    Forall (closed_ball_to_subset ST_initial_ball) ST_vs.
 
 
-  Definition ST_has_vs (A : euclidean_subset 2) : Prop := Forall A ST_vs.
+  Definition ST_has_vs (A : euclidean_subset) : Prop := Forall A ST_vs.
 
   (* The convex hull of a vector of points defined using weights *)
 
@@ -137,9 +137,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Qed.
 
   Lemma weighted_pt_in_ball {sz} c r cs pts : 
-    Forall (ball_to_subset 2 (c,r)) pts ->
+    Forall (closed_ball_to_subset (c,r)) pts ->
     Forall (fun ci => ci >= real_0) cs ->
-    ball_to_subset 2 (euclidean_scalar_mult (sum cs) c, r * (sum cs)) (@weighted_pt sz cs pts).
+    closed_ball_to_subset (euclidean_scalar_mult (sum cs) c, r * (sum cs)) (@weighted_pt sz cs pts).
   Proof.
     intros pts_in cs_pos.
     rewrite (Forall_forall) in pts_in, cs_pos.
@@ -149,7 +149,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
       rewrite sum_0.
       rewrite weighted_pt_0.
       rewrite euclidean_scalar_mult_zero.
-      unfold ball_to_subset. simpl.
+      unfold closed_ball_to_subset. simpl.
       unfold euclidean_max_dist, euclidean_max_norm. simpl.
       assert (T : r * real_0 = real_0). ring.
       rewrite T; clear T.
@@ -172,10 +172,10 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
       rewrite <- euclidean_scalar_mult_plus.
       ring_simplify (r * (c1 + sum tcs)).
 
-      apply ball_to_subset_plus.
+      apply closed_ball_to_subset_plus.
       + specialize (pts_in p1); specialize (cs_pos c1).
         rewrite real_mult_comm.
-        apply ball_to_subset_scalar_mult; auto.
+        apply closed_ball_to_subset_scalar_mult; auto.
         apply cs_pos. 
         apply In_cons_hd.
         apply pts_in.
@@ -200,12 +200,12 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     exists cs : t ^Real (S ST_vs_size_pred), 
     pt = (ST_weighted_pt cs) /\ ST_weights_valid cs.
   
-  Definition ST_inside_hull (A : euclidean_subset 2) : Prop :=
+  Definition ST_inside_hull (A : euclidean_subset) : Prop :=
     forall pt : ^euclidean 2, A pt -> ST_inside_hull_pt pt.
 
   Lemma ST_weighted_pt_in_init_ball (cs : t ^Real (S ST_vs_size_pred)) : 
     ST_weights_valid cs ->
-    ball_to_subset 2 ST_initial_ball (ST_weighted_pt cs).
+    closed_ball_to_subset ST_initial_ball (ST_weighted_pt cs).
   Proof.
       intros [pos sum1].
       destruct ST_initial_ball as [c r].
@@ -281,7 +281,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     ring.
   Qed.
 
-  Definition point_ball_mid (p : ^euclidean 2) (b : ^ball 2) : ^ball 2.
+  Definition point_ball_mid (p : ^euclidean 2) (b : ^ball) : ^ball.
     destruct b as [bc br].
     apply (pair (point_point_mid p bc) (br * one_half)).
   Defined.
@@ -302,11 +302,11 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Qed.
 
   Lemma point_point_mid_in_ball_mid v b pt : 
-    ball_to_subset 2 b pt <-> 
-    ball_to_subset 2 (point_ball_mid v b) (point_point_mid v pt).
+    closed_ball_to_subset b pt <-> 
+    closed_ball_to_subset (point_ball_mid v b) (point_point_mid v pt).
   Proof.
     destruct b as [bc br].
-    unfold ball_to_subset.
+    unfold closed_ball_to_subset.
     unfold point_ball_mid, point_point_mid.
     destruct (split_euclidean2 v) as [vx [vy vxy]].
     destruct (split_euclidean2 pt) as [px [py pxy]].
@@ -399,22 +399,22 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply one_half_neq0.
   Qed.
 
-  Definition ST_equal_union (A : euclidean_subset 2) : Prop :=
+  Definition ST_equal_union (A : euclidean_subset) : Prop :=
     forall pt : ^euclidean 2, 
     A pt = 
       Exists (fun v => A (point_point_away v pt)) ST_vs.
 
   (* Characterisation of the Sierpinski triangle (except being closed) *)
 
-  Definition ST (A : euclidean_subset 2) : Prop :=
+  Definition ST (A : euclidean_subset) : Prop :=
     ST_has_vs A /\ ST_inside_hull A /\ ST_equal_union A.
 
   (* Constructive definition of the Sierpinski triangle using covers *)
 
-  Definition ST_split_ball (b : ^ball 2)
+  Definition ST_split_ball (b : ^ball)
    := to_list (map (fun v => (point_ball_mid v b)) ST_vs).
 
-  Fixpoint STn n : list (ball 2) := 
+  Fixpoint STn n : list (ball) := 
     match n with
     | 0 => ST_initial_ball :: List.nil 
     | (S n') => List.concat (List.map ST_split_ball (STn n'))
@@ -433,7 +433,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* The diameter shrinks exponentially with n *)
 
-  Lemma STn_rad n : rad 2 (STn n) <= prec n.
+  Lemma STn_rad n : rad (STn n) <= prec n.
   Proof.
     induction n.
     - simpl.
@@ -451,7 +451,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
       + simpl.
         simpl in IHn.
         assert (snd a <= prec n) as IHa.
-        apply (real_max_le_fst_le _ (rad 2 l)); auto.
+        apply (real_max_le_fst_le _ (rad l)); auto.
         apply real_max_le_snd_le in IHn.
         specialize (IHl IHn).
         apply rad_le.
@@ -483,7 +483,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* Intersection of cover and ST *)
 
-  Lemma STn_intersects n A: (ST A) -> List.Forall (fun b : ^ball 2 => intersects 2 (ball_to_subset 2 b) A) (STn n).
+  Lemma STn_intersects n A: (ST A) -> List.Forall (fun b : ^ball => intersects (closed_ball_to_subset b) A) (STn n).
   Proof.
     intro STs.
     destruct STs as [hasVs [insideHull equalsUnion]].
@@ -509,14 +509,14 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
       pose proof (IHl IHn2) as IHl2.
 
       apply Forall_concat.
-      apply Forall_map.
+      apply List.Forall_map.
       apply List.Forall_cons.
 
       + 
         destruct IHn as [pt [pt_in_a spt]].
         unfold ST_split_ball.
         rewrite to_list_map.
-        rewrite Forall_map.
+        rewrite List.Forall_map.
         rewrite List.Forall_forall.
         intros v H.
         exists (point_point_mid v pt).
@@ -529,7 +529,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
         split; auto.
         rewrite <- point_point_mid_away_id. auto.
       + rewrite Forall_concat in IHl2.  
-        rewrite Forall_map in IHl2.
+        rewrite List.Forall_map in IHl2.
         auto.
   Qed.
 
@@ -555,7 +555,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     auto.
   Qed.
 
-  Lemma ST_is_covert : forall A, (ST A) -> is_covert 2 A.
+  Lemma ST_located : forall A, (ST A) -> located A.
   Proof.
     intros A STs n.
     exists (STn n).
@@ -702,9 +702,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* bits needed for verification *)
 
-  Lemma STR_initial_ball_contains_v1 : ball_to_subset n2 STR_initial_ball STR_v1.
+  Lemma STR_initial_ball_contains_v1 : closed_ball_to_subset STR_initial_ball STR_v1.
   Proof.
-    unfold STR_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    unfold STR_initial_ball, closed_ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
     ring_simplify (real_0 + - one_half).
     rewrite <- one_half_plus_one_half.
@@ -724,9 +724,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     left. apply one_half_pos.
   Qed.
   
-  Lemma STR_initial_ball_contains_v2 : ball_to_subset n2 STR_initial_ball STR_v2.
+  Lemma STR_initial_ball_contains_v2 : closed_ball_to_subset STR_initial_ball STR_v2.
   Proof.
-    unfold STR_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    unfold STR_initial_ball, closed_ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
     ring_simplify (real_0 + - one_half).
     rewrite (abs_neg_id_neg).
@@ -742,9 +742,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply one_half_pos.
   Qed.
   
-  Lemma STR_initial_ball_contains_v3 : ball_to_subset n2 STR_initial_ball STR_v3.
+  Lemma STR_initial_ball_contains_v3 : closed_ball_to_subset STR_initial_ball STR_v3.
   Proof.
-    unfold STR_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    unfold STR_initial_ball, closed_ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
     rewrite <- one_half_plus_one_half.
     ring_simplify (one_half + one_half + - one_half).
@@ -765,7 +765,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Qed.
 
   Lemma STR_initial_ball_contains_vs : 
-    Forall (ball_to_subset n2 STR_initial_ball) STR_vs.
+    Forall (closed_ball_to_subset STR_initial_ball) STR_vs.
   Proof.
     unfold STR_vs.
     rewrite Forall_forall.
@@ -783,7 +783,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
 
   Definition STR_is_covert := 
-    ST_is_covert n2
+    ST_located n2
       STR_vs STR_initial_ball
       STR_initial_ball_radius_bound
       STR_initial_ball_contains_vs
@@ -982,9 +982,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* bits needed for verification *)
 
-  Lemma STE_initial_ball_contains_v1 : ball_to_subset n2 STE_initial_ball STE_v1.
+  Lemma STE_initial_ball_contains_v1 : closed_ball_to_subset STE_initial_ball STE_v1.
   Proof.
-    unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    unfold STE_initial_ball, closed_ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
     ring_simplify (- real_1 + - real_0).
     rewrite (abs_neg_id_neg).
@@ -1000,9 +1000,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply real_1_gt_0.
   Qed.
   
-  Lemma STE_initial_ball_contains_v2 : ball_to_subset n2 STE_initial_ball STE_v2.
+  Lemma STE_initial_ball_contains_v2 : closed_ball_to_subset STE_initial_ball STE_v2.
   Proof.
-    unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    unfold STE_initial_ball, closed_ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
     ring_simplify (- real_1 + - real_0).
     ring_simplify (real_1 + - real_0).
@@ -1021,9 +1021,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     left. apply real_1_gt_0.
   Qed.
   
-  Lemma STE_initial_ball_contains_v3 : ball_to_subset n2 STE_initial_ball STE_v3.
+  Lemma STE_initial_ball_contains_v3 : closed_ball_to_subset STE_initial_ball STE_v3.
   Proof.
-    unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    unfold STE_initial_ball, closed_ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
     apply real_max_le_le_le.
     rewrite abs_pos_id.
@@ -1048,7 +1048,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Qed.
   
   Lemma STE_initial_ball_contains_vs : 
-    Forall (ball_to_subset n2 STE_initial_ball) STE_vs.
+    Forall (closed_ball_to_subset STE_initial_ball) STE_vs.
   Proof.
     unfold STE_vs.
     rewrite Forall_forall.
@@ -1064,8 +1064,8 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply STE_initial_ball_contains_v3.
   Qed.
 
-  Definition STE_is_covert := 
-    ST_is_covert _
+  Definition STE_located := 
+    ST_located _
       STE_vs STE_initial_ball
       STE_initial_ball_radius_bound
       STE_initial_ball_contains_vs
@@ -1077,9 +1077,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   Definition STE4n := STn _ STE4_vs STE_initial_ball.
 
-  Lemma STE_initial_ball_contains_v4 : ball_to_subset n2 STE_initial_ball STE_v4.
+  Lemma STE_initial_ball_contains_v4 : closed_ball_to_subset STE_initial_ball STE_v4.
   Proof.
-    unfold STE_initial_ball, ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
+    unfold STE_initial_ball, closed_ball_to_subset, euclidean_max_dist, make_ball2, euclidean_max_norm, euclidean_minus, euclidean_opp, euclidean_plus. 
     simpl.
     apply real_max_le_le_le.
     rewrite abs_pos_id.
@@ -1107,7 +1107,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Qed.
 
   Lemma STE4_initial_ball_contains_vs : 
-    Forall (ball_to_subset n2 STE_initial_ball) STE4_vs.
+    Forall (closed_ball_to_subset STE_initial_ball) STE4_vs.
   Proof.
     unfold STE_vs.
     rewrite Forall_forall.
@@ -1126,8 +1126,8 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply STE_initial_ball_contains_v4.
   Qed.
 
-  Definition STE4_is_covert := 
-    ST_is_covert _
+  Definition STE4_located := 
+    ST_located _
       STE4_vs STE_initial_ball
       STE_initial_ball_radius_bound
       STE4_initial_ball_contains_vs.
