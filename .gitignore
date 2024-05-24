@@ -45,3 +45,4 @@ stack.yaml.lock
 extracted-examples/*.cabal
 **/bench/logs
 .vscode
+.DS_Store

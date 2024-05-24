@@ -1,63 +1,57 @@
--R . Lib
-Base.v
-Monad.v
-ClassicalMonads.v
-Nabla.v
-Kleene.v
-MultivalueMonad.v
-RealAxioms.v
-RealRing.v
-RealOrder.v
-RealOrderTactic.v
-RealLimit0.v
-RealLimit1.v
-RealMetric.v
-RealLimit2.v
-Real.v
+-R . CAern
+Base/Base.v
+Base/Monad.v
+Base/ClassicalMonads.v
+Base/Nabla.v
+Base/Kleene.v
+Base/MultivalueMonad.v
 
 
-Minmax.v
-Euclidean.v
-Complex.v
-RealSubsets.v
-IVT.v
-MultiLimit.v
-testsearch.v
+Real/RealAxioms.v
+Real/RealRing.v
+Real/RealOrder.v
+Real/RealOrderTactic.v
+Real/RealLimit0.v
+Real/RealLimit1.v
+Real/RealMetric.v
+Real/RealLimit2.v
+Real/Real.v
+Real/RealAssumption.v
 
-rounding.v
+Analysis/Minmax.v
+Analysis/IVT.v
+Analysis/Euclidean.v
+Analysis/Complex.v
+Analysis/RealSubsets.v
+Analysis/MultiLimit.v
+Analysis/Testsearch.v
 
-Relator.v
-RealCoqReal.v
-#RealHelpers.v
+Analysis/Rounding.v
+#Analysis/magnitude.v
+#Analysis/sqrt.v
 
+Relator/Relator.v
+Relator/RealCoqReal.v
+#Relator/RealHelpers.v
 # RealEquivalent.v
 
-#magnitude.v
-#sqrt.v
 
-Dyadic.v
-ClassicalSubsets.v
-Sierpinski.v
-Subsets.v
-EuclideanSubsets.v
-#simpletriangle.v
-#SierpinskiTriangle.v
-#SierpinskiTriangleLimit.v
-
-RealAssumption.v
+Hyperspace/Dyadic.v
+Hyperspace/Sierpinski.v
+Hyperspace/Subsets.v
+# Hyperspace/EuclideanSubsets.v
 
 # classical analysis
-ClassicalPartiality.v
-ClassicalPartialReals.v
-ClassicalContinuity.v
-ClassicalContinuousPartialRealFunctions.v
-ClassicalTopology.v
-ClassicalAnalysis.v
-ClassicalDifferentiability.v
+Classical/Partiality.v
+Classical/PartialReals.v
+Classical/Continuity.v
+Classical/ContinuousPartialRealFunctions.v
+Classical/Topology.v
+Classical/Analysis.v
+Classical/Differentiability.v
+Classical/Subsets.v
 
-
-
-Poly.v
-Taylormodel.v
-Powerseries.v
-Ode.v
+Analytic/Poly.v
+Analytic/Taylormodel.v
+Analytic/Powerseries.v
+Analytic/Ode.v

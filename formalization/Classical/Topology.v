@@ -1,14 +1,14 @@
 Require Import Real.
 Require Import ClassicalMonads.
 Require Import Minmax.
-Require Import Subsets.
+Require Import Hyperspace.Subsets.
 
 
 Require Import RealAssumption.
-Require Import ClassicalPartiality.
-Require Import ClassicalPartialReals.
-Require Import ClassicalContinuity.
-Require Import ClassicalContinuousPartialRealFunctions.
+Require Import Classical.Partiality.
+Require Import Classical.PartialReals.
+Require Import Classical.Continuity.
+Require Import Classical.ContinuousPartialRealFunctions.
 
 (* Structure cinterval := { *)
 (*     u : ^Real ; *)

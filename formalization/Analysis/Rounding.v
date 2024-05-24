@@ -1,7 +1,7 @@
 (* Prove that all real number instances are equivalent *)
 
 Require Import Real.
-Require Import testsearch.
+Require Import Testsearch.
 Require Import Psatz.
         
 Section rounding.

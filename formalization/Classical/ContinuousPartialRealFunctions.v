@@ -1,5 +1,5 @@
 Require Import Real.
-Require Import ClassicalMonads ClassicalPartiality ClassicalPartialReals ClassicalContinuity.
+Require Import ClassicalMonads Classical.Partiality Classical.PartialReals Classical.Continuity.
 Require Import RealAssumption.
 Require Import Minmax.
 

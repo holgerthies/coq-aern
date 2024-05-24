@@ -1,4 +1,4 @@
-Require Import Base Real ClassicalMonads ClassicalPartiality RealAssumption.
+Require Import Base Real ClassicalMonads Classical.Partiality RealAssumption.
 Require Import ZArith.
 
 Declare Scope creal_scope.
