@@ -8,9 +8,7 @@ Require Export Ring Field.
 Require Import Psatz.
 Require Import List.
 Import ListNotations.
-Require Import ClassicalAnalysis.
-Require Import ClassicalPartialReals.
-Require Import ClassicalDifferentiability.
+From CAern.Classical Require Import Analysis.
 Require Import Poly.
 Require Import Taylormodel.
 

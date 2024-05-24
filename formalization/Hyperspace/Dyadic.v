@@ -1,6 +1,6 @@
 (* this file proves various properties of subsets of real numbers *)
 Require Import Lia CRelationClasses.
-Require Import Real Euclidean List Minmax ClassicalSubsets  testsearch.
+Require Import Real Euclidean List Minmax Classical.Subsets  Testsearch.
 
 Require Import Vector.
 Section Dyadic.

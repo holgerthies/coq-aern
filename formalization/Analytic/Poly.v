@@ -1,5 +1,5 @@
 Require Import Real.
-Require Import ClassicalMonads ClassicalPartiality ClassicalPartialReals ClassicalContinuity ClassicalContinuousPartialRealFunctions ClassicalTopology ClassicalDifferentiability.
+From CAern.Classical Require Import Analysis.
 Require Import RealAssumption.
 Require Import Minmax.
 

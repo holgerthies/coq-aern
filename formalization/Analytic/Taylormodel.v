@@ -10,8 +10,7 @@ Import ListNotations.
 Require Import Poly.
 
 Require Import RealAssumption.
-Require Import ClassicalAnalysis.
-Require Import ClassicalPartialReals ClassicalDifferentiability.
+From CAern.Classical Require Import Analysis.
 
 Section TaylorModels.
 

@@ -1,6 +1,6 @@
 (* this file proves various properties of subsets of real numbers *)
 Require Import Lia.
-Require Import Real Euclidean List Minmax ClassicalSubsets Sierpinski testsearch Dyadic Subsets.
+Require Import Real Euclidean List Minmax Classical.Subsets Sierpinski Testsearch Dyadic Hyperspace.Subsets.
 Check multivalued_countable_choice.
 Section EuclideanBalls.
 

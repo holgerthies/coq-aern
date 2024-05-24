@@ -1,6 +1,6 @@
 (* this file proves various prperties of subsets of real numbers *)
 Require Import Lia.
-Require Import Real Euclidean List Minmax ClassicalSubsets Sierpinski testsearch Dyadic.
+Require Import Real Euclidean List Minmax Classical.Subsets Sierpinski Testsearch Dyadic.
 Require Import RealAssumption.
 Require Import List.
 Import ListNotations.

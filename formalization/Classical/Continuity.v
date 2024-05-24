@@ -4,8 +4,8 @@ Require Import Minmax.
 
 
 Require Import RealAssumption.
-Require Import ClassicalPartiality.
-Require Import ClassicalPartialReals.
+Require Import Classical.Partiality.
+Require Import Classical.PartialReals.
 
 
 
