@@ -56,7 +56,7 @@ Section S_Defs.
   Defined.
   (* Axiom kleenean_from_nat_sequence : forall (f : nat -> nat), {k : ^K | k = lazy_bool_true <-> exists n, (f n) = 1}.  *)
 
-  (* Axiom kleenean_to_nat_sequence : forall (k : ^K), ^M {f : nat -> nat | k = lazy_bool_true <-> exists n, (f n) = 1}. *)
+  Axiom kleenean_to_nat_sequence : forall (k : ^K), ^M {f : nat -> nat | k = lazy_bool_true <-> exists n, (f n) = 1}.
 
   (* Lemma sierp_from_nat_sequence : forall (f : nat -> nat), {s : sierp | sierp_up s <-> exists n, (f n) = 1}.  *)
   (* Proof. *)
@@ -64,18 +64,18 @@ Section S_Defs.
   (*   destruct (kleenean_from_nat_sequence f) as [k P]. *)
   (* Admitted. *)
 
-  (* Lemma sierp_to_nat_sequence :  forall (s : sierp), ^M {f : nat -> nat | sierp_up s <-> exists n, (f n) = 1}. *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   destruct s as [k K]. *)
-  (*   pose proof (kleenean_to_nat_sequence k). *)
-  (*   revert X. *)
-  (*   apply M_lift. *)
-  (*   intros. *)
-  (*   destruct H as [f P]. *)
-  (*   exists f. *)
-  (*   exact P. *)
-  (* Defined. *)
+  Lemma sierp_to_nat_sequence :  forall (s : sierp), ^M {f : nat -> nat | sierp_up s <-> exists n, (f n) = 1}.
+  Proof.
+    intros.
+    destruct s as [k K].
+    pose proof (kleenean_to_nat_sequence k).
+    revert X.
+    apply M_lift.
+    intros.
+    destruct H as [f P].
+    exists f.
+    exact P.
+  Defined.
 
   (* Lemma multivalued_choice_sequence_sierp (f : forall n, sierp) : ^M {c : nat -> nat | (forall n, (c n) = 0 \/  sierp_up (f (pred (c n)))) /\ forall m, sierp_up (f m) -> exists n, (c n) <> 0 /\ pred (c n) = m}. *)
   (* Proof. *)

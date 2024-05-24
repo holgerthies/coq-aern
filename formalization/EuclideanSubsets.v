@@ -517,6 +517,77 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
 End EuclideanOpen.
 
+Section EuclideanCompact.
+  Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+
+  #[local] Notation "^K" := (@K types) (at level 0).
+  #[local] Notation "^M" := (@M types) (at level 0).
+  #[local] Notation "^Real" := (@Real types) (at level 0).
+  #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
+  #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+
+  Add Ring realRing : (realTheory ).
+  Context {d : nat}.
+  Lemma euclidean_cons_eq {d' types'} hx tx hy ty : (@Euclidean.cons types' d' hx tx) = Euclidean.cons hy ty <-> hx = hy /\ tx = ty.
+  Proof.
+   split; [|intros [-> ->]];auto.
+   intros.
+  Admitted.  
+
+  Lemma euclidean_neq_semidec (x y : (@euclidean types d)) : semidec (x <> y).
+  Proof.
+    induction d.
+    - rewrite (dim_zero_destruct x), (dim_zero_destruct y).
+      exists lazy_bool_false.
+      unfold lazy_bool_up.
+      split;intros;contradict H; [apply lazy_bool_distinct |];auto.
+   - destruct (dim_succ_destruct x) as [hx [tx ->]]; destruct (dim_succ_destruct y) as [hy [ty ->]].
+     assert (semidec (hx <> hy)).
+     {
+       destruct (semidec_or _ _ (real_lt_semidec hx hy) (real_lt_semidec hy hx)).
+       exists x.
+       rewrite i.
+       split;intros.
+       destruct H.
+       apply real_lt_neq;auto.
+       apply neq_sym.
+       apply real_lt_neq;auto.
+       destruct (real_total_order hx hy) as [t | [t | t]];auto.
+       contradict t;auto.
+     }
+     destruct (semidec_or _ _ X (IHn tx ty)).
+     exists x.
+     rewrite (euclidean_cons_eq hx tx hy ty).
+     rewrite i.
+     rewrite classical_tautology_neg_and;split;auto.
+  Qed.
+
+  Lemma compact_closed (A : (@euclidean_subset d types)) : compact A -> closed A.
+  Proof.
+    intros H x.
+    assert (open (fun y => x <> y)).
+    {
+      apply semidec_open.
+      intros.
+      apply euclidean_neq_semidec.
+    }
+    destruct (H _ X).
+    apply sierp_from_semidec.
+    exists x0.
+    destruct i.
+    unfold complement.
+    split.
+    intros H2 Ax.
+    rewrite H2 in H0.
+    specialize  (H0 (eq_refl lazy_bool_true) _ Ax); auto.
+
+    intros.
+    apply H1.
+    intros y Ay eqxy.
+    contradict Ay;rewrite <-eqxy;auto.
+ Defined.
+End EuclideanCompact.
+
 Section EuclideanLocated.
   Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
@@ -1295,6 +1366,25 @@ Section EuclideanLocated.
   Defined.
 End EuclideanLocated.
 
+
+Section ZoomRepresentation.
+
+  Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
+
+  #[local] Notation "^K" := (@K types) (at level 0).
+  #[local] Notation "^M" := (@M types) (at level 0).
+  #[local] Notation "^Real" := (@Real types) (at level 0).
+  #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
+  #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+
+  Add Ring realRing : (realTheory ).
+  Context {d : nat}.
+  
+  Definition drawing (A : (@euclidean_subset d types)) (x : (^euclidean d)) (n: nat) := ^M {b : bool | A x -> b = true /\ (forall y, A y -> euclidean_max_dist x y > prec n) -> b = false}. 
+
+  
+  
+End ZoomRepresentation.
 Section SubsetsR2.
 
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.

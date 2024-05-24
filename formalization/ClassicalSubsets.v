@@ -8,6 +8,7 @@ Section ClassicalSubsets.
   Definition complement (A: csubset) : csubset := fun x => not (A x).
   Definition intersects (A B : csubset) := exists x, intersection A B x.
   Definition is_subset (A B : csubset) := forall x, A x -> B x.
+  Definition singleton (x : X) : csubset := fun y => x = y. 
 
   Lemma intersects_union A B b: intersects b (union A B) <-> intersects b A \/ intersects b B. 
 Proof.

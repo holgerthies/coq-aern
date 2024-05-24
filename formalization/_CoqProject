@@ -32,8 +32,8 @@ RealHelpers.v
 
 # RealEquivalent.v
 
-magnitude.v
-sqrt.v
+#magnitude.v
+#sqrt.v
 
 Dyadic.v
 ClassicalSubsets.v
