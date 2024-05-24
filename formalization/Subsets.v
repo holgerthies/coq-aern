@@ -35,6 +35,15 @@ Proof.
   apply x0.
 Defined.
 
+Lemma open_emptyset : open (fun x => False).
+Proof.
+  apply semidec_open.
+  intros.
+  exists lazy_bool_false.
+  split;unfold lazy_bool_up;intros;contradict H;auto.
+  apply lazy_bool_distinct.
+Qed.
+
 Lemma open_cf_exists {A} : open A -> {f : X -> sierp | forall x, (sierp_up (f x)) <-> A x}.
 Proof.
   intros P.
@@ -168,19 +177,19 @@ Section Compact.
 
 Context {X : Type}.
 
-Definition compact (A : (@csubset X)) := forall B, open B -> {k : ^K | (k = lazy_bool_true) <-> (@is_subset X A B)}. 
+Definition compact (A : (@csubset X)) := forall B, open B -> {k : sierp | sierp_up k <-> (@is_subset X A B)}. 
 
 Lemma is_compact_union M1 M2 : compact M1 -> compact M2 -> compact (union M1 M2).
 Proof.
     intros H1 H2 A Aopen.
     destruct (H1 A Aopen) as [k1 P1].
     destruct (H2 A Aopen) as [k2 P2].
-    exists (lazy_bool_and k1 k2).
+    destruct (sierp_and k1 k2) as [x [X1 X2]].
+    exists x.
     split; intros.
-    rewrite lazy_bool_and_up in H.
-    intros x P.
-    destruct P; [apply P1| apply P2];auto;apply H;auto.
-    rewrite lazy_bool_and_up.
+    intros a P.
+    destruct P; [apply P1| apply P2];auto;apply X1;auto.
+    apply X2.
     rewrite union_subset in H.
     split;[apply P1 | apply P2];apply H.
 Defined.
@@ -195,6 +204,7 @@ Proof.
   destruct (H x H0);auto.
   contradict H1;auto.
 Qed.
+
 Lemma is_compact_intersection M1 M2 : compact M1 -> closed M2 -> compact (intersection M1 M2).
 Proof.
   intros H1 H2 A Aopen.
@@ -210,7 +220,6 @@ Proof.
   intros T1 H x.
   pose proof (ineq_semidec_points_closed _ (T1 x)).
     destruct (H _ X0).
-    apply sierp_from_semidec.
     exists x0.
     rewrite i.
     unfold is_subset, complement, singleton.
@@ -229,27 +238,101 @@ Proof.
   unfold compact, singleton, open.
   intros.
   destruct (X0 x).
-  destruct x0.
-  unfold sierp_up in i; simpl in i.
   exists x0.
   rewrite i.
   unfold is_subset.
   split;intros;auto.
   rewrite <-H0;auto.
 Qed.
+  Axiom continuity : forall {X} (f : (nat -> X) -> sierp) (x : (nat -> X)), sierp_up (f x) -> ^M {m | forall y, (forall n, (n <= m)%nat -> x n = y n) -> sierp_up (f y)}.
+
+  Lemma compact_fin_cover K U : compact K -> (forall n, (open (U n))) -> is_subset K (countable_union U) -> ^M { m | forall x, K x -> exists n, (n <= m)%nat /\ (U n x)}.
+  Proof.
+    intros.
+    assert {T : (nat -> X -> sierp) -> (X -> sierp) | forall x y, sierp_up ((T x) y) <-> (countable_union (fun n y =>  sierp_up (x n y)) y)  } as [T H0].
+    {
+       assert (forall (x : nat -> X -> sierp) n, open (fun y => sierp_up (x n y))) by (unfold open;intros;exists (x n x0);split;auto).
+       exists (fun x => (fun y => (pr1 _ _ (open_countable_union (X2 x) y)))).
+       intros.
+       destruct (open_countable_union (X2 x) y);auto.
+    } 
+    assert {g : (nat -> X -> sierp) -> sierp | forall x, sierp_up (g x) <-> is_subset K (countable_union (fun n => (fun y => sierp_up (x n y))))  } as [g G].
+    {
+      assert (forall x, open (fun y => sierp_up (T x y))) by (unfold open;intros;exists (T x x0);split;auto).
+      exists (fun x => (pr1 _ _ (X0 _ (X2 x)))).
+      intros.
+      destruct (X0 _ (X2 x));simpl;auto.
+      split;auto.
+      - intros.
+        unfold is_subset, countable_union.
+        intros.
+        apply H0.
+        apply i;auto.
+     - intros.
+       apply i.
+       unfold is_subset.
+       intros.
+       apply H0.
+       apply H1;auto.
+    }
+    assert (sierp_up (g (fun n => (fun y => (pr1 _ _ (X1 n y)))))).
+    {
+      apply G.
+      unfold is_subset.
+      intros.
+      unfold countable_union.
+      destruct (H x H1).
+      exists x0.
+      destruct (X1 x0 x);simpl;apply i;auto.
+    }
+    pose proof (continuity _ _ H1).
+    revert X2.
+    apply M_lift.
+    intros [m M].
+    exists m.
+    intros.
+    assert {y : nat -> X -> sierp | (forall n, (n <= m)%nat -> (fun a=> (pr1 _ _ (X1 n a))) = y n) /\ forall n x, sierp_up (y n x) -> (n <= m)%nat} as [y Y].
+    {
+      exists (fun n => if (n <=? m) then (fun a => (pr1 _ _ (X1 n a))) else (fun a => pr1 _ _ (open_emptyset a))).
+      split.
+      intros.
+      apply fun_ext.
+      intros.
+      rewrite (leb_correct _ _ H3);auto.
+      intros.
+      destruct (le_lt_dec n m);auto.
+      contradict H3.
+      rewrite (leb_correct_conv);auto.
+      destruct (open_emptyset x0).
+      simpl.
+      rewrite i;auto.
+    }
+    assert (sierp_up (g y)).
+    {
+      apply M.
+      intros.
+      apply Y;auto.
+    }
+    destruct (proj1 (G y) H3 x H2).
+    exists x0.
+    assert (x0 <=m)%nat.
+    apply (proj2 Y x0 x);auto.
+    split;auto.
+    assert (sierp_up (pr1 _ _ (X1 x0 x))) by (destruct (proj1 Y _ H5);auto).
+    destruct (X1 x0 x);apply i;auto.
+ Qed.
+
 End Compact.
 
 Section Overt.
 
   Context {X : Type}.
-  Definition overt (A : (@csubset X)) := forall B, open B -> {k : ^K | (k = lazy_bool_true) <-> (@intersects X A B)}. 
+  Definition overt (A : (@csubset X)) := forall B, open B -> {k : sierp | sierp_up k <-> (@intersects X A B)}. 
 
   Lemma singleton_overt x : overt (singleton x).
   Proof.
     intros A openA.
     destruct (openA x).
-    destruct x0.
-    unfold sierp_up in i; simpl in i.
     exists x0.
     rewrite i.
     unfold intersects, intersection, singleton.
@@ -264,6 +347,7 @@ Section Overt.
     destruct (X0 (fun x => True)).
     exists (sierp_from_kleenean (neq_sym _ _ _ lazy_bool_distinct)).
     unfold sierp_up, sierp_from_kleenean;split;auto.
+    destruct x.
     exists x.
     rewrite i.
     unfold intersects, intersection;split; intros [];exists x0;auto;apply H.
@@ -393,6 +477,8 @@ Section Examples.
      destruct (c (fun n => (x (S n)))).
      exists x0;auto.
   Qed.
+
+  
 
 
 
