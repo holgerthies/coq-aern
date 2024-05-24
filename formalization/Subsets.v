@@ -395,7 +395,8 @@ Section Examples.
   Qed.
 
 
-  (* Axiom continuity : forall X (f : (nat -> X) -> sierp) (x : ) *)
+
+  (* Axiom continuity : forall X (f : (nat -> X) -> sierp) (x : (nat -> X)),   *)
 
   (* Definition pair_nat : nat -> nat -> nat. *)
   (* Proof. *)
@@ -607,10 +608,10 @@ Section Examples.
   (*   apply Y2. *)
   (*   apply Y1. *)
   (* Qed. *)
-  Example cantor_closed : closed (fun (x: (nat -> bool)) => forall n, (x n) = true -> forall m, (n <> m)%nat -> (x m) = false).
-  Proof.
-    intros x.
-    unfold complement.
-    destruct (cantor_exists_open x).
+  (* Example cantor_closed : closed (fun (x: (nat -> bool)) => forall n, (x n) = true -> forall m, (n <> m)%nat -> (x m) = false). *)
+  (* Proof. *)
+  (*   intros x. *)
+  (*   unfold complement. *)
+  (*   destruct (cantor_exists_open x). *)
 
 End Examples.
