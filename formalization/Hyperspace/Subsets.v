@@ -478,10 +478,84 @@ Section Examples.
      exists x0;auto.
   Qed.
 
+  (* Cantor space closed => WKL *)
+
+  Definition prefix (L1 L2 : list bool) := exists (L3 : (list bool)), L2 = L1 ++ L2.
   
+  Definition binary_tree T := (T []) /\ forall a b, T b -> prefix a b -> T a.
 
+  Definition infinite (T : (list bool -> Prop)) := forall n, exists a, T a /\ (length a >= n)%nat.
+  Definition path (T : list bool -> Prop) (p : nat -> bool)  := forall a, extends a p -> T a. 
 
+  Definition decidable (T : (list bool -> Prop)) := forall x, {b : bool | b = true <-> T x}.
 
+  Lemma extends_decidable x : decidable (fun a => (extends a x)).
+  Proof.
+    intros a.
+    revert x.
+    induction a.
+    exists true.
+    split;auto;unfold extends;intros _;simpl;lia.
+    intros.
+    destruct (IHa (fun n => x (S n))).
+    exists (andb (bool_eq (x 0%nat) a) x0).
+    rewrite Bool.andb_true_iff.
+    rewrite ((extends_intersection a a0 x)).
+    rewrite i.
+    split;intros [H1 H2];split;auto.
+    apply bool_eq_ok;auto.
+    rewrite H1;destruct a;auto.
+  Qed.
+
+  Definition WKL := forall T, binary_tree T -> infinite T -> {p | path T p }.
+
+  Lemma enumerable_lists : enumerable (list bool).
+  Admitted.
+
+  Lemma path_closed T : (decidable T) -> closed (path T).
+  Proof.
+    intros H x.
+    assert (decidable (fun a => extends a x /\ not (T a))).
+    {
+      intros a.
+      destruct (extends_decidable x a).
+      destruct (H a).
+      exists (andb x0 (negb x1)).
+      rewrite Bool.andb_true_iff.
+      rewrite <-i, <-i0.
+      rewrite Bool.negb_true_iff.
+      rewrite Bool.not_true_iff_false;split;auto.
+    }
+    destruct (enumerable_lists) as [l L].
+    destruct (cantor_exists_open (fun n => (pr1 _ _ (H0 (l n))))).
+    exists x0.
+    rewrite i.
+    split.
+    - intros [m M].
+      destruct (H0 (l m));simpl in *.
+      intros P.
+      specialize (P (l m)).
+      contradict M.
+      rewrite i0.
+      intros [H1 H2].
+      apply H2;auto.
+   - intros.
+     unfold complement, path in H1.
+     rewrite classical_tautology_neg_all in H1.
+     destruct H1.
+     destruct (L x1).
+     exists x2.
+     destruct (H0 (l x2));simpl.
+     apply i0.
+     apply Classical_Prop.imply_to_and;rewrite H2;auto.
+  Qed.
+  
+  Lemma compact_WKL : compact (fun (x : nat -> bool) => True) -> WKL.
+
+  Proof.
+   unfold WKL.
+   intros.
+   
   (* Axiom continuity : forall X (f : (nat -> X) -> sierp) (x : (nat -> X)),   *)
 
   (* Definition pair_nat : nat -> nat -> nat. *)
