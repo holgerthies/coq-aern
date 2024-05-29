@@ -244,9 +244,10 @@ Proof.
   split;intros;auto.
   rewrite <-H0;auto.
 Qed.
-  Axiom continuity : forall {X} (f : (nat -> X) -> sierp) (x : (nat -> X)), sierp_up (f x) -> ^M {m | forall y, (forall n, (n <= m)%nat -> x n = y n) -> sierp_up (f y)}.
 
-  Lemma compact_fin_cover K U : compact K -> (forall n, (open (U n))) -> is_subset K (countable_union U) -> ^M { m | forall x, K x -> exists n, (n <= m)%nat /\ (U n x)}.
+Axiom continuity : forall {X} (f : (nat -> X) -> sierp) (x : (nat -> X)), sierp_up (f x) -> ^M {m | forall y, (forall n, (n < m)%nat -> x n = y n) -> sierp_up (f y)}.
+
+  Lemma compact_fin_cover K U : compact K -> (forall n, (open (U n))) -> is_subset K (countable_union U) -> ^M { m | forall x, K x -> exists n, (n < m)%nat /\ (U n x)}.
   Proof.
     intros.
     assert {T : (nat -> X -> sierp) -> (X -> sierp) | forall x y, sierp_up ((T x) y) <-> (countable_union (fun n y =>  sierp_up (x n y)) y)  } as [T H0].
@@ -291,18 +292,18 @@ Qed.
     intros [m M].
     exists m.
     intros.
-    assert {y : nat -> X -> sierp | (forall n, (n <= m)%nat -> (fun a=> (pr1 _ _ (X1 n a))) = y n) /\ forall n x, sierp_up (y n x) -> (n <= m)%nat} as [y Y].
+    assert {y : nat -> X -> sierp | (forall n, (n < m)%nat -> (fun a=> (pr1 _ _ (X1 n a))) = y n) /\ forall n x, sierp_up (y n x) -> (n < m)%nat} as [y Y].
     {
-      exists (fun n => if (n <=? m) then (fun a => (pr1 _ _ (X1 n a))) else (fun a => pr1 _ _ (open_emptyset a))).
+      exists (fun n => if (n <? m)%nat then (fun a => (pr1 _ _ (X1 n a))) else (fun a => pr1 _ _ (open_emptyset a))).
       split.
       intros.
       apply fun_ext.
       intros.
-      rewrite (leb_correct _ _ H3);auto.
+      rewrite ((proj2 (Nat.ltb_lt n m)) H3);auto.
       intros.
-      destruct (le_lt_dec n m);auto.
+      destruct (lt_dec n m);auto.
       contradict H3.
-      rewrite (leb_correct_conv);auto.
+      rewrite (proj2 (Nat.ltb_nlt n m) n0).
       destruct (open_emptyset x0).
       simpl.
       rewrite i;auto.
@@ -315,7 +316,7 @@ Qed.
     }
     destruct (proj1 (G y) H3 x H2).
     exists x0.
-    assert (x0 <=m)%nat.
+    assert (x0 < m)%nat.
     apply (proj2 Y x0 x);auto.
     split;auto.
     assert (sierp_up (pr1 _ _ (X1 x0 x))) by (destruct (proj1 Y _ H5);auto).
@@ -507,7 +508,7 @@ Section Examples.
     rewrite H1;destruct a;auto.
   Qed.
 
-  Definition WKL := forall T, binary_tree T -> infinite T -> {p | path T p }.
+  Definition WKL := forall T, decidable T -> binary_tree T -> infinite T -> exists p,  path T p.
 
   Lemma enumerable_lists : enumerable (list bool).
   Admitted.
@@ -549,13 +550,50 @@ Section Examples.
      apply i0.
      apply Classical_Prop.imply_to_and;rewrite H2;auto.
   Qed.
-  
-  Lemma compact_WKL : compact (fun (x : nat -> bool) => True) -> WKL.
-
+  Lemma dense_enumeration : {e : nat -> (nat -> bool) | forall x U,  (open U) -> U x -> exists n, U (e n)}.
   Proof.
-   unfold WKL.
-   intros.
-   
+     destruct enumerable_lists.
+     exists (fun n => (fun m => nth m (x n) false)).
+     intros.
+  Admitted.
+ Lemma extends_last a an x : extends (a ++ [an]) x <->  extends a x /\ x (length a) = an.  
+ Proof.
+   revert x;induction a.
+   - simpl.
+     split;unfold extends;simpl;intros;try lia.
+     split;try lia;auto.
+     destruct H;auto.
+     assert (n = 0)%nat as -> by lia;auto.
+   - intros.
+     rewrite <-app_comm_cons.
+     rewrite !extends_intersection.
+     rewrite !IHa.
+     simpl.
+     split;intros [H1 H2];split;try split;auto;destruct H2;destruct H1;auto.
+  Qed.
+ 
+  Lemma open_nbhd U x : open U -> U x -> ^M (exists b, (extends b) x /\ is_subset (extends b) U).
+  Proof.
+    intros.
+    remember (fun x => (pr1 _ _ (X x))) as f.
+    assert (forall y, sierp_up (f y) <-> U y).
+    {
+      intros.
+      rewrite Heqf.
+      destruct (X y).
+      simpl;auto.
+    }
+    assert (sierp_up (f x)) by (apply H0;auto).
+    pose proof (continuity  f _ H1).
+    revert X0.
+    apply M_lift.
+    intros [m Hm].
+    exists (map x (seq 0 m)).
+  Abort.
+  (* Lemma cantor_space_compact : (@compact (nat -> bool) (fun x => True)). *)
+  (* Proof. *)
+  (*   intros U H. *)
+  (*   destruct  *)
   (* Axiom continuity : forall X (f : (nat -> X) -> sierp) (x : (nat -> X)),   *)
 
   (* Definition pair_nat : nat -> nat -> nat. *)
