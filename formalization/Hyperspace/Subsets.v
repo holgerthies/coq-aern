@@ -584,8 +584,9 @@ Section Examples.
    - simpl.
      split;unfold extends;simpl;intros;try lia.
      split;try lia;auto.
-     destruct H;auto.
-     assert (n = 0)%nat as -> by lia;auto.
+      apply (H 0%nat);auto.
+      assert (n = 0)%nat as -> by lia;auto.
+      apply H.
    - intros.
      rewrite <-app_comm_cons.
      rewrite !extends_intersection.
@@ -681,18 +682,19 @@ Section Examples.
     rewrite i;split; intros[];exists x1;auto.
   Qed.
 
-  Lemma interval_extension U : ^M {I : nat -> bool | (forall n, I n = true -> is_subset (base n) U) /\ forall x, U x -> exists n, (base n x) /\ (I n) = true}.
+  Lemma dense_enumeration_base n : (base n) (dense_enumeration n).
   Proof.
-    assert (forall n, {s | base n s}).
-    {
-      intros.
-      destruct (base_to_list n).
-      rewrite e.
-      exists (fun m => nth m x true).
-      unfold extends.
-      intros;auto.
+    unfold base, dense_enumeration.
+    destruct enumerable_lists.
+  Admitted.
 
-    }
+  Lemma interval_extension U : open U -> ^M {I : nat -> bool | (forall n, I n = true -> is_subset (base n) U) /\ forall x, U x -> exists n, (base n x) /\ (I n) = true}.
+  Proof.
+    intros.
+    pose proof (contains_lazy_check _ X).
+    revert X0.
+    apply M_lift.
+    intros [t T].
   Abort.   
   Lemma dense_covers U x:  open U -> U x -> exists n m, is_subset (base n) U /\ ((base n (dense_enumeration m)) /\ (base n x)).
   Proof.
