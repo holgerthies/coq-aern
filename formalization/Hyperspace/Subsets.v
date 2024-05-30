@@ -105,6 +105,25 @@ Proof.
   rewrite S1, S2.
   split;auto.
 Defined.
+
+Lemma open_to_testfun U : open U -> (forall (x : X), ^M {f : nat -> bool | U x <-> exists n, f n = true  }).
+Proof.
+  intros.
+  intros.
+  destruct (X0 x).
+  pose proof (sierp_to_nat_sequence x0).
+  revert X1.
+  apply M_lift.
+  intros [f F].
+  exists (fun n => if ((f n) =? 1)%nat then true else false).
+  rewrite <-i.
+  rewrite F.
+  split;intros [n N]; exists n.
+   rewrite N;auto.
+  destruct (f n =? 1) eqn:E;try (contradict N;apply Bool.diff_false_true).
+  apply Nat.eqb_eq;auto.
+Defined.
+
 End Open.
 
 Section Closed.
@@ -548,14 +567,17 @@ Section Examples.
      exists x2.
      destruct (H0 (l x2));simpl.
      apply i0.
-     apply Classical_Prop.imply_to_and;rewrite H2;auto.
+     apply Classical_Prop.imply_to_and;rewrite e;auto.
   Qed.
-  Lemma dense_enumeration : {e : nat -> (nat -> bool) | forall x U,  (open U) -> U x -> exists n, U (e n)}.
+  Lemma dense_enumeration_exists : {e : nat -> (nat -> bool) | forall x U,  (open U) -> U x -> exists n, U (e n)}.
   Proof.
      destruct enumerable_lists.
      exists (fun n => (fun m => nth m (x n) false)).
      intros.
   Admitted.
+
+ Definition dense_enumeration := pr1 _ _ dense_enumeration_exists.
+
  Lemma extends_last a an x : extends (a ++ [an]) x <->  extends a x /\ x (length a) = an.  
  Proof.
    revert x;induction a.
@@ -571,8 +593,34 @@ Section Examples.
      simpl.
      split;intros [H1 H2];split;try split;auto;destruct H2;destruct H1;auto.
   Qed.
- 
-  Lemma open_nbhd U x : open U -> U x -> ^M (exists b, (extends b) x /\ is_subset (extends b) U).
+
+  Lemma first_n_extends x n  : extends (map x (seq 0 n)) x.
+  Proof.
+    induction n; [unfold extends;simpl;lia|].
+    rewrite seq_S, map_app.
+    simpl.
+    rewrite extends_last.
+    split;auto.
+    rewrite map_length, seq_length;auto.
+  Qed.
+
+  Definition base : nat -> (@csubset (nat -> bool)).
+  Proof.
+    intros n.
+    destruct enumerable_lists.
+    pose proof (extends (x n)) : csubset.
+    apply X.
+  Defined.
+
+  Lemma base_open : forall n, open (base n).
+  Proof.
+    intros.
+    unfold base.
+    destruct enumerable_lists.
+    apply cantor_base_clopen.
+  Qed.
+
+  Lemma open_nbhd U x : open U -> U x -> ^M ({n | (base n) x /\ is_subset (base n) U}).
   Proof.
     intros.
     remember (fun x => (pr1 _ _ (X x))) as f.
@@ -588,8 +636,210 @@ Section Examples.
     revert X0.
     apply M_lift.
     intros [m Hm].
-    exists (map x (seq 0 m)).
+    destruct enumerable_lists eqn:E.
+    destruct (s (map x (seq 0 m))).
+    exists x1.
+    unfold base.
+    rewrite E.
+    rewrite e.
+    split; [apply first_n_extends|].
+    intros y Hy.
+    apply H0.
+    apply Hm.
+    intros.
+    rewrite Hy; [ | rewrite map_length,seq_length];auto.
+    rewrite (nth_indep _  _ (x 0%nat)); [|rewrite map_length,seq_length;auto].
+    rewrite map_nth, seq_nth;auto.
+  Qed.
+
+  Lemma base_to_list n : {l | base n = extends l}.
+  Proof.
+    unfold base.
+    destruct enumerable_lists.
+    exists (x n);auto.
+  Qed.
+
+  Lemma contains_lazy_check U : open U -> ^M {t : nat -> nat -> bool | forall m, (exists n, t m n = true) <-> U (dense_enumeration m)}.
+  Proof.
+    intros.
+    unfold dense_enumeration.
+    destruct (dense_enumeration_exists).
+    assert (^M (forall m, {f : nat -> bool |  (U (x m)) <-> (exists n, f n = true)})).
+    {
+      apply M_countable_lift.
+      intros.
+      pose proof (open_to_testfun _ X (x n)).
+      apply X0.
+    }
+    revert X0.
+    apply M_lift.
+    intros.
+    exists (fun m => (pr1 _ _ (H m))).
+    intros.
+    destruct (H m).
+    simpl.
+    rewrite i;split; intros[];exists x1;auto.
+  Qed.
+
+  Lemma interval_extension U : ^M {I : nat -> bool | (forall n, I n = true -> is_subset (base n) U) /\ forall x, U x -> exists n, (base n x) /\ (I n) = true}.
+  Proof.
+    assert (forall n, {s | base n s}).
+    {
+      intros.
+      destruct (base_to_list n).
+      rewrite e.
+      exists (fun m => nth m x true).
+      unfold extends.
+      intros;auto.
+
+    }
+  Abort.   
+  Lemma dense_covers U x:  open U -> U x -> exists n m, is_subset (base n) U /\ ((base n (dense_enumeration m)) /\ (base n x)).
+  Proof.
+    intros.
+    unfold dense_enumeration.
+    destruct (dense_enumeration_exists).
+    simpl.
+    specialize (e x).
+    pose proof (open_nbhd U x X H).
+    apply M_hprop_elim_f.
+    intros a b.
+    apply irrl.
+    revert X0.
+    apply M_lift.
+    intros [n [N1 N2]].
+    destruct (e (base n));auto;try apply base_open.
+    exists n; exists x1;auto.
+  Qed. 
+
+  Definition base_to_subset (n : nat) := match n with
+                                       | 0%nat => (fun _ => True)
+                                       | (S n') => (base n')
+                                       end.
+
+  Lemma open_dense_suffices U1 U2: open U1 -> open U2 -> (forall n, U1 (dense_enumeration n) <-> U2 (dense_enumeration n)) -> (forall x, U1 x <-> U2 x). 
+  Proof.
+    unfold dense_enumeration.
+    destruct (dense_enumeration_exists) eqn:E;simpl.
+    intros.
+    split.
+    intros.
+    destruct (dense_covers _ _ X H0) as [n [m [H1 [H2 H3]]]].
+    unfold dense_enumeration in *;rewrite E in *;simpl in *.
+    
   Abort.
+  Lemma cantor_second_countable U : open U -> ^M {c : nat -> option nat | (forall n m, (c n) = Some m -> is_subset (base m) U) /\ (forall x, U x -> exists n m, (c n) = Some m /\ (base m) x)}.
+  Proof.
+    intros.
+    pose proof (contains_lazy_check U X).
+    revert X0.
+    apply M_lift_dom.
+    intros [t T].
+    assert (^M (forall m n,  {i | t m n = true -> is_subset (base i) U /\ (base i) (dense_enumeration m)})).
+    {
+      apply M_countable_lift;intros m;apply M_countable_lift;intros n.
+      intros.
+      destruct (t m n) eqn:E.
+      assert (U (dense_enumeration m)) by (apply T;exists n;auto).
+      pose proof (open_nbhd _ _  X H).
+      revert X0.
+      apply M_lift.
+      intros [i [I1 I2]];exists i;auto.
+      apply M_unit.
+      exists 0%nat.
+      intros;contradict H.
+      apply Bool.diff_false_true.
+    }
+    revert X0.
+    apply M_lift.
+    intros.
+   Abort.
+   (*  assert (forall x, U x -> exists m n, base (pr1 _ _ (H m n)) x). *)
+   (*  { *)
+   (*    intros. *)
+   (*    destruct (dense_covers _ _ X H0). *)
+      
+   (*  } *)
+   (*  destruct (enumerable_pair _ _ enumerable_nat enumerable_nat). *)
+   (*  exists (fun n => match (t (fst (x n)) (snd (x n))) with | true => Some (pr1 _ _ (H (fst (x n)) (snd (x n)))) | false => None end). *)
+   (*  split. *)
+   (*  - intros. *)
+   (*    destruct (H (fst (x n)) (snd (x n))). *)
+   (*    destruct (t (fst (x n)) (snd (x n))) eqn:E. *)
+   (*    simpl in *. *)
+   (*    intros. *)
+   (*    destruct a;auto. *)
+   (*    injection H0. *)
+   (*    intros <-;auto. *)
+   (*    discriminate H0. *)
+   (*  - intros. *)
+   (*    destruct (dense_covers _ _ X H0) as [i [m H1]]. *)
+   (*    assert (exists n, t m n = true) as [n N]. *)
+   (*    { *)
+   (*      apply T. *)
+   (*      destruct H1. *)
+   (*      apply H1;apply H2. *)
+   (*    } *)
+   (*    destruct (s (m,n)). *)
+   (*    exists x1. *)
+   (*    destruct (H m n) eqn:H'. *)
+   (*    exists x2. *)
+   (*    rewrite e;simpl. *)
+   (*    rewrite H'. *)
+   (*    simpl. *)
+   (*    rewrite N. *)
+   (*    split;auto. *)
+      
+   (*  assert (^M (forall m n, {b : option (list bool) | (f m n = false -> b = None) /\ (f m n = true ->  exists l, b = Some l /\ (extends l (x m)) /\ is_subset (extends l) U)})). *)
+   (*  { *)
+   (*    apply M_countable_lift;intros m;apply M_countable_lift;intros n. *)
+   (*    destruct (f m n) eqn:E. *)
+   (*    admit. *)
+   (*    - apply M_unit. *)
+   (*      exists None. *)
+   (*      split;auto. *)
+   (*      intros;contradict H0. *)
+   (*      apply Bool.diff_false_true. *)
+   (*  } *)
+   (*  revert X0. *)
+   (*  apply M_lift. *)
+   (*  intros. *)
+   (*  exists (fun n => (pr1 _ _ (H0 (fst (x0 n)) (snd (x0 n))))). *)
+   (*  split. *)
+   (*  - intros. *)
+   (*    destruct (H0 (fst (x0 n)) (snd (x0 n))). *)
+   (*    simpl in *. *)
+   (*    destruct a. *)
+   (*    destruct (f (fst (x0 n)) (snd (x0 n))). *)
+   (*    destruct H3;auto. *)
+   (*    replace b with x2. *)
+   (*    apply H3. *)
+   (*    destruct H3. *)
+   (*    assert (Some x2 = Some b) by (rewrite <- H1, <- H3;auto). *)
+   (*    inversion H5;auto. *)
+
+   (*    contradict H1. *)
+   (*    rewrite H2;auto. *)
+   (*    discriminate. *)
+   (* -  intros. *)
+   (*    assert ({b | (extends b) x1 /\ is_subset (extends b) U}). *)
+   (*    admit. *)
+   (*    destruct H2. *)
+   (*    destruct (cantor_base_clopen x2). *)
+   (*    destruct a. *)
+   (*    destruct (e x1 _ o);auto. *)
+   (*    assert (U (x x3)). *)
+   (*    admit. *)
+   (*    destruct (F2 _ H5). *)
+   (*    destruct (e0 (x3,x4)). *)
+   (*    exists x5. *)
+   (*    rewrite H7;simpl. *)
+   (*    destruct (H0 x3 x4). *)
+   (*    simpl in *. *)
+   (*    destruct a. *)
+   (*    destruct (H9 H6). *)
+   (*    exists x7;split;try apply H7. *)
+      
   (* Lemma cantor_space_compact : (@compact (nat -> bool) (fun x => True)). *)
   (* Proof. *)
   (*   intros U H. *)

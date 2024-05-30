@@ -200,9 +200,9 @@ Lemma euclidean_approx {d} x p : ^M { y : (@DyadicVector d)  | euclidean_max_dis
     apply real_max_le_le_le;auto.
 Defined.
 
-Definition enumerable (X : Type) := {f : nat ->X | forall x, exists n, (f n) = x}.
+Definition enumerable (X : Type) := {f : nat ->X & forall x, { n| (f n) = x}}.
 
-Lemma enumerable_pos X : iffT {f : positive ->X | forall x, exists n, (f n) = x} (enumerable X).
+Lemma enumerable_pos X : iffT {f : positive ->X & forall x, {n | (f n) = x}} (enumerable X).
 Proof.
   split.
 
@@ -338,7 +338,7 @@ Proof.
   intros x.
   destruct (F ((hd x), (tl x))).
   exists x0.
-  rewrite H.
+  rewrite e.
   simpl.
   rewrite (eta x);auto.
 Defined.
