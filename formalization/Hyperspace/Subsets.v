@@ -388,7 +388,149 @@ Section Overt.
  Qed.
 End Overt.
 
+Section Metric.
+  Context {X : Type}.
+  
+  Definition metric := {d : X -> X -> ^Real |  (forall x y, d x y = 0 <-> x = y) /\ (forall x y, d x y = d y x) /\ forall x y z, d x y <= d x z + d z y}.
 
+  Definition d_X (H : metric):= pr1 _ _ H.  
+
+  Definition dense (A : (@csubset X)) := forall x U, open U -> U x -> exists y, A y /\ U y.
+
+  Definition separable := {e : nat -> X | dense (fun x => exists n, e n = x)}. 
+
+  Definition D (s : separable):= (pr1 _ _ s).
+
+  Definition second_countable := {B : nat -> (@csubset X) & forall n, open (B n) & forall U, open U -> ^M {c : nat -> nat | countable_union (fun n => B (c n)) = U }}. 
+
+  Definition open_choice (U : (@csubset X)) := open U -> (exists x, U x) -> ^M {x | U x}.
+
+  Lemma separable_exists U (s : separable) : open U -> (exists x, U x) -> exists n, U (D s n).
+  Proof.
+    intros.
+    destruct s.
+    simpl.
+    destruct H.
+    specialize (d _ _ X0 H).
+    destruct d.
+    destruct H0 as [[n H0] H1].
+    exists n;rewrite H0;auto.
+  Qed.
+
+  Lemma separable_choice (s : separable): forall U, open U -> (exists x, U x) -> ^M {n | U (D s n) }.
+  Proof.
+    intros U H N.
+    pose proof (separable_exists _ s H N).
+    assert (forall n, {k : ^K | k = lazy_bool_true <-> U (D s n)}).
+    {
+      intros.
+      destruct (H (D s n)).
+      destruct x.
+      exists x.
+      rewrite i;split;auto.
+    }
+    remember (fun n => pr1 _ _ (X0 n)) as f.
+    assert (exists n, f n = lazy_bool_true).
+    {
+      destruct H0.
+      exists x.
+      rewrite Heqf.
+      destruct (X0 x).
+      simpl.
+      rewrite i;auto.
+    }
+    pose proof (multivalued_countable_choice f H1).
+    revert X1.
+    apply M_lift.
+    intros [n P].
+    exists n.
+    destruct (X0 n) eqn:E.
+    rewrite <-i.
+    rewrite <- P.
+    rewrite Heqf.
+    rewrite E.
+    simpl;auto.
+  Qed.
+
+  Lemma separable_open_choice : separable -> forall U, open_choice U.
+  Proof.
+    intros.
+    intros H N.
+    pose proof (separable_choice X0 U H N).
+    revert X1.
+    apply M_lift.
+    intros [n P].
+    exists (D X0 n);auto.
+  Qed.
+
+  Lemma choice_separable : second_countable -> (forall U, open_choice U) -> separable.
+  Proof.
+    intros.
+  Abort.
+
+  Definition ball (H: metric) x n := (fun y => (d_X H x y < prec n)) : csubset.
+  Lemma metric_open (H : metric) : forall x n, open (ball H x n). 
+  Proof.
+    intros.
+    apply semidec_open.
+    intros y.
+    apply real_lt_semidec.
+  Qed.
+
+
+  Lemma separable_metric_approx_inside (H : metric) (s : separable) U x :open U -> U x -> forall n,  ^M {m | (d_X H x (D s m)) < prec n /\ U (D s m)}.
+  Proof.
+    intros.
+    pose proof (metric_open H x n).
+    pose proof (separable_choice s _ (open_intersection X0 X1)).
+    enough (exists x0, (intersection U (ball H x n) x0)).
+    specialize (X2 H1).
+    revert X2.
+    apply M_lift.
+    intros [m M].
+    exists m.
+    split;apply M.
+    exists x.
+    split;auto.
+    unfold ball.
+    replace (d_X H x x) with 0.
+    apply prec_pos.
+    apply eq_sym.
+    destruct H.
+    apply a;auto.
+  Qed.
+
+  Lemma separable_metric_approx (H : metric) (s : separable) : forall x n, ^M {m | (d_X H x (D s m)) < prec n}.
+  Proof.
+    intros.
+    pose proof (separable_choice s _ (metric_open H x n)).
+    enough ( (exists x0 : X, (fun y : X => d_X H x y < prec n) x0) );auto.
+    exists x.
+    replace (d_X H x x) with 0.
+    apply prec_pos.
+    apply eq_sym.
+    destruct H.
+    apply a;auto.
+ Qed.
+
+  Lemma seperable_metric_continuous (H : metric) (s : separable) U x : open U ->  U x -> ^M {m | is_subset (ball H x m) U  }.
+  Proof.
+    intros.
+    pose proof (separable_metric_approx_inside H  s _ _ X0 H0).
+    apply M_countable_lift in X1.
+    revert X1.
+    apply M_lift_dom.
+    intros.
+    remember (fun n => (pr1 _ _ (X0 (D s n)))) as t.
+ Abort.
+  Lemma separable_suff (H :metric) (s : separable) U1 U2 : open U1 -> open U2 -> (forall n, U1 (D s n) <-> U2 (D s n)) -> U1 = U2.
+  Proof.
+    intros.
+    apply fun_ext.
+    intros.
+    apply Prop_ext.
+    Abort.
+End Metric.
 Section Examples.
   
   Example cantor_exists_open : open (fun (n : (nat -> bool)) => exists m, (n m) = true).
@@ -584,7 +726,6 @@ Section Examples.
    - simpl.
      split;unfold extends;simpl;intros;try lia.
      split;try lia;auto.
-      apply (H 0%nat);auto.
       assert (n = 0)%nat as -> by lia;auto.
       apply H.
    - intros.
