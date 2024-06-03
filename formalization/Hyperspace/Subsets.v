@@ -401,6 +401,11 @@ Section Metric.
 
   Definition D (s : separable):= (pr1 _ _ s).
 
+  Definition metric_is_fast_cauchy (H : metric) (f: nat -> X):= forall n m, (d_X H (f n) (f m)) <= prec n + prec m.
+  Definition metric_is_fast_limit (H : metric) (f : nat -> X) x := forall n, (d_X H (f n) x) <= prec n.
+  Definition has_limit (H : metric) := forall f, (metric_is_fast_cauchy H f) -> {x | metric_is_fast_limit H f x}.
+   
+
   Definition second_countable := {B : nat -> (@csubset X) & forall n, open (B n) & forall U, open U -> ^M {c : nat -> nat | countable_union (fun n => B (c n)) = U }}. 
 
   Definition open_choice (U : (@csubset X)) := open U -> (exists x, U x) -> ^M {x | U x}.
@@ -513,9 +518,169 @@ Section Metric.
     apply a;auto.
  Qed.
 
-  Lemma seperable_metric_continuous (H : metric) (s : separable) U x : open U ->  U x -> ^M {m | is_subset (ball H x m) U  }.
+  (* Lemma open_contains_ball (H : metric) (l : has_limit H) U x : open U -> U x -> ^M ({n | is_subset (ball H x n) U}). *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   assert {f : (nat -> X) -> sierp | forall x, sierp_up (f x) <-> (exists y, forall n, (d_X H (x n) y) <= )} *)
+  Lemma not_fast_cauchy_semidec (H : metric) x : {s : sierp | sierp_up s <-> (not (metric_is_fast_cauchy H x))}.
+  Proof.
+    unfold metric_is_fast_cauchy.
+    enough ({s : sierp | sierp_up s <-> exists n m, d_X H (x n) (x m) > prec n + prec m}).
+    - destruct X0.
+      exists x0.
+      rewrite i.
+      rewrite classical_tautology_neg_all.
+      split.
+      intros [n [m H0]].
+      exists n.
+      rewrite classical_tautology_neg_all.
+      exists m.
+      pose proof (real_gt_nle (d_X H (x n) (x m)) (prec n + prec m)).
+      apply H1;auto.
+      intros [n H0].
+      rewrite classical_tautology_neg_all in H0.
+      destruct H0.
+      exists n; exists x1.
+      apply (real_nle_ge (d_X H (x n) (x x1)) (prec n + prec x1));auto.
+    -
+      Admitted.
+  Lemma magic : False.
+  Admitted.
+  Search "path".
+
+  Lemma fast_cauchy_mlt  H x : metric_is_fast_cauchy H x <-> forall n m, (m < n)%nat -> d_X H (x n) (x m) <= prec n + prec m.
+  Admitted.
+
+  Definition to_convergent (H : metric) (x : nat -> X) :^M {y : nat -> X | forall n, y n= x n \/ exists m, (m < n)%nat /\ y n = x m}.
+  Proof.
+    assert ({k : nat -> K | forall n, k n = lazy_bool_true <-> exists m, (m < n)%nat /\ (d_X H (x n) (x m)) > prec (S n) + prec (S m)}) as [k1 K1].
+    contradict magic.
+    assert ({k : nat -> K | forall n, k n = lazy_bool_true <-> forall m, (m < n)%nat -> (d_X H (x n) (x m)) < prec n + prec m}) as [k2 K2].
+    contradict magic.
+    assert (forall n, (k1 n = lazy_bool_true \/ k2 n = lazy_bool_true)).
+    {
+      intros.
+      rewrite K1,K2.
+      destruct (lem   (forall m : nat, (m < n)%nat -> d_X H (x n) (x m) < prec n + prec m)).
+      right;auto.
+      rewrite classical_tautology_neg_all in H0.
+      destruct H0.
+      left.
+      exists x0.
+      apply Classical_Prop.imply_to_and in H0.
+      destruct H0.
+      split;auto.
+      apply real_nge_le in H1.
+      apply (real_lt_le_lt _ (prec n + prec x0) _);auto.
+      apply real_lt_lt_plus_lt;apply prec_S.
+    }
+    Locate M_paths.
+    assert (forall n yp, ^M {y : X | (n = 0%nat -> yp = x 0%nat) /\ (y = yp \/ y = (x (S n))) /\ ((forall n' m', (n' <= (S n))%nat -> (m' < (S n))%nat -> (d_X H (x n') (x m')) <= prec (S n') + prec (S m')) -> y = (x (S n))) /\  ((exists n' m', (n' <= (S n))%nat /\ (m' < (S n))%nat /\ (d_X H (x n') (x m') > prec n' + prec m')) -> y = yp)  }).
+    {
+      admit.
+    }
+    pose proof (M_paths _ _ (M_unit _ (x 0%nat)) X0 ).
+    revert X1.
+    apply M_lift.
+    intros [f P].
+    assert (forall n, (f n) = (x n) \/ exists m, forall n, (n > m)%nat -> (f n) = (f m)).
+    {
+      intros.
+      destruct n.
+      left;auto.
+      apply P;auto.
+      destruct (P n) as [P1 [P2 _]].
+      destruct P2.
+      right.
+      exists n.
+      intros.
+      induction n.
+      
+    }
+    assert (metric_is_fast_cauchy H f).
+    {
+      apply fast_cauchy_mlt.
+      intros n m L.
+      induction n.
+      lia.
+      specialize (P n).
+      destruct P as [H1 [H2 H3]].
+      destruct H1.
+      rewrite H1.
+      apply (real_le_le_le _ (prec n + prec m)); try lia.
+      apply IHn.
+      admit.
+      admit.
+      destruct (H0 (S n)).
+      assert (f (S n) = f n).
+      admit.
+      rewrite H5.
+      admit.
+      rewrite K2 in H4.
+      rewrite H1.
+      apply real_lt_le.
+      apply H4.
+      apply H4.
+      apply H2.
+      exists (S n).
+      destruct H3.
+      exists x0.
+      split;try lia;split;auto.
+      apply H3.
+    }
+    intros n.
+    induction n.
+    apply M_unit.
+    exists (x 0%nat).
+    left;auto.
+    pose proof (M_choice _ _ H0).
+    revert X0.
+    apply M_lift_dom.
+    intros [].
+    revert IHn.
+    apply M_lift.
+    intros [y H1].
+    exists y.
+    right.
+    destruct H1.
+    exists n;split;try lia;auto.
+    destruct H1.
+    destruct H1.
+    exists x0;split; try lia;auto.
+    apply M_unit.
+    exists (x (S n)).
+    left;auto.
+  Defined.
+
+  Definition to_convergent_spec (H : metric) (x : nat -> X) : ^M {y : (nat -> X) | metric_is_fast_cauchy H y}.
+  Proof.
+    pose (to_convergent H x).
+    unfold to_convergent in m.
+    apply M_countable_lift in m.
+    revert m.
+    apply M_lift.
+    intros y.
+    exists y.
+    intros n m.
+    induction n.
+
+  Lemma extended_limit (H : metric) (l : has_limit H) x : { p | metric_is_fast_cauchy H x -> metric_is_fast_limit H x p}.
+  Proof.
+    
+    (forall n, exists m, (m < n)%nat /\ (d_X H (x n) (x m)) > prec n + prec m).
+    assert (not (metric_is_fast_cauchy H x) -> exists n m,((d_X H (x n) (x m)) > prec n + prec m /\ (forall n' m', (n' < n)%nat -> (m' < m)%nat -> (d_X H (x n') (x m')) <= prec n + prec m))).
+    admit.
+
+  Lemma seperable_metric_continuous (H : metric) (s : separable) (l : has_limit H) U x : open U ->  U x -> ^M {m | is_subset (ball H x m) U  }.
   Proof.
     intros.
+    assert (forall (x : nat -> X), {s : sierp | sierp_up s <-> (exists y, (forall n, (d_X H (x n) y) <= prec n) -> U y)}).
+    {
+      intros.
+      pose proof (l x0).
+      admit.
+    }
+    assert ({f : nat -> {x : X |  -> sierp | True} ).
     pose proof (separable_metric_approx_inside H  s _ _ X0 H0).
     apply M_countable_lift in X1.
     revert X1.
