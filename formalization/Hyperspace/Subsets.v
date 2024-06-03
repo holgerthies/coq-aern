@@ -544,113 +544,257 @@ Section Metric.
       apply (real_nle_ge (d_X H (x n) (x x1)) (prec n + prec x1));auto.
     -
       Admitted.
-  Lemma magic : False.
-  Admitted.
-  Search "path".
 
-  Lemma fast_cauchy_mlt  H x : metric_is_fast_cauchy H x <-> forall n m, (m < n)%nat -> d_X H (x n) (x m) <= prec n + prec m.
-  Admitted.
-
-  Definition to_convergent (H : metric) (x : nat -> X) :^M {y : nat -> X | forall n, y n= x n \/ exists m, (m < n)%nat /\ y n = x m}.
+  Lemma fast_cauchy_simpl H : forall x, {y | metric_is_fast_cauchy H x -> (forall n, d_X H (y n) (y (S n)) <= prec (S (S n))) /\ (forall p, metric_is_fast_limit H x p -> metric_is_fast_limit H y p) }.
   Proof.
-    assert ({k : nat -> K | forall n, k n = lazy_bool_true <-> exists m, (m < n)%nat /\ (d_X H (x n) (x m)) > prec (S n) + prec (S m)}) as [k1 K1].
-    contradict magic.
-    assert ({k : nat -> K | forall n, k n = lazy_bool_true <-> forall m, (m < n)%nat -> (d_X H (x n) (x m)) < prec n + prec m}) as [k2 K2].
-    contradict magic.
+    intros.
+    exists (fun n => x (S (S (S n)))).
+    intros.
+    split.
+    intros.
+    apply (real_le_le_le _ (prec (S (S (S n))) + prec (S (S (S ( S n)))))).
+    apply H0.
+    admit.
+
+    intros.
+    intros n.
+    apply (real_le_le_le _ (prec (S (S (S n))))).
+    apply H1.
+    apply real_lt_le.
+    apply prec_monotone.
+    lia.
+  Admitted.
+
+  Lemma fast_cauchy_neighbor M x: (forall n, (d_X M (x n) (x (S n))) <= prec (S n)) -> metric_is_fast_cauchy M x.
+  Proof.
+    intros H.
+    intros n1 m1.
+    destruct M as [d [M1 [M2 M3]]].
+    simpl d_X in *.
+    assert (forall n m k,  (n <= m)%nat -> (k = m - n)%nat ->  d (x n) (x m) <= prec n + prec m).
+    intros n m k H0 e.
+    assert (m  = k + n)%nat by (rewrite e; lia).
+    induction (eq_sym H1).
+    assert (d (x n)  (x (k + n)%nat) <= prec n - prec (n + k)). 
+    induction k.
+    replace (n + 0)%nat with n by lia; replace (0 + n)%nat with n by lia. 
+    replace (prec n - prec n) with real_0 by ring.
+    replace (d (x n) (x n)) with 0 by (rewrite (proj2 (M1 (x n) (x n)));auto).
+    apply real_eq_le;auto.
+
+    assert ( k = (k + n - n)%nat) by lia.
+    assert ((k + n)%nat = (k + n)%nat) by apply eq_refl.
+    assert (n <= k + n)%nat by lia.
+    pose proof (IHk H4 H2 H3).
+    clear e H1 H0 IHk H2 H3 H4.
+    pose proof (H (k + n)%nat).
+
+    apply (real_le_le_le _ _ _ (M3 _ _ (x (k+n)%nat))).
+    pose proof (real_le_le_plus_le _ _ _ _ H0 H5).
+    rewrite real_plus_comm.
+
+    apply (real_le_le_le _ _ _ H1 ).
+    ring_simplify.
+    replace (n + S k)%nat with ((n+k)+1)%nat by lia.
+    replace (S (k+n))%nat with ((n+k)+1)%nat by lia.
+    add_both_side_by (-prec n + prec (n+k) ).
+    rewrite <-(prec_twice (n+k)).
+    ring_simplify.
+    right;auto.
+
+    pose proof (H (k + n)%nat).
+    apply (real_le_le_le _ _ _ H2).
+    add_both_side_by (- prec n).
+    apply (real_le_le_le _ real_0);apply real_lt_le.
+    add_both_side_by (prec (n+k)).
+    apply prec_pos.
+    apply prec_pos.
+    assert (J : (n1 <= m1 \/ m1 <= n1)%nat) by lia; destruct J.
+
+    apply (H0 _ _ (m1 - n1)%nat H1  eq_refl).
+    pose proof (H0 _ _  (n1 - m1)%nat H1 eq_refl).
+    rewrite M2.
+    rewrite real_plus_comm.
+    apply H2.
+  Qed.
+
+  Definition XX2X (x : X+X) := match x with
+                                  | inl a => a 
+                                  | inr a => a
+                                  end.
+
+  Definition to_convergent (H : metric) (x : nat -> X) :^M {y : nat -> X | metric_is_fast_cauchy H y /\ ((metric_is_fast_cauchy H x) -> forall p, metric_is_fast_limit H x p -> metric_is_fast_limit H y p)}.
+  Proof.
+    destruct (fast_cauchy_simpl H x) as [x' X'].
+
+    assert ({k : nat -> K | forall n, k n = lazy_bool_true <-> d_X H (x' n) (x' (S n)) > prec (S (S n)) }) as [k1 K1].
+    {
+      admit.
+    }
+    assert ({k : nat -> K | forall n, k n = lazy_bool_true <-> d_X H (x' n) (x' (S n)) < prec (S n) }) as [k2 K2].
+    admit.
+
     assert (forall n, (k1 n = lazy_bool_true \/ k2 n = lazy_bool_true)).
     {
       intros.
       rewrite K1,K2.
-      destruct (lem   (forall m : nat, (m < n)%nat -> d_X H (x n) (x m) < prec n + prec m)).
+      destruct (lem   (d_X H (x' n) (x' (S n)) < prec (S n))).
       right;auto.
-      rewrite classical_tautology_neg_all in H0.
-      destruct H0.
       left.
-      exists x0.
-      apply Classical_Prop.imply_to_and in H0.
-      destruct H0.
-      split;auto.
-      apply real_nge_le in H1.
-      apply (real_lt_le_lt _ (prec n + prec x0) _);auto.
-      apply real_lt_lt_plus_lt;apply prec_S.
+      apply real_nge_le in H0.
+      apply (real_lt_le_lt _ (prec (S n)) _);auto.
+      apply prec_S.
     }
-    Locate M_paths.
-    assert (forall n yp, ^M {y : X | (n = 0%nat -> yp = x 0%nat) /\ (y = yp \/ y = (x (S n))) /\ ((forall n' m', (n' <= (S n))%nat -> (m' < (S n))%nat -> (d_X H (x n') (x m')) <= prec (S n') + prec (S m')) -> y = (x (S n))) /\  ((exists n' m', (n' <= (S n))%nat /\ (m' < (S n))%nat /\ (d_X H (x n') (x m') > prec n' + prec m')) -> y = yp)  }).
-    {
-      admit.
-    }
-    pose proof (M_paths _ _ (M_unit _ (x 0%nat)) X0 ).
-    revert X1.
-    apply M_lift.
-    intros [f P].
-    assert (forall n, (f n) = (x n) \/ exists m, forall n, (n > m)%nat -> (f n) = (f m)).
+
+    assert (forall n yp, ^M {y : X+X |  (y = inr (XX2X yp) \/ y = (inl (x' (S n)))) /\ (n = O -> y = inl (x' (S n))) /\ ((yp = inl (x' n) /\ d_X H (x' n) (x' (S n)) <= prec (S (S n))) -> y = (inl (x' (S n)))) /\  ( (n > 0)%nat /\ (d_X H (x' n) (x' (S n)) > prec (S n)) -> y = inr (XX2X yp)) /\ ((n > 0)%nat /\ yp = inr (XX2X yp) -> y = yp)}).
     {
       intros.
       destruct n.
-      left;auto.
-      apply P;auto.
-      destruct (P n) as [P1 [P2 _]].
-      destruct P2.
-      right.
-      exists n.
+
+      apply M_unit.
+      exists (inl (x' 1%nat)).
+      split;[|split;[|split; [|split]]];auto; try lia.
+      destruct yp.
+      - pose proof (M_choice _ _ (H0 (S n))).
+        revert X0.
+        apply M_lift.
+        intros [].
+        + exists (inr x0).
+          split.
+          left;simpl;auto.
+          split;try lia.
+          split.
+          intros.
+          destruct H1.
+          contradict H2.
+          apply real_gt_nle.
+          apply K1;auto.
+          split.
+          intros;simpl;auto.
+          intros.
+          destruct H1.
+          discriminate H2.
+      +  exists (inl (x' (S (S n)))).
+         split.
+         right;simpl;auto.
+         split;try lia.
+         split.
+         intros;auto.
+         split.
+         intros.
+         destruct H1.
+         contradict H2.
+         apply real_gt_ngt.
+         apply K2;auto.
+         intros [].
+         discriminate H2.
+      - apply M_unit.
+        exists (inr x0).
+        split;[|split; [|split;[| split ]]];auto;try lia.
+        intros [];auto.
+        contradict H1.
+        discriminate.
+    }
+
+    pose proof (M_paths _ _ (M_unit _ (inl (x' 0%nat))) X0 ).
+    revert X1.
+    apply M_lift.
+    intros [f0 P].
+    remember (fun n => f0 (S n)) as f.
+    assert (forall n, f (S n) = inr (XX2X (f (S n))) -> d_X H (XX2X (f n)) (XX2X (f (S n))) = 0).
+    {
+      intros.
+      specialize (P (S n)).
+      destruct P as [P [_ _]].
+      destruct P.
+      rewrite Heqf.
+      rewrite H2.
+      simpl XX2X.
+      destruct H.
+      simpl in *.
+      rewrite (proj1 a);auto.
+      contradict H1.
+      rewrite Heqf.
+      simpl.
+      rewrite H2.
+      discriminate.
+    }
+
+    assert (forall n, f (S n) = inl (x' (S (S n))) -> f n = inl (x' (S n))).
+    {
+      intros.
+      rewrite Heqf in *.
+      destruct (P n) as [P1 [P2 [P3 [P4 P5]]]].
+      destruct P1;auto.
+      contradict H2.
+      destruct (P ((S n))) as [_ [_ [_ [_ P5']]]].
+      rewrite P5';auto.
+      rewrite H3.
+      discriminate.
+      split;try lia.
+      rewrite H3.
+      simpl;auto.
+    }
+    
+    assert (forall n, f (S n) = inl (x' (S (S n))) -> d_X H (XX2X (f n)) (XX2X (f (S n))) <= prec (S (S n))).
+    {
+      intros.
+      rewrite H3.
+      rewrite H2;auto.
+      simpl d_X.
+      apply real_nge_le.
+      intros A.
+      destruct (P (S n)) as [_ [_ [_ [P4 P5]]]].
+      assert ((S n > 0)%nat /\  prec (S (S n)) < d_X H (x' (S n)) (x' (S (S n)))
+).
+      split;try lia;auto.
+
+      specialize (P4 H4).
+      contradict H3.
+      rewrite Heqf.
+      rewrite P4.
+      discriminate.
+    }
+
+    assert ((forall n, d_X H (x' n) (x' (S n)) <= prec (S (S n))) -> forall n, (f n) = inl (x' (S n))).
+    {
       intros.
       induction n.
-      
+      destruct (P 0%nat).
+      rewrite Heqf.
+      destruct H6.
+      rewrite H6;auto.
+      destruct (P (S n)) as [P1 [P2 [P3 [P4 P5]]]].
+      rewrite Heqf.
+      rewrite P3;auto.
+      split;auto.
+      rewrite <-IHn.
+      rewrite Heqf;auto.
     }
-    assert (metric_is_fast_cauchy H f).
-    {
-      apply fast_cauchy_mlt.
-      intros n m L.
-      induction n.
-      lia.
-      specialize (P n).
-      destruct P as [H1 [H2 H3]].
-      destruct H1.
-      rewrite H1.
-      apply (real_le_le_le _ (prec n + prec m)); try lia.
-      apply IHn.
-      admit.
-      admit.
-      destruct (H0 (S n)).
-      assert (f (S n) = f n).
-      admit.
-      rewrite H5.
-      admit.
-      rewrite K2 in H4.
-      rewrite H1.
-      apply real_lt_le.
-      apply H4.
-      apply H4.
-      apply H2.
-      exists (S n).
-      destruct H3.
-      exists x0.
-      split;try lia;split;auto.
-      apply H3.
-    }
-    intros n.
-    induction n.
-    apply M_unit.
-    exists (x 0%nat).
-    left;auto.
-    pose proof (M_choice _ _ H0).
-    revert X0.
-    apply M_lift_dom.
-    intros [].
-    revert IHn.
-    apply M_lift.
-    intros [y H1].
-    exists y.
-    right.
-    destruct H1.
-    exists n;split;try lia;auto.
-    destruct H1.
-    destruct H1.
-    exists x0;split; try lia;auto.
-    apply M_unit.
-    exists (x (S n)).
-    left;auto.
-  Defined.
+
+    exists (fun n => XX2X (f n)).
+    split.
+    - apply fast_cauchy_neighbor.
+      intros.
+      apply (real_le_le_le _ (prec (S (S n)))); [|apply real_lt_le;apply prec_S].
+      destruct (P (S n)) as [P1 [P2 [P3 [P4 P5]]]].
+      destruct P1.
+      + rewrite H1;auto.
+        apply real_lt_le;apply prec_pos.
+        rewrite Heqf.
+        rewrite H5.
+        simpl;auto.
+      + apply H3;auto.
+        rewrite Heqf;auto.
+   - intros.
+     intros n.
+     rewrite H4.
+     simpl.
+      apply (real_le_le_le _ (prec (S n))); [|apply real_lt_le;apply prec_S].
+     apply X';auto.
+     intros m.
+     apply X';auto.
+  Qed.
 
   Definition to_convergent_spec (H : metric) (x : nat -> X) : ^M {y : (nat -> X) | metric_is_fast_cauchy H y}.
   Proof.
