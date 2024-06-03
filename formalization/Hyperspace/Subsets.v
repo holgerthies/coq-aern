@@ -814,6 +814,9 @@ Section Metric.
     rewrite lazy_bool_or_up;split;auto.
   Qed.
 
+  Lemma metric_limit_unique (H : metric) x x1 x2 : metric_is_fast_limit H x x1 -> metric_is_fast_limit H x x2 -> x1 = x2. 
+  Admitted.
+
   Lemma seperable_metric_continuous (H : metric) (s : separable) (l : has_limit H) U x : open U ->  U x -> ^M {m | is_subset (ball H x m) U  }.
   Proof.
     intros.
@@ -860,7 +863,7 @@ Section Metric.
       apply i0.
       replace p with p';auto.
       specialize (P H1).
-      admit.
+      apply (metric_limit_unique H x0);auto.
     }
     remember (fun n => (pr1 _ _ (X2 n))) as f.
     assert (forall xn, (forall n, (d_X H (xn n) x <= prec n)) -> sierp_up (f xn)).
@@ -871,7 +874,12 @@ Section Metric.
       destruct a.
       simpl.
       apply i.
-      admit.
+      intros n m.
+      destruct H as [d [D1 [D2 D3 ]]].
+      simpl d_X in *.
+      apply (real_le_le_le _ _ _ (D3 _ _ x)).
+      apply real_le_le_plus_le;try apply H1.
+      rewrite D2;apply H1.
       exists x.
       split;auto.
     }
@@ -880,24 +888,152 @@ Section Metric.
     revert X3.
     apply M_lift_dom.
     intros.
-    remember (fun n => (D s (pr1 _ _ (H2 n)))) as x0.
+    remember (fun n => (D s (pr1 _ _ (H2 (S (S n)))))) as x0.
+    assert (forall n, d_X H (x0 n) (x0 (S n)) <= prec (S n)).
+    {
+      intros.
+      rewrite Heqx0.
+      destruct (H2 (S (S (S n)))).
+      destruct (H2 (S (S n))).
+      simpl d_X.
+      destruct H as [d [D1 [D2 D3 ]]].
+      simpl d_X in *.
+      destruct a; destruct a0.
+      apply (real_le_le_le _ _ _ (D3 _ _ x)).
+      rewrite <-prec_twice.
+      apply real_le_le_plus_le;apply real_lt_le.
+      replace (S n + 1)%nat with (S (S n)) by lia.
+      rewrite D2.
+      apply H4.
+      apply (real_lt_lt_lt _ _ _ H).
+      apply prec_monotone.
+      lia.
+    }
     assert (sierp_up (f x0)).
     {
       apply H1.
       intros.
       rewrite Heqx0.
-      destruct (H2 n).
+      destruct (H2 (S (S n))).
       simpl.
       destruct a.
       destruct H.
-      simpl in *.
+      simpl d_X in *.
       destruct a.
       destruct a.
       rewrite e.
-      apply real_lt_le;auto.
+      apply real_lt_le.
+      apply (real_lt_lt_lt _ _ _ H4).
+      apply prec_monotone.
+      lia.
     }
-    pose proof (continuity f _ H3).
- Abort.
+    pose proof (continuity f _ H4).
+    revert X3.
+    apply M_lift.
+    intros [m M].
+    exists (S m).
+    intros y By.
+    remember (fun n => if (n <? m)%nat then (x0 n) else y) as yn.
+    assert (metric_is_fast_cauchy H yn).
+    {
+      apply fast_cauchy_neighbor.
+      intros.
+      rewrite Heqyn.
+      destruct (S n <?  m)%nat eqn:E.
+      - assert ((n <? m)%nat = true).
+        apply Nat.ltb_lt;apply Nat.ltb_lt in E;lia.
+        rewrite H5.
+        apply H3.
+     - destruct (n <?  m)%nat eqn:E'.
+       unfold ball in By.
+       destruct H as [d [D1 [D2 D3 ]]].
+       simpl d_X in *.
+       apply (real_le_le_le _ _ _ (D3 _ _ x)).
+       rewrite <-prec_twice.
+       apply real_le_le_plus_le.
+       rewrite Heqx0.
+       destruct (H2 (S (S n))).
+       simpl D.
+       destruct a.
+       rewrite D2.
+       apply real_lt_le.
+       replace (S n + 1)%nat with (S (S n)) by lia.
+       apply H.
+       apply real_lt_le.
+       apply (real_lt_le_lt _ _ _ By).
+       enough (m = S n)%nat.
+       right;rewrite H;auto.
+       replace (S (S n)) with (S n +1)%nat by lia;auto.
+       apply Nat.ltb_ge in E.
+       apply Nat.ltb_lt in E'.
+       lia.
+       destruct H as [d [D1 [D2 D3 ]]].
+       simpl d_X.
+       replace (d y y) with 0.
+       apply real_lt_le;apply prec_pos.
+       apply eq_sym.
+       apply D1;auto.
+    }
+    assert (forall p, metric_is_fast_limit H yn p -> p = y).
+    {
+      intros.
+      apply (metric_limit_unique H (fun n => (yn (S n))));auto.
+      intros n.
+      apply (real_le_le_le _ _ _ (H6 (S n))).
+      apply real_lt_le.
+      apply prec_S.
+      intros n.
+      rewrite Heqyn.
+      unfold ball in By.
+      destruct H as [d [D1 [D2 D3 ]]].
+      simpl d_X in *.
+      destruct (S n <?  m)%nat eqn:E.
+      apply (real_le_le_le _ _ _ (D3 _ _ x)).
+      apply (real_le_le_le _ (prec (S n) + prec (S n))).
+      apply real_le_le_plus_le.
+      rewrite Heqx0.
+      destruct (H2 (S (S (S n)))).
+      simpl D.
+      destruct a.
+      apply real_lt_le.
+      rewrite D2.
+      apply (real_lt_lt_lt _ _ _ H).
+      apply prec_monotone;lia.
+      apply real_lt_le.
+      apply (real_lt_le_lt _ _ _ By).
+      apply Nat.ltb_lt in E.
+      apply real_lt_le.
+      apply prec_monotone;lia.
+      replace (S n) with (n+1)%nat by lia.
+      rewrite prec_twice.
+      right;auto.
+      replace (d y y) with 0.
+      apply real_lt_le;apply prec_pos.
+      apply eq_sym.
+      apply D1;auto.
+    }
+    assert (forall z, (metric_is_fast_cauchy H z /\ sierp_up (f z)) -> exists p, (metric_is_fast_limit H z p /\ U p)).
+    {
+      rewrite Heqf.
+      intros z [].
+      destruct (X2 z).
+      simpl in *.
+      destruct a.
+      apply H10;auto.
+    }
+    assert (sierp_up (f yn)).
+    {
+      apply M.
+      intros.
+      rewrite Heqyn.
+      apply Nat.ltb_lt in H8.
+      rewrite H8;auto.
+    }
+    destruct (H7 yn).
+    split;auto.
+    destruct H9.
+    rewrite <- (H6 x1);auto.
+ Qed.
   Lemma separable_suff (H :metric) (s : separable) U1 U2 : open U1 -> open U2 -> (forall n, U1 (D s n) <-> U2 (D s n)) -> U1 = U2.
   Proof.
     intros.
