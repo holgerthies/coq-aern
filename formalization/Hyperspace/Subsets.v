@@ -3,6 +3,8 @@ Require Import Lia.
 Require Import Real Euclidean List Minmax Classical.Subsets Sierpinski Testsearch Dyadic.
 Require Import RealAssumption.
 Require Import List.
+
+
 Import ListNotations.
 Section Open.
 
@@ -889,7 +891,7 @@ Section Metric.
     rewrite lazy_bool_or_up;split;auto.
   Qed.
 
-  Lemma seperable_metric_continuous (H : metric) (s : separable) (l : has_limit H) U x : open U ->  U x -> ^M {m | is_subset (ball H x m) U  }.
+  Lemma separable_metric_continuous (H : metric) (s : separable) (l : has_limit H) U x : open U ->  U x -> ^M {m | is_subset (ball H x m) U  }.
   Proof.
     intros.
     pose proof (extended_limit H l).
@@ -1106,13 +1108,79 @@ Section Metric.
     destruct H9.
     rewrite <- (H6 x1);auto.
  Qed.
-  Lemma separable_suff (H :metric) (s : separable) U1 U2 : open U1 -> open U2 -> (forall n, U1 (D s n) <-> U2 (D s n)) -> U1 = U2.
+
+  Lemma ball_contains_center H x m : (ball H x m) x.
+  Proof.
+    unfold ball.
+    destruct H;destruct a.
+    simpl.
+    replace (x0 x x) with 0.
+    apply prec_pos.
+    apply eq_sym;apply i;auto.
+  Qed.
+
+
+  Lemma open_basis (H : metric) (s : separable) (l : has_limit H) U x : open U -> U x -> ^M {xm : nat * nat | is_subset (ball H  (D s (fst xm)) (snd xm)) U /\ (ball H (D s (fst xm)) (snd xm)) x}.
   Proof.
     intros.
-    apply fun_ext.
+    pose proof (separable_metric_continuous H s l U x X0 H0).
+    revert X1.
+    apply M_lift_dom.
+    intros [m Hm].
+    pose proof (separable_metric_approx_inside H s _ _ (metric_open H x m) (ball_contains_center H x m) (m+1)%nat).
+    revert X1.
+    apply M_lift.
+    intros [n [Hn1 Hn2]].
+    exists (n,(m+1)%nat).
+    simpl.
+    clear l.
+    destruct H as [d [D1 [D2 D3]]].
+    unfold ball in *;simpl in *.
+    split; try (rewrite D2;auto).
+    intros y.
     intros.
-    apply Prop_ext.
-    Abort.
+    apply Hm.
+    apply (real_le_lt_lt _ _ _ (D3 _ _ (D s n))).
+    rewrite <-prec_twice.
+    apply real_lt_lt_plus_lt;auto.
+  Qed.
+    
+  Definition base H s n m:= ball H (D s n) m.
+
+  Lemma separable_suff (H :metric) (s : separable) (l : has_limit H) U1 U2 : open U1 -> open U2 -> (forall n, U1 (D s n) <-> U2 (D s n)) -> U1 = U2.
+  Proof.
+    revert U1 U2.
+    enough (forall U1 U2 : csubset, open U1 -> open U2 -> (forall n : nat, U1 (D s n) <-> U2 (D s n)) -> forall x, U1 x -> U2 x).
+    - intros.
+      apply fun_ext.
+      intros.
+      apply Prop_ext.
+      apply H0;auto.
+      apply H0;auto.
+      intros n;split; apply H1.
+    - intros U1 U2 HU1 HU2 Hs.
+      enough (forall n, exists m, is_subset (ball H (D s n) m) (intersection U1 U2)).
+      intros.
+      (* pose proof (open_basis H s l _ _ X0 H1). *)
+      (* apply M_hprop_elim; [(intros a b;apply irrl)|]. *)
+      (* revert X2. *)
+      (* apply M_lift_dom. *)
+      (* intros [[n m] [Hnm1 Hnm2]]. *)
+      (* simpl in *. *)
+      (* pose proof (open_intersection (metric_open H (D s n) m) X1). *)
+      (* assert ((intersection (ball H (D s n) m) U2) (D s n)). *)
+      (* { *)
+      (*   split. *)
+      (*   apply ball_contains_center. *)
+      (*   apply H0. *)
+      (*   apply Hnm1;apply ball_contains_center. *)
+      (* } *)
+      (* pose proof (separable_metric_continuous H s l _ _ X2 H2). *)
+      (* revert X3. *)
+      (* apply M_lift_dom. *)
+      (* intros [m' Hnm']. *)
+      (* pose proof (separable_metric_approx_inside H s _ _ X0 H1 (m'+1)%nat). *)
+Abort.
 End Metric.
 Section Examples.
   
