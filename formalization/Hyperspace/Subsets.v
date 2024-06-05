@@ -1147,6 +1147,17 @@ Section Metric.
     
   Definition base H s n m:= ball H (D s n) m.
 
+  Lemma x_to_name (H : metric) (s : separable) (l : has_limit H) x : ^M {y : nat -> nat | metric_is_fast_limit H (fun m => (D s (y m))) x /\ (forall n, d_X H (D s (y n)) (D s (S (y n))) <= prec (S n))}.  
+  Admitted.
+
+  Lemma open_to_name_fun (H : metric) (s : separable) (l : has_limit H) U : open U -> ^M {t : (nat -> nat) -> sierp | forall p, sierp_up (t p) <-> exists x, metric_is_fast_limit H (fun m => (D s (p  m))) x /\ U x}.
+  Admitted.
+
+  Lemma contained_test_dense (H : metric) (s : separable) (l : has_limit H) U x : open U -> exists l, ((forall n, In n l -> U (D s n)) -> U x).
+  Proof.
+    intros.
+    pose proof (x_to_name H s l x).
+  Abort.
   Lemma separable_suff (H :metric) (s : separable) (l : has_limit H) U1 U2 : open U1 -> open U2 -> (forall n, U1 (D s n) <-> U2 (D s n)) -> U1 = U2.
   Proof.
     revert U1 U2.
