@@ -528,7 +528,8 @@ Section Metric.
     intros.
     apply (real_le_le_le _ (prec (S (S (S n))) + prec (S (S (S ( S n)))))).
     apply H0.
-    admit.
+    rewrite <-(prec_twice (S (S n))).
+    apply real_le_le_plus_le; [right;f_equal;lia|apply real_lt_le;apply prec_monotone;lia].
 
     intros.
     intros n.
@@ -537,7 +538,7 @@ Section Metric.
     apply real_lt_le.
     apply prec_monotone.
     lia.
-  Admitted.
+  Qed.
 
   Lemma fast_cauchy_neighbor M x: (forall n, (d_X M (x n) (x (S n))) <= prec (S n)) -> metric_is_fast_cauchy M x.
   Proof.
@@ -785,6 +786,37 @@ Section Metric.
      intros m.
      apply X';auto.
   Qed.
+  
+  Lemma metric_limit_unique (H : metric) x x1 x2 : metric_is_fast_limit H x x1 -> metric_is_fast_limit H x x2 -> x1 = x2. 
+    destruct H as [d [D1 [D2 D3]]].
+    unfold metric_is_fast_limit;simpl.
+    intros.
+    enough (d x1 x2 <= 0).
+    - destruct H1;try (apply D1;auto).
+      contradict H1.
+      intros H1.
+      pose proof (D3 x1 x1 x2).
+      contradict H2.
+      apply real_gt_nle.
+      assert ((d x1 x1) = 0) as -> by (apply D1;auto).
+      replace 0 with (0+real_0) by ring.
+      apply real_lt_lt_plus_lt;[|rewrite D2];auto.
+    - enough (forall n, d x1 x2 <= prec n).
+      apply real_nge_le.
+      intros H2.
+     destruct (real_Archimedean _ H2).
+     contradict H3.
+     apply real_lt_nlt.
+     apply (real_le_lt_lt _ _ _  (D3 _ _ (x (S (x0 + 1))))).
+     rewrite <-prec_twice.
+     apply real_lt_lt_plus_lt;[rewrite D2;apply (real_le_lt_lt _ _ _ (H (S (x0+1))%nat)) |apply (real_le_lt_lt _ _ _ (H0 (S (x0+1))%nat))];apply prec_S.
+
+     intros.
+     apply (real_le_le_le _ _ _ (D3 _ _ (x (n+1)%nat))).
+     rewrite <-prec_twice.
+     apply real_le_le_plus_le;[rewrite D2|];auto.
+  Qed.
+
   Definition extended_limit H (l : has_limit H) x  : ^M {p | metric_is_fast_cauchy H x -> metric_is_fast_limit H x p}.
   Proof.
     pose proof (to_convergent H x).
@@ -797,13 +829,56 @@ Section Metric.
     destruct (l x H0).
     specialize (Y2 H0 _ m0).
     replace x0 with x1;auto.
-  Admitted.
+    apply (metric_limit_unique H y);auto.
+  Qed.
 
   Lemma sierp_id : forall s1 s2, (sierp_up s1 <-> sierp_up s2) -> s1 = s2.
  Admitted.
 
   Lemma not_fast_cauchy_semidec (H : metric) x : {s | sierp_up s <-> (~ metric_is_fast_cauchy H x)}.
-  Admitted.
+  Proof.
+    assert ({s | sierp_up s <-> (exists n m, d_X H (x n) (x m) > prec n + prec m)}) as [s S].
+    {
+      enough (forall n, {s | sierp_up s <-> exists m, d_X H (x n) (x m) > prec n + prec m}).
+      pose proof (eventually_true (fun n=> (pr1 _ _ (X0 n)))).
+      destruct X1.
+      exists x0.
+      rewrite i.
+      split; intros [].
+      destruct (X0 x1);simpl in *.
+      exists x1.
+      rewrite <-i0;auto.
+      destruct H0.
+      exists x1.
+      destruct (X0 x1);simpl in *.
+      rewrite i0.
+      exists x2;auto.
+
+      intros.
+      enough (forall m, {s | sierp_up s <-> d_X H (x n) (x m) > prec n + prec m}).
+      destruct (eventually_true (fun m=> (pr1 _ _ (X0 m)))).
+      exists x0.
+      rewrite i.
+      split;intros [];exists x1;destruct (X0 x1);simpl in *;apply i0;auto.
+      intros m.
+      destruct (real_lt_semidec (prec n + prec m) (d_X H (x n) (x m))).
+      apply sierp_from_semidec.
+      exists x0;auto.
+    }
+    exists s.
+    rewrite S.
+    unfold metric_is_fast_cauchy.
+    rewrite classical_tautology_neg_all.
+    split.
+    intros [n [m H0]].
+    exists n;rewrite classical_tautology_neg_all;exists m;apply real_gt_nle;auto.
+    intros [n N].
+    exists n.
+    rewrite classical_tautology_neg_all in N.
+    destruct N.
+    exists x0.
+    apply real_nle_ge;auto.
+  Qed.
 
   Lemma sierp_or s1 s2 : {s | sierp_up s <-> sierp_up s1 \/ sierp_up s2}. 
   Proof.
@@ -813,9 +888,6 @@ Section Metric.
     unfold lazy_bool_up, sierp_up;simpl.
     rewrite lazy_bool_or_up;split;auto.
   Qed.
-
-  Lemma metric_limit_unique (H : metric) x x1 x2 : metric_is_fast_limit H x x1 -> metric_is_fast_limit H x x2 -> x1 = x2. 
-  Admitted.
 
   Lemma seperable_metric_continuous (H : metric) (s : separable) (l : has_limit H) U x : open U ->  U x -> ^M {m | is_subset (ball H x m) U  }.
   Proof.
