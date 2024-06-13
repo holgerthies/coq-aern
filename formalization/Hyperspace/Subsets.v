@@ -901,22 +901,9 @@ Axiom baire_choice :
 (*   Proof. *)
 (*   Admitted. *)
 Lemma partial_baire_choice :
-  forall Q (P : (nat -> nat) -> Type),  (forall x , ^M ((Q x) -> ^M (P x))) -> (^M (forall x, Q x -> P x)).
+  forall  (P : (nat -> nat) -> Prop) (Q : (nat -> nat) -> Type), (forall x, semidec (P x)) ->  (forall x, P x -> ^M (Q x)) -> (^M (forall x, P x -> Q x)).
   Proof.
-   intros.
-   pose proof (baire_choice _ X0).
-   revert X1.
-   apply M_lift_dom.
-   intros [s S].
-   Search (M _ -> M _).
-   apply M_retraction_T i
-   Search M (_ -> _).
-   apply M_functorial_comp in s.
-   apply M_hprop_elim_f.
-   intros a b.
-   apply s.
-   assert ((forall (ϕ : {x : nat -> nat | Q x}), ^M (P (pr1 (nat -> nat) Q ϕ))) ->  forall f : forall ϕ : (nat -> nat), ^M ((Q ϕ)).
-   Search M.
+  Admitted.
 
   Definition name_fun (H : metric) (s : separable) U t := (forall p, metric_is_fast_cauchy H (fun m => (D s (p m))) ->  (sierp_up (t p) <-> exists x, metric_is_fast_limit H (fun m => (D s (p  m))) x /\ U x)).
    Lemma open_to_name_fun (H : metric) (s : separable) (l : has_limit H) U : open U ->  {t : (nat -> nat) -> sierp | name_fun H s U t }.
@@ -1045,55 +1032,157 @@ Lemma partial_baire_choice :
     split;auto.
     apply Nat.eqb_neq;auto.
   Qed.
+
+  Lemma M_sierp_to_lazy_unique P t : (forall (x : (nat -> nat)), sierp_up (t x) -> ^M {m : nat | P m x}) -> ^M {m : (nat -> nat) -> nat -> nat | forall x,  (forall k, m x k = 0%nat \/ P (pred (m x k)) x) /\ (sierp_up (t x) -> (exists k, (m x k) <> 0%nat) /\ (forall k, m x k <> 0%nat -> forall k', (k <> k') -> m x k' = 0%nat)) }.
+  Proof.
+    intros.
+    specialize (M_sierp_to_lazy P t X0).
+    apply M_lift.
+    intros [m Pm].
+    enough (forall x k, {n | ((n = 0%nat) \/ n = m x k) /\ (n <> 0%nat <-> ((m x k <> 0)%nat /\ forall i, (i < k)%nat -> m x i = 0%nat))}).
+    {
+      exists (fun x k => pr1 _ _ (H x k)).
+      intros.
+      split;intros.
+      - destruct (H x k) as [n [N1 N2]];simpl.
+        destruct N1.
+        left;auto.
+        destruct n.
+        left;auto.
+        right.
+        destruct N2.
+        rewrite H0.
+        destruct (Pm x) as [Pm' _].
+        specialize (Pm' k).
+        destruct Pm';try lia;auto.
+      - pose proof (proj2 (Pm x) H0).
+        destruct (dec_inh_nat_subset_has_unique_least_element (fun k => m x k <> 0%nat)) as [k K];intros;try lia;try apply H1.
+        split.
+        + exists k.
+          destruct (H x k) as [n [N1 N2]];simpl in *.
+          apply N2.
+          split; try apply K.
+          intros.
+          destruct K.
+          destruct H3.
+          specialize (H5 i).
+          destruct (m x i);auto.
+          contradict H2.
+          apply Nat.nlt_ge.
+          apply H5;auto.
+       + intros.
+          assert (k0 = k) as ->.
+          {
+          apply eq_sym.
+          apply K.
+          destruct (H x k0); simpl in *.
+          destruct a.
+          destruct H4;try lia.
+          split;try lia.
+          intros.
+          destruct H5.
+          specialize (H5 H2).
+          destruct H5.
+          apply Nat.nlt_ge.
+          intros N.
+          contradict H6.
+          apply H8;auto.
+          }
+          destruct (H x k') as [n' [N1' N2']];simpl.
+          simpl in *.
+          destruct N1';auto.
+          destruct n';auto.
+          destruct N2'.
+          clear H6.
+          destruct K.
+          destruct H6.
+          destruct (Lt.nat_total_order_stt _ _ H3).
+          contradict H6.
+          apply H5;auto.
+          assert (m x k' <> 0%nat) by lia.
+          specialize (H8 _ H10).
+          lia.
+        }
+        intros.
+        enough ({b | b = true <-> forall i, (i < k)%nat -> m x i = 0%nat}) as [b B].
+        exists (match (m x k) with 0%nat => 0%nat | (S n') => if b then (S n') else 0%nat end).
+        destruct (m x k).
+        split;auto;split;intros;[split|];try lia;auto.
+        destruct b;split;auto;split;auto;try lia.
+        intros;split;auto;intros;apply B;auto.
+        intros [_ H2].
+        destruct B.
+        specialize (H0 H2).
+        contradict H0;apply Bool.diff_false_true.
+
+        induction k.
+        exists true.
+        split;auto;intros _; lia.
+        destruct IHk.
+        exists (andb x0 (m x k =? 0)%nat).
+        split;intros.
+        apply andb_prop in H.
+        rewrite Nat.lt_succ_r in H0.
+        destruct H.
+        apply Nat.eqb_eq in H1.
+        destruct (Lt.le_lt_or_eq_stt _ _ H0).
+        apply i;auto.
+        rewrite H2;auto.
+        apply Bool.andb_true_iff.
+        split.
+        apply i;auto.
+        apply Nat.eqb_eq.
+        apply H;lia.
+  Qed.
   Lemma baire_continuity (f : (nat->nat) -> nat -> nat) : ^M ( forall x n,  {m |forall y, (forall i, (i < m)%nat -> x i = y i) -> (forall i, (i < n)%nat -> f x i = f y i)}).
   Admitted.
 
-  Lemma partial_baire_continuity P t : (forall (x : (nat -> nat)), sierp_up (t x) -> ^M {m : nat | P m x}) -> ^M {f: {x | sierp_up (t x)} -> nat | forall x, P (f x) (pr1 _ _ x) /\ forall y, (forall i, (i < (f x))%nat -> (pr1 _ _ x i) = (pr1 _ _ y i)) -> f x = f y}.
-  Proof.
-    intros.
-    Search M.
-    assert (forall (x : (nat -> nat)), ^M ((sierp_up (t x)) -> {m : nat | P m x})).
-    intros.
-    specialize (X0 x).
-    pose proof (M_lift_dom (sierp_up (t x)) ({m | P m x}) X0).
-    Search M.     
-    apply M
-    revert X1.
-    Search (M _ -> M _).
-    apply M_lift in X0.
-    apply M_sierp_to_lazy in X0.
-    revert X0.
-    apply M_lift_dom.
-    intros [m Pm].
-    specialize (baire_continuity m).
-    apply M_lift.
-    intros H.
-    assert ({mu | forall x n, forall y, (forall i, (i < mu x n)%nat -> x i = y i) -> (forall i, (i < n)%nat -> m x i  = m y i)}) as [mu M1].
-    admit.
-    clear H.
-    assert (forall (y : {x | sierp_up (t x)}), {k | m (pr1 _ _ y) k <> 0%nat}).
-    admit.
-    assert ({g : {x : nat -> nat | sierp_up (t x)} -> nat | forall x, m (pr1 _ _ x) (g x) <> 0 %nat}) as [g G].
-    {
-      exists (fun x => (pr1 _ _ (H x))).
-      intros.
-      destruct (H x).
-      destruct x.
-      simpl in *.
-      apply n.
-    }
+  (* Lemma partial_baire_continuity P t : (forall (x : (nat -> nat)), sierp_up (t x) -> ^M {m : nat | P m x}) -> ^M {f: {x | sierp_up (t x)} -> nat | forall x, P (f x) (pr1 _ _ x) /\ forall y, (forall i, (i < (f x))%nat -> (pr1 _ _ x i) = (pr1 _ _ y i)) -> f x = f y}. *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   Search M. *)
+  (*   assert (forall (x : (nat -> nat)), ^M ((sierp_up (t x)) -> {m : nat | P m x})). *)
+  (*   intros. *)
+  (*   specialize (X0 x). *)
+  (*   pose proof (M_lift_dom (sierp_up (t x)) ({m | P m x}) X0). *)
+  (*   Search M.      *)
+  (*   apply M *)
+  (*   revert X1. *)
+  (*   Search (M _ -> M _). *)
+  (*   apply M_lift in X0. *)
+  (*   apply M_sierp_to_lazy in X0. *)
+  (*   revert X0. *)
+  (*   apply M_lift_dom. *)
+  (*   intros [m Pm]. *)
+  (*   specialize (baire_continuity m). *)
+  (*   apply M_lift. *)
+  (*   intros H. *)
+  (*   assert ({mu | forall x n, forall y, (forall i, (i < mu x n)%nat -> x i = y i) -> (forall i, (i < n)%nat -> m x i  = m y i)}) as [mu M1]. *)
+  (*   admit. *)
+  (*   clear H. *)
+  (*   assert (forall (y : {x | sierp_up (t x)}), {k | m (pr1 _ _ y) k <> 0%nat}). *)
+  (*   admit. *)
+  (*   assert ({g : {x : nat -> nat | sierp_up (t x)} -> nat | forall x, m (pr1 _ _ x) (g x) <> 0 %nat}) as [g G]. *)
+  (*   { *)
+  (*     exists (fun x => (pr1 _ _ (H x))). *)
+  (*     intros. *)
+  (*     destruct (H x). *)
+  (*     destruct x. *)
+  (*     simpl in *. *)
+  (*     apply n. *)
+  (*   } *)
 
-    exists (fun x => (max (pred (m (pr1 _ _ x) (g x))) (mu (pr1 _ _ x) (m (pr1 _ _ x) (g x))))).
-    intros.
-    specialize (G x).
-    destruct (H x).
-    destruct x.
-    simpl in *.
-    split.
-    - specialize (Pm x).
-      destruct Pm.
-      destruct (H0  (g (exist (fun x1 : nat -> nat => sierp_up (t x1)) x s))); try lia;auto.
-   - intros.
+  (*   exists (fun x => (max (pred (m (pr1 _ _ x) (g x))) (mu (pr1 _ _ x) (m (pr1 _ _ x) (g x))))). *)
+  (*   intros. *)
+  (*   specialize (G x). *)
+  (*   destruct (H x). *)
+  (*   destruct x. *)
+  (*   simpl in *. *)
+  (*   split. *)
+  (*   - specialize (Pm x). *)
+  (*     destruct Pm. *)
+  (*     destruct (H0  (g (exist (fun x1 : nat -> nat => sierp_up (t x1)) x s))); try lia;auto. *)
+  (*  - intros. *)
      
   Definition enumerates_subset s (s' : nat ->nat) U := (forall n, (s' n) = 0%nat \/ U (D s (pred (s' n)))) /\ forall m, U (D s m) -> exists k, (s' k) = (S m).
 
@@ -1149,12 +1238,112 @@ Lemma partial_baire_choice :
     apply (real_le_le_plus_le); [ |rewrite D2];apply H0.
   Qed.
 
+  Lemma continuity_semidec_eq {A B : Type} (f : (nat -> A) -> B) : (forall (y y' : B), (semidec (y = y'))) -> forall x, ^M {k | forall x', (forall n, (n < k)%nat -> x n = x' n) -> f x = f x'}.  
+  Proof.
+    intros.
+    assert ({e : B -> B -> sierp | forall y y', sierp_up (e y y') <-> y = y'}) as [e E].
+    {
+      enough (forall (y y' : B), {s | sierp_up s <-> y = y'}) by (exists (fun y y' => (pr1 _ _ (X1 y y')));intros;destruct (X1 y y');auto).
+      intros.
+      apply sierp_from_semidec.
+      destruct (X0 y y').
+      exists x0;auto.
+    }
+    assert (forall y, {g : (nat -> A) -> sierp | forall x, sierp_up (g x) <-> (f x) = y}).
+    {
+      intros.
+      exists (fun x => e (f x) y).
+      intros.
+      rewrite E;split;auto.
+    }
+    destruct (X1 (f x)).
+    assert (sierp_up (x0 x)) by (apply i;auto).
+    specialize (continuity _ _ H).
+    apply M_lift.
+    intros [k K].
+    exists k.
+    intros.
+    apply eq_sym.
+    apply i.
+    apply K;auto.
+  Qed.
+
   Lemma separable_metric_continuous_strong (H : metric) (s : separable) (l : has_limit H) U s' : open U -> enumerates_subset s s' U ->   ^M {mu: nat -> nat | (forall n, (s' n <> 0%nat) -> is_subset (ball H (D s (pred (s' n))) (mu n)) U) /\ (forall x, U x -> exists n, (s' n) <> 0%nat /\ (ball H (D s (pred (s' n))) (mu n)) x)}.
   Proof.
     intros.
     destruct (open_to_name_fun H s l U X0) as [t T].
     pose proof (continuity t).
-    unfold name_fun in T.
+    apply M_sierp_to_lazy_unique in X1.
+    revert X1.
+    apply M_lift_dom.
+    intros [m Pm].
+    pose proof (baire_continuity m).
+    revert X1.
+    apply M_lift_dom.
+    assert (forall x, (sierp_up (t x) -> {n | exists k, m x k = S n /\ forall k', (k' <> k) -> m x k' = 0%nat})).
+    {
+      intros.
+      destruct (Pm x).
+      specialize (H3 H1).
+      destruct H3.
+      enough {k | m x k <> 0%nat} as [k K].
+      exists (pred (m x k)).
+      exists k.
+      split;simpl;auto.
+      replace (S (pred (m x k))) with (m x k) by lia;auto.
+      intros;apply (H4 k);auto.
+      apply ConstructiveEpsilon.constructive_indefinite_ground_description_nat;auto.
+      intros.
+      destruct (m x n); [right|left];auto.
+    }
+    intros.
+    assert (forall x (H:sierp_up (t x)), {n | forall y (Hy : sierp_up (t y)), (forall i, (i < n)%nat -> x i = y i) -> (pr1 _ _ (H1 x H)) = (pr1 _ _ (H1 y Hy))}).
+    {
+      intros.
+      destruct (H1 x H3).
+      simpl.
+      assert {k | m x k = S x0 /\ forall k', (k <> k') -> m x k' = 0%nat } as [k [K1 K2]].
+      {
+         enough {k | m x k = S x0} as [k K].
+         exists k.
+         split;auto.
+         intros.
+         destruct e as [k'' [K1 K2]].
+         apply K2.
+         replace k'' with k;auto.
+         apply eq_sym.
+         apply Nat.eq_dne.
+         intros kn.
+         contradict K.
+         rewrite K2;auto.
+         apply ConstructiveEpsilon.constructive_indefinite_ground_description_nat;auto.
+         intros;apply Nat.eq_dec.
+         destruct e; exists x1;destruct H4;auto.
+      }
+      destruct (H2 x (S k)) as [n N].
+      exists n.
+      intros.
+      assert (m y k = S x0).
+      {
+        rewrite <-K1.
+        apply eq_sym.
+        apply N;auto.
+      }
+      destruct (H1 y Hy).
+      simpl.
+      enough (S x0 = S x1) by lia.
+      enough (m y k = S x1) by (rewrite <-H5;auto).
+      destruct e0.
+      enough (k = x2) as -> by apply H6.
+      destruct H6.
+      specialize (H7 k).
+      apply Nat.eq_dne.
+      intros Kn.
+      contradict H5.
+      rewrite H7;auto.
+    }
+
+    
     assert (forall n, ^M {m |(s' n) <> 0%nat -> forall x, (forall i, (i < m)%nat -> x i = (pred (s' n))) -> sierp_up (t x)}).
     {
       intros.
@@ -1178,10 +1367,10 @@ Lemma partial_baire_choice :
         apply real_lt_le;apply prec_pos.
         destruct H0.
         destruct (H0 n); try lia;auto.
-        rewrite E in H2.
+        rewrite E in H5.
         simpl in H2;auto.
       }
-      specialize (X1 _ H1).
+      specialize (X0 _ H4).
       revert X1.
       apply M_lift.
       intros [m Pm].
