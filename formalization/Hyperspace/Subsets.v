@@ -900,10 +900,6 @@ Axiom baire_choice :
 (*   Lemma x_to_name (H : metric) (s : separable) (l : has_limit H) x : ^M {y : nat -> nat | metric_is_fast_limit H (fun m => (D s (y m))) x /\ (forall n, d_X H (D s (y n)) (D s (S (y n))) <= prec (S n))}.   *)
 (*   Proof. *)
 (*   Admitted. *)
-Lemma partial_baire_choice :
-  forall  (P : (nat -> nat) -> Prop) (Q : (nat -> nat) -> Type), (forall x, semidec (P x)) ->  (forall x, P x -> ^M (Q x)) -> (^M (forall x, P x -> Q x)).
-  Proof.
-  Admitted.
 
   Definition name_fun (H : metric) (s : separable) U t := (forall p, metric_is_fast_cauchy H (fun m => (D s (p m))) ->  (sierp_up (t p) <-> exists x, metric_is_fast_limit H (fun m => (D s (p  m))) x /\ U x)).
    Lemma open_to_name_fun (H : metric) (s : separable) (l : has_limit H) U : open U ->  {t : (nat -> nat) -> sierp | name_fun H s U t }.
@@ -1267,492 +1263,716 @@ Lemma partial_baire_choice :
     apply i.
     apply K;auto.
   Qed.
-  
-  Lemma continuity_partial {A B : Type} P (f : ({x : nat -> A | P x} -> B)) : (forall (y y' : B), (semidec (y = y'))) -> forall x, ^M {k | forall x', (forall n, (n < k)%nat -> (pr1 _  _ x) n = (pr1 _ _ x') n) -> f x = f x'}.  
-  Admitted.
+  Lemma semidec_to_sierp {A} (P: A -> Prop ): (forall x, semidec (P x)) -> {t | forall x, sierp_up (t x) <-> P x}.
+  Proof.
+      intros.
+      enough (forall x, {s | sierp_up s <-> P x}) by (exists (fun x => pr1 _ _  (X1 x));intros;destruct (X1 x);simpl;auto).
+      intros.
+      destruct (X0 x).
+      apply sierp_from_semidec.
+      exists x0;auto.
+  Qed.
 
-  Lemma separable_metric_continuous_strong (H : metric) (s : separable) (l : has_limit H) U s' : open U -> enumerates_subset s s' U -> (exists n, s' n <> 0%nat) ->   ^M {mu: nat -> nat | (forall n, (s' n <> 0%nat) -> is_subset (ball H (D s (pred (s' n))) (mu n)) U) /\ (forall x, U x -> exists n, (s' n) <> 0%nat /\ (ball H (D s (pred (s' n))) (mu n)) x)}.
+  Lemma partial_baire_choice :
+  forall  (P : (nat -> nat) -> Prop) (Q : nat -> (nat -> nat) -> Prop), (forall x, semidec (P x)) ->  (forall x, P x -> ^M {n | Q n x}) -> (^M (forall x, P x -> {n | Q n x})).
   Proof.
     intros.
-    destruct (open_to_name_fun H s l U X0) as [t T].
-    pose proof (continuity t).
-    apply M_sierp_to_lazy_unique in X1.
-    revert X1.
-    apply M_lift_dom.
-    intros [m Pm].
-    assert (forall x, (sierp_up (t x) -> {n | exists k, m x k = S n /\ forall k', (k' <> k) -> m x k' = 0%nat})).
-    {
-      intros.
-      destruct (Pm x).
-      specialize (H4 H2).
-      destruct H4.
-      enough {k | m x k <> 0%nat} as [k K].
-      exists (pred (m x k)).
-      exists k.
-      split;simpl;auto.
-      replace (S (pred (m x k))) with (m x k) by lia;auto.
-      intros;apply (H5 k);auto.
-      apply ConstructiveEpsilon.constructive_indefinite_ground_description_nat;auto.
-      intros.
-      destruct (m x n); [right|left];auto.
-    }
-    (* assert (forall x n, ((exists k, m x k = S n  /\ (forall k' : nat, k' <> k -> m x k' = 0%nat)) -> {k | m x k = S n /\ (forall k' : nat, k' <> k -> m x k' = 0%nat)})) as sk. *)
-    (* admit. *)
-    assert ({f : {x | sierp_up (t x) /\ metric_is_fast_cauchy H (fun m : nat => D s (x m))} -> nat * nat | forall (x : {x | sierp_up (t x) /\  metric_is_fast_cauchy H (fun m : nat => D s (x m))}) y, metric_is_fast_limit H (fun n => (D s ((pr1 _ _ x) n))) y -> is_subset (ball H (D s (fst (f x))) (snd (f x))) U /\ ball H (D s (fst (f x))) (snd (f x)) y }) as [mu0 Pmu0].
-    {
-        remember (fun x' => (forall n, d_X H (D s (x' n)) (D s (x' (S n))) <= prec (n+2)%nat)) as P.
-      enough (forall x, sierp_up (t x) ->  P x -> {nm : nat * nat |forall  y, metric_is_fast_limit H (fun n => (D s (x n))) y -> is_subset (ball H (D s (fst nm)) (snd nm)) U /\  ball H (D s (fst nm)) (snd nm) y}).
-      {
-        assert (forall x, sierp_up (t x) -> metric_is_fast_cauchy H (fun m : nat => D s (x m)) -> {x' : (nat -> nat) | sierp_up (t x') /\  P x' /\ forall y, metric_is_fast_limit H (fun n => (D s (x n))) y -> metric_is_fast_limit H (fun n => (D s (x' n))) y}).
-        {
-          intros.
-          exists (fun n => (x (S (S (S n))))).
-          split; [|split].
-          apply T.
-          intros i j.
-          apply (real_le_le_le _ _ _ (H5 _ _)).
-          apply real_le_le_plus_le;apply real_lt_le;apply prec_monotone;lia.
-          destruct (T x H5).
-          specialize (H6 H4).
-          destruct H6 as [x0 [H61 H62]].
-          exists x0.
-          split;auto.
-          intros n.
-          apply (real_le_le_le _ (prec (S (S (S n))))); [|apply real_lt_le;apply prec_monotone;lia];apply H61.
-          rewrite HeqP.
-          intros.
-          apply (real_le_le_le _ (prec (S (S (S n))) + prec (S (S (S ( S n)))))).
-          unfold metric_is_fast_cauchy in H5.
-          apply H5.
-          replace (n+2)%nat with (S (S n)) by lia.
-          rewrite <-(prec_twice (S (S n))).
-    apply real_le_le_plus_le; [right;f_equal;lia|apply real_lt_le;apply prec_monotone;lia].
-          intros.
-          intros n.
-          apply (real_le_le_le _ (prec (S (S (S n))))).
-          apply H6.
-          apply real_lt_le.
-          apply prec_monotone.
-          lia.
-    }
-        assert (forall (x : {x | sierp_up (t x) /\ metric_is_fast_cauchy H (fun m : nat => D s (x m))}), sierp_up (t (pr1 _ _ x))) by (intros;destruct x;destruct a; auto).
-        assert (forall (x : {x | sierp_up (t x) /\ metric_is_fast_cauchy H (fun m : nat => D s (x m))}), metric_is_fast_cauchy H (fun m : nat => D s ((pr1 _ _ x) m))) by (intros;destruct x;destruct a; auto).
-        assert (forall (x : {x | sierp_up (t x) /\ metric_is_fast_cauchy H (fun m : nat => D s (x m))}), sierp_up (t (pr1 _ _ (H4 (pr1 _ _ x) (H5 x) (H6 x))))) by (intros; destruct (H4 (pr1 _ _ x) (H5 x));destruct a;simpl;auto).
-        assert (forall (x : {x | sierp_up (t x) /\ metric_is_fast_cauchy H (fun m : nat => D s (x m))}), P (pr1 _ _ (H4 (pr1 _ _ x) (H5 x) (H6 x)))) by (intros; destruct (H4 (pr1 _ _ x) (H5 x));destruct a;destruct a;simpl;auto).
-        exists (fun x => (pr1 _ _ (H3 (pr1 _ _ (H4 (pr1 _ _ x) (H5 x) (H6 x))) (H7 x) (H8 x)))) .
-        intros.
-        destruct (H3 (pr1 _ _ (H4 (pr1 _ _ x) (H5 x) (H6 x))) (H7 x) (H8 x)).
-        destruct (H4 (pr1 _ _ x) (H5 x) (H6 x)).
-        simpl in *.
-        destruct x.
-        simpl in *.
-        destruct a0.
-        destruct H11.
-        specialize (H12 _ H9).
-        apply (a _ H12).
-      }
-      intros.
-      destruct (H2 _ H3) as [mu Mu].
-      assert (forall y, (forall n, (n < mu)%nat -> x n = y n) -> sierp_up (t y)).
-      {
-      intros.
-      destruct Mu as [k [K1 K2]]. 
-      destruct (Pm x) as [Pm' _].
-      specialize (Pm' k).
-      destruct Pm';try lia.
-      apply H6.
-      intros.
-      rewrite K1 in H7.
-      simpl in H7;auto.
-      }
-      exists ((x (S (S mu))),((S mu))).
-      intros.
-      assert (forall n, d_X H (D s (x n)) y <= prec (n+2)%nat).
-      {
-        intros.
-        assert (metric_is_fast_cauchy H (fun n => (D s (x (pred (pred n)))))).
-        admit.
-        destruct (l _ H7).
-        assert (metric_is_fast_limit H (fun n => (D s (x n))) x0).
-        {
-          intros i.
-          replace i with (pred (pred (S (S i)))) at 1 by lia.
-          apply (real_le_le_le _ (prec (S (S i)))).
-          apply m0.
-          apply real_lt_le;apply prec_monotone;auto.
-        }
-        rewrite (metric_limit_unique _ _ _ _ H6 H8).
-        replace n with (pred (pred (n+2)%nat)) at 1 by lia.
-        apply m0.
-      }
-      remember (fun (n : nat) => if (n <? mu)%nat then (x n)%nat else (x (S (S mu)))) as xd.
-      assert (forall n, (n < mu)%nat -> d_X H (D s (x n)) (D s (x (S (S mu)))) <= prec (n+1)%nat).
-      {
-         intros.
-         destruct H as [d [D1 [D2 D3]]]; simpl in *.
-         apply (real_le_le_le _ _ _ (D3 _ _ y)).
-         rewrite <-prec_twice.
-         apply real_le_le_plus_le.
-         replace (n+1+1)%nat with (n+2)%nat by lia.
-         apply H7.
-         apply (real_le_le_le _ (prec (S (S mu)))).
-         rewrite D2.
-         apply H6.
-         apply real_lt_le.
-         apply prec_monotone.
-         lia.
-      }
-      assert (metric_is_fast_limit H (fun n => (D s (xd n))) (D s (x (S (S  mu))))).
-      {
-         intros n.
-         rewrite Heqxd.
-         destruct H as [d [D1 [D2 D3]]]; simpl in *.
-         destruct (n <? mu)%nat eqn:E.
-         - apply Nat.ltb_lt in E.
-           apply (real_le_le_le _ _ _ (H8 n E) ).
-           apply real_lt_le;apply prec_monotone;lia.
-       -  apply real_lt_le; apply (real_le_lt_lt _ 0); [right;apply D1;auto|apply prec_pos].
-      }
-      assert (sierp_up (t xd)).
-      {
-        apply H5.
-        intros; rewrite Heqxd.
-        apply (Nat.ltb_lt) in H10.
-        rewrite H10;auto.
-      }
-      simpl.
-      split.
-      - intros z Zb.
-        assert (^M {zn : nat -> nat | (forall i, (i < mu)%nat -> zn i = x i) /\ metric_is_fast_limit H (fun n => (D s (zn n))) z}).
-        {
-          pose proof (separable_metric_approx H s z).
-          apply M_countable_lift in X1.
-          revert X1.
-          apply M_lift.
-          intros.
-          exists (fun n => if (n <? mu)%nat then (x n) else (pr1 _ _ (H11 n))).
-          split; [intros;apply Nat.ltb_lt in H12;rewrite H12;simpl;auto|].
-          intros n.
-          destruct (H11 n);simpl.
-          destruct H as [d [D1 [D2 D3]]]; simpl d_X in *.
-          destruct (n <? mu)%nat eqn:E; [|apply real_lt_le;rewrite D2;auto].
-          unfold ball in Zb.
-          simpl d_X in Zb.
-          apply (real_le_le_le _ _ _ (D3 _ _ (D s (x (S (S mu)))))).
-          rewrite <-prec_twice.
-          apply (real_le_le_plus_le).
-          unfold metric_is_fast_limit in H7; simpl in H7.
-          apply Nat.ltb_lt in E.
-          apply H8;auto.
-          apply real_lt_le.
-          apply (real_lt_lt_lt _ _ _ Zb).
-          apply prec_monotone.
-          apply Nat.ltb_lt in E;lia.
-        }
-        apply M_hprop_elim; [intros a b; apply irrl|].
-        revert X1.
-        apply M_lift.
-        intros [zn [Pzn1 Pzn2]].
-        assert (sierp_up (t zn)).
-        {
-          apply H5.          
-          intros.
-          apply eq_sym.
-          apply Pzn1;auto.
-        }
-        destruct (T zn (fast_limit_fast_cauchy _ _ _ Pzn2)) as [T' _].
-        destruct (T' H11) as [z' [Z1 Z2]].
-        rewrite (metric_limit_unique _ _ _ _ Pzn2 Z1);auto.
-      - unfold ball, metric_is_fast_limit in *.
-        apply (real_le_lt_lt _ _ _ (H6 _)).
-        apply prec_monotone;lia.
-    }
-    assert {k | s' k <> 0%nat} as [d0 D0].
-    admit.
-    assert (forall k, s' k <> 0 %nat -> sierp_up (t (fun _ => (pred (s' k)))) /\ metric_is_fast_cauchy H (fun _ => (D s (pred (s' k))))).
-    {
-      intros.
-      enough (metric_is_fast_cauchy H (fun _ => (D s (pred (s' k))))).
-      split;auto.
-      apply T;auto.
-      exists (D s (pred (s' k))).
-      split.
-      intros n.
-      destruct H as [d [D1 [D2 D3]]].
-      simpl in *.
-      apply real_lt_le;apply (real_le_lt_lt _ 0).
-      right;apply D1;auto.
-      apply prec_pos.
-      destruct H0.
-      destruct (H0 k);try lia;auto.
-      apply fast_cauchy_neighbor.
-      intros.
-
-      destruct H as [d [D1 [D2 D3]]].
-      apply real_lt_le;apply (real_le_lt_lt _ 0).
-      right;apply D1;auto.
-      apply prec_pos.
-    }
-
-    assert (forall n, {P : {x : nat -> nat | sierp_up (t x) /\ metric_is_fast_cauchy H (fun m => D s (x m))} | s' n <> 0%nat -> forall m, (pr1 _ _ P) m = (pred (s' n))}).
-    {
-      intros.
-      destruct (s' n) eqn:E.
-      exists (exist (fun (x : nat->nat) => sierp_up (t x) /\ metric_is_fast_cauchy H (fun m => (D s (x m)))) (fun n => (pred (s' d0))) (H3 _ D0)).
-      intros;lia.
-      assert (s' n <> 0%nat) by lia.
-      exists (exist (fun (x : nat->nat) => sierp_up (t x) /\ metric_is_fast_cauchy H (fun m => (D s (x m)))) _ (H3 _ H4)).
-      simpl.
-      intros.
-      lia.
-    }
-    remember (fun n => (mu0 (pr1 _ _ (H4 n)))) as f.
-    apply M_unit.
-    exists (fun n => (S (snd (f n)))).
-    split.
-    - intros.
-      rewrite Heqf.
-      destruct (H4 n);simpl in *.
-      intros y By.
-      assert (metric_is_fast_limit H (fun n => (D s ((pr1 _ _ x) n))) (D s (pred (s' n)))).
-      admit.
-      specialize (Pmu0 x _ H6).
-      destruct Pmu0 as [P1 P2].
-      apply P1.     
-      unfold ball;simpl.
-      unfold ball in By.
-      destruct H as [d [D1 [D2 D3]]];simpl d_X in *.
-      apply (real_le_lt_lt _ _ _ (D3 _ _ (D s (pred (s' n))))).
-      rewrite <-prec_twice.
-      apply real_le_lt_plus_lt.
-      unfold ball in P2.
-      simpl in P2.
- d (D s (fst (mu0 x))) (D s (Init.Nat.pred (s' n))) <
-       prec (snd (mu0 x))
-
-      replace (snd (mu0 x) + 1)%nat with (S (snd (mu0 x))) by lia.
-      apply By.
-    pose proof (continuity_partial _ mu0).
-    Search "baire".
-    assert (forall n, )
-    pose proof (baire_continuity m).
-    revert X1.
-    apply M_lift_dom.
-    intros.
-    
-
-    assert (forall x (H:sierp_up (t x)), {n | forall y (Hy : sierp_up (t y)), (forall i, (i < n)%nat -> x i = y i) -> (pr1 _ _ (H1 x H)) = (pr1 _ _ (H1 y Hy))}).
+    destruct (semidec_to_sierp P) as [t T];auto.
+    assert (forall x, sierp_up (t x) -> ^M {n | Q n x}) as H by (intros; apply X1;apply T;auto).
+    clear X0 X1.
+    apply M_sierp_to_lazy_unique in H.
+    revert H.
+    apply M_lift.
+    intros [m Pm] x Px.
+    destruct (Pm x).
+    apply T in Px.
+    destruct (H0 Px).
+    assert {k | m x k <> 0%nat} as [k K].
+    apply ConstructiveEpsilon.constructive_indefinite_ground_description_nat;auto;intros; destruct (m x n);auto.
+    exists (pred (m x k)).
+    destruct (H k); try lia;auto.
+  Qed.
   
-    {
-      intros.
-      destruct (H1 x H3).
-      simpl.
-      assert {k | m x k = S x0 /\ forall k', (k <> k') -> m x k' = 0%nat } as [k [K1 K2]].
-      {
-         enough {k | m x k = S x0} as [k K].
-         exists k.
-         split;auto.
-         intros.
-         destruct e as [k'' [K1 K2]].
-         apply K2.
-         replace k'' with k;auto.
-         apply eq_sym.
-         apply Nat.eq_dne.
-         intros kn.
-         contradict K.
-         rewrite K2;auto.
-         apply ConstructiveEpsilon.constructive_indefinite_ground_description_nat;auto.
-         intros;apply Nat.eq_dec.
-         destruct e; exists x1;destruct H4;auto.
-      }
-      destruct (H2 x (S k)) as [n N].
-      exists n.
-      intros.
-      assert (m y k = S x0).
-      {
-        rewrite <-K1.
-        apply eq_sym.
-        apply N;auto.
-      }
-      destruct (H1 y Hy).
-      simpl.
-      enough (S x0 = S x1) by lia.
-      enough (m y k = S x1) by (rewrite <-H5;auto).
-      destruct e0.
-      enough (k = x2) as -> by apply H6.
-      destruct H6.
-      specialize (H7 k).
-      apply Nat.eq_dne.
-      intros Kn.
-      contradict H5.
-      rewrite H7;auto.
-    }
+  (* Lemma baire_modulus_exists (f : (nat -> nat) -> sierp) : ^M {mu : {x : (nat -> nat) | sierp_up (f x)} -> nat | forall x y, (forall n, (n < mu x)%nat -> pr1 _ _ x n =  y n) -> sierp_up (f y)}.   *)
+  (* Proof. *)
+  (*   pose proof (continuity f). *)
+  (*   apply partial_baire_choice in X0. *)
+  (*   revert X0. *)
+  (*   apply M_lift. *)
+  (*   intros. *)
+  (* Admitted. *)
 
-    
-    assert (forall n, ^M {m |(s' n) <> 0%nat -> forall x, (forall i, (i < m)%nat -> x i = (pred (s' n))) -> sierp_up (t x)}).
+  Lemma continuity_partial P (f : ({x : nat -> nat | P x} -> nat)) : (forall x, semidec (P x)) -> forall x, ^M {k | forall x', (forall n, (n < k)%nat -> (pr1 _  _ x) n = (pr1 _ _ x') n) -> f x = f x'}.  
+    intros.
+    assert (^M {g : (nat -> nat) -> nat -> nat | (forall x, P x -> exists k,  g x k <> 0%nat ) /\ forall x  (H : P x) k, g x k <> 0%nat -> g x k = S (f (exist _ x H))}).
     {
-      intros.
-      destruct (s' n) eqn:E.
-      apply M_unit;exists 0%nat;lia.
-      assert (sierp_up (t (fun i => n0))).
+      destruct (semidec_to_sierp P) as [t T];auto.
+      enough (forall x, ^M {s : nat -> nat | (sierp_up (t x) -> exists k, s k <> 0%nat) /\ (forall H k, s k <> 0%nat -> s k = S (f (exist _ x H)))}).
       {
-        apply T.
-        apply fast_cauchy_neighbor.
-        intros.
-        destruct H; destruct a.
-        simpl d_X.
-        replace (x (D s n0) (D s n0)) with 0 by (apply eq_sym; rewrite i;auto).
-        apply real_lt_le;apply prec_pos.
-        exists (D s n0).
-        split.
-        intros k.
-        destruct H; destruct a.
-        simpl d_X.
-        replace (x (D s n0) (D s n0)) with 0 by (apply eq_sym; rewrite i;auto).
-        apply real_lt_le;apply prec_pos.
-        destruct H0.
-        destruct (H0 n); try lia;auto.
-        rewrite E in H5.
-        simpl in H2;auto.
-      }
-      specialize (X0 _ H4).
-      revert X1.
+      pose proof (baire_choice _ X1).
+      simpl in X2.
+      revert X2.
       apply M_lift.
-      intros [m Pm].
-      exists m.
+      intros [H S].
+      exists (fun x => pr1 _ _ (H x)).
+      split; intros;try rewrite <-T;destruct (H x0);destruct a;simpl in *;auto.
+      apply e;apply T;auto.
+      }
       intros.
-      apply Pm.
-      intros.
-      rewrite H3;try lia.
+      specialize (sierp_to_nat_sequence (t x0)).
+      apply M_lift.
+      intros [s Ps].
+      assert (forall (n:nat), {m | ((s n) = 1%nat -> forall (H : P x0), m = S (f (exist _ x0 H))) /\ ((m <> 0)%nat -> (s n=1)%nat)}).
+      {
+        intros.
+        destruct (Nat.eq_dec (s n) 1%nat).
+        assert (sierp_up (t x0)) by (apply Ps; exists n;auto).
+        assert (P x0) by (apply T;auto).
+        exists (S (f (exist _ x0 H0))).
+        split.
+        intros.
+        apply f_equal; apply f_equal.
+        apply sigma_eqP2;auto.
+        intros;auto.
+        exists 0%nat;intros;lia.
+      }
+      exists (fun n => (pr1 _ _ (H n))).
+      split.
+      - intros.
+        destruct Ps.
+        destruct (H1 H0).
+        exists x1. destruct (H x1);simpl in *.
+        assert (P x0) by (apply T;auto).
+        destruct a.
+        rewrite (H5 H3 H4);lia.
+     - intros.
+       destruct (H k); simpl in *.
+       destruct a.
+       assert (P x0) by (apply T;apply Ps;exists k;auto).
+       rewrite (H2 (H3 H1) H4).
+       apply f_equal;apply f_equal.
+       apply sigma_eqP2;auto.
     }
-    apply M_countable_lift in X2.
-    revert X2.
+    revert X1.
+    apply M_lift_dom.
+    intros [g G].
+    specialize  (baire_continuity g).
     apply M_lift.
     intros.
-    exists (fun n => (pr1 _ _ (H1 n))).
-    split;intros.
-    - destruct (H1 n).
-      simpl in *.
-      intros y yb.
-      specialize (s0 H2).
-      assert (^M {y0 : nat -> nat | (forall i, (i < x)%nat -> y0 i = pred (s' n)) /\ metric_is_fast_limit H (fun n=> (D s (y0 n))) y}).
-      {
-        pose proof (separable_metric_approx H s y).
-        apply M_countable_lift in X2.
-        revert X2.
-        apply M_lift; intros.
-        exists (fun i => if (i <? x)%nat then (pred (s' n)) else (pr1 _ _ (H3 i))).
-        split.
-        intros.
-        destruct (H3 i).
-        simpl in *.
-        rewrite <-Nat.ltb_lt in H4.
-        rewrite H4;simpl;auto.
-        intros m.
-        destruct (m <? x)%nat eqn:E.
-        unfold ball in yb.
-        apply real_lt_le.
-        apply (real_lt_lt_lt _ _ _ yb).
-        apply prec_monotone.
-        apply Nat.ltb_lt;auto.
-        destruct (H3 m).
-        simpl in *.
-        apply real_lt_le;auto.
-        destruct H; destruct a; destruct a;simpl in *.
-        rewrite e;auto.
-      }
-      apply M_hprop_elim; try (intros a b;apply irrl).
-      revert X2.
-      apply M_lift.
-      intros [y0 [Y0 Y1]].
-      assert (sierp_up (t y0)).
-      {
-        apply s0.
-        intros;auto.
-      }
-      assert (metric_is_fast_cauchy H (fun n => (D s (y0 n)))) by apply (fast_limit_fast_cauchy _ _ _ Y1).
-      destruct (T _ H4).
-      destruct (H5 H3) as [y' [Y1' Y2']].
-      enough (y = y') as ->;auto.
-      apply (metric_limit_unique H _ _ _ Y1);auto.
-    - pose proof (separable_metric_approx_inside H s U x X0 H2).
-      apply M_countable_lift in X2.
-      apply M_hprop_elim; try (intros a b;apply irrl).
-      revert X2.
-      apply M_lift_dom.
-      intros.
-      remember (fun n => pr1 _ _ (H3 n)) as x0.
-      assert (sierp_up (t x0)).
-      {
-        assert (metric_is_fast_limit H (fun m => D s (x0 m)) x).
-        intros m.
-        rewrite Heqx0.
-        destruct (H3 m);simpl;destruct a;apply real_lt_le;auto.
-        destruct H; destruct a; destruct a; simpl in *; rewrite e;auto.
-        apply T.
-        apply (fast_limit_fast_cauchy _ _ _ H4).
-        exists x.
-        simpl.
-        split;auto.
-      }
-      specialize (X1 _ H4).
-      revert X1.
-      apply M_lift.
-      intros [m Pm].
-      assert (exists n, (s' n) <> 0%nat /\ Init.Nat.pred (s' n) = (x0 m)) as [n [N1 N2]].
-      {
-        destruct H0.
-        assert (U (D s (x0 m))).
-        {
-          rewrite Heqx0.
-          destruct (H3 m); destruct a.
-          simpl;auto.
-        }
-        destruct (H5 _ H6).
-        exists x1.
-        split; try lia.
-      }
-      exists n.
-      split;auto.
-      destruct (H1 n).
-      unfold ball;simpl in *.
-      rewrite N2 in *.
-      rewrite Heqx0.
-      destruct (H3 m); simpl.
-      assert (^M {y0 | (forall i, (i < x1)%nat -> y0 i = x0 m) /\ metric_is_fast_limit H (fun n=> (D s (y0 n))) y}).
-      {
-        specialize (s0 N1).
-        pose proof (separable_metric_approx H s y).
-        apply M_countable_lift in X1.
-        revert X1.
-        apply M_lift; intros.
-        exists (fun i => if (i <? x1)%nat then (x0 m) else (pr1 _ _ (H5 i))).
-        split.
-        intros.
-        rewrite <-Nat.ltb_lt in H6.
-        rewrite H6;simpl;auto.
-        intros i.
-        destruct (i <? x1)%nat eqn:E.
-        apply real_lt_le.
-        apply (real_lt_lt_lt _ _ _ yb).
-        apply prec_monotone.
-        apply Nat.ltb_lt;auto.
-        destruct (H5 i); simpl in *.
-        apply real_lt_le;auto.
-        destruct H; destruct a; destruct a;simpl in *.
-        rewrite e;auto.
-      }
-      apply M_hprop_elim; try (intros a b; apply irrl).
-      revert X1.
-      apply M_lift.
-      intros [y0 [Y0 Y1]].
-      assert (sierp_up (t y0)) by (apply s0;auto).
-      assert (metric_is_fast_cauchy H (fun n=> D s (y0 n))) by apply (fast_limit_fast_cauchy _ _ _ Y1).
-      destruct (T _ H6).
-      destruct (H7 H5) as [y' [Y'1 Y'2]].
-      enough (y = y') as ->; auto.
-      apply (metric_limit_unique _ _ _ _ Y1);auto.
+    destruct x.
+    simpl in *.
+    destruct G.
+    assert {k | g x k <> 0%nat} as [k K].
+    apply ConstructiveEpsilon.constructive_indefinite_ground_description_nat;auto;intros; destruct (g x n);auto.
+    destruct (H x (S k)) as [m Pm].
+    exists m.
+    intros.
+    destruct x'.
+    simpl in *.
+    enough (g x0 k <> 0%nat).
+    apply Nat.succ_inj.
+    rewrite <- (H1 x p k K).
+    rewrite <-(H1 x0 _ k H3).
+    apply Pm;try lia.
+    intros.
+    apply H2;auto.
+    rewrite <-Pm;try lia;auto.
   Qed.
+  Lemma semidec_sierp_up s : semidec (sierp_up s).
+  Proof.
+     destruct s.
+     unfold sierp_up, semidec, lazy_bool_up.
+     simpl.
+     exists x;split;auto.
+  Qed.
+
+  Lemma baire_continuous_modulus (P : (nat -> nat) -> sierp) : ^M {m : {x | sierp_up (P x)} -> nat | (forall x y, (forall n, (n < m x)%nat -> pr1 _ _ x n = y n) ->  (sierp_up (P y)))  /\ forall x, exists y, (exists M, forall i,  (i >= M)%nat -> pr1 _ _ y i = 0%nat) /\  m y = m x}. 
+  Proof.
+    pose proof (continuity P).
+    apply partial_baire_choice in X0; [|intros;apply semidec_sierp_up].
+    revert X0.
+    apply M_lift.
+    intros.
+    assert (forall (x : {x | sierp_up (P x)}), sierp_up (P (pr1 _ _ x))) by (intros [x Hx];auto).
+    remember (fun x => pr1 _ _ (H _ (H0 x))) as f.
+    assert (forall x, semidec (sierp_up (P x))) by (intros; apply semidec_sierp_up).
+    pose proof (continuity_partial _ f X0).
+    exists f;simpl.
+    rewrite Heqf in *; simpl in *;split; intros.
+    destruct (H _ (H0 x)); simpl in *.
+    apply s.
+    intros;auto.
+    apply M_hprop_elim.
+    intros a b; apply irrl.
+    specialize (X1 x).
+    revert X1.
+    apply M_lift.
+    intros [k K].
+    destruct (H _ (H0 x)) as [m Pm];simpl in *.
+    assert (exists y, (forall i, (((i < k) \/ (i < m))%nat -> y i = pr1 _ _ x i) /\ ((i >= max k m)%nat -> y i = 0%nat))) as [y Py].
+    {
+      exists (fun i => if ((i <? k)%nat || (i <? m)%nat)%bool then pr1 _ _ x i else 0%nat).
+      intros.
+      split;intros.
+      -  rewrite <-!Nat.ltb_lt in H1.
+         apply Bool.orb_true_intro in H1.
+         rewrite H1;auto.
+     - pose proof (Nat.max_lub_r _ _ _ H1).
+       pose proof (Nat.max_lub_l _ _ _ H1).
+       apply Nat.ltb_ge in H2.
+       apply Nat.ltb_ge in H3.
+       rewrite H2, H3;auto.
+    }
+    assert (sierp_up (P y)).
+    {
+      apply Pm.
+      intros.
+      destruct x;simpl in *.
+      destruct (Py n).
+      apply eq_sym;apply H2;auto.
+    }
+    exists (exist _ y H1).
+    simpl.
+    split; [exists (max k m);intros;apply Py;auto|].
+    specialize (K (exist _ y H1)).
+    apply eq_sym.
+    apply K.
+    destruct x; simpl in *.
+    intros.
+    apply eq_sym.
+    apply Py;auto.
+ Qed.
+ (*  Lemma separable_metric_continuous_strong (H : metric) (s : separable) (l : has_limit H) U d0 : open U -> U (D s d0) ->  ^M {mu: nat -> nat*nat  | (forall n, is_subset (ball H (D s (fst (mu n))) (snd (mu n))) U) /\ (forall x, U x -> exists n, (ball H (D s (fst (mu n))) (snd (mu n))) x)}. *)
+  Lemma enumerate_nonempty_open (H : metric) s U d0 : open U -> U (D s d0) -> ^M {s' : nat -> nat | (forall n, U (D s (s' n))) /\ forall m, U (D s m) -> exists k, s' k = m}.
+  Proof.
+    intros.
+    specialize (enumerate_open H s U X0).
+    apply M_lift.
+    intros [s0 S0].
+    destruct S0.
+    exists (fun n => match (s0 n) with 0%nat => d0 | S n' => n' end).
+    split;intros.
+    destruct (s0 n) eqn:E;auto.
+    destruct (H1 n);try lia.
+    rewrite E in H3.
+    simpl in H3;auto.
+
+    destruct (H2 _ H3).
+    exists x.
+    rewrite H4;auto.
+  Qed.
+
+ (*  Lemma separable_metric_continuous_strong (H : metric) (s : separable) (l : has_limit H) U d0 : open U -> U (D s d0) ->  ^M {mu: nat -> nat*nat  | (forall n, is_subset (ball H (D s (fst (mu n))) (snd (mu n))) U) /\ (forall x, U x -> exists n, (ball H (D s (fst (mu n))) (snd (mu n))) x)}. *)
+ (*  Proof. *)
+ (*    intros. *)
+ (*    specialize (enumerate_nonempty_open H s U d0 X0 H0). *)
+ (*    apply M_lift_dom. *)
+ (*    intros [s' [H1 H2]]. *)
+ (*    destruct (open_to_name_fun H s l U X0) as [t T]. *)
+ (*    pose proof (continuity t). *)
+ (*    apply M_sierp_to_lazy_unique in X1. *)
+ (*    revert X1. *)
+ (*    apply M_lift. *)
+ (*    intros [m Pm]. *)
+ (*    assert (forall x, (sierp_up (t x) -> {n | exists k, m x k = S n /\ forall k', (k' <> k) -> m x k' = 0%nat})) as Hc. *)
+ (*    { *)
+ (*      intros. *)
+ (*      destruct (Pm x). *)
+ (*      specialize (H5 H3). *)
+ (*      destruct H5. *)
+ (*      enough {k | m x k <> 0%nat} as [k K]. *)
+ (*      exists (pred (m x k)). *)
+ (*      exists k. *)
+ (*      split;simpl;auto. *)
+ (*      replace (S (pred (m x k))) with (m x k) by lia;auto. *)
+ (*      intros;apply (H6 k);auto. *)
+ (*      apply ConstructiveEpsilon.constructive_indefinite_ground_description_nat;auto. *)
+ (*      intros. *)
+ (*      destruct (m x n); [right|left];auto. *)
+ (*    } *)
+ (*    (* assert (forall x n, ((exists k, m x k = S n  /\ (forall k' : nat, k' <> k -> m x k' = 0%nat)) -> {k | m x k = S n /\ (forall k' : nat, k' <> k -> m x k' = 0%nat)})) as sk. *) *)
+ (*    (* admit. *) *)
+ (*    assert ({f : {x | sierp_up (t x) /\ metric_is_fast_cauchy H (fun m : nat => D s (x m))} -> nat * nat | forall (x : {x | sierp_up (t x) /\  metric_is_fast_cauchy H (fun m : nat => D s (x m))}) y, metric_is_fast_limit H (fun n => (D s ((pr1 _ _ x) n))) y -> is_subset (ball H (D s (fst (f x))) (snd (f x))) U /\ ball H (D s (fst (f x))) (S (S  (snd (f x)))) y  }) as [mu0 Pmu0]. *)
+ (*    { *)
+ (*        remember (fun x' => (forall n, d_X H (D s (x' n)) (D s (x' (S n))) <= prec (n+2)%nat)) as P. *)
+ (*      enough (forall x, sierp_up (t x) ->  P x -> {nm : nat * nat |forall  y, metric_is_fast_limit H (fun n => (D s (x n))) y -> is_subset (ball H (D s (fst nm)) (snd nm)) U /\  ball H (D s (fst nm)) (S (S  (snd nm))) y}). *)
+ (*      { *)
+ (*        assert (forall x, sierp_up (t x) -> metric_is_fast_cauchy H (fun m : nat => D s (x m)) -> {x' : (nat -> nat) | sierp_up (t x') /\  P x' /\ forall y, metric_is_fast_limit H (fun n => (D s (x n))) y -> metric_is_fast_limit H (fun n => (D s (x' n))) y}). *)
+ (*        { *)
+ (*          remember (fun n => (S (S (S  (S n))))) as dprec. *)
+ (*          intros. *)
+ (*          exists (fun n => (x (dprec n))). *)
+ (*          rewrite Heqdprec. *)
+ (*          split; [|split]. *)
+ (*          apply T. *)
+ (*          intros i j. *)
+ (*          apply (real_le_le_le _ _ _ (H5 _ _)). *)
+ (*          apply real_le_le_plus_le;apply real_lt_le;apply prec_monotone;lia. *)
+ (*          destruct (T x H5). *)
+ (*          specialize (H6 H4). *)
+ (*          destruct H6 as [x0 [H61 H62]]. *)
+ (*          exists x0. *)
+ (*          split;auto. *)
+ (*          intros n. *)
+ (*          apply (real_le_le_le _ (prec (dprec n)));rewrite Heqdprec; [|apply real_lt_le;apply prec_monotone;lia];apply H61. *)
+ (*          rewrite HeqP. *)
+ (*          intros. *)
+ (*          apply (real_le_le_le _ (prec (S (S (S (S n)))) + prec (S (S (S (S ( S n))))))). *)
+ (*          unfold metric_is_fast_cauchy in H5. *)
+ (*          apply H5. *)
+ (*          replace (n+2)%nat with (S (S n)) by lia. *)
+ (*          rewrite <-(prec_twice (S (S n))). *)
+ (*         apply real_le_le_plus_le; apply real_lt_le;apply prec_monotone;lia. *)
+ (*          intros. *)
+ (*          intros n. *)
+ (*          apply (real_le_le_le _ (prec (S (S (S (S n)))))). *)
+ (*          apply H6. *)
+ (*          apply real_lt_le. *)
+ (*          apply prec_monotone. *)
+ (*          lia. *)
+ (*    } *)
+ (*        assert (forall (x : {x | sierp_up (t x) /\ metric_is_fast_cauchy H (fun m : nat => D s (x m))}), sierp_up (t (pr1 _ _ x))) by (intros;destruct x;destruct a; auto). *)
+ (*        assert (forall (x : {x | sierp_up (t x) /\ metric_is_fast_cauchy H (fun m : nat => D s (x m))}), metric_is_fast_cauchy H (fun m : nat => D s ((pr1 _ _ x) m))) by (intros;destruct x;destruct a; auto). *)
+ (*        assert (forall (x : {x | sierp_up (t x) /\ metric_is_fast_cauchy H (fun m : nat => D s (x m))}), sierp_up (t (pr1 _ _ (H4 (pr1 _ _ x) (H5 x) (H6 x))))) by (intros; destruct (H4 (pr1 _ _ x) (H5 x));destruct a;simpl;auto). *)
+ (*        assert (forall (x : {x | sierp_up (t x) /\ metric_is_fast_cauchy H (fun m : nat => D s (x m))}), P (pr1 _ _ (H4 (pr1 _ _ x) (H5 x) (H6 x)))) by (intros; destruct (H4 (pr1 _ _ x) (H5 x));destruct a;destruct a;simpl;auto). *)
+ (*        exists (fun x => (pr1 _ _ (H3 (pr1 _ _ (H4 (pr1 _ _ x) (H5 x) (H6 x))) (H7 x) (H8 x)))) . *)
+ (*        intros. *)
+ (*        destruct (H3 (pr1 _ _ (H4 (pr1 _ _ x) (H5 x) (H6 x))) (H7 x) (H8 x)). *)
+ (*        destruct (H4 (pr1 _ _ x) (H5 x) (H6 x)). *)
+ (*        simpl in *. *)
+ (*        destruct x. *)
+ (*        simpl in *. *)
+ (*        destruct a0. *)
+ (*        destruct H11. *)
+ (*        specialize (H12 _ H9). *)
+ (*        apply (a _ H12). *)
+ (*      } *)
+ (*      intros. *)
+ (*      destruct (Hc _ H3) as [mu Mu]. *)
+ (*      assert (forall y, (forall n, (n < mu)%nat -> x n = y n) -> sierp_up (t y)). *)
+ (*      { *)
+ (*      intros. *)
+ (*      destruct Mu as [k [K1 K2]].  *)
+ (*      destruct (Pm x) as [Pm' _]. *)
+ (*      specialize (Pm' k). *)
+ (*      destruct Pm';try lia. *)
+ (*      apply H6. *)
+ (*      intros. *)
+ (*      rewrite K1 in H7. *)
+ (*      simpl in H7;auto. *)
+ (*      } *)
+ (*      exists ((x (S (S (S (S mu))))),((S mu))). *)
+ (*      intros. *)
+ (*      assert (forall n, d_X H (D s (x n)) y <= prec (n+2)%nat). *)
+ (*      { *)
+ (*        intros. *)
+ (*        assert (metric_is_fast_cauchy H (fun n => (D s (x (pred (pred n)))))). *)
+ (*        admit. *)
+ (*        destruct (l _ H7). *)
+ (*        assert (metric_is_fast_limit H (fun n => (D s (x n))) x0). *)
+ (*        { *)
+ (*          intros i. *)
+ (*          replace i with (pred (pred (S (S i)))) at 1 by lia. *)
+ (*          apply (real_le_le_le _ (prec (S (S i)))). *)
+ (*          apply m0. *)
+ (*          apply real_lt_le;apply prec_monotone;auto. *)
+ (*        } *)
+ (*        rewrite (metric_limit_unique _ _ _ _ H6 H8). *)
+ (*        replace n with (pred (pred (n+2)%nat)) at 1 by lia. *)
+ (*        apply m0. *)
+ (*      } *)
+ (*      remember (fun (n : nat) => if (n <? mu)%nat then (x n)%nat else (x (S (S (S (S mu)))))) as xd. *)
+ (*      assert (forall n, (n < mu)%nat -> d_X H (D s (x n)) (D s (x (S (S (S (S mu)))))) <= prec (n+1)%nat). *)
+ (*      { *)
+ (*         intros. *)
+ (*         destruct H as [d [D1 [D2 D3]]]; simpl in *. *)
+ (*         apply (real_le_le_le _ _ _ (D3 _ _ y)). *)
+ (*         rewrite <-prec_twice. *)
+ (*         apply real_le_le_plus_le. *)
+ (*         replace (n+1+1)%nat with (n+2)%nat by lia. *)
+ (*         apply H7. *)
+ (*         apply (real_le_le_le _ (prec (S (S (S (S mu)))))). *)
+ (*         rewrite D2. *)
+ (*         apply H6. *)
+ (*         apply real_lt_le. *)
+ (*         apply prec_monotone. *)
+ (*         lia. *)
+ (*      } *)
+ (*      assert (metric_is_fast_limit H (fun n => (D s (xd n))) (D s (x (S (S (S (S  mu))))))). *)
+ (*      { *)
+ (*         intros n. *)
+ (*         rewrite Heqxd. *)
+ (*         destruct H as [d [D1 [D2 D3]]]; simpl in *. *)
+ (*         destruct (n <? mu)%nat eqn:E. *)
+ (*         - apply Nat.ltb_lt in E. *)
+ (*           apply (real_le_le_le _ _ _ (H8 n E) ). *)
+ (*           apply real_lt_le;apply prec_monotone;lia. *)
+ (*       -  apply real_lt_le; apply (real_le_lt_lt _ 0); [right;apply D1;auto|apply prec_pos]. *)
+ (*      } *)
+ (*      assert (sierp_up (t xd)). *)
+ (*      { *)
+ (*        apply H5. *)
+ (*        intros; rewrite Heqxd. *)
+ (*        apply (Nat.ltb_lt) in H10. *)
+ (*        rewrite H10;auto. *)
+ (*      } *)
+ (*      simpl. *)
+ (*      split. *)
+ (*      - intros z Zb. *)
+ (*        assert (^M {zn : nat -> nat | (forall i, (i < mu)%nat -> zn i = x i) /\ metric_is_fast_limit H (fun n => (D s (zn n))) z}). *)
+ (*        { *)
+ (*          pose proof (separable_metric_approx H s z). *)
+ (*          apply M_countable_lift in X1. *)
+ (*          revert X1. *)
+ (*          apply M_lift. *)
+ (*          intros. *)
+ (*          exists (fun n => if (n <? mu)%nat then (x n) else (pr1 _ _ (H11 n))). *)
+ (*          split; [intros;apply Nat.ltb_lt in H12;rewrite H12;simpl;auto|]. *)
+ (*          intros n. *)
+ (*          destruct (H11 n);simpl. *)
+ (*          destruct H as [d [D1 [D2 D3]]]; simpl d_X in *. *)
+ (*          destruct (n <? mu)%nat eqn:E; [|apply real_lt_le;rewrite D2;auto]. *)
+ (*          unfold ball in Zb. *)
+ (*          simpl d_X in Zb. *)
+ (*          apply (real_le_le_le _ _ _ (D3 _ _ (D s (x ((S (S (S (S mu))))))))). *)
+ (*          rewrite <-prec_twice. *)
+ (*          apply (real_le_le_plus_le). *)
+ (*          unfold metric_is_fast_limit in H7; simpl in H7. *)
+ (*          apply Nat.ltb_lt in E. *)
+ (*          apply H8;auto. *)
+ (*          apply real_lt_le. *)
+ (*          apply (real_lt_lt_lt _ _ _ Zb). *)
+ (*          apply prec_monotone. *)
+ (*          apply Nat.ltb_lt in E;lia. *)
+ (*        } *)
+ (*        apply M_hprop_elim; [intros a b; apply irrl|]. *)
+ (*        revert X1. *)
+ (*        apply M_lift. *)
+ (*        intros [zn [Pzn1 Pzn2]]. *)
+ (*        assert (sierp_up (t zn)). *)
+ (*        { *)
+ (*          apply H5.           *)
+ (*          intros. *)
+ (*          apply eq_sym. *)
+ (*          apply Pzn1;auto. *)
+ (*        } *)
+ (*        destruct (T zn (fast_limit_fast_cauchy _ _ _ Pzn2)) as [T' _]. *)
+ (*        destruct (T' H11) as [z' [Z1 Z2]]. *)
+ (*        rewrite (metric_limit_unique _ _ _ _ Pzn2 Z1);auto. *)
+ (*      - unfold ball, metric_is_fast_limit in *. *)
+ (*        apply (real_le_lt_lt _ _ _ (H6 _)). *)
+ (*        apply prec_monotone;lia. *)
+ (*    } *)
+ (*    assert (forall k, sierp_up (t (fun _ => ((s' k)))) /\ metric_is_fast_cauchy H (fun _ => (D s  (s' k)))). *)
+ (*    { *)
+ (*      intros. *)
+ (*      enough (metric_is_fast_cauchy H (fun _ => (D s (s' k)))). *)
+ (*      split;auto. *)
+ (*      apply T;auto. *)
+ (*      exists (D s (s' k)). *)
+ (*      split. *)
+ (*      intros n. *)
+ (*      destruct H as [d [D1 [D2 D3]]]. *)
+ (*      simpl in *. *)
+ (*      apply real_lt_le;apply (real_le_lt_lt _ 0). *)
+ (*      right;apply D1;auto. *)
+ (*      apply prec_pos. *)
+ (*      apply H1. *)
+
+ (*      apply fast_cauchy_neighbor. *)
+ (*      intros. *)
+ (*      destruct H as [d [D1 [D2 D3]]]. *)
+ (*      apply real_lt_le;apply (real_le_lt_lt _ 0). *)
+ (*      right;apply D1;auto. *)
+ (*      apply prec_pos. *)
+ (*    } *)
+
+ (*    assert (forall n, {P : {x : nat -> nat | sierp_up (t x) /\ metric_is_fast_cauchy H (fun m => D s (x m))} | forall m, (pr1 _ _ P) m = (s' n)}). *)
+ (*    { *)
+ (*      intros. *)
+ (*      exists (exist (fun (x : nat->nat) => sierp_up (t x) /\ metric_is_fast_cauchy H (fun m => (D s (x m)))) _ (H3 n)). *)
+ (*      simpl. *)
+ (*      intros. *)
+ (*      lia. *)
+ (*    } *)
+
+ (*      assert (forall (a b : nat * nat), semidec (a = b)). *)
+ (*      admit. *)
+      
+ (*    remember (fun n => (mu0 (pr1 _ _ (H4 n)))) as f. *)
+ (*    exists f. *)
+ (*    split. *)
+ (*    - intros. *)
+ (*      rewrite Heqf. *)
+ (*      destruct (H4 n);simpl in *. *)
+ (*      assert (metric_is_fast_limit H (fun n => (D s ((pr1 _ _ x) n))) (D s (s' n))). *)
+ (*      admit. *)
+ (*      specialize (Pmu0 x _ H5). *)
+ (*      destruct Pmu0 as [P1 P2]. *)
+ (*      apply P1. *)
+ (*    - intros y By. *)
+ (*      assert ({P: {x : nat -> nat | sierp_up (t x) /\ metric_is_fast_cauchy H (fun n => D s (x n))} | metric_is_fast_limit H (fun n=> (D s ((pr1 _ _ P) n))) y}) as [x Px]. *)
+ (*      admit. *)
+ (*      pose proof (continuity_partial _ mu0 X1 x). *)
+ (*      apply M_hprop_elim. *)
+ (*      intros a b; apply irrl. *)
+ (*      revert X2. *)
+ (*      apply M_lift. *)
+ (*      intros [k K]. *)
+ (*      destruct (mu0 x) as [d1 md1] eqn:Ex. *)
+ (*      assert (d_X H (D s d1) y < prec (S (S md1))%nat). *)
+ (*      { *)
+ (*        destruct (Pmu0 x _ Px). *)
+ (*        rewrite Ex in H6;simpl in H6. *)
+ (*        apply H6. *)
+ (*      } *)
+ (*      assert (exists n, s' n = (pr1 _ _ x k)) as [n N]. *)
+ (*      admit. *)
+ (*      assert (d_X H (fst (f n)) ) *)
+ (*      exists n. *)
+ (*      rewrite Heqf. *)
+ (*      destruct (H4 n). *)
+ (*      simpl in *. *)
+ (*      rewrite <-K. *)
+ (*      admit. *)
+ (*      intros. *)
+ (*      destruct x0,x. *)
+ (*      simpl. *)
+ (*      apply P1.      *)
+ (*      unfold ball;simpl. *)
+ (*      unfold ball in By. *)
+ (*      destruct H as [d [D1 [D2 D3]]];simpl d_X in *. *)
+ (*      apply (real_le_lt_lt _ _ _ (D3 _ _ (D s  (s' n)))). *)
+ (*      rewrite <-prec_twice. *)
+ (*      apply real_le_lt_plus_lt. *)
+ (*      unfold ball in P2. *)
+ (*      simpl in P2. *)
+ (*      apply P2. *)
+ (* d (D s (fst (mu0 x))) (D s (Init.Nat.pred (s' n))) < *)
+ (*       prec (snd (mu0 x)) *)
+
+ (*      replace (snd (mu0 x) + 1)%nat with (S (snd (mu0 x))) by lia. *)
+ (*      apply By. *)
+ (*    Search "baire". *)
+ (*    assert (forall n, ) *)
+ (*    pose proof (baire_continuity m). *)
+ (*    revert X1. *)
+ (*    apply M_lift_dom. *)
+ (*    intros. *)
+    
+
+ (*    assert (forall x (H:sierp_up (t x)), {n | forall y (Hy : sierp_up (t y)), (forall i, (i < n)%nat -> x i = y i) -> (pr1 _ _ (H1 x H)) = (pr1 _ _ (H1 y Hy))}). *)
+  
+ (*    { *)
+ (*      intros. *)
+ (*      destruct (H1 x H3). *)
+ (*      simpl. *)
+ (*      assert {k | m x k = S x0 /\ forall k', (k <> k') -> m x k' = 0%nat } as [k [K1 K2]]. *)
+ (*      { *)
+ (*         enough {k | m x k = S x0} as [k K]. *)
+ (*         exists k. *)
+ (*         split;auto. *)
+ (*         intros. *)
+ (*         destruct e as [k'' [K1 K2]]. *)
+ (*         apply K2. *)
+ (*         replace k'' with k;auto. *)
+ (*         apply eq_sym. *)
+ (*         apply Nat.eq_dne. *)
+ (*         intros kn. *)
+ (*         contradict K. *)
+ (*         rewrite K2;auto. *)
+ (*         apply ConstructiveEpsilon.constructive_indefinite_ground_description_nat;auto. *)
+ (*         intros;apply Nat.eq_dec. *)
+ (*         destruct e; exists x1;destruct H4;auto. *)
+ (*      } *)
+ (*      destruct (H2 x (S k)) as [n N]. *)
+ (*      exists n. *)
+ (*      intros. *)
+ (*      assert (m y k = S x0). *)
+ (*      { *)
+ (*        rewrite <-K1. *)
+ (*        apply eq_sym. *)
+ (*        apply N;auto. *)
+ (*      } *)
+ (*      destruct (H1 y Hy). *)
+ (*      simpl. *)
+ (*      enough (S x0 = S x1) by lia. *)
+ (*      enough (m y k = S x1) by (rewrite <-H5;auto). *)
+ (*      destruct e0. *)
+ (*      enough (k = x2) as -> by apply H6. *)
+ (*      destruct H6. *)
+ (*      specialize (H7 k). *)
+ (*      apply Nat.eq_dne. *)
+ (*      intros Kn. *)
+ (*      contradict H5. *)
+ (*      rewrite H7;auto. *)
+ (*    } *)
+
+    
+ (*    assert (forall n, ^M {m |(s' n) <> 0%nat -> forall x, (forall i, (i < m)%nat -> x i = (pred (s' n))) -> sierp_up (t x)}). *)
+ (*    { *)
+ (*      intros. *)
+ (*      destruct (s' n) eqn:E. *)
+ (*      apply M_unit;exists 0%nat;lia. *)
+ (*      assert (sierp_up (t (fun i => n0))). *)
+ (*      { *)
+ (*        apply T. *)
+ (*        apply fast_cauchy_neighbor. *)
+ (*        intros. *)
+ (*        destruct H; destruct a. *)
+ (*        simpl d_X. *)
+ (*        replace (x (D s n0) (D s n0)) with 0 by (apply eq_sym; rewrite i;auto). *)
+ (*        apply real_lt_le;apply prec_pos. *)
+ (*        exists (D s n0). *)
+ (*        split. *)
+ (*        intros k. *)
+ (*        destruct H; destruct a. *)
+ (*        simpl d_X. *)
+ (*        replace (x (D s n0) (D s n0)) with 0 by (apply eq_sym; rewrite i;auto). *)
+ (*        apply real_lt_le;apply prec_pos. *)
+ (*        destruct H0. *)
+ (*        destruct (H0 n); try lia;auto. *)
+ (*        rewrite E in H5. *)
+ (*        simpl in H2;auto. *)
+ (*      } *)
+ (*      specialize (X0 _ H4). *)
+ (*      revert X1. *)
+ (*      apply M_lift. *)
+ (*      intros [m Pm]. *)
+ (*      exists m. *)
+ (*      intros. *)
+ (*      apply Pm. *)
+ (*      intros. *)
+ (*      rewrite H3;try lia. *)
+ (*    } *)
+ (*    apply M_countable_lift in X2. *)
+ (*    revert X2. *)
+ (*    apply M_lift. *)
+ (*    intros. *)
+ (*    exists (fun n => (pr1 _ _ (H1 n))). *)
+ (*    split;intros. *)
+ (*    - destruct (H1 n). *)
+ (*      simpl in *. *)
+ (*      intros y yb. *)
+ (*      specialize (s0 H2). *)
+ (*      assert (^M {y0 : nat -> nat | (forall i, (i < x)%nat -> y0 i = pred (s' n)) /\ metric_is_fast_limit H (fun n=> (D s (y0 n))) y}). *)
+ (*      { *)
+ (*        pose proof (separable_metric_approx H s y). *)
+ (*        apply M_countable_lift in X2. *)
+ (*        revert X2. *)
+ (*        apply M_lift; intros. *)
+ (*        exists (fun i => if (i <? x)%nat then (pred (s' n)) else (pr1 _ _ (H3 i))). *)
+ (*        split. *)
+ (*        intros. *)
+ (*        destruct (H3 i). *)
+ (*        simpl in *. *)
+ (*        rewrite <-Nat.ltb_lt in H4. *)
+ (*        rewrite H4;simpl;auto. *)
+ (*        intros m. *)
+ (*        destruct (m <? x)%nat eqn:E. *)
+ (*        unfold ball in yb. *)
+ (*        apply real_lt_le. *)
+ (*        apply (real_lt_lt_lt _ _ _ yb). *)
+ (*        apply prec_monotone. *)
+ (*        apply Nat.ltb_lt;auto. *)
+ (*        destruct (H3 m). *)
+ (*        simpl in *. *)
+ (*        apply real_lt_le;auto. *)
+ (*        destruct H; destruct a; destruct a;simpl in *. *)
+ (*        rewrite e;auto. *)
+ (*      } *)
+ (*      apply M_hprop_elim; try (intros a b;apply irrl). *)
+ (*      revert X2. *)
+ (*      apply M_lift. *)
+ (*      intros [y0 [Y0 Y1]]. *)
+ (*      assert (sierp_up (t y0)). *)
+ (*      { *)
+ (*        apply s0. *)
+ (*        intros;auto. *)
+ (*      } *)
+ (*      assert (metric_is_fast_cauchy H (fun n => (D s (y0 n)))) by apply (fast_limit_fast_cauchy _ _ _ Y1). *)
+ (*      destruct (T _ H4). *)
+ (*      destruct (H5 H3) as [y' [Y1' Y2']]. *)
+ (*      enough (y = y') as ->;auto. *)
+ (*      apply (metric_limit_unique H _ _ _ Y1);auto. *)
+ (*    - pose proof (separable_metric_approx_inside H s U x X0 H2). *)
+ (*      apply M_countable_lift in X2. *)
+ (*      apply M_hprop_elim; try (intros a b;apply irrl). *)
+ (*      revert X2. *)
+ (*      apply M_lift_dom. *)
+ (*      intros. *)
+ (*      remember (fun n => pr1 _ _ (H3 n)) as x0. *)
+ (*      assert (sierp_up (t x0)). *)
+ (*      { *)
+ (*        assert (metric_is_fast_limit H (fun m => D s (x0 m)) x). *)
+ (*        intros m. *)
+ (*        rewrite Heqx0. *)
+ (*        destruct (H3 m);simpl;destruct a;apply real_lt_le;auto. *)
+ (*        destruct H; destruct a; destruct a; simpl in *; rewrite e;auto. *)
+ (*        apply T. *)
+ (*        apply (fast_limit_fast_cauchy _ _ _ H4). *)
+ (*        exists x. *)
+ (*        simpl. *)
+ (*        split;auto. *)
+ (*      } *)
+ (*      specialize (X1 _ H4). *)
+ (*      revert X1. *)
+ (*      apply M_lift. *)
+ (*      intros [m Pm]. *)
+ (*      assert (exists n, (s' n) <> 0%nat /\ Init.Nat.pred (s' n) = (x0 m)) as [n [N1 N2]]. *)
+ (*      { *)
+ (*        destruct H0. *)
+ (*        assert (U (D s (x0 m))). *)
+ (*        { *)
+ (*          rewrite Heqx0. *)
+ (*          destruct (H3 m); destruct a. *)
+ (*          simpl;auto. *)
+ (*        } *)
+ (*        destruct (H5 _ H6). *)
+ (*        exists x1. *)
+ (*        split; try lia. *)
+ (*      } *)
+ (*      exists n. *)
+ (*      split;auto. *)
+ (*      destruct (H1 n). *)
+ (*      unfold ball;simpl in *. *)
+ (*      rewrite N2 in *. *)
+ (*      rewrite Heqx0. *)
+ (*      destruct (H3 m); simpl. *)
+ (*      assert (^M {y0 | (forall i, (i < x1)%nat -> y0 i = x0 m) /\ metric_is_fast_limit H (fun n=> (D s (y0 n))) y}). *)
+ (*      { *)
+ (*        specialize (s0 N1). *)
+ (*        pose proof (separable_metric_approx H s y). *)
+ (*        apply M_countable_lift in X1. *)
+ (*        revert X1. *)
+ (*        apply M_lift; intros. *)
+ (*        exists (fun i => if (i <? x1)%nat then (x0 m) else (pr1 _ _ (H5 i))). *)
+ (*        split. *)
+ (*        intros. *)
+ (*        rewrite <-Nat.ltb_lt in H6. *)
+ (*        rewrite H6;simpl;auto. *)
+ (*        intros i. *)
+ (*        destruct (i <? x1)%nat eqn:E. *)
+ (*        apply real_lt_le. *)
+ (*        apply (real_lt_lt_lt _ _ _ yb). *)
+ (*        apply prec_monotone. *)
+ (*        apply Nat.ltb_lt;auto. *)
+ (*        destruct (H5 i); simpl in *. *)
+ (*        apply real_lt_le;auto. *)
+ (*        destruct H; destruct a; destruct a;simpl in *. *)
+ (*        rewrite e;auto. *)
+ (*      } *)
+ (*      apply M_hprop_elim; try (intros a b; apply irrl). *)
+ (*      revert X1. *)
+ (*      apply M_lift. *)
+ (*      intros [y0 [Y0 Y1]]. *)
+ (*      assert (sierp_up (t y0)) by (apply s0;auto). *)
+ (*      assert (metric_is_fast_cauchy H (fun n=> D s (y0 n))) by apply (fast_limit_fast_cauchy _ _ _ Y1). *)
+ (*      destruct (T _ H6). *)
+ (*      destruct (H7 H5) as [y' [Y'1 Y'2]]. *)
+ (*      enough (y = y') as ->; auto. *)
+ (*      apply (metric_limit_unique _ _ _ _ Y1);auto. *)
+ (*  Qed. *)
   (* Lemma separable_metric_continuous (H : metric) (s : separable) (l : has_limit H) U x : open U ->  U x -> ^M {m | is_subset (ball H x m) U  }. *)
   (* Proof. *)
   (*   intros. *)
