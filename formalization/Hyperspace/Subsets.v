@@ -1273,8 +1273,43 @@ Axiom baire_choice :
   Qed.
 
   Lemma enumerable_list {A}  : enumerable A -> enumerable (list A).
-  Admitted.
-
+  Proof.
+   intros.
+   enough (forall n, {f : nat -> list A & ( forall l, length l = n -> {m | f m = l})}).
+   {
+     destruct (enumerable_pair _ _ enumerable_nat enumerable_nat) as [e E].
+     exists (fun n => (projT1 (X1 (fst (e n)))) (snd (e n))).
+     intros.
+     destruct (X1 (length x)) eqn:Ex.
+     destruct (s x);auto.
+     destruct (E (length x, x1)).
+     exists x2.
+     rewrite e1;simpl.
+     rewrite Ex.
+     simpl;auto.
+   }
+   intros.
+   induction n.
+   exists (fun n => []).
+   intros.
+   exists 0%nat;auto.
+   rewrite length_zero_iff_nil in H.
+   rewrite H;auto.
+   
+   destruct (enumerable_pair _ _ enumerable_nat X0) as [f F].
+   destruct IHn.
+   exists (fun n => cons (snd (f n)) (x (fst (f n)))).
+   intros.
+   destruct l;simpl in H; try lia.
+   injection H.
+   intros H'.
+   destruct (s _ H').
+   destruct (F (x0, a)).
+   exists x1.
+   rewrite e0.
+   simpl.
+   rewrite e;auto.
+ Qed.
   Definition baire_base l := fun n => nth n l (last l 0%nat).
 
   Lemma enumerate_baire_open (P : (nat -> nat) -> sierp) : ^M {s' : nat -> option (list nat) |  (forall n, forall l, s' n = Some l -> sierp_up (P (baire_base l))) /\ (forall l, sierp_up (P (baire_base l)) -> exists n, s' n = Some l)}.
