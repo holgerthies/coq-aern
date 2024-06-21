@@ -1131,8 +1131,56 @@ Axiom baire_choice :
         apply H;lia.
   Qed.
   Lemma baire_continuity (f : (nat->nat) -> nat -> nat) : ^M ( forall x n,  {m |forall y, (forall i, (i < m)%nat -> x i = y i) -> (forall i, (i < n)%nat -> f x i = f y i)}).
-  Admitted.
-
+   Proof.
+     assert (forall n m, {fn : (nat -> nat) -> sierp | forall x, sierp_up (fn x) <-> f x n = m}).
+     {
+         intros.
+         enough (forall x, {s : sierp | sierp_up s <-> f x n = m}) as H. (exists (fun x => (pr1 _ _ (H x))); intros x; destruct (H x);auto).
+         intros.
+         apply sierp_from_semidec.
+         unfold lazy_bool_up.
+         destruct (f x n =? m) eqn:E.
+         exists lazy_bool_true;rewrite <-Nat.eqb_eq;split;auto.
+         exists lazy_bool_false.
+         split;intros.
+         contradict H;apply lazy_bool_distinct.
+         rewrite Nat.eqb_neq in E;lia.
+     }
+     assert (forall x,  ^M (forall n, {k : nat | forall y, (forall i : nat, (i < k)%nat -> x i = y i) -> (forall i, (i < n)%nat ->  f x i = f y i)})).
+     {
+       intros.
+       apply M_countable_lift.
+       intros.
+       induction n.
+       - apply M_unit.
+         exists 0%nat.
+         intros;lia.
+       - revert IHn.
+         apply M_lift_dom.
+         intros [k0 K0].
+         destruct (X0 n (f x n)) as [fn F].
+         assert (sierp_up (fn x)) by (apply F;auto).
+         specialize (continuity fn _ H).
+         apply M_lift.
+         intros [k K].
+         exists (max k k0).
+         intros.
+         assert (i < n \/ i = n)%nat by lia.
+         destruct H2.
+         apply K0;intros;auto.
+         apply H0;lia.
+         rewrite H2.
+         apply eq_sym.
+         apply F.
+         apply K;auto.
+         intros.
+         apply H0;lia.
+      }
+      specialize (baire_choice _ X1).
+      apply M_lift.
+      intros [X2 _].
+      apply X2.
+   Qed.
   (* Lemma partial_baire_continuity P t : (forall (x : (nat -> nat)), sierp_up (t x) -> ^M {m : nat | P m x}) -> ^M {f: {x | sierp_up (t x)} -> nat | forall x, P (f x) (pr1 _ _ x) /\ forall y, (forall i, (i < (f x))%nat -> (pr1 _ _ x i) = (pr1 _ _ y i)) -> f x = f y}. *)
   (* Proof. *)
   (*   intros. *)
