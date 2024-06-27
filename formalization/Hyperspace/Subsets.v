@@ -2400,7 +2400,12 @@ Axiom baire_choice :
      rewrite H2;simpl;auto.
   Qed.
 
-  Lemma compact_totally_bounded (H: metric) (s : separable) (l : has_limit H) U :  compact U -> overt U -> ^M (totally_bounded' H U).
+  Lemma intersects_sym (A : (@csubset X)) B : intersects A B <-> intersects B A.
+  Proof.
+    split; intros [x [H1 H2]];exists x;split;auto.
+  Qed.
+
+  Lemma compact_overt_totally_bounded (H: metric) (s : separable) (l : has_limit H) U :  compact U -> overt U -> ^M (totally_bounded' H U).
   Proof.
     intros.
     destruct (compact_overt_empty_dec _ X0 X1).
@@ -2410,12 +2415,57 @@ Axiom baire_choice :
 
       assert (^M {f : nat -> X |  (forall m, intersects (ball H (f m) n) U) /\ is_subset U (countable_union (fun m => (ball H (f m) n)))}).
       {
-        enough (^M {g : nat -> ^K | forall n, g n = lazy_bool_true <-> intersects (ball H (D s n) n) U}).
-        revert X2.
-        apply M_lift_dom.
-        intros [g G].
-        apply 
+        enough ({g : nat -> ^K | forall m, g m = lazy_bool_true <-> intersects (ball H (D s m) n) U}) as [g G].
+        assert (exists n, g n = lazy_bool_true).
+        {
+          destruct e.
+          apply M_hprop_elim;[intros a b; apply irrl|].
+          specialize (separable_metric_approx H s x n).
+          apply M_lift.
+          intros [m M].
+          exists m.
+          apply G.
+          exists x.
+          split;auto.
+          unfold ball; rewrite d_sym;auto.
+        }
+        specialize (multivalued_countable_choice_sequence g H0).
+        apply M_lift.
+        intros [f [F1 F2]].
+        exists (fun n => D s (f n)).
+        split.
+        intros.
+        apply G;auto.
+        intros x Ux.
+        apply M_hprop_elim;[intros a b; apply irrl|].
+        specialize (separable_metric_approx H s x n).
+        apply M_lift.
+        intros [m M].
+        assert (g m = lazy_bool_true).
+        {
+          apply G.
+          exists x.
+          split;auto.
+          unfold ball;rewrite d_sym;auto.
+        }
+        destruct (F2 _ H1).
+        exists x0.
+        rewrite H2.
+        unfold ball; rewrite d_sym;auto.
+        enough (forall m, {k | k = lazy_bool_true <-> intersects (ball H (D s m) n) U}).
+        exists (fun m => pr1 _ _ (X2 m)); intros; destruct (X2 m);auto.
+        intros.
+        destruct (X1 (ball H (D s m) n)).
+        apply metric_open.
+        unfold sierp_up in i.
+        destruct x; simpl in *.
+        exists x.
+        rewrite i.
+        rewrite intersects_sym;split;auto.
       }
+      revert X2.
+      apply M_lift_dom.
+      intros [f [F1 F2]].
       pose proof (compact_fin_cover U).
       assert (forall m, open (ball H (f m) n)) by (intros; apply metric_open).
       specialize (compact_fin_cover U _ X0 X3 F2).
@@ -2443,7 +2493,7 @@ Axiom baire_choice :
       intros.
       contradict n.
       exists x;auto.
-  Admitted.
+  Qed.
   (* Lemma cont (f : (nat -> nat) -> nat) (x : nat -> nat):  {m | forall y, (forall n, (n < m)%nat -> y n = x n) -> f x = f y}. *)
   (* Admitted. *)
 
