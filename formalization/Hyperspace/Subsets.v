@@ -1542,9 +1542,10 @@ Axiom baire_choice :
     rewrite nth_middle;auto.
   Qed.
 
-  Lemma initial_sequence_close H s x x' n : metric_is_fast_limit H (fun i => (D s (x i))) x' -> metric_is_fast_limit H (fun i => (D s (baire_base (pr1 _ _ (initial_sequence x (S n))) i))) (D s (x n)).
-  Proof.
-  Admitted.
+
+  (* Lemma initial_sequence_close H s x x' n : metric_is_fast_limit H (fun i => (D s (x i))) x' -> metric_is_fast_limit H (fun i => (D s (baire_base (pr1 _ _ (initial_sequence x (S n))) i))) (D s (x n)). *)
+  (* Proof. *)
+  (* Admitted. *)
  (*  Lemma baire_continuous_modulus (P : (nat -> nat) -> sierp) : ^M {m : {x | sierp_up (P x)} -> nat | (forall x y, (forall n, (n < m x)%nat -> pr1 _ _ x n = y n) ->  (sierp_up (P y)))  /\ forall x, exists y, (exists M, forall i,  (i >= M)%nat -> pr1 _ _ y i = 0%nat) /\  m y = m x}.  *)
  (*  Proof. *)
  (*    pose proof (continuity P). *)
@@ -2309,9 +2310,103 @@ Axiom baire_choice :
     rewrite <-prec_twice.
     apply real_lt_lt_plus_lt;auto.
   Qed.
-    
- 
+  Definition totally_bounded (H : metric) (U : (@csubset X)) := forall n, {L : list X | (forall x, In x L -> U x) /\ 
+                forall x,  U x ->  Exists  (ball H x n) L}.
 
+  Definition totally_bounded' (H : metric) (U : (@csubset X)) := forall n, {L : list X | (forall x, In x L -> intersects (ball H x n) U) /\ forall x,  U x ->  Exists  (ball H x n) L}.
+  Definition complete (H : metric) (U : (@csubset X)) := forall f, (forall n, U (f n)) ->  (metric_is_fast_cauchy H f)  -> {x | metric_is_fast_limit H f x /\ U x}.
+  Lemma d_sym H : forall x y, d_X H x y = d_X H y x.
+  Proof.
+    destruct H as [d [D1 [D2 D3]]];auto.
+  Qed.
+
+  Lemma closed_complete (H : metric) (s : separable) (l : has_limit H) U  : closed U -> complete H U.
+  Proof.
+     unfold complete.
+     intros.
+     destruct (l f);auto.
+     exists x.
+     split;auto.
+     unfold closed in X0.
+     destruct (lem (U x));auto.
+     apply M_hprop_elim;[intros a b;apply irrl|].
+     specialize (separable_metric_continuous H s l _ _ X0 H2).
+     apply M_lift.
+     intros [k Pk].
+     enough (complement U (f (k+1)%nat)) by (specialize (H0 (k+1)%nat);contradict H0;auto).
+     apply Pk.
+     unfold ball.
+     rewrite d_sym.
+     apply (real_le_lt_lt _ _ _ (m _)).
+     apply prec_monotone;lia.
+  Qed.
+
+  Lemma first_n {A} (f : nat -> A) n : {l | forall x, In x l <-> exists m, (m < n)%nat /\ x = f m}.
+  Admitted. 
+  Lemma compact_empty_semidec (U : (@csubset X)) : compact U -> semidec (forall x, (not (U x))).
+  Proof.
+    intros.
+    destruct (X0 _ open_emptyset).
+    destruct x;unfold lazy_bool_up, sierp_up in *;simpl in *.
+    exists x; rewrite i;split;unfold is_subset.
+    intros H x0 Hx0.
+    apply (H x0);auto.
+    intros.
+    contradict H0.
+    apply H.
+  Qed.
+
+
+  Lemma compact_overt_empty_dec (U : (@csubset X)) : compact U -> overt U -> dec (exists x, (U x)).
+  Proof.
+    intros.
+    apply semidec_dec.
+    apply overt_nonempty_semidec;auto.
+    rewrite classical_tautology_neg_some.
+    apply compact_empty_semidec;auto.
+  Qed.
+
+  Lemma compact_totally_bounded (H: metric) (s : separable) (l : has_limit H) U :  compact U -> overt U -> ^M (totally_bounded' H U).
+  Proof.
+    intros.
+    destruct (compact_overt_empty_dec _ X0 X1).
+    - unfold totally_bounded'.
+      apply M_countable_lift.
+      intros.
+
+      assert {f : nat -> X |  (forall m, intersects (ball H (f m) n) U) /\ is_subset U (countable_union (fun m => (ball H (f m) n)))} as [f [F1 F2]].
+      {
+        admit.
+
+      }
+      pose proof (compact_fin_cover U).
+      assert (forall m, open (ball H (f m) n)) by (intros; apply metric_open).
+      specialize (compact_fin_cover U _ X0 X3 F2).
+      apply M_lift.
+      intros [m Pm].
+      destruct (first_n f m) as [L PL].
+      exists L.
+      split.
+      intros.
+      destruct ((proj1 (PL x))  H0) as [k [K1 ->]].
+      apply F1.
+      intros.
+      destruct (Pm _ H0) as [k [K1 K2]].
+      apply Exists_exists.
+      exists (f k).
+      split;[apply PL; exists k;split |];auto.
+      unfold ball.
+      rewrite d_sym.
+      apply K2.
+   -  apply M_unit.
+      intros m.
+      exists [].
+      split.
+      intros;contradict H0;auto.
+      intros.
+      contradict n.
+      exists x;auto.
+  Admitted.
   (* Lemma cont (f : (nat -> nat) -> nat) (x : nat -> nat):  {m | forall y, (forall n, (n < m)%nat -> y n = x n) -> f x = f y}. *)
   (* Admitted. *)
 
