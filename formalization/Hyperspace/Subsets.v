@@ -2366,6 +2366,40 @@ Axiom baire_choice :
     apply compact_empty_semidec;auto.
   Qed.
 
+  Lemma multivalued_countable_choice_sequence (f : nat -> ^K) : (exists n, (f n) = lazy_bool_true) -> ^M {g : nat -> nat | (forall n, (f (g n)) = lazy_bool_true) /\ (forall n, (f n) = lazy_bool_true -> exists m, g m = n)}.
+  Proof.
+    intros.
+    specialize (multivalued_countable_choice f H).
+    apply M_lift_dom.
+    intros [d D].
+    assert (^M (forall n, {f' : nat -> nat | f n = lazy_bool_true <-> exists m, f' m = 1%nat  })).
+    {
+      apply M_countable_lift.
+      intros.
+      apply (kleenean_to_nat_sequence (f n)).
+    }
+    revert X0.
+    apply M_lift.
+    intros.
+    destruct (enumerable_pair _ _ enumerable_nat enumerable_nat).
+    exists (fun n => if (pr1 _ _ (H0 (fst (x n))) (snd (x n))) =? 1%nat then (fst (x n)) else d).
+    split.
+    - intros; destruct (H0 (fst (x n)));simpl in *.
+      destruct (x0 (snd (x n)) =? 1)%nat eqn:E;auto.
+      apply Nat.eqb_eq in E.
+      apply i.
+      exists (snd (x n));auto.
+   - intros.
+     destruct (H0 n) eqn:E;simpl in *.
+     destruct (proj1 i);auto. 
+     destruct (s (n, x1)).
+     exists x2.
+     rewrite e;simpl.
+     rewrite E;simpl.
+     apply Nat.eqb_eq in H2.
+     rewrite H2;simpl;auto.
+  Qed.
+
   Lemma compact_totally_bounded (H: metric) (s : separable) (l : has_limit H) U :  compact U -> overt U -> ^M (totally_bounded' H U).
   Proof.
     intros.
@@ -2374,10 +2408,13 @@ Axiom baire_choice :
       apply M_countable_lift.
       intros.
 
-      assert {f : nat -> X |  (forall m, intersects (ball H (f m) n) U) /\ is_subset U (countable_union (fun m => (ball H (f m) n)))} as [f [F1 F2]].
+      assert (^M {f : nat -> X |  (forall m, intersects (ball H (f m) n) U) /\ is_subset U (countable_union (fun m => (ball H (f m) n)))}).
       {
-        admit.
-
+        enough (^M {g : nat -> ^K | forall n, g n = lazy_bool_true <-> intersects (ball H (D s n) n) U}).
+        revert X2.
+        apply M_lift_dom.
+        intros [g G].
+        apply 
       }
       pose proof (compact_fin_cover U).
       assert (forall m, open (ball H (f m) n)) by (intros; apply metric_open).
