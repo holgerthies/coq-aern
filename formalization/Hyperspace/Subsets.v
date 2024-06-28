@@ -2342,7 +2342,39 @@ Axiom baire_choice :
   Qed.
 
   Lemma first_n {A} (f : nat -> A) n : {l | forall x, In x l <-> exists m, (m < n)%nat /\ x = f m}.
-  Admitted. 
+  Proof.
+    induction n.
+    exists [].
+    simpl;split;intros.
+    contradict H.
+    destruct H;lia.
+    destruct IHn.
+    exists (x ++ [f n]).
+    intros.
+    split.
+    intros.
+    apply in_app_or in H.
+    destruct H.
+    destruct (i x0).
+    destruct (H0 H) as [x1 [H21 H22]].
+    exists x1;split;try lia;auto.
+    destruct H;[|contradict H].
+    exists n.
+    split;try lia;auto.
+    intros [m [H1 H2]].
+    apply in_or_app.
+    rewrite Nat.lt_succ_r in H1.
+    apply Lt.le_lt_or_eq_stt in H1.
+    destruct H1.
+    left.
+    rewrite H2.
+    apply i.
+    exists m;split;auto.
+    right.
+    rewrite H2.
+    rewrite H.
+    left;auto.
+  Qed.
   Lemma compact_empty_semidec (U : (@csubset X)) : compact U -> semidec (forall x, (not (U x))).
   Proof.
     intros.
