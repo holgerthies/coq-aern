@@ -128,6 +128,7 @@ End Power.
 Section Polynomials.
   
   Definition poly := list ^Real.
+  
 
   Fixpoint eval_poly (a : poly) (x : Real) :=
     match a with
@@ -658,7 +659,7 @@ Section Derivative.
 
  Lemma poly_deriv_exists (p : poly) : {p' : poly | length p' = (length p - 1)%nat /\ forall n,  nth n p' real_0 = Nreal (S n) * nth (S n) p real_0 }.
  Proof.
-   induction p using poly_rev_ind;[exists [];split;auto; intros;rewrite nth_overflow;simpl;[ring | lia]|].
+ induction p using poly_rev_ind;[exists [];split;auto; intros;rewrite nth_overflow;simpl;[ring | lia]|].
    destruct p.
    - exists [].
      split; auto.
@@ -679,6 +680,8 @@ Section Derivative.
       simpl.
       rewrite !nth_overflow; try ring; rewrite app_length;simpl; lia.
  Qed.
+
+ 
 
  Definition derive_poly p := (pr1 _ _ (poly_deriv_exists p)).
  Lemma derive_poly_app p a : forall x, eval_poly (derive_poly (p ++ [a])) x  = eval_poly (derive_poly p) x + eval_poly (projT1 (derive_monomial a (length p))) x.

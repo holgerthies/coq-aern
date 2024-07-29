@@ -1357,7 +1357,11 @@ End IVP.
 
 
 Section Examples.
+
+(* y'(t) = 1; y(0)=1 *)
 Definition exp_example steps := pr1 _ _ (solve_ivp [0;1] 1 steps).
+
+(* y'(t) = y(t)^2+1; y(0)=0 *)
 Definition tan_example steps := pr1 _ _ (solve_ivp [1;0;1] 0 steps).
 
 End Examples.
