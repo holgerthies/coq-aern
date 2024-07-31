@@ -2651,32 +2651,7 @@ Axiom baire_choice :
   Definition closure H A := fun x => A x \/ exists (f : nat -> X), metric_is_fast_limit H f x /\ forall n, A (f n).
   Definition cball H x n y := d_X H x y <= prec n.
 
-  Lemma closure_ball H x n : closure H (ball H x n) = cball H x n.
-  Proof.
-    apply fun_ext.
-    intros.
-    apply Prop_ext;intros.
-    - destruct H0; [apply real_lt_le;auto|].
-      destruct H0 as [f [F1 F2]].
-      unfold cball.
-      destruct (real_total_order (d_X H x x0) (prec n)) as [t | [t | t]]; [apply real_lt_le| apply real_eq_le |];auto.
-      contradict F2.
-      apply Classical_Pred_Type.ex_not_not_all.
-  Admitted.
 
-  Lemma closure_union H A B : closure H (union A B) =  union (closure H A) (closure H B).
-  Proof.
-    apply fun_ext;intros.
-    unfold closure, union.
-    apply Prop_ext;intros.
-    destruct H0;destruct H0;auto.
-    destruct H0.
- Admitted.
-
-  Lemma closed_ball_compact H x n : compact (cball H x n).
-  Proof.
-    unfold compact.
-  Admitted.
   Definition totally_bounded_cball (H : metric) (U : (@csubset X)) := forall n, {L : list X | (forall x, In x L -> intersects (cball H x n) U) /\ forall x,  U x ->  Exists  (cball H x n) L}.
 
   Lemma totally_bounded_whichever1 H U : totally_bounded H U -> totally_bounded_cball H U. 
@@ -2817,42 +2792,6 @@ Axiom baire_choice :
     rewrite D2;auto.
   Qed.
 
-  Lemma bishop_compact_compact H A : totally_bounded H A -> complete H A -> compact A.
-  Proof.
-    intros.
-    apply totally_bounded_whichever1 in X0.
-    rewrite (totally_bounded_id_intersection H A X0 X1).
-    apply is_compact_countable_intersection;auto.
-    apply metric_space_ineq_semidec;apply H.
-    intros n.
-    unfold nth_cover.
-    destruct (X0 n).
-    clear dependent A.
-    induction x.
-    - intros U Uo.
-      apply sierp_from_semidec.
-      exists lazy_bool_true.
-      split;intros;unfold lazy_bool_up;auto.
-      intros x Hx.
-      destruct Hx.
-      destruct H1.
-      contradict H1.
-    - replace (fun x0 => exists c, In c (a :: x) /\ cball H c n x0) with (union (cball H a n) (fun x0 => exists c, In c x /\ cball H c n x0)).
-     apply is_compact_union.
-     apply closed_ball_compact.
-     apply IHx.
-     apply fun_ext;intros;apply Prop_ext.
-     + intros [].
-       exists a;simpl;split;auto.
-       destruct H0.
-       destruct H0.
-       exists x1;simpl;split;auto.
-    + intros [c [H1 H2]].
-      destruct H1.
-      left.
-      rewrite H0;auto.
-      right;exists c;auto.
-   Qed.
 
   Definition dist H (A : csubset) (x : X) r :=  (forall y, A y -> d_X H x y >= r) /\ forall s, (forall y, A y -> d_X H x y >= s) -> s <= r.
   Lemma dist_unique H A x r1 r2 :  (dist H A x r1 -> dist H A x r2 -> r1 = r2).
@@ -3473,7 +3412,236 @@ Axiom baire_choice :
     destruct (X0 n) as [l [L1 L2]].
     apply list_ball_dist_approx.
  Qed.
+  Lemma located_dist_fun H A : located H A -> {f | forall x, exists r, dist H A x r /\ (f x) = r}.
+  Proof.
+    intros.
+    exists (fun x=> pr1 _ _ (X0 x)).
+    intros.
+    destruct (X0 x);simpl;auto.
+    exists x0;auto.
+  Qed.
+  Lemma choice_constr (T T' : Type) P : (forall (n :T'), {x : T | P x }) -> {f : T' -> T | forall n, P (f n)}.
+  Proof.
+    intros.
+    exists (fun x => pr1 _ _ (X0 x)).
+    intros.
+    destruct (X0 n);simpl;auto.
+  Qed.
 
+  Lemma located_nonempty H (s : separable) A  : located H A -> exists x, A x.
+  Proof.
+    intros.
+    specialize (X0 (D s 0)).
+    destruct X0.
+    apply dist_bounded_exists_gt in d.
+    destruct d as [y []];auto.
+    exists y;auto.
+  Qed.
+  Lemma dist_zero H x : d_X H x x = real_0.
+  Proof.
+    destruct H as [d [D1 D2]];simpl.
+    apply D1;auto.
+  Qed.
+
+  Lemma prec_monotone_eq n m : (m <= n)%nat -> prec n <= prec m.
+  Proof.
+    intros.
+    apply Lt.le_lt_or_eq_stt in H.
+    destruct H.
+    apply real_lt_le.
+    apply prec_monotone;auto.
+    rewrite H.
+    apply real_le_triv.
+  Qed.
+
+  Lemma located_refinement H (s : separable) (l : has_limit H)  A c0 n0: complete H A -> located H A -> (exists r, dist H A c0 r /\ r < prec (S (S n0))%nat) -> ^M {x | A x /\ d_X H c0 x <= prec n0}.
+  Proof.
+    intros.
+    destruct (located_dist_fun _ _ X1) as [d Hd].
+    assert (d c0 < prec (S (S n0))) as Hdc0.
+    {
+      destruct H0 as [r [R1 R2]].
+      destruct (Hd c0) as [_ [R <-]].
+      replace (d c0) with r;auto.
+      apply (dist_unique _ _ _ _ _ R1 R).
+    }
+    enough (^M {f : nat -> X | metric_is_fast_cauchy H f /\ (forall n, d (f n) <= prec n) /\ (forall m, (m <= n0)%nat -> f m = c0)}).
+    {
+      revert X2.
+      apply M_lift.
+      intros [f [F1 [F2 F3]]].
+      destruct (l _ F1).
+      exists x.
+      split.
+      apply (dist_bounded_complete_contained H);auto.
+      split.
+      intros.
+      apply d_nonneg.
+      intros.
+      apply lim_le_le.
+      intros.
+      replace (0+prec n) with (prec n) by ((replace 0 with real_0 by auto);ring).
+      destruct (Hd (f (n+2)%nat)) as [d0 [D0 <-]].
+      destruct (dist_bounded_exists_lt _ _ _ _ D0 (n+2)%nat) as [y [Hy1 Hy2]].
+      apply (real_le_lt_lt _ _ _ (H1 _ Hy1)).
+      apply (real_le_lt_lt  _ _ _ (dx_triangle _ _ _ (f (n+2)%nat))).
+      rewrite <-prec_twice.
+      apply (real_lt_lt_plus_lt).
+      rewrite d_sym.
+      apply (real_le_lt_lt _ _ _ (m _)).
+      apply prec_monotone;lia.
+      rewrite d_sym.
+      apply (real_lt_le_lt _ _ _ Hy2).
+      rewrite <-(prec_twice (n+1)).
+      replace (n+1+1)%nat with (n+2)%nat by lia.
+      apply (real_le_le_plus_le).
+      apply F2.
+      apply real_le_triv.
+      replace c0 with (f n0) by (apply F3;lia).
+      apply m.
+    }
+    
+    enough (^M {x0 | d x0 < prec 0 /\ ((0 <= (S (S n0)))%nat -> x0 = c0)} * forall n (x : {y | d y < prec n /\ ((n <= (S (S n0)))%nat -> y = c0)}),  ^M {y : {y | d y < prec (S n)%nat /\ (((S n) <= (S (S  n0)))%nat -> y = c0)} | d_X H (pr1 _ _ x) (pr1 _ _ y) < real_2*(prec n)%nat }).
+    {
+      destruct X2.
+      pose proof M_paths.
+      pose proof (M_paths _ _ m m0).
+      revert X3.
+      apply M_lift.
+      intros [f Hf].
+      exists (fun x => pr1 _ _ (f (S (S x)))).
+      split.
+      apply fast_cauchy_neighbor.
+      intros.
+      specialize (Hf (S (S n))).
+      apply real_lt_le.
+      replace (prec (S n)) with (real_2 * (prec (S (S n)))).
+      apply Hf.
+      rewrite <-(prec_twice (S n)).
+      replace (S n +1)%nat with (S (S n)) by lia.
+      unfold real_2;ring.
+      split.
+      intros.
+      destruct (f ((S  (S n)))).
+      destruct a;simpl.
+      apply real_lt_le;apply (real_lt_lt_lt _ _ _ r).
+      apply prec_monotone;lia.
+      intros.
+      destruct (f (S (S m1)));simpl.
+      destruct a.
+      apply H3.
+      lia.
+    }
+    split.
+    - apply M_unit.
+      exists c0.
+      split;intros;auto.
+      apply (real_lt_lt_lt _ _ _ Hdc0).
+      apply prec_monotone;lia.
+   - intros.
+     destruct x;simpl pr1.
+     enough (^M {y : X | (d y < (prec (S n)) /\ ((S n <= (S (S n0)))%nat -> y =c0)) /\  d_X H x y < real_2*prec n}) by (revert X2;apply M_lift; intros [y [Y1 Y2]];exists (exist _ y Y1);simpl;auto).
+     destruct (le_gt_dec (S n) (S (S n0))).
+     apply M_unit.
+     exists c0.
+     split.
+     split;intros;auto.
+     apply (real_lt_le_lt _ _ _ Hdc0).
+     apply prec_monotone_eq;lia.
+     destruct a.
+     rewrite H2; try lia.
+     rewrite dist_zero.
+     replace real_0 with (real_2 * real_0) by ring.
+     apply real_lt_mult_pos_lt.
+     apply real_lt_0_2.
+     apply prec_pos.
+
+     enough (^M {y : X | d y < prec (S n) /\  d_X H x y < real_2*prec n}).
+     revert X2;apply M_lift; intros [y [Y1 Y2]];exists y;simpl;auto;split;auto;split;auto;lia.
+     apply (separable_open_choice s).
+     apply open_intersection;apply semidec_open;intros;apply real_lt_semidec.
+     destruct (Hd x) as [_ [R <-]].
+     pose proof (dist_bounded_exists_lt _ _ _ _ R n).
+     destruct H1 as [y [Y1 Y2]].
+     exists y.
+     split.
+     destruct (Hd y) as [_ [Ry <-]].
+     destruct Ry.
+     apply (real_le_lt_lt _ _ _ (H1 _ Y1)).
+     rewrite dist_zero.
+     apply prec_pos.
+     rewrite d_sym.
+     apply (real_lt_le_lt _ _ _ Y2).
+     replace (real_2 * prec n) with (prec n + prec n) by (unfold real_2;ring).
+     apply (real_le_le_plus_le);[apply real_lt_le|apply real_le_triv];auto.
+     apply a.
+  Qed.
+
+  Lemma located_choice H (s : separable) (l : has_limit H)  A : complete H A -> located H A -> ^M {x | A x}.
+  Proof.
+    intros.
+    destruct (located_dist_fun _ _ X1) as [d Hd].
+    enough (^M {x0 | d x0 < prec 2}).
+    {
+      revert X2.
+      apply M_lift_dom.
+      intros [c0 Hc0].
+      assert (exists r, dist H A c0 r /\ r < prec 2).
+      {
+        exists (d c0);split;auto.
+        destruct (Hd c0) as [_ [R <-]];auto.
+      }
+      specialize (located_refinement H s l A c0 0%nat X0 X1 H0).
+      apply M_lift.
+      intros [x [Hx _]].
+      exists x;auto.
+    }
+    apply (separable_open_choice s).
+    apply semidec_open.
+    intros.
+    apply real_lt_semidec.
+    destruct (located_nonempty _ s _ X1).
+    exists x.
+    destruct (Hd x) as [r [[R1 R2] <-]].
+    apply (real_le_lt_lt _ _ _ (R1 _ H0)).
+    rewrite dist_zero;apply prec_pos.
+  Qed.
+  Lemma bishop_compact_compact H A : totally_bounded H A -> complete H A -> compact A.
+  Proof.
+    intros.
+    apply totally_bounded_whichever1 in X0.
+    rewrite (totally_bounded_id_intersection H A X0 X1).
+    apply is_compact_countable_intersection;auto.
+    apply metric_space_ineq_semidec;apply H.
+    intros n.
+    unfold nth_cover.
+    destruct (X0 n).
+    clear dependent A.
+    induction x.
+    - intros U Uo.
+      apply sierp_from_semidec.
+      exists lazy_bool_true.
+      split;intros;unfold lazy_bool_up;auto.
+      intros x Hx.
+      destruct Hx.
+      destruct H1.
+      contradict H1.
+    - replace (fun x0 => exists c, In c (a :: x) /\ cball H c n x0) with (union (cball H a n) (fun x0 => exists c, In c x /\ cball H c n x0)).
+     apply is_compact_union.
+     apply closed_ball_compact.
+     apply IHx.
+     apply fun_ext;intros;apply Prop_ext.
+     + intros [].
+       exists a;simpl;split;auto.
+       destruct H0.
+       destruct H0.
+       exists x1;simpl;split;auto.
+    + intros [c [H1 H2]].
+      destruct H1.
+      left.
+      rewrite H0;auto.
+      right;exists c;auto.
+   Qed.
   Lemma bishop_compact_overt H (s : separable) (l : has_limit H) A : totally_bounded H A -> complete H A -> overt A.
   Proof.
     intros.
@@ -3575,6 +3743,28 @@ Axiom baire_choice :
     apply (real_le_lt_lt _ (d_X H c a));auto.
     apply H0;auto.
   Qed.
+
+  Definition M_test H A := forall x n, ^M ({exists r', r' < real_2*prec n /\ dist H A x r'} + {exists r', r' >  prec n /\ dist H A x r'}).
+
+  Lemma M_test_nonempty H (s : separable) A  : M_test H A -> exists x, A x.
+  Proof.
+    intros.
+    specialize (X0 (D s 0) 0%nat).
+    apply M_hprop_elim.
+    intros a b; apply irrl.
+    revert X0.
+    apply M_lift.
+    intros [];destruct e;destruct H0;destruct (dist_bounded_exists_gt _ _ _ _ H1);exists x0;apply H2.
+  Qed.
+
+  Lemma M_test_totally_bounded H A (s : separable): M_test H A -> totally_bounded H A. 
+  Proof.
+    intros H' x.
+    apply real_mslimit_P.
+    apply classical_dist_exists.
+    apply (M_test_nonempty H s);auto.
+    intros.
+    assert ()
   (* Admitted. *)
 
   (* Lemma test : (0 = 1)%nat. *)
