@@ -3606,6 +3606,98 @@ Axiom baire_choice :
     apply (real_le_lt_lt _ _ _ (R1 _ H0)).
     rewrite dist_zero;apply prec_pos.
   Qed.
+  Definition totally_bounded_strong (H : metric) (U : (@csubset X)) := forall n, {L : list X | (forall x, In x L -> U x) /\ forall x,  U x ->  Exists  (ball H x n) L}.
+
+  Definition bishop_compact_centered H (s : separable) (lm : has_limit H) A : totally_bounded H A -> complete H A -> ^M (totally_bounded_strong H A).
+  Proof.
+    
+    intros.
+    apply M_countable_lift.
+    intros.
+    enough (forall l,  ((forall x, In x l -> intersects (ball H x (n+3)) A)) -> ^M {l' | (forall x, In x l' -> A x) /\ is_subset (fun x => Exists (ball H x (n+3)) l) (fun x => Exists (ball H x n) l') }) . 
+    {
+      destruct (X0 (n+3)%nat) as [l [L1 L2]].
+      specialize (X2 _ L1).
+      revert X2.
+      apply M_lift.
+      intros [l' [L1' L2']].
+      exists l'.
+      split;auto.
+    }
+    intros.
+    induction l.
+    apply M_unit.
+    exists [].
+    split;intros;simpl.
+    contradict H1;auto.
+    intros x0 Hx0.
+    apply Exists_nil in Hx0.
+    contradict Hx0.
+
+    assert (forall x, In x l -> intersects (ball H x (n+3)%nat) A).
+    {
+      intros.
+      apply H0.
+      right;auto.
+    }
+    specialize (IHl H1).
+    revert IHl.
+    apply M_lift_dom.
+    intros [l' L'].
+    assert (exists x, A x).
+    destruct  (H0 a);[left;auto|];destruct H2; exists x;auto.
+    pose proof (totally_bounded_located H A H2 X0).
+    assert (exists r, dist H A a r /\ r < prec (S (S (S n)))).
+    {
+      destruct (X2 a).
+      exists x.
+      split;auto.
+      destruct d.
+      destruct (H0 a); [left;auto|].
+      destruct H5.
+      apply (real_le_lt_lt _ (d_X H a x0)).
+      apply H3;auto.
+      replace (S (S (S n))) with (n+3)%nat by lia.
+      apply H5.
+    }
+    specialize (located_refinement H s lm A a _ X1 X2 H3).
+    apply M_lift.
+    intros [a0 [Ha1 Ha2]].
+    exists  (a0 :: l').
+    split.
+    - intros.
+      destruct H4.
+      rewrite <-H4;auto.
+      apply L';auto.
+    - replace (fun x => Exists (ball H x (n+3)) (a :: l)) with (union (fun x => ball H x (n+3) a) (fun x => (Exists (ball H x (n+3)%nat) l) )).
+      + apply union_subset.
+        split.
+        intros x0 Hx0.
+        apply Exists_exists.
+        exists a0.
+        split;[try  left|];auto.
+        unfold ball.
+        apply (real_le_lt_lt _ _ _ (dx_triangle H _ _ a)).
+        rewrite <- prec_twice.
+        rewrite real_plus_comm.
+        apply (real_le_lt_plus_lt).
+        replace (n+1)%nat with (S n) by lia.
+        apply Ha2.
+        apply (real_lt_lt_lt _ _ _ Hx0).
+        apply prec_monotone;lia.
+        intros x0 Hx0.
+        apply Exists_cons_tl.
+        apply L';auto.
+     + apply fun_ext; intros.
+       apply Prop_ext;intros.
+       destruct H4.
+       apply Exists_cons_hd;auto.
+       apply Exists_cons_tl;auto.
+       apply Exists_cons in H4.
+       destruct H4.
+       left;auto.
+       right;auto.
+  Qed.
   Lemma bishop_compact_compact H A : totally_bounded H A -> complete H A -> compact A.
   Proof.
     intros.
