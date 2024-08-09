@@ -42,16 +42,16 @@ Hyperspace/Subsets.v
 # Hyperspace/EuclideanSubsets.v
 
 # classical analysis
-Classical/Partiality.v
-Classical/PartialReals.v
-Classical/Continuity.v
-Classical/ContinuousPartialRealFunctions.v
-Classical/Topology.v
-Classical/Analysis.v
-Classical/Differentiability.v
-Classical/Subsets.v
+# Classical/Partiality.v
+# Classical/PartialReals.v
+# Classical/Continuity.v
+# Classical/ContinuousPartialRealFunctions.v
+# Classical/Topology.v
+# Classical/Analysis.v
+# Classical/Differentiability.v
+# Classical/Subsets.v
 
-Analytic/Poly.v
-Analytic/Taylormodel.v
-Analytic/Powerseries.v
-Analytic/Ode.v
+# Analytic/Poly.v
+# Analytic/Taylormodel.v
+# Analytic/Powerseries.v
+# Analytic/Ode.v

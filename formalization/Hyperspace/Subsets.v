@@ -510,10 +510,6 @@ Section Metric.
     exists (D X0 n);auto.
   Qed.
 
-  Lemma choice_separable : second_countable -> (forall U, open_choice U) -> separable.
-  Proof.
-    intros.
-  Abort.
 
   Definition ball (H: metric) x n := (fun y => (d_X H x y < prec n)) : csubset.
   Lemma metric_open (H : metric) : forall x n, open (ball H x n). 
@@ -2876,9 +2872,21 @@ Axiom baire_choice :
     apply H0;auto.
   Defined.
 
-  Lemma d_nonneg H : forall x y, 0 <= d_X H x y.
-  Admitted.
- 
+  Lemma d_nonneg H : forall x y, real_0 <= d_X H x y .
+  Proof.
+    intros.
+    apply (real_le_mult_pos_cancel real_2).
+    apply real_lt_0_2.
+    replace (real_0 * real_2) with (d_X H x x).
+    replace (d_X H x y * real_2) with (d_X H x y + d_X H x y) by (unfold real_2;ring).
+    apply (real_le_le_le _ _ _ (dx_triangle H _ _ y)).
+    rewrite d_sym.
+    apply real_le_triv.
+    destruct H.
+    destruct a;simpl.
+    replace (real_0 * real_2) with (real_0) by ring.
+    apply i;auto.
+  Qed.
   Lemma classical_dist_exists H A x : (exists y, A y) -> exists! r, dist H A x r.
   Proof.
     intros.
@@ -3607,6 +3615,7 @@ Axiom baire_choice :
     rewrite dist_zero;apply prec_pos.
   Qed.
   Definition totally_bounded_strong (H : metric) (U : (@csubset X)) := forall n, {L : list X | (forall x, In x L -> U x) /\ forall x,  U x ->  Exists  (ball H x n) L}.
+  
 
   Definition bishop_compact_centered H (s : separable) (lm : has_limit H) A : totally_bounded H A -> complete H A -> ^M (totally_bounded_strong H A).
   Proof.
@@ -3698,42 +3707,458 @@ Axiom baire_choice :
        left;auto.
        right;auto.
   Qed.
-  Lemma bishop_compact_compact H A : totally_bounded H A -> complete H A -> compact A.
+  Lemma totally_bounded_strong_impl H A : totally_bounded_strong H A -> totally_bounded H A.
   Proof.
     intros.
-    apply totally_bounded_whichever1 in X0.
-    rewrite (totally_bounded_id_intersection H A X0 X1).
-    apply is_compact_countable_intersection;auto.
-    apply metric_space_ineq_semidec;apply H.
     intros n.
-    unfold nth_cover.
     destruct (X0 n).
-    clear dependent A.
-    induction x.
-    - intros U Uo.
-      apply sierp_from_semidec.
-      exists lazy_bool_true.
-      split;intros;unfold lazy_bool_up;auto.
-      intros x Hx.
-      destruct Hx.
-      destruct H1.
-      contradict H1.
-    - replace (fun x0 => exists c, In c (a :: x) /\ cball H c n x0) with (union (cball H a n) (fun x0 => exists c, In c x /\ cball H c n x0)).
-     apply is_compact_union.
-     apply closed_ball_compact.
-     apply IHx.
-     apply fun_ext;intros;apply Prop_ext.
-     + intros [].
-       exists a;simpl;split;auto.
-       destruct H0.
-       destruct H0.
-       exists x1;simpl;split;auto.
-    + intros [c [H1 H2]].
-      destruct H1.
+    exists x.
+    destruct a.
+    split;auto.
+    intros.
+    exists x0.
+    split;auto.
+    apply ball_contains_center.
+  Qed.
+
+  Lemma close_enough_contained H x c n m : d_X H x c < prec m - prec n -> is_subset (ball H x n) (ball H c m).
+  Proof.
+    intros.
+    intros y By.
+    apply (real_le_lt_lt _ _ _ (dx_triangle H _ _ x)).
+    apply (real_lt_lt_lt _ (d_X H c x + prec n)).
+    add_both_side_by (-d_X H c x);auto.
+    rewrite d_sym.
+    add_both_side_by (-prec n).
+    apply (real_lt_le_lt _ _ _ H0).
+    add_both_side_by (prec n);apply real_le_triv.
+  Qed.
+
+    Lemma separable_metric_nonempty_second_countable (H : metric) (s : separable) (l : has_limit H) U : (exists x, U x) -> open U -> ^M {f : nat -> (nat * nat) | U = countable_union (fun n => ball H (D s (fst (f n))) (snd (f n)))}.
+    Proof.
+      intros.
+    specialize (separable_metric_second_countable H s l _ X0).
+    apply M_lift.
+    intros [f F].
+    assert ({n : nat | exists fn, f n = Some fn }) as [m N].
+    {
+      apply ConstructiveEpsilon.constructive_indefinite_ground_description_nat.
+      - intros.
+        destruct (f n) eqn: Fn.
+        left; exists  p;auto.
+        right.
+        intros H1.
+        destruct H1.
+        discriminate H1.
+      - rewrite F in H0.
+        destruct H0.
+        destruct H0.
+        exists x0.
+        destruct (f x0);auto.
+        exists p;auto.
+        contradict H0.
+    }
+    assert {fm | f m = Some fm } as [fm Fm].
+    { destruct (f m).
+      exists p;auto.
+      exists (0,0)%nat.
+      destruct N.
+      discriminate H1.
+    }
+    exists (fun n => match (f n) with | Some nm => nm | None => fm  end).
+    rewrite F.
+    apply fun_ext; intros; apply Prop_ext;intros.
+    destruct H1.
+    exists x0.
+   destruct (f x0);auto.
+   contradict H1.
+   destruct H1.
+   destruct (f x0) eqn:F0;simpl.
+   exists x0;rewrite F0;auto.
+   exists m.
+   rewrite Fm;auto.
+ Qed.
+
+  Definition countable_union_base H s (b : nat -> (option (nat * nat))) := countable_union (fun n => match (b n) with (Some mn) => (ball H (D s (fst mn)) (snd mn)) | None => (fun _ => False) end).
+
+  Definition finite_union_base H s (b : nat -> (option (nat * nat))) N x := exists n, (n < N)%nat /\ exists mn, (b n) = (Some mn) /\ (ball H (D s (fst mn)) (snd mn) x).  
+
+ (*  Lemma fin_cover_compact (H : metric) (s :separable) (l : has_limit H) (K : (@csubset X)) :  (forall b, is_subset K (countable_union_base H s b) -> (exists m, is_subset K (finite_union_base H s b m)))  -> (forall b m, {s0 : sierp | sierp_up s0 <-> is_subset K (finite_union_base H s b m)})  -> compact K. *)
+ (*  Proof. *)
+ (*    intros. *)
+ (*    intros U Hu. *)
+ (*    apply M_hprop_elim. *)
+ (*    intros a b;destruct a,b;apply sigma_eqP2;apply sierp_id;split;rewrite i0;rewrite i;auto. *)
+ (*    specialize (separable_metric_second_countable H s l _ Hu). *)
+ (*    apply M_lift. *)
+ (*    intros [f F]. *)
+ (*    assert ({f' : nat -> nat*nat | U = countable_union (fun n x => ((snd (f' n)) > 0)%nat /\ (ball H (D s (fst (f' n))) (snd (f' n)) x))}). *)
+ (*    { *)
+
+ (*    }   *)
+ (*    destruct f as [f F0];simpl in *. *)
+ (*    specialize (H0 f F0). *)
+ (*    specialize (X0 f F0). *)
+ (*    remember (fun n => (pr1 _ _ (X0 n))) as g. *)
+ (*    destruct (eventually_true g). *)
+ (*    exists x. *)
+ (*    rewrite i. *)
+ (*    split. *)
+ (*    rewrite Heqg; intros [n N]; destruct (X0 n);simpl in *. *)
+ (*    destruct i0. *)
+ (*    specialize (H1 N). *)
+ (*    intros y Hy. *)
+ (*    destruct (H1 _ Hy). *)
+ (*    rewrite F. *)
+ (*    exists x1;apply H3. *)
+ (*    rewrite F. *)
+ (*    intros HK. *)
+ (*    destruct (H0 HK). *)
+ (*    rewrite Heqg. *)
+ (*    exists x0. *)
+ (*    destruct (X0 x0);simpl. *)
+ (*    apply i0;auto. *)
+ (* Qed. *)
+
+  (* Definition is_base_element (H : metric) (s : separable) (U : (@csubset X))  := {bi : option (nat * nat) | (forall nm, bi = Some nm -> U = ball H (D s (fst nm)) (snd nm)) /\ (bi = None -> U = (fun _ => False))} . *)
+
+  (* Definition is_base_sequence H s (U : nat -> (@csubset X))  := forall n, is_base_element H s (U n). *)
+ (*    Lemma separable_metric_second_countable_base (H : metric) (s : separable) (l : has_limit H) U :  open U -> ^M {fb : {f : nat -> (@csubset X) & (is_base_sequence H s f)} | U = countable_union (projT1 fb)}. *)
+ (*    Proof. *)
+ (*      intros. *)
+ (*      specialize (separable_metric_second_countable H s l _ X0). *)
+ (*      apply M_lift. *)
+ (*      intros [f F]. *)
+ (*      remember  *)
+ (*      (fun n : nat => *)
+ (*         match f n with *)
+ (*         | Some nm => ball H (D s (fst nm)) (snd nm) *)
+ (*         | None => fun _ : X => False *)
+ (*         end) as f0. *)
+ (*      assert (is_base_sequence H s f0). *)
+ (*      rewrite Heqf0. *)
+ (*      intros n;  exists (f n);split;intros. *)
+ (*      destruct (f n);auto. *)
+ (*      injection H0. *)
+ (*      intros. *)
+ (*      rewrite H1;auto. *)
+ (*      discriminate H0. *)
+ (*      rewrite H0;auto. *)
+ (*      exists (existT _ f0 H0). *)
+ (*      simpl;auto. *)
+ (* Qed. *)
+
+  Lemma fin_cover_compact (H : metric) (s :separable) (l : has_limit H) (K : (@csubset X)) : (forall b, is_subset K (countable_union_base H s b) -> (exists N, (is_subset K (finite_union_base H s b N)))) -> (forall b m, {s0 : sierp | sierp_up s0 <-> is_subset K (finite_union_base H s b m)})  -> compact K.
+  Proof.
+    intros.
+    intros U Hu.
+    apply M_hprop_elim.
+    intros a b;destruct a,b;apply sigma_eqP2;apply sierp_id;split;rewrite i0;rewrite i;auto.
+    specialize (separable_metric_second_countable H s l _ Hu).
+    apply M_lift.
+    intros [f F].
+    specialize (H0 f).
+    specialize (X0 f).
+    remember (fun n => (pr1 _ _ (X0 n))) as g.
+    destruct (eventually_true g).
+    exists x.
+    rewrite i.
+    split.
+    rewrite Heqg; intros [n N]; destruct (X0 n);simpl in *.
+    destruct i0.
+    specialize (H1 N).
+    intros y Hy.
+    destruct (H1 _ Hy).
+    rewrite F.
+    destruct H3.
+    destruct H4.
+    destruct H4.
+    exists x1.
+    rewrite H4;auto.
+    rewrite F.
+    intros HK.
+    destruct (H0 HK).
+    rewrite Heqg.
+    exists x0.
+    destruct (X0 x0);simpl.
+    apply i0;auto.
+ Qed.
+ (*  Lemma fin_cover_compact (H : metric) (s :separable) (l : has_limit H) (K : (@csubset X)) : (forall b, is_base_sequence H s b ->  is_subset K (countable_union b) -> (exists m, (forall x, K x -> exists n, (n < m)%nat /\ ((b n) x)))) -> (forall b, is_base_sequence H s b ->  forall m, {s : sierp | sierp_up s <-> (forall x, K x -> exists n, (n < m)%nat /\ ((b n) x))})  -> compact K. *)
+ (*  Proof. *)
+ (*    intros. *)
+ (*    intros U Hu. *)
+ (*    apply M_hprop_elim. *)
+ (*    intros a b;destruct a,b;apply sigma_eqP2;apply sierp_id;split;rewrite i0;rewrite i;auto. *)
+ (*    specialize (separable_metric_second_countable_base H s l _ Hu). *)
+ (*    apply M_lift. *)
+ (*    intros [f F]. *)
+ (*    destruct f as [f F0];simpl in *. *)
+ (*    specialize (H0 f F0). *)
+ (*    specialize (X0 f F0). *)
+ (*    remember (fun n => (pr1 _ _ (X0 n))) as g. *)
+ (*    destruct (eventually_true g). *)
+ (*    exists x. *)
+ (*    rewrite i. *)
+ (*    split. *)
+ (*    rewrite Heqg; intros [n N]; destruct (X0 n);simpl in *. *)
+ (*    destruct i0. *)
+ (*    specialize (H1 N). *)
+ (*    intros y Hy. *)
+ (*    destruct (H1 _ Hy). *)
+ (*    rewrite F. *)
+ (*    exists x1;apply H3. *)
+ (*    rewrite F. *)
+ (*    intros HK. *)
+ (*    destruct (H0 HK). *)
+ (*    rewrite Heqg. *)
+ (*    exists x0. *)
+ (*    destruct (X0 x0);simpl. *)
+ (*    apply i0;auto. *)
+ (* Qed. *)
+  
+Lemma bot_exists : ({s : sierp | (not (sierp_up s))}).
+  Proof.
+     enough {s : sierp | sierp_up s <-> False}.
+     destruct X0.
+     exists x.
+     rewrite i;auto.
+     apply sierp_from_semidec.
+     exists lazy_bool_false.
+     unfold lazy_bool_up.
+     split; intros.
+     contradict H.
+     apply lazy_bool_distinct.
+     destruct H.
+ Qed.
+
+  Definition ball_in_base_finseq H s (c : X) n b N :=  (exists (i : nat) x m, (i < N)%nat /\ (b i) = Some (x,m) /\ d_X H c (D s x) < prec m - prec n).
+
+  
+
+  Lemma ball_in_base_sequence_semidec H s c n b N : semidec (ball_in_base_finseq H s c n b N).
+  Proof.
+    intros.
+    induction N.
+    exists lazy_bool_false.
+    unfold lazy_bool_up; split;intros;[contradict H0;apply lazy_bool_distinct|].
+    destruct H0 as [n' [x [m M]]];lia.
+    destruct IHN as [k K].
+    unfold semidec.
+    enough ({k' | lazy_bool_up _ k' <->  exists x m, (b N) = Some (x,m) /\ (d_X H c (D s x) < prec m - prec n)}).
+    {
+      destruct X0.
+      unfold lazy_bool_up in *.
+      exists (lazy_bool_or k x).
+      rewrite lazy_bool_or_up.
+      split; intros.
+      destruct H0.
+      destruct K.
+      destruct (H1 H0) as [i0 [x1 [m0 M]]].
+      exists i0; exists x1;exists m0.
+      split;try apply M;lia.
+      destruct i.
+      destruct (H1 H0) as [x1 [m0 M]].
+      exists N; exists x1; exists m0.
+      split;auto;lia.
+      destruct H0 as [i0 [x1 [m1 [M1 M2]]]].
+      assert (i0 < N \/ i0 = N)%nat by lia.
+      destruct H0.
       left.
-      rewrite H0;auto.
-      right;exists c;auto.
-   Qed.
+      apply K.
+      exists i0; exists x1; exists m1;split;auto.
+      right.
+      apply i.
+      destruct M2.
+      exists x1; exists m1;rewrite <-H1;auto.
+   }
+    destruct (b N).
+    destruct p;simpl in *.
+    destruct (real_lt_semidec (d_X H c (D s n0)) (prec n1 - prec n)).  
+    exists x.
+    rewrite i.
+    split;intros.
+    exists n0; exists n1;auto.
+    destruct H0 as [x0 [m0 [M1 M2]]].
+    injection M1.
+    intros -> ->;auto.
+
+    exists lazy_bool_false.
+    unfold lazy_bool_up; split;intros;[contradict H0;apply lazy_bool_distinct|].
+    destruct H0 as [x [m [M1 _]]].
+    discriminate M1.
+  Qed.
+  Lemma ball_in_base_finseq_contained H s c n b N : ball_in_base_finseq H s c n b N -> is_subset (ball H c n) (finite_union_base H s b N).
+  Proof.
+    intros.
+    destruct H0 as [i [n1 [n2 [H2 [H3 H4]]]]].
+    intros y Hy.
+    exists i;split;auto.
+    exists (n1,n2);split;auto;simpl.
+    pose proof (close_enough_contained H _ _ _ _ H4 ).
+    apply H0;auto.
+  Qed.
+
+  Lemma Exists_semidec {T: Type} f l : (forall (x : T), semidec (f x)) -> semidec (Exists f l).
+  Proof.
+     intros.
+     induction l.
+     exists lazy_bool_false.
+    unfold lazy_bool_up; split;intros;[contradict H;apply lazy_bool_distinct|].
+    apply Exists_nil in H;contradict H.
+    destruct IHl.
+    destruct (X0 a).
+    exists (lazy_bool_or x0 x).
+    unfold lazy_bool_up in *.
+    rewrite lazy_bool_or_up.
+    rewrite Exists_cons.
+    rewrite i0, i;split;auto.
+  Qed.
+
+  Lemma Forall_semidec {T: Type} f l : (forall (x : T), semidec (f x)) -> semidec (Forall f l).
+  Proof.
+     intros.
+     induction l.
+     exists lazy_bool_true.
+     unfold lazy_bool_up; split;intros;auto.
+     destruct IHl.
+     destruct (X0 a).
+     exists (lazy_bool_and x0 x).
+     unfold lazy_bool_up in *.
+     rewrite lazy_bool_and_up.
+     rewrite Forall_cons_iff.
+    rewrite i0, i;split;auto.
+  Qed.
+Search compact.
+Lemma bishop_compact_classically_seqcompact H (s : separable) (l : has_limit H) K : totally_bounded H K -> complete H K -> forall (f : nat -> X), (forall n, K (f n)) -> exists (g : nat -> nat), (forall n, (g (n+1) > g n)%nat /\ (g n >= n)%nat) /\ exists y, K y /\ metric_is_fast_limit H (fun n => (f (g n))) y.
+                                                                                    Proof.
+
+    intros.
+    enough (forall x n, (forall m, exists i, (i > m)%nat /\ d_X H (f i) x < prec n) -> (exists j, (j > n)%nat /\ d_X H x (f j) < prec n /\  forall m, exists i, (i > m)%nat /\ d_X H (f i) (f j) < prec (n+1)%nat)).
+    
+  Admitted.
+
+  Lemma bishop_compact_compact H (s : separable) (l : has_limit H) K : totally_bounded H K -> complete H K -> compact K.
+  Proof.
+    intros.
+    apply (fin_cover_compact H s);auto.
+
+    - admit.
+    - intros.
+      apply M_hprop_elim.
+      intros x0 x1;destruct x0,x1;apply sigma_eqP2;apply sierp_id;split;rewrite i0;rewrite i;auto.
+      specialize (bishop_compact_centered H s l K X0 X1).
+      apply M_lift;intros.
+      enough ({f : nat -> sierp | (forall k, sierp_up (f k) -> Forall (fun x => is_subset (ball H x k) (finite_union_base H s b m)) (pr1 _ _ (X2 k))) /\ (is_subset K (finite_union_base H s b m) -> (exists k, sierp_up (f k)))}).
+      {
+        destruct X3 as [f [F1 F2]].
+        pose proof (eventually_true f).
+        destruct X3.
+        exists x.
+        rewrite i.
+        split.
+        - intros [k Pk].
+          intros y Ky.
+          specialize (F1 _ Pk).
+          destruct (X2 k);simpl in *.
+          destruct a.
+          specialize (H1 _ Ky).
+          rewrite Forall_forall in F1.
+          apply Exists_exists in H1.
+          destruct H1 as [y1 [Py1 Qy1]].
+          apply (F1 _ Py1).
+          unfold ball.
+          rewrite d_sym;auto.
+       - intros.
+         destruct (F2  H0).
+         exists x0;auto.
+      }
+        assert ({f : nat -> sierp | forall k, sierp_up (f k) <-> (Forall (fun x =>  (ball_in_base_finseq H s x k b m)) (pr1 _ _ (X2 k)))}) as [f F].
+        {
+          enough (forall k, {s0 |sierp_up s0 <-> (Forall (fun x =>  (ball_in_base_finseq H s x k b m)) (pr1 _ _ (X2 k)))}).
+          exists (fun k => pr1 _ _ (X3 k));intros k;destruct (X3 k);simpl;auto.
+          intros.
+          apply sierp_from_semidec.
+          destruct (X2 k);simpl.
+          apply Forall_semidec.
+          intros x0.
+          apply ball_in_base_sequence_semidec.
+        }
+        exists f.
+        split.
+        + intros; destruct (F k), (X2 k);simpl in *.
+          specialize (H1 H0).
+          apply Forall_forall.
+          intros.
+          rewrite Forall_forall in H1.
+          specialize (H1 _ H3).
+          apply ball_in_base_finseq_contained;auto.
+       + intros.
+         enough (exists k, Forall (fun x =>  (ball_in_base_finseq H s x k b m)) (pr1 _ _ (X2 k))) by (destruct H1;exists x;apply F;auto).
+         apply Classical_Pred_Type.not_all_not_ex.
+         intros H1.
+         enough (exists f x, (forall n, K (f n)) /\  metric_is_fast_limit H f x /\ (not (K x))).
+         destruct H2 as [ff [x [Hf1 [Hf2 Hf3]]]].
+         contradict Hf3.
+         destruct (X1 ff Hf1 (fast_limit_fast_cauchy _ _ _ Hf2)) as [x' [Px1 Px2]].
+         rewrite (metric_limit_unique H ff _ x');auto.
+         assert (forall n, exists x, K x /\ (forall i, (i < m)%nat -> forall n0 n1, (b i) = Some (n0,n1) -> d_X H x (D s n0) >= prec n1 - prec n)).
+         {
+           intros n.
+           specialize (H1 n).
+           apply Exists_Forall_neg in H1; [|intros;apply lem].
+           destruct (X2 n); simpl in *.
+           apply Exists_exists in H1.
+           destruct H1 as [x0 [Hx0 Hx1]].
+           exists x0.
+           destruct a.
+           split; [apply H1;auto|].
+           intros.
+           unfold ball_in_base_finseq in Hx1.
+           apply real_nge_le.
+           intros H5.
+           contradict Hx1.
+           exists i; exists n0; exists n1;split;auto;split;auto.
+         }
+         apply countable_choice in H2.
+         destruct H2 as [f0 F0].
+         destruct (bishop_compact_classically_seqcompact H s l _ X0 X1 f0) as [g [G1 G2]]; try apply F0.
+         exists (fun n => f0 (g n)).
+         destruct G2.
+         exists x.
+         destruct H2.
+         split.
+         intros.
+         apply F0.
+         split;auto.
+         intros Hk.
+         specialize (H0 _ Hk).
+         destruct H0 as [m1 [M0 M1]].
+         destruct M1 as [[n0 n1] [A1 A2]].
+         simpl in *.
+
+         assert (forall n, d_X H (D s n0) x >= prec n1 - prec n).
+         {
+           enough (forall n, d_X H (D s n0) x >= prec n1 - prec (n+1)%nat - prec (g (n+1)%nat)).
+           intros.
+           apply (real_le_le_le _ (prec n1 - prec (n+1) - prec (g (n+1)%nat)));try apply H0.
+           rewrite <-(prec_twice n).
+           add_both_side_by (prec (n+1) - prec n1 + prec (n+1) + (prec (g (n+1)%nat))).
+           apply prec_monotone_eq.
+           apply G1.
+           intros.
+           destruct (F0 (g (n+1))%nat).
+           add_both_side_by (prec (n+1)).
+           specialize (H4 _ M0 _ _ A1).
+           apply (real_le_le_le _ _ _ H4).
+           apply (real_le_le_le _ _ _ (dx_triangle _ _ _ x)).
+           rewrite (d_sym _ x).
+           add_both_side_by (- d_X H (D s n0) x).
+           apply H3.
+         }
+         assert (prec n1 <= d_X H (D s n0) x) by (apply lim_le_le';intros n;add_both_side_by (-prec n);apply H0).
+         contradict H4.
+         apply real_gt_nle;auto.
+   Admitted.       
   Lemma bishop_compact_overt H (s : separable) (l : has_limit H) A : totally_bounded H A -> complete H A -> overt A.
   Proof.
     intros.
@@ -3746,6 +4171,7 @@ Axiom baire_choice :
       apply sierp_id.
       rewrite i, i0;split;auto.
     }
+    specialize (separable_metric_second_countable H s l _ Uopen).
     assert ({s : sierp | sierp_up s <-> intersects A (fun _ => False)}) as [bot B].
     {
         apply sierp_from_semidec.
@@ -3758,7 +4184,6 @@ Axiom baire_choice :
         destruct H0.
         contradict H1.
     }
-    specialize (separable_metric_second_countable H s l _ Uopen).
     apply M_lift.
     intros [f F].
     enough (forall c n, {k : sierp | sierp_up k <-> intersects A (ball H c n)}).
@@ -3824,7 +4249,7 @@ Axiom baire_choice :
     exists x.
     rewrite i.
     split; intros.
-    destruct (dist_bounded_exists_complete_lt _ _ _ _ (bishop_compact_compact _ _ X0 X1) R) as [a [A1 A2]].
+    destruct (dist_bounded_exists_complete_lt _ _ _ _ (bishop_compact_compact _ s l _ X0 X1) R) as [a [A1 A2]].
     exists a.
     split;auto.
     unfold ball.
@@ -3849,14 +4274,27 @@ Axiom baire_choice :
     intros [];destruct e;destruct H0;destruct (dist_bounded_exists_gt _ _ _ _ H1);exists x0;apply H2.
   Qed.
 
-  Lemma M_test_totally_bounded H A (s : separable): M_test H A -> totally_bounded H A. 
+  Lemma located_Mtest H A : located H A -> M_test H A.
   Proof.
-    intros H' x.
-    apply real_mslimit_P.
-    apply classical_dist_exists.
-    apply (M_test_nonempty H s);auto.
     intros.
-    assert ()
+    intros x n.
+    destruct (X0 x).
+    specialize (M_split x0 (prec n + prec (n+1)%nat) (prec (n+1)%nat) (prec_pos _)).
+    apply M_lift.
+    intros [].
+    right.
+    ring_simplify in r.
+    exists x0;split;auto.
+    left.
+    exists x0;split;auto.
+    replace (real_2 * prec n) with (prec n + ((prec (n+1)%nat) + (prec (n+1)%nat))).
+    add_both_side_by (-prec (n+1));auto.
+    rewrite real_plus_comm.
+    apply r.
+    rewrite prec_twice.
+    unfold real_2;ring.
+  Qed.
+  (* Lemma Mtest_located H A : M_test H A -> located H A. *)
   (* Admitted. *)
 
   (* Lemma test : (0 = 1)%nat. *)
@@ -3982,676 +4420,676 @@ Axiom baire_choice :
 (*       (* pose proof (separable_metric_approx_inside H s _ _ X0 H1 (m'+1)%nat). *) *)
 (* Abort. *)
 End Metric.
-Section Examples.
+(* Section Examples. *)
   
-  Example cantor_exists_open : open (fun (n : (nat -> bool)) => exists m, (n m) = true).
-  Proof.
-    apply open_countable_union.
-    intros n x.
-    apply sierp_from_semidec.
-    unfold lazy_bool_up.
-    destruct (x n).
-    exists lazy_bool_true;split;auto.
-    exists lazy_bool_false;split;intros;contradict H;auto.
-    apply lazy_bool_distinct.
- Qed.
+(*   Example cantor_exists_open : open (fun (n : (nat -> bool)) => exists m, (n m) = true). *)
+(*   Proof. *)
+(*     apply open_countable_union. *)
+(*     intros n x. *)
+(*     apply sierp_from_semidec. *)
+(*     unfold lazy_bool_up. *)
+(*     destruct (x n). *)
+(*     exists lazy_bool_true;split;auto. *)
+(*     exists lazy_bool_false;split;intros;contradict H;auto. *)
+(*     apply lazy_bool_distinct. *)
+(*  Qed. *)
 
-  Definition extends (a : list bool) (x : (nat -> bool)) := forall n, (n < length a)%nat -> x n = nth n a true.
+(*   Definition extends (a : list bool) (x : (nat -> bool)) := forall n, (n < length a)%nat -> x n = nth n a true. *)
 
-  Lemma one_point_fixed_clopen n b : open (fun (x : (nat -> bool)) => x n = b) * closed (fun (x : (nat -> bool)) => x n = b).
-  Proof.
-    assert (forall b', {k | (lazy_bool_up _ k) <-> b' = b}).
-    {
-      intros.
-      exists (if (bool_eq b' b) then lazy_bool_true else lazy_bool_false).
-      destruct b; destruct b';simpl;unfold lazy_bool_up;split;auto;intros;contradict H; try apply lazy_bool_distinct; try apply Bool.diff_false_true.
-      apply Bool.diff_true_false.
-    }
-    split;intros x.
-    destruct (X (x n));apply sierp_from_semidec.
-    exists x0;auto.
-    destruct (X (negb (x n)));apply sierp_from_semidec.
-    exists x0.
-    unfold complement.
-    rewrite i.
-    split;intros.
-    rewrite <-H.
-    apply neq_sym.
-    apply Bool.no_fixpoint_negb.
-    unfold lazy_bool_up.
-    destruct (x n); destruct b;simpl;auto.
-    contradict H;auto.
- Qed.
+(*   Lemma one_point_fixed_clopen n b : open (fun (x : (nat -> bool)) => x n = b) * closed (fun (x : (nat -> bool)) => x n = b). *)
+(*   Proof. *)
+(*     assert (forall b', {k | (lazy_bool_up _ k) <-> b' = b}). *)
+(*     { *)
+(*       intros. *)
+(*       exists (if (bool_eq b' b) then lazy_bool_true else lazy_bool_false). *)
+(*       destruct b; destruct b';simpl;unfold lazy_bool_up;split;auto;intros;contradict H; try apply lazy_bool_distinct; try apply Bool.diff_false_true. *)
+(*       apply Bool.diff_true_false. *)
+(*     } *)
+(*     split;intros x. *)
+(*     destruct (X (x n));apply sierp_from_semidec. *)
+(*     exists x0;auto. *)
+(*     destruct (X (negb (x n)));apply sierp_from_semidec. *)
+(*     exists x0. *)
+(*     unfold complement. *)
+(*     rewrite i. *)
+(*     split;intros. *)
+(*     rewrite <-H. *)
+(*     apply neq_sym. *)
+(*     apply Bool.no_fixpoint_negb. *)
+(*     unfold lazy_bool_up. *)
+(*     destruct (x n); destruct b;simpl;auto. *)
+(*     contradict H;auto. *)
+(*  Qed. *)
     
 
- Lemma extends_intersection a0 a x : extends (a0 :: a) x <-> (x 0%nat) = a0 /\ extends a (fun n => x (S n)).  
-  Proof.
-    revert a0 x.
-    induction a.
-    - unfold extends.
-      simpl.
-      split.
-      intros H.
-      split.
-      destruct (H 0%nat);try lia;auto.
-      intros;lia.
-      intros [H1 H2] n N.
-      rewrite Nat.lt_1_r in N.
-      rewrite N;auto.
-   - intros.
-     rewrite IHa.
-     unfold extends.
-     split.
-     intros.
-     split; [|split].
-     apply (H 0%nat);simpl;lia.
-     apply (H 1%nat);simpl;lia.
-     intros.
-     apply (H (S (S n))).
-     simpl;lia.
-     intros [H1 [H2 H3]] n N.
-     destruct n;simpl;auto.
-     destruct n;simpl;auto.
-     apply H3;simpl in *;lia.
-  Qed.
+(*  Lemma extends_intersection a0 a x : extends (a0 :: a) x <-> (x 0%nat) = a0 /\ extends a (fun n => x (S n)).   *)
+(*   Proof. *)
+(*     revert a0 x. *)
+(*     induction a. *)
+(*     - unfold extends. *)
+(*       simpl. *)
+(*       split. *)
+(*       intros H. *)
+(*       split. *)
+(*       destruct (H 0%nat);try lia;auto. *)
+(*       intros;lia. *)
+(*       intros [H1 H2] n N. *)
+(*       rewrite Nat.lt_1_r in N. *)
+(*       rewrite N;auto. *)
+(*    - intros. *)
+(*      rewrite IHa. *)
+(*      unfold extends. *)
+(*      split. *)
+(*      intros. *)
+(*      split; [|split]. *)
+(*      apply (H 0%nat);simpl;lia. *)
+(*      apply (H 1%nat);simpl;lia. *)
+(*      intros. *)
+(*      apply (H (S (S n))). *)
+(*      simpl;lia. *)
+(*      intros [H1 [H2 H3]] n N. *)
+(*      destruct n;simpl;auto. *)
+(*      destruct n;simpl;auto. *)
+(*      apply H3;simpl in *;lia. *)
+(*   Qed. *)
 
-  Lemma extends_intersection' a0 a : extends (a0 :: a) = intersection (fun (x : (nat -> bool)) => x O = a0) (fun x => (extends a (fun n => x (S n)))).
-  Proof.
-    apply fun_ext.
-    intros.
-    unfold intersection.
-    apply Prop_ext;apply extends_intersection.
-  Qed.
+(*   Lemma extends_intersection' a0 a : extends (a0 :: a) = intersection (fun (x : (nat -> bool)) => x O = a0) (fun x => (extends a (fun n => x (S n)))). *)
+(*   Proof. *)
+(*     apply fun_ext. *)
+(*     intros. *)
+(*     unfold intersection. *)
+(*     apply Prop_ext;apply extends_intersection. *)
+(*   Qed. *)
 
-  Example cantor_base_clopen a : open (extends a) * closed (extends a). 
-  Proof.
-    induction a.
-    - unfold extends.
-      split;intros x;apply sierp_from_semidec.
-      exists (lazy_bool_true);unfold lazy_bool_up;split;simpl;auto;lia.
-      exists (lazy_bool_false);unfold lazy_bool_up.
-      split;intros.
-      contradict H.
-      apply lazy_bool_distinct.
-      unfold complement in H.
-      contradict H;simpl;lia.
-   - rewrite extends_intersection'.
-     split.
-     apply open_intersection.
-     apply one_point_fixed_clopen.
-     intros x.
-     destruct IHa.
-     destruct (o (fun n => x (S n))).
-     exists x0;auto.
-     apply closed_intersection.
-     apply one_point_fixed_clopen.
-     destruct IHa.
-     intros x.
-     destruct (c (fun n => (x (S n)))).
-     exists x0;auto.
-  Qed.
+(*   Example cantor_base_clopen a : open (extends a) * closed (extends a).  *)
+(*   Proof. *)
+(*     induction a. *)
+(*     - unfold extends. *)
+(*       split;intros x;apply sierp_from_semidec. *)
+(*       exists (lazy_bool_true);unfold lazy_bool_up;split;simpl;auto;lia. *)
+(*       exists (lazy_bool_false);unfold lazy_bool_up. *)
+(*       split;intros. *)
+(*       contradict H. *)
+(*       apply lazy_bool_distinct. *)
+(*       unfold complement in H. *)
+(*       contradict H;simpl;lia. *)
+(*    - rewrite extends_intersection'. *)
+(*      split. *)
+(*      apply open_intersection. *)
+(*      apply one_point_fixed_clopen. *)
+(*      intros x. *)
+(*      destruct IHa. *)
+(*      destruct (o (fun n => x (S n))). *)
+(*      exists x0;auto. *)
+(*      apply closed_intersection. *)
+(*      apply one_point_fixed_clopen. *)
+(*      destruct IHa. *)
+(*      intros x. *)
+(*      destruct (c (fun n => (x (S n)))). *)
+(*      exists x0;auto. *)
+(*   Qed. *)
 
-  (* Cantor space closed => WKL *)
+(*   (* Cantor space closed => WKL *) *)
 
-  Definition prefix (L1 L2 : list bool) := exists (L3 : (list bool)), L2 = L1 ++ L2.
+(*   Definition prefix (L1 L2 : list bool) := exists (L3 : (list bool)), L2 = L1 ++ L2. *)
   
-  Definition binary_tree T := (T []) /\ forall a b, T b -> prefix a b -> T a.
+(*   Definition binary_tree T := (T []) /\ forall a b, T b -> prefix a b -> T a. *)
 
-  Definition infinite (T : (list bool -> Prop)) := forall n, exists a, T a /\ (length a >= n)%nat.
-  Definition path (T : list bool -> Prop) (p : nat -> bool)  := forall a, extends a p -> T a. 
+(*   Definition infinite (T : (list bool -> Prop)) := forall n, exists a, T a /\ (length a >= n)%nat. *)
+(*   Definition path (T : list bool -> Prop) (p : nat -> bool)  := forall a, extends a p -> T a.  *)
 
-  Definition decidable (T : (list bool -> Prop)) := forall x, {b : bool | b = true <-> T x}.
+(*   Definition decidable (T : (list bool -> Prop)) := forall x, {b : bool | b = true <-> T x}. *)
 
-  Lemma extends_decidable x : decidable (fun a => (extends a x)).
-  Proof.
-    intros a.
-    revert x.
-    induction a.
-    exists true.
-    split;auto;unfold extends;intros _;simpl;lia.
-    intros.
-    destruct (IHa (fun n => x (S n))).
-    exists (andb (bool_eq (x 0%nat) a) x0).
-    rewrite Bool.andb_true_iff.
-    rewrite ((extends_intersection a a0 x)).
-    rewrite i.
-    split;intros [H1 H2];split;auto.
-    apply bool_eq_ok;auto.
-    rewrite H1;destruct a;auto.
-  Qed.
+(*   Lemma extends_decidable x : decidable (fun a => (extends a x)). *)
+(*   Proof. *)
+(*     intros a. *)
+(*     revert x. *)
+(*     induction a. *)
+(*     exists true. *)
+(*     split;auto;unfold extends;intros _;simpl;lia. *)
+(*     intros. *)
+(*     destruct (IHa (fun n => x (S n))). *)
+(*     exists (andb (bool_eq (x 0%nat) a) x0). *)
+(*     rewrite Bool.andb_true_iff. *)
+(*     rewrite ((extends_intersection a a0 x)). *)
+(*     rewrite i. *)
+(*     split;intros [H1 H2];split;auto. *)
+(*     apply bool_eq_ok;auto. *)
+(*     rewrite H1;destruct a;auto. *)
+(*   Qed. *)
 
-  Definition WKL := forall T, decidable T -> binary_tree T -> infinite T -> exists p,  path T p.
+(*   Definition WKL := forall T, decidable T -> binary_tree T -> infinite T -> exists p,  path T p. *)
 
 
-  Lemma path_closed T : (decidable T) -> closed (path T).
-  Proof.
-    intros H x.
-    assert (decidable (fun a => extends a x /\ not (T a))).
-    {
-      intros a.
-      destruct (extends_decidable x a).
-      destruct (H a).
-      exists (andb x0 (negb x1)).
-      rewrite Bool.andb_true_iff.
-      rewrite <-i, <-i0.
-      rewrite Bool.negb_true_iff.
-      rewrite Bool.not_true_iff_false;split;auto.
-    }
-    destruct (enumerable_lists) as [l L].
-    destruct (cantor_exists_open (fun n => (pr1 _ _ (H0 (l n))))).
-    exists x0.
-    rewrite i.
-    split.
-    - intros [m M].
-      destruct (H0 (l m));simpl in *.
-      intros P.
-      specialize (P (l m)).
-      contradict M.
-      rewrite i0.
-      intros [H1 H2].
-      apply H2;auto.
-   - intros.
-     unfold complement, path in H1.
-     rewrite classical_tautology_neg_all in H1.
-     destruct H1.
-     destruct (L x1).
-     exists x2.
-     destruct (H0 (l x2));simpl.
-     apply i0.
-     apply Classical_Prop.imply_to_and;rewrite e;auto.
-  Qed.
-  Lemma dense_enumeration_exists : {e : nat -> (nat -> bool) | forall x U,  (open U) -> U x -> exists n, U (e n)}.
-  Proof.
-     destruct enumerable_lists.
-     exists (fun n => (fun m => nth m (x n) false)).
-     intros.
-  Admitted.
+(*   Lemma path_closed T : (decidable T) -> closed (path T). *)
+(*   Proof. *)
+(*     intros H x. *)
+(*     assert (decidable (fun a => extends a x /\ not (T a))). *)
+(*     { *)
+(*       intros a. *)
+(*       destruct (extends_decidable x a). *)
+(*       destruct (H a). *)
+(*       exists (andb x0 (negb x1)). *)
+(*       rewrite Bool.andb_true_iff. *)
+(*       rewrite <-i, <-i0. *)
+(*       rewrite Bool.negb_true_iff. *)
+(*       rewrite Bool.not_true_iff_false;split;auto. *)
+(*     } *)
+(*     destruct (enumerable_lists) as [l L]. *)
+(*     destruct (cantor_exists_open (fun n => (pr1 _ _ (H0 (l n))))). *)
+(*     exists x0. *)
+(*     rewrite i. *)
+(*     split. *)
+(*     - intros [m M]. *)
+(*       destruct (H0 (l m));simpl in *. *)
+(*       intros P. *)
+(*       specialize (P (l m)). *)
+(*       contradict M. *)
+(*       rewrite i0. *)
+(*       intros [H1 H2]. *)
+(*       apply H2;auto. *)
+(*    - intros. *)
+(*      unfold complement, path in H1. *)
+(*      rewrite classical_tautology_neg_all in H1. *)
+(*      destruct H1. *)
+(*      destruct (L x1). *)
+(*      exists x2. *)
+(*      destruct (H0 (l x2));simpl. *)
+(*      apply i0. *)
+(*      apply Classical_Prop.imply_to_and;rewrite e;auto. *)
+(*   Qed. *)
+(*   Lemma dense_enumeration_exists : {e : nat -> (nat -> bool) | forall x U,  (open U) -> U x -> exists n, U (e n)}. *)
+(*   Proof. *)
+(*      destruct enumerable_lists. *)
+(*      exists (fun n => (fun m => nth m (x n) false)). *)
+(*      intros. *)
+(*   Admitted. *)
 
- Definition dense_enumeration := pr1 _ _ dense_enumeration_exists.
+(*  Definition dense_enumeration := pr1 _ _ dense_enumeration_exists. *)
 
- Lemma extends_last a an x : extends (a ++ [an]) x <->  extends a x /\ x (length a) = an.  
- Proof.
-   revert x;induction a.
-   - simpl.
-     split;unfold extends;simpl;intros;try lia.
-     split;try lia;auto.
-      assert (n = 0)%nat as -> by lia;auto.
-      apply H.
-   - intros.
-     rewrite <-app_comm_cons.
-     rewrite !extends_intersection.
-     rewrite !IHa.
-     simpl.
-     split;intros [H1 H2];split;try split;auto;destruct H2;destruct H1;auto.
-  Qed.
+(*  Lemma extends_last a an x : extends (a ++ [an]) x <->  extends a x /\ x (length a) = an.   *)
+(*  Proof. *)
+(*    revert x;induction a. *)
+(*    - simpl. *)
+(*      split;unfold extends;simpl;intros;try lia. *)
+(*      split;try lia;auto. *)
+(*       assert (n = 0)%nat as -> by lia;auto. *)
+(*       apply H. *)
+(*    - intros. *)
+(*      rewrite <-app_comm_cons. *)
+(*      rewrite !extends_intersection. *)
+(*      rewrite !IHa. *)
+(*      simpl. *)
+(*      split;intros [H1 H2];split;try split;auto;destruct H2;destruct H1;auto. *)
+(*   Qed. *)
 
-  Lemma first_n_extends x n  : extends (map x (seq 0 n)) x.
-  Proof.
-    induction n; [unfold extends;simpl;lia|].
-    rewrite seq_S, map_app.
-    simpl.
-    rewrite extends_last.
-    split;auto.
-    rewrite map_length, seq_length;auto.
-  Qed.
+(*   Lemma first_n_extends x n  : extends (map x (seq 0 n)) x. *)
+(*   Proof. *)
+(*     induction n; [unfold extends;simpl;lia|]. *)
+(*     rewrite seq_S, map_app. *)
+(*     simpl. *)
+(*     rewrite extends_last. *)
+(*     split;auto. *)
+(*     rewrite map_length, seq_length;auto. *)
+(*   Qed. *)
 
-  Definition base : nat -> (@csubset (nat -> bool)).
-  Proof.
-    intros n.
-    destruct enumerable_lists.
-    pose proof (extends (x n)) : csubset.
-    apply X.
-  Defined.
+(*   Definition base : nat -> (@csubset (nat -> bool)). *)
+(*   Proof. *)
+(*     intros n. *)
+(*     destruct enumerable_lists. *)
+(*     pose proof (extends (x n)) : csubset. *)
+(*     apply X. *)
+(*   Defined. *)
 
-  Lemma base_open : forall n, open (base n).
-  Proof.
-    intros.
-    unfold base.
-    destruct enumerable_lists.
-    apply cantor_base_clopen.
-  Qed.
+(*   Lemma base_open : forall n, open (base n). *)
+(*   Proof. *)
+(*     intros. *)
+(*     unfold base. *)
+(*     destruct enumerable_lists. *)
+(*     apply cantor_base_clopen. *)
+(*   Qed. *)
 
-  Lemma open_nbhd U x : open U -> U x -> ^M ({n | (base n) x /\ is_subset (base n) U}).
-  Proof.
-    intros.
-    remember (fun x => (pr1 _ _ (X x))) as f.
-    assert (forall y, sierp_up (f y) <-> U y).
-    {
-      intros.
-      rewrite Heqf.
-      destruct (X y).
-      simpl;auto.
-    }
-    assert (sierp_up (f x)) by (apply H0;auto).
-    pose proof (continuity  f _ H1).
-    revert X0.
-    apply M_lift.
-    intros [m Hm].
-    destruct enumerable_lists eqn:E.
-    destruct (s (map x (seq 0 m))).
-    exists x1.
-    unfold base.
-    rewrite E.
-    rewrite e.
-    split; [apply first_n_extends|].
-    intros y Hy.
-    apply H0.
-    apply Hm.
-    intros.
-    rewrite Hy; [ | rewrite map_length,seq_length];auto.
-    rewrite (nth_indep _  _ (x 0%nat)); [|rewrite map_length,seq_length;auto].
-    rewrite map_nth, seq_nth;auto.
-  Qed.
+(*   Lemma open_nbhd U x : open U -> U x -> ^M ({n | (base n) x /\ is_subset (base n) U}). *)
+(*   Proof. *)
+(*     intros. *)
+(*     remember (fun x => (pr1 _ _ (X x))) as f. *)
+(*     assert (forall y, sierp_up (f y) <-> U y). *)
+(*     { *)
+(*       intros. *)
+(*       rewrite Heqf. *)
+(*       destruct (X y). *)
+(*       simpl;auto. *)
+(*     } *)
+(*     assert (sierp_up (f x)) by (apply H0;auto). *)
+(*     pose proof (continuity  f _ H1). *)
+(*     revert X0. *)
+(*     apply M_lift. *)
+(*     intros [m Hm]. *)
+(*     destruct enumerable_lists eqn:E. *)
+(*     destruct (s (map x (seq 0 m))). *)
+(*     exists x1. *)
+(*     unfold base. *)
+(*     rewrite E. *)
+(*     rewrite e. *)
+(*     split; [apply first_n_extends|]. *)
+(*     intros y Hy. *)
+(*     apply H0. *)
+(*     apply Hm. *)
+(*     intros. *)
+(*     rewrite Hy; [ | rewrite map_length,seq_length];auto. *)
+(*     rewrite (nth_indep _  _ (x 0%nat)); [|rewrite map_length,seq_length;auto]. *)
+(*     rewrite map_nth, seq_nth;auto. *)
+(*   Qed. *)
 
-  Lemma base_to_list n : {l | base n = extends l}.
-  Proof.
-    unfold base.
-    destruct enumerable_lists.
-    exists (x n);auto.
-  Qed.
+(*   Lemma base_to_list n : {l | base n = extends l}. *)
+(*   Proof. *)
+(*     unfold base. *)
+(*     destruct enumerable_lists. *)
+(*     exists (x n);auto. *)
+(*   Qed. *)
 
-  Lemma contains_lazy_check U : open U -> ^M {t : nat -> nat -> bool | forall m, (exists n, t m n = true) <-> U (dense_enumeration m)}.
-  Proof.
-    intros.
-    unfold dense_enumeration.
-    destruct (dense_enumeration_exists).
-    assert (^M (forall m, {f : nat -> bool |  (U (x m)) <-> (exists n, f n = true)})).
-    {
-      apply M_countable_lift.
-      intros.
-      pose proof (open_to_testfun _ X (x n)).
-      apply X0.
-    }
-    revert X0.
-    apply M_lift.
-    intros.
-    exists (fun m => (pr1 _ _ (H m))).
-    intros.
-    destruct (H m).
-    simpl.
-    rewrite i;split; intros[];exists x1;auto.
-  Qed.
+(*   Lemma contains_lazy_check U : open U -> ^M {t : nat -> nat -> bool | forall m, (exists n, t m n = true) <-> U (dense_enumeration m)}. *)
+(*   Proof. *)
+(*     intros. *)
+(*     unfold dense_enumeration. *)
+(*     destruct (dense_enumeration_exists). *)
+(*     assert (^M (forall m, {f : nat -> bool |  (U (x m)) <-> (exists n, f n = true)})). *)
+(*     { *)
+(*       apply M_countable_lift. *)
+(*       intros. *)
+(*       pose proof (open_to_testfun _ X (x n)). *)
+(*       apply X0. *)
+(*     } *)
+(*     revert X0. *)
+(*     apply M_lift. *)
+(*     intros. *)
+(*     exists (fun m => (pr1 _ _ (H m))). *)
+(*     intros. *)
+(*     destruct (H m). *)
+(*     simpl. *)
+(*     rewrite i;split; intros[];exists x1;auto. *)
+(*   Qed. *)
 
-  Lemma dense_enumeration_base n : (base n) (dense_enumeration n).
-  Proof.
-    unfold base, dense_enumeration.
-    destruct enumerable_lists.
-  Admitted.
+(*   Lemma dense_enumeration_base n : (base n) (dense_enumeration n). *)
+(*   Proof. *)
+(*     unfold base, dense_enumeration. *)
+(*     destruct enumerable_lists. *)
+(*   Admitted. *)
 
-  Lemma interval_extension U : open U -> ^M {I : nat -> bool | (forall n, I n = true -> is_subset (base n) U) /\ forall x, U x -> exists n, (base n x) /\ (I n) = true}.
-  Proof.
-    intros.
-    pose proof (contains_lazy_check _ X).
-    revert X0.
-    apply M_lift.
-    intros [t T].
-  Abort.   
-  Lemma dense_covers U x:  open U -> U x -> exists n m, is_subset (base n) U /\ ((base n (dense_enumeration m)) /\ (base n x)).
-  Proof.
-    intros.
-    unfold dense_enumeration.
-    destruct (dense_enumeration_exists).
-    simpl.
-    specialize (e x).
-    pose proof (open_nbhd U x X H).
-    apply M_hprop_elim_f.
-    intros a b.
-    apply irrl.
-    revert X0.
-    apply M_lift.
-    intros [n [N1 N2]].
-    destruct (e (base n));auto;try apply base_open.
-    exists n; exists x1;auto.
-  Qed. 
+(*   Lemma interval_extension U : open U -> ^M {I : nat -> bool | (forall n, I n = true -> is_subset (base n) U) /\ forall x, U x -> exists n, (base n x) /\ (I n) = true}. *)
+(*   Proof. *)
+(*     intros. *)
+(*     pose proof (contains_lazy_check _ X). *)
+(*     revert X0. *)
+(*     apply M_lift. *)
+(*     intros [t T]. *)
+(*   Abort.    *)
+(*   Lemma dense_covers U x:  open U -> U x -> exists n m, is_subset (base n) U /\ ((base n (dense_enumeration m)) /\ (base n x)). *)
+(*   Proof. *)
+(*     intros. *)
+(*     unfold dense_enumeration. *)
+(*     destruct (dense_enumeration_exists). *)
+(*     simpl. *)
+(*     specialize (e x). *)
+(*     pose proof (open_nbhd U x X H). *)
+(*     apply M_hprop_elim_f. *)
+(*     intros a b. *)
+(*     apply irrl. *)
+(*     revert X0. *)
+(*     apply M_lift. *)
+(*     intros [n [N1 N2]]. *)
+(*     destruct (e (base n));auto;try apply base_open. *)
+(*     exists n; exists x1;auto. *)
+(*   Qed.  *)
 
-  Definition base_to_subset (n : nat) := match n with
-                                       | 0%nat => (fun _ => True)
-                                       | (S n') => (base n')
-                                       end.
+(*   Definition base_to_subset (n : nat) := match n with *)
+(*                                        | 0%nat => (fun _ => True) *)
+(*                                        | (S n') => (base n') *)
+(*                                        end. *)
 
-  Lemma open_dense_suffices U1 U2: open U1 -> open U2 -> (forall n, U1 (dense_enumeration n) <-> U2 (dense_enumeration n)) -> (forall x, U1 x <-> U2 x). 
-  Proof.
-    unfold dense_enumeration.
-    destruct (dense_enumeration_exists) eqn:E;simpl.
-    intros.
-    split.
-    intros.
-    destruct (dense_covers _ _ X H0) as [n [m [H1 [H2 H3]]]].
-    unfold dense_enumeration in *;rewrite E in *;simpl in *.
+(*   Lemma open_dense_suffices U1 U2: open U1 -> open U2 -> (forall n, U1 (dense_enumeration n) <-> U2 (dense_enumeration n)) -> (forall x, U1 x <-> U2 x).  *)
+(*   Proof. *)
+(*     unfold dense_enumeration. *)
+(*     destruct (dense_enumeration_exists) eqn:E;simpl. *)
+(*     intros. *)
+(*     split. *)
+(*     intros. *)
+(*     destruct (dense_covers _ _ X H0) as [n [m [H1 [H2 H3]]]]. *)
+(*     unfold dense_enumeration in *;rewrite E in *;simpl in *. *)
     
-  Abort.
-  Lemma cantor_second_countable U : open U -> ^M {c : nat -> option nat | (forall n m, (c n) = Some m -> is_subset (base m) U) /\ (forall x, U x -> exists n m, (c n) = Some m /\ (base m) x)}.
-  Proof.
-    intros.
-    pose proof (contains_lazy_check U X).
-    revert X0.
-    apply M_lift_dom.
-    intros [t T].
-    assert (^M (forall m n,  {i | t m n = true -> is_subset (base i) U /\ (base i) (dense_enumeration m)})).
-    {
-      apply M_countable_lift;intros m;apply M_countable_lift;intros n.
-      intros.
-      destruct (t m n) eqn:E.
-      assert (U (dense_enumeration m)) by (apply T;exists n;auto).
-      pose proof (open_nbhd _ _  X H).
-      revert X0.
-      apply M_lift.
-      intros [i [I1 I2]];exists i;auto.
-      apply M_unit.
-      exists 0%nat.
-      intros;contradict H.
-      apply Bool.diff_false_true.
-    }
-    revert X0.
-    apply M_lift.
-    intros.
-   Abort.
-   (*  assert (forall x, U x -> exists m n, base (pr1 _ _ (H m n)) x). *)
-   (*  { *)
-   (*    intros. *)
-   (*    destruct (dense_covers _ _ X H0). *)
+(*   Abort. *)
+(*   Lemma cantor_second_countable U : open U -> ^M {c : nat -> option nat | (forall n m, (c n) = Some m -> is_subset (base m) U) /\ (forall x, U x -> exists n m, (c n) = Some m /\ (base m) x)}. *)
+(*   Proof. *)
+(*     intros. *)
+(*     pose proof (contains_lazy_check U X). *)
+(*     revert X0. *)
+(*     apply M_lift_dom. *)
+(*     intros [t T]. *)
+(*     assert (^M (forall m n,  {i | t m n = true -> is_subset (base i) U /\ (base i) (dense_enumeration m)})). *)
+(*     { *)
+(*       apply M_countable_lift;intros m;apply M_countable_lift;intros n. *)
+(*       intros. *)
+(*       destruct (t m n) eqn:E. *)
+(*       assert (U (dense_enumeration m)) by (apply T;exists n;auto). *)
+(*       pose proof (open_nbhd _ _  X H). *)
+(*       revert X0. *)
+(*       apply M_lift. *)
+(*       intros [i [I1 I2]];exists i;auto. *)
+(*       apply M_unit. *)
+(*       exists 0%nat. *)
+(*       intros;contradict H. *)
+(*       apply Bool.diff_false_true. *)
+(*     } *)
+(*     revert X0. *)
+(*     apply M_lift. *)
+(*     intros. *)
+(*    Abort. *)
+(*    (*  assert (forall x, U x -> exists m n, base (pr1 _ _ (H m n)) x). *) *)
+(*    (*  { *) *)
+(*    (*    intros. *) *)
+(*    (*    destruct (dense_covers _ _ X H0). *) *)
       
-   (*  } *)
-   (*  destruct (enumerable_pair _ _ enumerable_nat enumerable_nat). *)
-   (*  exists (fun n => match (t (fst (x n)) (snd (x n))) with | true => Some (pr1 _ _ (H (fst (x n)) (snd (x n)))) | false => None end). *)
-   (*  split. *)
-   (*  - intros. *)
-   (*    destruct (H (fst (x n)) (snd (x n))). *)
-   (*    destruct (t (fst (x n)) (snd (x n))) eqn:E. *)
-   (*    simpl in *. *)
-   (*    intros. *)
-   (*    destruct a;auto. *)
-   (*    injection H0. *)
-   (*    intros <-;auto. *)
-   (*    discriminate H0. *)
-   (*  - intros. *)
-   (*    destruct (dense_covers _ _ X H0) as [i [m H1]]. *)
-   (*    assert (exists n, t m n = true) as [n N]. *)
-   (*    { *)
-   (*      apply T. *)
-   (*      destruct H1. *)
-   (*      apply H1;apply H2. *)
-   (*    } *)
-   (*    destruct (s (m,n)). *)
-   (*    exists x1. *)
-   (*    destruct (H m n) eqn:H'. *)
-   (*    exists x2. *)
-   (*    rewrite e;simpl. *)
-   (*    rewrite H'. *)
-   (*    simpl. *)
-   (*    rewrite N. *)
-   (*    split;auto. *)
+(*    (*  } *) *)
+(*    (*  destruct (enumerable_pair _ _ enumerable_nat enumerable_nat). *) *)
+(*    (*  exists (fun n => match (t (fst (x n)) (snd (x n))) with | true => Some (pr1 _ _ (H (fst (x n)) (snd (x n)))) | false => None end). *) *)
+(*    (*  split. *) *)
+(*    (*  - intros. *) *)
+(*    (*    destruct (H (fst (x n)) (snd (x n))). *) *)
+(*    (*    destruct (t (fst (x n)) (snd (x n))) eqn:E. *) *)
+(*    (*    simpl in *. *) *)
+(*    (*    intros. *) *)
+(*    (*    destruct a;auto. *) *)
+(*    (*    injection H0. *) *)
+(*    (*    intros <-;auto. *) *)
+(*    (*    discriminate H0. *) *)
+(*    (*  - intros. *) *)
+(*    (*    destruct (dense_covers _ _ X H0) as [i [m H1]]. *) *)
+(*    (*    assert (exists n, t m n = true) as [n N]. *) *)
+(*    (*    { *) *)
+(*    (*      apply T. *) *)
+(*    (*      destruct H1. *) *)
+(*    (*      apply H1;apply H2. *) *)
+(*    (*    } *) *)
+(*    (*    destruct (s (m,n)). *) *)
+(*    (*    exists x1. *) *)
+(*    (*    destruct (H m n) eqn:H'. *) *)
+(*    (*    exists x2. *) *)
+(*    (*    rewrite e;simpl. *) *)
+(*    (*    rewrite H'. *) *)
+(*    (*    simpl. *) *)
+(*    (*    rewrite N. *) *)
+(*    (*    split;auto. *) *)
       
-   (*  assert (^M (forall m n, {b : option (list bool) | (f m n = false -> b = None) /\ (f m n = true ->  exists l, b = Some l /\ (extends l (x m)) /\ is_subset (extends l) U)})). *)
-   (*  { *)
-   (*    apply M_countable_lift;intros m;apply M_countable_lift;intros n. *)
-   (*    destruct (f m n) eqn:E. *)
-   (*    admit. *)
-   (*    - apply M_unit. *)
-   (*      exists None. *)
-   (*      split;auto. *)
-   (*      intros;contradict H0. *)
-   (*      apply Bool.diff_false_true. *)
-   (*  } *)
-   (*  revert X0. *)
-   (*  apply M_lift. *)
-   (*  intros. *)
-   (*  exists (fun n => (pr1 _ _ (H0 (fst (x0 n)) (snd (x0 n))))). *)
-   (*  split. *)
-   (*  - intros. *)
-   (*    destruct (H0 (fst (x0 n)) (snd (x0 n))). *)
-   (*    simpl in *. *)
-   (*    destruct a. *)
-   (*    destruct (f (fst (x0 n)) (snd (x0 n))). *)
-   (*    destruct H3;auto. *)
-   (*    replace b with x2. *)
-   (*    apply H3. *)
-   (*    destruct H3. *)
-   (*    assert (Some x2 = Some b) by (rewrite <- H1, <- H3;auto). *)
-   (*    inversion H5;auto. *)
+(*    (*  assert (^M (forall m n, {b : option (list bool) | (f m n = false -> b = None) /\ (f m n = true ->  exists l, b = Some l /\ (extends l (x m)) /\ is_subset (extends l) U)})). *) *)
+(*    (*  { *) *)
+(*    (*    apply M_countable_lift;intros m;apply M_countable_lift;intros n. *) *)
+(*    (*    destruct (f m n) eqn:E. *) *)
+(*    (*    admit. *) *)
+(*    (*    - apply M_unit. *) *)
+(*    (*      exists None. *) *)
+(*    (*      split;auto. *) *)
+(*    (*      intros;contradict H0. *) *)
+(*    (*      apply Bool.diff_false_true. *) *)
+(*    (*  } *) *)
+(*    (*  revert X0. *) *)
+(*    (*  apply M_lift. *) *)
+(*    (*  intros. *) *)
+(*    (*  exists (fun n => (pr1 _ _ (H0 (fst (x0 n)) (snd (x0 n))))). *) *)
+(*    (*  split. *) *)
+(*    (*  - intros. *) *)
+(*    (*    destruct (H0 (fst (x0 n)) (snd (x0 n))). *) *)
+(*    (*    simpl in *. *) *)
+(*    (*    destruct a. *) *)
+(*    (*    destruct (f (fst (x0 n)) (snd (x0 n))). *) *)
+(*    (*    destruct H3;auto. *) *)
+(*    (*    replace b with x2. *) *)
+(*    (*    apply H3. *) *)
+(*    (*    destruct H3. *) *)
+(*    (*    assert (Some x2 = Some b) by (rewrite <- H1, <- H3;auto). *) *)
+(*    (*    inversion H5;auto. *) *)
 
-   (*    contradict H1. *)
-   (*    rewrite H2;auto. *)
-   (*    discriminate. *)
-   (* -  intros. *)
-   (*    assert ({b | (extends b) x1 /\ is_subset (extends b) U}). *)
-   (*    admit. *)
-   (*    destruct H2. *)
-   (*    destruct (cantor_base_clopen x2). *)
-   (*    destruct a. *)
-   (*    destruct (e x1 _ o);auto. *)
-   (*    assert (U (x x3)). *)
-   (*    admit. *)
-   (*    destruct (F2 _ H5). *)
-   (*    destruct (e0 (x3,x4)). *)
-   (*    exists x5. *)
-   (*    rewrite H7;simpl. *)
-   (*    destruct (H0 x3 x4). *)
-   (*    simpl in *. *)
-   (*    destruct a. *)
-   (*    destruct (H9 H6). *)
-   (*    exists x7;split;try apply H7. *)
+(*    (*    contradict H1. *) *)
+(*    (*    rewrite H2;auto. *) *)
+(*    (*    discriminate. *) *)
+(*    (* -  intros. *) *)
+(*    (*    assert ({b | (extends b) x1 /\ is_subset (extends b) U}). *) *)
+(*    (*    admit. *) *)
+(*    (*    destruct H2. *) *)
+(*    (*    destruct (cantor_base_clopen x2). *) *)
+(*    (*    destruct a. *) *)
+(*    (*    destruct (e x1 _ o);auto. *) *)
+(*    (*    assert (U (x x3)). *) *)
+(*    (*    admit. *) *)
+(*    (*    destruct (F2 _ H5). *) *)
+(*    (*    destruct (e0 (x3,x4)). *) *)
+(*    (*    exists x5. *) *)
+(*    (*    rewrite H7;simpl. *) *)
+(*    (*    destruct (H0 x3 x4). *) *)
+(*    (*    simpl in *. *) *)
+(*    (*    destruct a. *) *)
+(*    (*    destruct (H9 H6). *) *)
+(*    (*    exists x7;split;try apply H7. *) *)
       
-  (* Lemma cantor_space_compact : (@compact (nat -> bool) (fun x => True)). *)
-  (* Proof. *)
-  (*   intros U H. *)
-  (*   destruct  *)
-  (* Axiom continuity : forall X (f : (nat -> X) -> sierp) (x : (nat -> X)),   *)
+(*   (* Lemma cantor_space_compact : (@compact (nat -> bool) (fun x => True)). *) *)
+(*   (* Proof. *) *)
+(*   (*   intros U H. *) *)
+(*   (*   destruct  *) *)
+(*   (* Axiom continuity : forall X (f : (nat -> X) -> sierp) (x : (nat -> X)),   *) *)
 
-  (* Definition pair_nat : nat -> nat -> nat. *)
-  (* Proof. *)
-  (*   intros n m. *)
-  (*   destruct (enumerable_pair _ _ enumerable_nat enumerable_nat). *)
-  (*   specialize (e (n,m)). *)
-  (*   Search (exists _ , _) ({_ | _}). *)
-  (*   apply ConstructiveEpsilon.constructive_indefinite_ground_description_nat_direct in e. *)
-  (*   destruct e. *)
-  (*   apply x0. *)
-  (*   intros. *)
-  (*   destruct (x n0). *)
-  (*   simpl. *)
-  (*   destruct (Nat.eq_dec n1 n)  as [-> |];auto. *)
-  (*   destruct (Nat.eq_dec n2 m)  as [-> |];auto. *)
-  (*   right. *)
-  (*   rewrite pair_equal_spec;intros [];auto. *)
-  (*   right. *)
-  (*   rewrite pair_equal_spec;intros [];auto. *)
-  (* Defined. *)
+(*   (* Definition pair_nat : nat -> nat -> nat. *) *)
+(*   (* Proof. *) *)
+(*   (*   intros n m. *) *)
+(*   (*   destruct (enumerable_pair _ _ enumerable_nat enumerable_nat). *) *)
+(*   (*   specialize (e (n,m)). *) *)
+(*   (*   Search (exists _ , _) ({_ | _}). *) *)
+(*   (*   apply ConstructiveEpsilon.constructive_indefinite_ground_description_nat_direct in e. *) *)
+(*   (*   destruct e. *) *)
+(*   (*   apply x0. *) *)
+(*   (*   intros. *) *)
+(*   (*   destruct (x n0). *) *)
+(*   (*   simpl. *) *)
+(*   (*   destruct (Nat.eq_dec n1 n)  as [-> |];auto. *) *)
+(*   (*   destruct (Nat.eq_dec n2 m)  as [-> |];auto. *) *)
+(*   (*   right. *) *)
+(*   (*   rewrite pair_equal_spec;intros [];auto. *) *)
+(*   (*   right. *) *)
+(*   (*   rewrite pair_equal_spec;intros [];auto. *) *)
+(*   (* Defined. *) *)
 
-  (* Lemma continuous_sequence_to_sierp X (f : (nat -> X) -> sierp) (x : nat -> X) : is_totally_represented_space X -> sierp_up (f x) -> {m | forall y, (forall n, (n <= m)%nat -> x n = y n) -> sierp_up (f y)}. *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   destruct (totally_represented_sequence _ X0) as [r R]. *)
-  (*   assert {g : (nat -> nat) -> sierp | forall x, sierp_up (g x) <-> sierp_up (f (r x))} as [g G]. *)
-  (*   admit. *)
-  (*   destruct (R x) as [x0 [R1 R2]]. *)
-  (*   destruct (continuous_baire_to_sierp g x0) as [m M]. *)
-  (*   apply G;rewrite R1;auto. *)
-  (*   exists m. *)
-  (*   intros. *)
-  (*   destruct (R y) as [y0 [R1' R2']]. *)
-  (*   rewrite <- R1'. *)
-  (*   apply G. *)
-  (*   apply M. *)
-  (*   intros. *)
-  (*   intros. *)
+(*   (* Lemma continuous_sequence_to_sierp X (f : (nat -> X) -> sierp) (x : nat -> X) : is_totally_represented_space X -> sierp_up (f x) -> {m | forall y, (forall n, (n <= m)%nat -> x n = y n) -> sierp_up (f y)}. *) *)
+(*   (* Proof. *) *)
+(*   (*   intros. *) *)
+(*   (*   destruct (totally_represented_sequence _ X0) as [r R]. *) *)
+(*   (*   assert {g : (nat -> nat) -> sierp | forall x, sierp_up (g x) <-> sierp_up (f (r x))} as [g G]. *) *)
+(*   (*   admit. *) *)
+(*   (*   destruct (R x) as [x0 [R1 R2]]. *) *)
+(*   (*   destruct (continuous_baire_to_sierp g x0) as [m M]. *) *)
+(*   (*   apply G;rewrite R1;auto. *) *)
+(*   (*   exists m. *) *)
+(*   (*   intros. *) *)
+(*   (*   destruct (R y) as [y0 [R1' R2']]. *) *)
+(*   (*   rewrite <- R1'. *) *)
+(*   (*   apply G. *) *)
+(*   (*   apply M. *) *)
+(*   (*   intros. *) *)
+(*   (*   intros. *) *)
     
-  (* Lemma continuous_baire2_to_sierp (f : (nat -> nat -> nat) -> sierp) (x : nat -> (nat -> nat)) : sierp_up (f x) -> {m | forall y, (forall n, (n <= m)%nat -> x n = y n)  ->  sierp_up (f y) }. *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   destruct (continuous_baire_to_sierp (fun (x : nat -> nat) => (f (fun n m => x (pair_nat n m)))) (fun n => x (unpair_nat1 n) (unpair_nat2 n))). *)
-  (*   - replace (fun n m => x (unpair_nat1 (pair_nat n m)) (unpair_nat2 (pair_nat n m))) with x;auto. *)
-  (*     apply fun_ext;intros;apply fun_ext;intros. *)
-  (*     rewrite pair_unpair1, pair_unpair2;auto. *)
-  (*   - exists x0. *)
-  (*     intros. *)
-  (*     specialize (s (fun n => (y (unpair_nat1 n) (unpair_nat2 n)))). *)
-  (*   replace y with (fun n m => y (unpair_nat1 (pair_nat n m)) (unpair_nat2 (pair_nat n m))). *)
-  (*   apply s. *)
-  (*   intros. *)
-  (*   rewrite H0;auto. *)
-  (*   pose proof (unpair_le n). *)
-  (*   lia. *)
-  (*   apply fun_ext;intros;apply fun_ext;intros. *)
-  (*   rewrite pair_unpair1, pair_unpair2;auto. *)
-  (* Qed. *)
+(*   (* Lemma continuous_baire2_to_sierp (f : (nat -> nat -> nat) -> sierp) (x : nat -> (nat -> nat)) : sierp_up (f x) -> {m | forall y, (forall n, (n <= m)%nat -> x n = y n)  ->  sierp_up (f y) }. *) *)
+(*   (* Proof. *) *)
+(*   (*   intros. *) *)
+(*   (*   destruct (continuous_baire_to_sierp (fun (x : nat -> nat) => (f (fun n m => x (pair_nat n m)))) (fun n => x (unpair_nat1 n) (unpair_nat2 n))). *) *)
+(*   (*   - replace (fun n m => x (unpair_nat1 (pair_nat n m)) (unpair_nat2 (pair_nat n m))) with x;auto. *) *)
+(*   (*     apply fun_ext;intros;apply fun_ext;intros. *) *)
+(*   (*     rewrite pair_unpair1, pair_unpair2;auto. *) *)
+(*   (*   - exists x0. *) *)
+(*   (*     intros. *) *)
+(*   (*     specialize (s (fun n => (y (unpair_nat1 n) (unpair_nat2 n)))). *) *)
+(*   (*   replace y with (fun n m => y (unpair_nat1 (pair_nat n m)) (unpair_nat2 (pair_nat n m))). *) *)
+(*   (*   apply s. *) *)
+(*   (*   intros. *) *)
+(*   (*   rewrite H0;auto. *) *)
+(*   (*   pose proof (unpair_le n). *) *)
+(*   (*   lia. *) *)
+(*   (*   apply fun_ext;intros;apply fun_ext;intros. *) *)
+(*   (*   rewrite pair_unpair1, pair_unpair2;auto. *) *)
+(*   (* Qed. *) *)
 
 
-  (* Lemma continuity_baire : forall (f : ((nat -> nat) -> nat)) (x : (nat -> nat)), {m | forall y,  (forall n, (n <= m)%nat -> x n = y n) -> f x = f y}. *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   assert (forall n y, {s : sierp | sierp_up s <-> f y = n}). *)
-  (*   { *)
-  (*     intros. *)
-  (*     apply sierp_from_semidec. *)
-  (*     unfold lazy_bool_up. *)
-  (*     destruct (Nat.eq_dec (f y) n); [exists lazy_bool_true | exists lazy_bool_false];split; auto. *)
-  (*     intros. *)
-  (*     contradict H;apply lazy_bool_distinct. *)
-  (*     lia. *)
-  (*   } *)
-  (*   destruct (continuous_baire_to_sierp (fun y => (pr1 _ _ (X (f x) y))) x). *)
-  (*   - destruct (X (f x) x). *)
-  (*     apply i;auto. *)
-  (*  - exists x0. *)
-  (*    intros. *)
-  (*    specialize (s y H). *)
-  (*    destruct (X (f x) y). *)
-  (*    apply eq_sym. *)
-  (*    apply i. *)
-  (*    apply s. *)
-  (* Qed. *)
+(*   (* Lemma continuity_baire : forall (f : ((nat -> nat) -> nat)) (x : (nat -> nat)), {m | forall y,  (forall n, (n <= m)%nat -> x n = y n) -> f x = f y}. *) *)
+(*   (* Proof. *) *)
+(*   (*   intros. *) *)
+(*   (*   assert (forall n y, {s : sierp | sierp_up s <-> f y = n}). *) *)
+(*   (*   { *) *)
+(*   (*     intros. *) *)
+(*   (*     apply sierp_from_semidec. *) *)
+(*   (*     unfold lazy_bool_up. *) *)
+(*   (*     destruct (Nat.eq_dec (f y) n); [exists lazy_bool_true | exists lazy_bool_false];split; auto. *) *)
+(*   (*     intros. *) *)
+(*   (*     contradict H;apply lazy_bool_distinct. *) *)
+(*   (*     lia. *) *)
+(*   (*   } *) *)
+(*   (*   destruct (continuous_baire_to_sierp (fun y => (pr1 _ _ (X (f x) y))) x). *) *)
+(*   (*   - destruct (X (f x) x). *) *)
+(*   (*     apply i;auto. *) *)
+(*   (*  - exists x0. *) *)
+(*   (*    intros. *) *)
+(*   (*    specialize (s y H). *) *)
+(*   (*    destruct (X (f x) y). *) *)
+(*   (*    apply eq_sym. *) *)
+(*   (*    apply i. *) *)
+(*   (*    apply s. *) *)
+(*   (* Qed. *) *)
 
-  (* (* Lemma continuity_baire2 (f : (nat -> nat -> nat) -> nat) (x : nat -> (nat -> nat)) : {m | forall y, (forall n, (n <= m)%nat -> x n = y n)  ->  f x = f y }. *) *)
-  (* (* Proof. *) *)
-  (* (*   destruct (continuity_baire (fun (x : nat -> nat) => (f (fun n m => x (pair_nat n m)))) (fun n => x (unpair_nat1 n) (unpair_nat2 n))). *) *)
-  (* (*   exists x0. *) *)
-  (* (*   intros. *) *)
-  (* (*   specialize (e (fun n => (y (unpair_nat1 n) (unpair_nat2 n)))). *) *)
-  (* (*   replace x with (fun n m => x (unpair_nat1 (pair_nat n m)) (unpair_nat2 (pair_nat n m))). *) *)
+(*   (* (* Lemma continuity_baire2 (f : (nat -> nat -> nat) -> nat) (x : nat -> (nat -> nat)) : {m | forall y, (forall n, (n <= m)%nat -> x n = y n)  ->  f x = f y }. *) *) *)
+(*   (* (* Proof. *) *) *)
+(*   (* (*   destruct (continuity_baire (fun (x : nat -> nat) => (f (fun n m => x (pair_nat n m)))) (fun n => x (unpair_nat1 n) (unpair_nat2 n))). *) *) *)
+(*   (* (*   exists x0. *) *) *)
+(*   (* (*   intros. *) *) *)
+(*   (* (*   specialize (e (fun n => (y (unpair_nat1 n) (unpair_nat2 n)))). *) *) *)
+(*   (* (*   replace x with (fun n m => x (unpair_nat1 (pair_nat n m)) (unpair_nat2 (pair_nat n m))). *) *) *)
     
-  (* (*   replace y with (fun n m => y (unpair_nat1 (pair_nat n m)) (unpair_nat2 (pair_nat n m))). *) *)
-  (* (*   apply e. *) *)
-  (* (*   intros. *) *)
-  (* (*   rewrite H;auto. *) *)
-  (* (*   pose proof (unpair_le n). *) *)
-  (* (*   lia. *) *)
-  (* (*   apply fun_ext;intros;apply fun_ext;intros. *) *)
-  (* (*   rewrite pair_unpair1, pair_unpair2;auto. *) *)
-  (* (*   apply fun_ext;intros;apply fun_ext;intros. *) *)
-  (* (*   rewrite pair_unpair1, pair_unpair2;auto. *) *)
-  (* (* Qed. *) *)
+(*   (* (*   replace y with (fun n m => y (unpair_nat1 (pair_nat n m)) (unpair_nat2 (pair_nat n m))). *) *) *)
+(*   (* (*   apply e. *) *) *)
+(*   (* (*   intros. *) *) *)
+(*   (* (*   rewrite H;auto. *) *) *)
+(*   (* (*   pose proof (unpair_le n). *) *) *)
+(*   (* (*   lia. *) *) *)
+(*   (* (*   apply fun_ext;intros;apply fun_ext;intros. *) *) *)
+(*   (* (*   rewrite pair_unpair1, pair_unpair2;auto. *) *) *)
+(*   (* (*   apply fun_ext;intros;apply fun_ext;intros. *) *) *)
+(*   (* (*   rewrite pair_unpair1, pair_unpair2;auto. *) *) *)
+(*   (* (* Qed. *) *) *)
 
-  (* Lemma sierp_from_nat_sequence : forall (f : (nat -> nat)), {s : sierp | sierp_up s <-> exists n, f n = 1%nat}. *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   assert (forall n, {s : sierp |  sierp_up s <-> f n = 1%nat}). *)
-  (*   { *)
-  (*     intros. *)
-  (*     apply sierp_from_semidec. *)
-  (*     unfold lazy_bool_up. *)
-  (*     destruct (Nat.eq_dec (f n) 1%nat); [exists lazy_bool_true | exists lazy_bool_false];split; auto;intros;contradict H;auto. *)
-  (*     apply lazy_bool_distinct. *)
-  (*   } *)
-  (*   destruct (eventually_true (fun n => (pr1 _ _ (X n)))). *)
-  (*   exists x. *)
-  (*   rewrite i. *)
-  (*   split;intros [];exists x0;destruct (X x0);simpl;apply i0;auto. *)
-  (* Qed. *)
+(*   (* Lemma sierp_from_nat_sequence : forall (f : (nat -> nat)), {s : sierp | sierp_up s <-> exists n, f n = 1%nat}. *) *)
+(*   (* Proof. *) *)
+(*   (*   intros. *) *)
+(*   (*   assert (forall n, {s : sierp |  sierp_up s <-> f n = 1%nat}). *) *)
+(*   (*   { *) *)
+(*   (*     intros. *) *)
+(*   (*     apply sierp_from_semidec. *) *)
+(*   (*     unfold lazy_bool_up. *) *)
+(*   (*     destruct (Nat.eq_dec (f n) 1%nat); [exists lazy_bool_true | exists lazy_bool_false];split; auto;intros;contradict H;auto. *) *)
+(*   (*     apply lazy_bool_distinct. *) *)
+(*   (*   } *) *)
+(*   (*   destruct (eventually_true (fun n => (pr1 _ _ (X n)))). *) *)
+(*   (*   exists x. *) *)
+(*   (*   rewrite i. *) *)
+(*   (*   split;intros [];exists x0;destruct (X x0);simpl;apply i0;auto. *) *)
+(*   (* Qed. *) *)
 
-  (* Axiom sierp_equality : forall s1 s2, sierp_up s1 <-> sierp_up s2 -> s1 = s2.  *)
+(*   (* Axiom sierp_equality : forall s1 s2, sierp_up s1 <-> sierp_up s2 -> s1 = s2.  *) *)
 
-  (* Lemma continuity_open : forall (f : (nat -> sierp) -> sierp) (x : nat -> sierp), sierp_up (f x) -> ^M {m | forall y, (forall n, (n <= m)%nat -> x n = y n) -> sierp_up (f y)}. *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   assert ({g : (nat -> nat -> nat) -> sierp | (forall y, sierp_up (g y) -> forall s, (forall n, sierp_up (s n) <-> exists m, (y n m) = 1%nat) -> sierp_up (f s)) /\ (forall s, sierp_up (f s) -> (forall y, (forall n, sierp_up (s n) <-> exists m, (y n m) = 1%nat) -> sierp_up (g y)))}) as [g [G1 G2]]. *)
-  (*   { *)
-  (*     exists (fun x => (f (fun n => (pr1 _ _ (sierp_from_nat_sequence (x n)))))). *)
-  (*     split. *)
-  (*     - intros. *)
-  (*       replace s with (fun n => pr1 _ _ (sierp_from_nat_sequence (y n))). *)
-  (*       apply H0. *)
-  (*       apply fun_ext. *)
-  (*       intros. *)
-  (*       destruct (sierp_from_nat_sequence (y x0));simpl. *)
-  (*       apply sierp_equality. *)
-  (*       rewrite H1,i;split;intros [];exists x2;auto. *)
-  (*     - intros. *)
-  (*       replace (fun n => pr1 _ _ (sierp_from_nat_sequence (y n))) with s;auto. *)
-  (*       apply fun_ext. *)
-  (*       intros. *)
-  (*       destruct (sierp_from_nat_sequence (y x0));simpl. *)
-  (*       apply sierp_equality. *)
-  (*       rewrite H1,i;split;intros [];exists x2;auto. *)
-  (*     } *)
-  (*   pose proof (continuous_baire2_to_sierp g). *)
-  (*   assert (forall y, ^M ({x' : nat->nat -> nat | forall n, (sierp_up (y n) <-> exists m, (x' n m) = 1%nat)})).  *)
-  (*   { *)
-  (*     intros. *)
-  (*     assert (forall n, ^M {x' : nat -> nat | sierp_up (y n) <-> exists m, (x' m) = 1%nat}). *)
-  (*     - intros. *)
-  (*       apply sierp_to_nat_sequence. *)
-  (*     - apply M_countable_lift in X. *)
-  (*       revert X. *)
-  (*       apply M_lift. *)
-  (*       intros. *)
-  (*       exists (fun n => (pr1 _ _ (H1 n))). *)
-  (*       intros. *)
-  (*       destruct (H1 n);auto. *)
-  (*   } *)
-  (*   pose proof (X x). *)
-  (*   revert X0. *)
-  (*   apply M_lift. *)
-  (*   intros [x' H1]. *)
-  (*   assert (sierp_up (g x')) by (apply (G2 x);auto). *)
-  (*   destruct (H0 _  H2) as [m M]. *)
-  (*   exists m. *)
-  (*   intros. *)
-  (*   assert (^M ({y' : nat -> nat -> nat | (forall n, sierp_up (y n) <-> exists m, (y' n m) = 1%nat) /\ forall n, (n <= m)%nat -> x' n = y' n})). *)
-  (*   { *)
-  (*     pose proof (X y). *)
-  (*     revert X0. *)
-  (*     apply M_lift. *)
-  (*     intros [y0 Y0]. *)
-  (*     exists (fun p => if (p <=? m) then (x' p) else (y0 p)). *)
-  (*     split. *)
-  (*     - intros. *)
-  (*       rewrite Y0. *)
-  (*       split; intros [m0 M0]. *)
-  (*       + destruct (le_gt_dec n m). *)
-  (*         rewrite (leb_correct _ _ l). *)
-  (*         rewrite <-H1. *)
-  (*         rewrite H3;auto. *)
-  (*         apply Y0. *)
-  (*         exists m0;auto. *)
-  (*         rewrite leb_correct_conv;try lia. *)
-  (*         exists m0;auto. *)
-  (*      + destruct (le_gt_dec n m). *)
-  (*         rewrite (leb_correct _ _ l) in M0. *)
-  (*        rewrite <-Y0. *)
-  (*        rewrite <-H3;auto. *)
-  (*        apply H1. *)
-  (*        exists m0;auto. *)
-  (*       rewrite leb_correct_conv in M0;try lia. *)
-  (*       exists m0;auto. *)
-  (*    - intros. *)
-  (*      rewrite leb_correct;auto. *)
-  (*   } *)
-  (*   apply M_hprop_elim_f. *)
-  (*   unfold is_hprop. *)
-  (*   apply irrl. *)
-  (*   revert X0. *)
-  (*   apply M_lift. *)
-  (*   intros [y' [Y1 Y2]]. *)
-  (*   apply (G1 y'). *)
-  (*   apply M. *)
-  (*   apply Y2. *)
-  (*   apply Y1. *)
-  (* Qed. *)
-  (* Example cantor_closed : closed (fun (x: (nat -> bool)) => forall n, (x n) = true -> forall m, (n <> m)%nat -> (x m) = false). *)
-  (* Proof. *)
-  (*   intros x. *)
-  (*   unfold complement. *)
-  (*   destruct (cantor_exists_open x). *)
+(*   (* Lemma continuity_open : forall (f : (nat -> sierp) -> sierp) (x : nat -> sierp), sierp_up (f x) -> ^M {m | forall y, (forall n, (n <= m)%nat -> x n = y n) -> sierp_up (f y)}. *) *)
+(*   (* Proof. *) *)
+(*   (*   intros. *) *)
+(*   (*   assert ({g : (nat -> nat -> nat) -> sierp | (forall y, sierp_up (g y) -> forall s, (forall n, sierp_up (s n) <-> exists m, (y n m) = 1%nat) -> sierp_up (f s)) /\ (forall s, sierp_up (f s) -> (forall y, (forall n, sierp_up (s n) <-> exists m, (y n m) = 1%nat) -> sierp_up (g y)))}) as [g [G1 G2]]. *) *)
+(*   (*   { *) *)
+(*   (*     exists (fun x => (f (fun n => (pr1 _ _ (sierp_from_nat_sequence (x n)))))). *) *)
+(*   (*     split. *) *)
+(*   (*     - intros. *) *)
+(*   (*       replace s with (fun n => pr1 _ _ (sierp_from_nat_sequence (y n))). *) *)
+(*   (*       apply H0. *) *)
+(*   (*       apply fun_ext. *) *)
+(*   (*       intros. *) *)
+(*   (*       destruct (sierp_from_nat_sequence (y x0));simpl. *) *)
+(*   (*       apply sierp_equality. *) *)
+(*   (*       rewrite H1,i;split;intros [];exists x2;auto. *) *)
+(*   (*     - intros. *) *)
+(*   (*       replace (fun n => pr1 _ _ (sierp_from_nat_sequence (y n))) with s;auto. *) *)
+(*   (*       apply fun_ext. *) *)
+(*   (*       intros. *) *)
+(*   (*       destruct (sierp_from_nat_sequence (y x0));simpl. *) *)
+(*   (*       apply sierp_equality. *) *)
+(*   (*       rewrite H1,i;split;intros [];exists x2;auto. *) *)
+(*   (*     } *) *)
+(*   (*   pose proof (continuous_baire2_to_sierp g). *) *)
+(*   (*   assert (forall y, ^M ({x' : nat->nat -> nat | forall n, (sierp_up (y n) <-> exists m, (x' n m) = 1%nat)})).  *) *)
+(*   (*   { *) *)
+(*   (*     intros. *) *)
+(*   (*     assert (forall n, ^M {x' : nat -> nat | sierp_up (y n) <-> exists m, (x' m) = 1%nat}). *) *)
+(*   (*     - intros. *) *)
+(*   (*       apply sierp_to_nat_sequence. *) *)
+(*   (*     - apply M_countable_lift in X. *) *)
+(*   (*       revert X. *) *)
+(*   (*       apply M_lift. *) *)
+(*   (*       intros. *) *)
+(*   (*       exists (fun n => (pr1 _ _ (H1 n))). *) *)
+(*   (*       intros. *) *)
+(*   (*       destruct (H1 n);auto. *) *)
+(*   (*   } *) *)
+(*   (*   pose proof (X x). *) *)
+(*   (*   revert X0. *) *)
+(*   (*   apply M_lift. *) *)
+(*   (*   intros [x' H1]. *) *)
+(*   (*   assert (sierp_up (g x')) by (apply (G2 x);auto). *) *)
+(*   (*   destruct (H0 _  H2) as [m M]. *) *)
+(*   (*   exists m. *) *)
+(*   (*   intros. *) *)
+(*   (*   assert (^M ({y' : nat -> nat -> nat | (forall n, sierp_up (y n) <-> exists m, (y' n m) = 1%nat) /\ forall n, (n <= m)%nat -> x' n = y' n})). *) *)
+(*   (*   { *) *)
+(*   (*     pose proof (X y). *) *)
+(*   (*     revert X0. *) *)
+(*   (*     apply M_lift. *) *)
+(*   (*     intros [y0 Y0]. *) *)
+(*   (*     exists (fun p => if (p <=? m) then (x' p) else (y0 p)). *) *)
+(*   (*     split. *) *)
+(*   (*     - intros. *) *)
+(*   (*       rewrite Y0. *) *)
+(*   (*       split; intros [m0 M0]. *) *)
+(*   (*       + destruct (le_gt_dec n m). *) *)
+(*   (*         rewrite (leb_correct _ _ l). *) *)
+(*   (*         rewrite <-H1. *) *)
+(*   (*         rewrite H3;auto. *) *)
+(*   (*         apply Y0. *) *)
+(*   (*         exists m0;auto. *) *)
+(*   (*         rewrite leb_correct_conv;try lia. *) *)
+(*   (*         exists m0;auto. *) *)
+(*   (*      + destruct (le_gt_dec n m). *) *)
+(*   (*         rewrite (leb_correct _ _ l) in M0. *) *)
+(*   (*        rewrite <-Y0. *) *)
+(*   (*        rewrite <-H3;auto. *) *)
+(*   (*        apply H1. *) *)
+(*   (*        exists m0;auto. *) *)
+(*   (*       rewrite leb_correct_conv in M0;try lia. *) *)
+(*   (*       exists m0;auto. *) *)
+(*   (*    - intros. *) *)
+(*   (*      rewrite leb_correct;auto. *) *)
+(*   (*   } *) *)
+(*   (*   apply M_hprop_elim_f. *) *)
+(*   (*   unfold is_hprop. *) *)
+(*   (*   apply irrl. *) *)
+(*   (*   revert X0. *) *)
+(*   (*   apply M_lift. *) *)
+(*   (*   intros [y' [Y1 Y2]]. *) *)
+(*   (*   apply (G1 y'). *) *)
+(*   (*   apply M. *) *)
+(*   (*   apply Y2. *) *)
+(*   (*   apply Y1. *) *)
+(*   (* Qed. *) *)
+(*   (* Example cantor_closed : closed (fun (x: (nat -> bool)) => forall n, (x n) = true -> forall m, (n <> m)%nat -> (x m) = false). *) *)
+(*   (* Proof. *) *)
+(*   (*   intros x. *) *)
+(*   (*   unfold complement. *) *)
+(*   (*   destruct (cantor_exists_open x). *) *)
 
-End Examples.
+(* End Examples. *)
