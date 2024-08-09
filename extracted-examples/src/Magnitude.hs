@@ -15,6 +15,25 @@ import qualified GHC.Exts
 import qualified IOExts
 #endif
 
+import Prelude ((+),(-),(/))
+import qualified Prelude as P
+import MixedTypesNumPrelude (ifThenElse)
+import Numeric.CollectErrors (unCNfn2)
+import qualified Numeric.OrdGenericBool as OGB
+import qualified Unsafe.Coerce as UC
+import qualified Control.Monad
+import qualified Data.Functor
+import qualified MixedTypesNumPrelude as MNP
+import qualified Math.NumberTheory.Logarithms as Logs
+import qualified AERN2.Real as AERN2
+
+__uc :: a -> b
+__uc = UC.unsafeCoerce
+__K :: a -> AERN2.CKleenean
+__K = UC.unsafeCoerce
+__R :: a -> AERN2.CReal
+__R = UC.unsafeCoerce
+
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any
 #else
