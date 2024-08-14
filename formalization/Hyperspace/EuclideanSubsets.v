@@ -1,18 +1,11 @@
 (* this file proves various properties of subsets of real numbers *)
 Require Import Lia.
 Require Import Real Euclidean List Minmax Classical.Subsets Sierpinski Testsearch Dyadic Hyperspace.Subsets.
-Check multivalued_countable_choice.
+Require Import RealAssumption.
 Section EuclideanBalls.
 
 Context {d : nat}.
-Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
-
-#[local] Notation "^K" := (@K types) (at level 0).
-#[local] Notation "^M" := (@M types) (at level 0).
-#[local] Notation "^Real" := (@Real types) (at level 0).
-#[local] Definition sofReal := @sofReal types casofReal.
-#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
-#[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+#[local] Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
 
 
   Ltac IZReal_tac t :=
@@ -153,17 +146,10 @@ Section BallOperations.
 (** Operations on lists of balls **)
 
   Context {d : nat}.
-  Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
-
-  #[local] Notation "^K" := (@K types) (at level 0).
-  #[local] Notation "^M" := (@M types) (at level 0).
-  #[local] Notation "^Real" := (@Real types) (at level 0).
-  #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
-  #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+  #[local] Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
   Add Ring realRing : (realTheory ).
 
-
-  Fixpoint change_rad (L : list (@ball d types)) (p : nat) :=
+  Fixpoint change_rad (L : list (@ball d )) (p : nat) :=
     match L with
      | nil => nil
     | a :: L' => (fst a, prec p) :: change_rad L' p
@@ -379,11 +365,6 @@ Section EuclideanOpen.
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
  Context {d : nat}.
 
-#[local] Notation "^K" := (@K types) (at level 0).
-#[local] Notation "^M" := (@M types) (at level 0).
-#[local] Notation "^Real" := (@Real types) (at level 0).
-#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
-#[local] Notation "^euclidean" := (@euclidean types) (at level 0).
 
 
   Add Ring realRing : (realTheory ).
@@ -518,13 +499,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 End EuclideanOpen.
 
 Section EuclideanCompact.
-  Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  #[local] Notation "^K" := (@K types) (at level 0).
-  #[local] Notation "^M" := (@M types) (at level 0).
-  #[local] Notation "^Real" := (@Real types) (at level 0).
-  #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
-  #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+  #[local] Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
 
   Add Ring realRing : (realTheory ).
   Context {d : nat}.
@@ -534,7 +510,7 @@ Section EuclideanCompact.
    intros.
   Admitted.  
 
-  Lemma euclidean_neq_semidec (x y : (@euclidean types d)) : semidec (x <> y).
+  Lemma euclidean_neq_semidec (x y : (@euclidean RealAssumption.types d)) : semidec (x <> y).
   Proof.
     induction d.
     - rewrite (dim_zero_destruct x), (dim_zero_destruct y).
@@ -562,7 +538,7 @@ Section EuclideanCompact.
      rewrite classical_tautology_neg_and;split;auto.
   Qed.
 
-  Lemma compact_closed (A : (@euclidean_subset d types)) : compact A -> closed A.
+  Lemma compact_closed (A : (@euclidean_subset d )) : compact A -> closed A.
   Proof.
     intros H x.
     assert (open (fun y => x <> y)).
@@ -572,30 +548,22 @@ Section EuclideanCompact.
       apply euclidean_neq_semidec.
     }
     destruct (H _ X).
-    apply sierp_from_semidec.
     exists x0.
-    destruct i.
+    rewrite i.
     unfold complement.
     split.
     intros H2 Ax.
-    rewrite H2 in H0.
-    specialize  (H0 (eq_refl lazy_bool_true) _ Ax); auto.
-
+    specialize (H2 _ Ax).
+    contradict H2;auto.
     intros.
-    apply H1.
     intros y Ay eqxy.
     contradict Ay;rewrite <-eqxy;auto.
  Defined.
 End EuclideanCompact.
 
 Section EuclideanLocated.
-  Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
-  #[local] Notation "^K" := (@K types) (at level 0).
-  #[local] Notation "^M" := (@M types) (at level 0).
-  #[local] Notation "^Real" := (@Real types) (at level 0).
-  #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
-  #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+  #[local] Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
 
   Add Ring realRing : (realTheory ).
   Context {d : nat}.
@@ -874,7 +842,7 @@ Section EuclideanLocated.
         apply P1.
   Defined.
 
-  Lemma list_of_closed_balls_to_subset_cons a l x : (@list_of_closed_balls_to_subset d _ _  (a :: l) x) <-> (closed_ball_to_subset a x) \/ (list_of_closed_balls_to_subset l x).
+  Lemma list_of_closed_balls_to_subset_cons a l x : (@list_of_closed_balls_to_subset d  (a :: l) x) <-> (closed_ball_to_subset a x) \/ (list_of_closed_balls_to_subset l x).
   Proof.
     split.
     - intros.
@@ -944,7 +912,7 @@ Section EuclideanLocated.
    Defined.
   
   (** A covering for a nonempty set can not contain any empty balls**)
-   Lemma intersection_nonempty (M : csubset) (L : list ball) : (exists x, M x) -> Forall (fun b => intersects (@closed_ball_to_subset d _ _ b) M) L ->  forall b, In b L -> snd b >= real_0.
+   Lemma intersection_nonempty (M : csubset) (L : list ball) : (exists x, M x) -> Forall (fun b => intersects (@closed_ball_to_subset d  b) M) L ->  forall b, In b L -> snd b >= real_0.
    Proof.
      intros.
      rewrite Forall_forall in H0.
@@ -955,7 +923,7 @@ Section EuclideanLocated.
 
   (** A covering for a nonempty set can not contain any empty balls**)
    Lemma cover_nonempty (M : csubset) (L : list ball) : (exists x, M x) -> 
-                (forall x,  M x ->  Exists (fun b => (@closed_ball_to_subset d _ _ b) x) L)
+                (forall x,  M x ->  Exists (fun b => (@closed_ball_to_subset d b) x) L)
  ->  L <> Datatypes.nil.
    Proof.
      intros.
@@ -1291,9 +1259,9 @@ Section EuclideanLocated.
   Proof.
   Admitted.
 
-  Definition image (f : (@euclidean types d) -> (@euclidean types d)) (A : csubset) x := exists y, A y /\ (f y) = x.
+  Definition image (f : (@euclidean RealAssumption.types d) -> (@euclidean RealAssumption.types d)) (A : csubset) x := exists y, A y /\ (f y) = x.
 
-  Lemma image_list (f: (@euclidean types d) -> (@euclidean types  d)) (L : list ball) m : {L' | forall b', In b' L' <-> exists b, In b L /\ (fst b') = f (fst b) /\ snd b' = prec m}.
+  Lemma image_list (f: (@euclidean RealAssumption.types d) -> (@euclidean RealAssumption.types  d)) (L : list ball) m : {L' | forall b', In b' L' <-> exists b, In b L /\ (fst b') = f (fst b) /\ snd b' = prec m}.
   Proof.
     induction L.
     exists Datatypes.nil.
@@ -1341,7 +1309,7 @@ Section EuclideanLocated.
      rewrite Forall_forall in H2.
      destruct (H2 _ B1) as [y [Y1 Y2]].
      exists (f y).
-     unfold ClassicalSubsets.intersection, closed_ball_to_subset, image.
+     unfold intersection, closed_ball_to_subset, image.
      split.
      rewrite B2,B3.
      apply  H;auto.
@@ -1369,26 +1337,18 @@ End EuclideanLocated.
 
 Section ZoomRepresentation.
 
-  Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
-
-  #[local] Notation "^K" := (@K types) (at level 0).
-  #[local] Notation "^M" := (@M types) (at level 0).
-  #[local] Notation "^Real" := (@Real types) (at level 0).
-  #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
-  #[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+  #[local] Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
 
   Add Ring realRing : (realTheory ).
   Context {d : nat}.
   
-  Definition drawing (A : (@euclidean_subset d types)) (x : (^euclidean d)) (n: nat) := ^M {b : bool | A x -> b = true /\ (forall y, A y -> euclidean_max_dist x y > prec n) -> b = false}. 
+  Definition drawing (A : (@euclidean_subset d )) (x : (^euclidean d)) (n: nat) := ^M {b : bool | A x -> b = true /\ (forall y, A y -> euclidean_max_dist x y > prec n) -> b = false}. 
 
   
   
 End ZoomRepresentation.
 Section SubsetsR2.
 
-Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
-#[local] Notation "^Real" := (@Real types) (at level 0).
 
   Definition make_ball2 (x y r : ^Real) : (ball (d:=n2)) := ((make_euclidean2 x y), r).
 
