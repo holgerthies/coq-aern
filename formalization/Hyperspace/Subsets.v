@@ -1166,6 +1166,7 @@ Axiom baire_choice :
         apply Nat.eqb_eq.
         apply H;lia.
   Qed.
+
   Lemma baire_continuity (f : (nat->nat) -> nat -> nat) : ^M ( forall x n,  {m |forall y, (forall i, (i < m)%nat -> x i = y i) -> (forall i, (i < n)%nat -> f x i = f y i)}).
    Proof.
      assert (forall n m, {fn : (nat -> nat) -> sierp | forall x, sierp_up (fn x) <-> f x n = m}).
@@ -4320,32 +4321,37 @@ Lemma bishop_compact_classically_seqcompact H (s : separable) (l : has_limit H) 
   (*   apply real_limit_P. *)
   (*   Search  *)
 End Metric.
-Section Discrete.
-  Context {X : Type}.
-  Context {d : (@metric X) }.
-  Context {discrete : forall x y, x <> y -> (pr1 _ _ d x y) = real_1}.
+(* Section Discrete. *)
+(*   Context {X : Type}. *)
+(*   Context {d : (@metric X) }. *)
+(*   Context {separable : (@metric X) }. *)
+(*   Context {complete : (@has_limit X d) }. *)
+(*   Context {discrete : forall x y, x <> y -> (pr1 _ _ d x y) = real_1}. *)
 
-  Lemma eq_semidec : forall (x y : X), semidec (x = y).
-  Proof.
-    intros.
-    destruct d as [dist [D1 [D2 D3]]];simpl in *.
-    destruct (real_lt_semidec (dist x y) real_1).
-    exists x0.
-    rewrite i.
-    split;intros.
-    apply Classical_Prop.NNPP.
-    intros H0.
-    specialize (discrete _ _ H0).
-    contradict H.
-    rewrite discrete.
-    apply real_nlt_triv.
-    replace (dist x y) with real_0.
-    apply real_1_gt_0.
-    apply eq_sym.
-    apply D1;auto.
-  Qed.
+(*   Lemma eq_semidec : forall (x y : X), semidec (x = y). *)
+(*   Proof. *)
+(*     intros. *)
+(*     destruct d as [dist [D1 [D2 D3]]];simpl in *. *)
+(*     destruct (real_lt_semidec (dist x y) real_1). *)
+(*     exists x0. *)
+(*     rewrite i. *)
+(*     split;intros. *)
+(*     apply Classical_Prop.NNPP. *)
+(*     intros H0. *)
+(*     specialize (discrete _ _ H0). *)
+(*     contradict H. *)
+(*     rewrite discrete. *)
+(*     apply real_nlt_triv. *)
+(*     replace (dist x y) with real_0. *)
+(*     apply real_1_gt_0. *)
+(*     apply eq_sym. *)
+(*     apply D1;auto. *)
+(*   Qed. *)
 
-  
+
+(*   Lemma everything_open (U :(@csubset X)): open U. *)
+(*   Proof. *)
+(*     Search open metric. *)
 (* Section Examples. *)
   
 (*   Example cantor_exists_open : open (fun (n : (nat -> bool)) => exists m, (n m) = true). *)
