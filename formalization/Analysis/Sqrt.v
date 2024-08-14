@@ -1,9 +1,9 @@
 Set Warnings "-parsing".
 From mathcomp Require Import all_ssreflect.
-Require Import Real Reals RealCoqReal RealHelpers magnitude.
+Require Import Real Reals RealCoqReal RealHelpers Magnitude.
 From Coquelicot Require Import Coquelicot.
 Require Import Psatz.
- Import testsearch.
+ Import Testsearch.
 Require Import Interval.Tactic.
 Require Import Complex Euclidean.
 Open Scope Real_scope.

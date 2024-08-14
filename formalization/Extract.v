@@ -252,9 +252,9 @@ Extract Inductive prod => "(,)"  [ "(,)" ].
 
 Extract Constant Nat.log2 => "(MNP.integer P.. Logs.integerLog2)".
 
-Require Import Ode.
+(* Require Import Ode.
 Extraction "ode_exp" exp_example.
-Extraction "ode_tan" tan_example.
+Extraction "ode_tan" tan_example. *)
 
 (* Sewon's lab seminar talk material*)
 (* Maximum *)
@@ -282,7 +282,7 @@ Extraction Implicit real_max [ types casofReal ].
 (* Extraction "Max" real_max. *)
 
 (* magnitude *)
-Require Import testsearch.
+Require Import Testsearch.
 
 Extraction Implicit weaken_orM_r [ types casofReal ].
 
@@ -290,7 +290,7 @@ Extraction Implicit epsilon_smallest_choose_M  [ types casofReal ].
 
 Extraction Implicit epsilon_smallest_PQ_M [ types casofReal ].
 
-Require Import magnitude.
+Require Import Magnitude.
 
 Extraction Implicit magnitude [ types casofReal ].
 Extraction Implicit magnitude1 [ types casofReal ].
@@ -299,7 +299,7 @@ Extraction Implicit dec_x_lt_2 [ types casofReal ].
 
 Extraction Implicit Zpow [ types casofReal ].
 
-(* Extraction "Magnitude" magnitude.magnitude. *)
+(* Extraction "Magnitude" Magnitude.magnitude. *)
 
 Require Import RealRing.
 
@@ -311,6 +311,9 @@ Extraction Implicit complex0  [ types casofReal ].
 
 Require Import Euclidean.
 
+Extraction Implicit euclidean_rect [ types ].
+Extraction Implicit euclidean_head_sequence [ types ].
+Extraction Implicit euclidean_tail_sequence [ types ].
 Extraction Implicit euclidean_max_dist [ types casofReal ].
 Extraction Implicit euclidean_mlimit_PQ [ types casofReal ].
 Extraction Implicit euclidean_max_norm [ types casofReal ].
@@ -326,7 +329,7 @@ Extraction Implicit rect2 [ types ].
 Extraction Implicit dim_succ_destruct [ types ].
 
 (* sqrt *)
-Require Import sqrt.
+Require Import Sqrt.
 
 Extraction Implicit sqrt [ types casofReal ].
 Extraction Implicit sqrt_pos [ types casofReal ].
@@ -337,15 +340,17 @@ Extraction Implicit restr_sqrt [ types casofReal ].
 Extraction Implicit sqrt_approx_fast [ types casofReal ].
 Extraction Implicit sqrt_approx [ types casofReal ].
 
-(* Extraction "Sqrt" sqrt.sqrt. *)
+(* Extraction "Sqrt" Sqrt.sqrt. *)
 
+Extraction Implicit complex_destruct [ types ].
+Extraction Implicit Complex [ types ].
 Extraction Implicit csqrt [ types casofReal ].
 Extraction Implicit csqrt_neq0 [ types casofReal ].
 Extraction Implicit complex_nonzero_cases [ types casofReal ].
 
-(* Extraction "CSqrt" csqrt. *)
+Extraction "CSqrt" csqrt.
 
-Require Import Subsets.
+Require Import Hyperspace.Subsets.
 
 Require Import EuclideanSubsets.
 

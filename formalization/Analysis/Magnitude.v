@@ -7,7 +7,7 @@ Require Import PeanoNat.
 
 Require Import Kleene.
 Require Import Reals.
-Require Import RealCoqReal RealHelpers testsearch.
+Require Import RealCoqReal RealHelpers Testsearch.
 Set Warnings "parsing".
 
 

@@ -465,9 +465,6 @@ div_eucl a b =
 div :: Prelude.Integer -> Prelude.Integer -> Prelude.Integer
 div = (\n m -> if m Prelude.== 0 then 0 else Prelude.div n m)
 
-data RealTypes =
-   MkRealTypes
-
 type M a = a
 
 z2 :: Prelude.Integer
@@ -581,117 +578,6 @@ real_max :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal
 real_max x y =
    (real_max_prop x y)
 
-data Euclidean =
-   Nil
- | Cons Prelude.Integer AERN2.CReal Euclidean
-
-euclidean_rect :: RealTypes -> a1 -> (Prelude.Integer -> AERN2.CReal ->
-                  Euclidean -> a1 -> a1) -> Prelude.Integer -> Euclidean ->
-                  a1
-euclidean_rect types f f0 _ e =
-  case e of {
-   Nil -> f;
-   Cons n r e0 -> f0 n r e0 (euclidean_rect types f f0 n e0)}
-
-case0 :: a1 -> Euclidean -> a1
-case0 h v =
-  case v of {
-   Nil -> h;
-   Cons _ _ _ -> __}
-
-caseS' :: Prelude.Integer -> Euclidean -> (AERN2.CReal -> Euclidean -> a1) ->
-          a1
-caseS' _ v h =
-  case v of {
-   Nil -> __;
-   Cons _ h0 t -> h h0 t}
-
-rect2 :: a1 -> (Prelude.Integer -> Euclidean -> Euclidean -> a1 ->
-         AERN2.CReal -> AERN2.CReal -> a1) -> Prelude.Integer -> Euclidean ->
-         Euclidean -> a1
-rect2 bas rect _ v1 v2 =
-  case v1 of {
-   Nil -> case0 bas v2;
-   Cons n' h1 t1 ->
-    caseS' n' v2 (\h2 t2 -> rect n' t1 t2 (rect2 bas rect n' t1 t2) h1 h2)}
-
-dim_succ_destruct :: Prelude.Integer -> Euclidean -> (,) AERN2.CReal
-                     Euclidean
-dim_succ_destruct n x =
-  caseS' n x (\h t -> (,) h t)
-
-euclidean_zero :: Prelude.Integer -> Euclidean
-euclidean_zero n =
-  nat_rect Nil (\n0 iHn -> Cons n0 real_0 iHn) n
-
-euclidean_plus :: Prelude.Integer -> Euclidean -> Euclidean -> Euclidean
-euclidean_plus n x y =
-  rect2 Nil (\n0 _ _ x0 a b -> Cons n0 ((+) a b) x0) n x y
-
-euclidean_opp :: Prelude.Integer -> Euclidean -> Euclidean
-euclidean_opp n x =
-  nat_rect (\_ -> Nil) (\n0 iHn x0 ->
-    let {x1 = dim_succ_destruct n0 x0} in
-    case x1 of {
-     (,) x2 s -> Cons n0 (P.negate x2) (iHn s)}) n x
-
-euclidean_minus :: Prelude.Integer -> Euclidean -> Euclidean -> Euclidean
-euclidean_minus n x y =
-  euclidean_plus n x (euclidean_opp n y)
-
-euclidean_max_norm :: Prelude.Integer -> Euclidean -> AERN2.CReal
-euclidean_max_norm n x =
-  euclidean_rect __ {- 1st argument (types) of euclidean_max_norm -} real_0
-    (\_ r _ iHx -> real_max (abs r) iHx) n x
-
-euclidean_max_dist :: Prelude.Integer -> Euclidean -> Euclidean ->
-                      AERN2.CReal
-euclidean_max_dist n x y =
-  euclidean_max_norm n (euclidean_minus n x y)
-
-euclidean_head_sequence :: RealTypes -> Prelude.Integer -> (Prelude.Integer
-                           -> Euclidean) -> Prelude.Integer -> AERN2.CReal
-euclidean_head_sequence _ n f x =
-  let {x0 = f x} in
-  let {s = dim_succ_destruct n x0} in case s of {
-                                       (,) x1 _ -> x1}
-
-euclidean_tail_sequence :: RealTypes -> Prelude.Integer -> (Prelude.Integer
-                           -> Euclidean) -> Prelude.Integer -> Euclidean
-euclidean_tail_sequence _ n f x =
-  let {x0 = f x} in
-  let {s = dim_succ_destruct n x0} in case s of {
-                                       (,) _ s0 -> s0}
-
-euclidean_limit :: Prelude.Integer -> (Prelude.Integer -> Euclidean) ->
-                   Euclidean
-euclidean_limit n f =
-  nat_rect (\_ _ -> Nil) (\n0 iHn f0 _ -> Cons n0
-    (
-      (AERN2.limit
-        (euclidean_head_sequence __
-          {- 1st argument (types) of euclidean_limit -} n0 f0)))
-    (
-      (iHn
-        (euclidean_tail_sequence __
-          {- 1st argument (types) of euclidean_limit -} n0 f0) __))) n f __
-
-euclidean_mlimit_PQ :: Prelude.Integer -> (M ((,) Euclidean a1)) ->
-                       (Prelude.Integer -> Euclidean -> () -> a1 -> M
-                       ((,) Euclidean a1)) -> M Euclidean
-euclidean_mlimit_PQ d x f =
-  let {
-   x0 = \n x0 ->
-    case x0 of {
-     (,) x1 s ->
-      let {x2 = f n x1 __ s} in
-      m_lift (\x3 -> case x3 of {
-                      (,) x4 s0 -> (,) x4 s0}) x2}}
-  in
-  let {x1 = m_paths x x0} in
-  m_lift_dom (\_ ->
-    m_lift (\x3 -> euclidean_limit d (\n -> projT1 (x3 n))) x1) x
-
 epsilon_smallest_PQ :: (Prelude.Integer -> P.Bool) -> Prelude.Integer
 epsilon_smallest_PQ =
   epsilon_smallest
@@ -772,14 +658,117 @@ magnitude x =
      P.True -> _evar_0_ __;
      P.False -> _evar_0_0 __}) (dec_x_lt_2 x)
 
+data Euclidean =
+   Nil
+ | Cons Prelude.Integer AERN2.CReal Euclidean
+
+euclidean_rect :: a1 -> (Prelude.Integer -> AERN2.CReal -> Euclidean -> a1 ->
+                  a1) -> Prelude.Integer -> Euclidean -> a1
+euclidean_rect f f0 _ e =
+  case e of {
+   Nil -> f;
+   Cons n r e0 -> f0 n r e0 (euclidean_rect f f0 n e0)}
+
+case0 :: a1 -> Euclidean -> a1
+case0 h v =
+  case v of {
+   Nil -> h;
+   Cons _ _ _ -> __}
+
+caseS' :: Prelude.Integer -> Euclidean -> (AERN2.CReal -> Euclidean -> a1) ->
+          a1
+caseS' _ v h =
+  case v of {
+   Nil -> __;
+   Cons _ h0 t -> h h0 t}
+
+rect2 :: a1 -> (Prelude.Integer -> Euclidean -> Euclidean -> a1 ->
+         AERN2.CReal -> AERN2.CReal -> a1) -> Prelude.Integer -> Euclidean ->
+         Euclidean -> a1
+rect2 bas rect _ v1 v2 =
+  case v1 of {
+   Nil -> case0 bas v2;
+   Cons n' h1 t1 ->
+    caseS' n' v2 (\h2 t2 -> rect n' t1 t2 (rect2 bas rect n' t1 t2) h1 h2)}
+
+dim_succ_destruct :: Prelude.Integer -> Euclidean -> (,) AERN2.CReal
+                     Euclidean
+dim_succ_destruct n x =
+  caseS' n x (\h t -> (,) h t)
+
+euclidean_zero :: Prelude.Integer -> Euclidean
+euclidean_zero n =
+  nat_rect Nil (\n0 iHn -> Cons n0 real_0 iHn) n
+
+euclidean_plus :: Prelude.Integer -> Euclidean -> Euclidean -> Euclidean
+euclidean_plus n x y =
+  rect2 Nil (\n0 _ _ x0 a b -> Cons n0 ((+) a b) x0) n x y
+
+euclidean_opp :: Prelude.Integer -> Euclidean -> Euclidean
+euclidean_opp n x =
+  nat_rect (\_ -> Nil) (\n0 iHn x0 ->
+    let {x1 = dim_succ_destruct n0 x0} in
+    case x1 of {
+     (,) x2 s -> Cons n0 (P.negate x2) (iHn s)}) n x
+
+euclidean_minus :: Prelude.Integer -> Euclidean -> Euclidean -> Euclidean
+euclidean_minus n x y =
+  euclidean_plus n x (euclidean_opp n y)
+
+euclidean_max_norm :: Prelude.Integer -> Euclidean -> AERN2.CReal
+euclidean_max_norm n x =
+  euclidean_rect real_0 (\_ r _ iHx -> real_max (abs r) iHx) n x
+
+euclidean_max_dist :: Prelude.Integer -> Euclidean -> Euclidean ->
+                      AERN2.CReal
+euclidean_max_dist n x y =
+  euclidean_max_norm n (euclidean_minus n x y)
+
+euclidean_head_sequence :: Prelude.Integer -> (Prelude.Integer -> Euclidean)
+                           -> Prelude.Integer -> AERN2.CReal
+euclidean_head_sequence n f x =
+  let {x0 = f x} in
+  let {s = dim_succ_destruct n x0} in case s of {
+                                       (,) x1 _ -> x1}
+
+euclidean_tail_sequence :: Prelude.Integer -> (Prelude.Integer -> Euclidean)
+                           -> Prelude.Integer -> Euclidean
+euclidean_tail_sequence n f x =
+  let {x0 = f x} in
+  let {s = dim_succ_destruct n x0} in case s of {
+                                       (,) _ s0 -> s0}
+
+euclidean_limit :: Prelude.Integer -> (Prelude.Integer -> Euclidean) ->
+                   Euclidean
+euclidean_limit n f =
+  nat_rect (\_ _ -> Nil) (\n0 iHn f0 _ -> Cons n0
+    ( (AERN2.limit (euclidean_head_sequence n0 f0)))
+    ( (iHn (euclidean_tail_sequence n0 f0) __))) n f __
+
+euclidean_mlimit_PQ :: Prelude.Integer -> (M ((,) Euclidean a1)) ->
+                       (Prelude.Integer -> Euclidean -> () -> a1 -> M
+                       ((,) Euclidean a1)) -> M Euclidean
+euclidean_mlimit_PQ d x f =
+  let {
+   x0 = \n x0 ->
+    case x0 of {
+     (,) x1 s ->
+      let {x2 = f n x1 __ s} in
+      m_lift (\x3 -> case x3 of {
+                      (,) x4 s0 -> (,) x4 s0}) x2}}
+  in
+  let {x1 = m_paths x x0} in
+  m_lift_dom (\_ ->
+    m_lift (\x3 -> euclidean_limit d (\n -> projT1 (x3 n))) x1) x
+
 type Complex = Euclidean
 
-complex :: RealTypes -> AERN2.CReal -> AERN2.CReal -> Complex
-complex _ r i =
+complex :: AERN2.CReal -> AERN2.CReal -> Complex
+complex r i =
   Cons (Prelude.succ 0) r (Cons 0 i Nil)
 
-complex_destruct :: RealTypes -> Complex -> (,) AERN2.CReal AERN2.CReal
-complex_destruct _ x =
+complex_destruct :: Complex -> (,) AERN2.CReal AERN2.CReal
+complex_destruct x =
   let {s = dim_succ_destruct (Prelude.succ 0) x} in
   case s of {
    (,) x0 s0 -> (,) x0
@@ -890,11 +879,10 @@ complex_nonzero_cases a b =
 
 csqrt_neq0 :: Complex -> M Complex
 csqrt_neq0 z =
-  let {s = complex_destruct __ {- 1st argument (types) of csqrt_neq0 -} z} in
+  let {s = complex_destruct z} in
   case s of {
    (,) x s0 ->
-    eq_rect_r (complex __ {- 1st argument (types) of csqrt_neq0 -} x s0)
-      (\_ ->
+    eq_rect_r (complex x s0) (\_ ->
       let {x0 = sqrt ((+) ((P.*) x x) ((P.*) s0 s0))} in
       let {x1 = sqrt ((/) ((+) x0 x) real_2)} in
       let {x2 = sqrt ((/) ((-) x0 x) real_2)} in
@@ -903,34 +891,18 @@ csqrt_neq0 z =
          _evar_0_ = \__top_assumption_0 ->
           let {
            _evar_0_ = \__top_assumption_1 ->
-            let {
-             _evar_0_ = \_ ->
-              complex __ {- 1st argument (types) of csqrt_neq0 -} x1
-                ((/) s0 ((P.*) real_2 x1))}
-            in
-            let {
-             _evar_0_0 = \_ ->
-              complex __ {- 1st argument (types) of csqrt_neq0 -}
-                ((/) s0 ((P.*) real_2 x2)) x2}
-            in
+            let {_evar_0_ = \_ -> complex x1 ((/) s0 ((P.*) real_2 x1))} in
+            let {_evar_0_0 = \_ -> complex ((/) s0 ((P.*) real_2 x2)) x2} in
             case __top_assumption_1 of {
              P.True -> _evar_0_ __;
              P.False -> _evar_0_0 __}}
           in
-          let {
-           _evar_0_0 = \_ ->
-            complex __ {- 1st argument (types) of csqrt_neq0 -} x1
-              ((/) s0 ((P.*) real_2 x1))}
-          in
+          let {_evar_0_0 = \_ -> complex x1 ((/) s0 ((P.*) real_2 x1))} in
           case __top_assumption_0 of {
            Prelude.Just a -> _evar_0_ a;
            Prelude.Nothing -> _evar_0_0 __}}
         in
-        let {
-         _evar_0_0 = \_ ->
-          complex __ {- 1st argument (types) of csqrt_neq0 -} x1
-            (P.negate x2)}
-        in
+        let {_evar_0_0 = \_ -> complex x1 (P.negate x2)} in
         case __top_assumption_ of {
          Prelude.Just a -> _evar_0_ a;
          Prelude.Nothing -> _evar_0_0 __}) (complex_nonzero_cases x s0)) z __}

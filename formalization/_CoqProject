@@ -27,12 +27,12 @@ Analysis/MultiLimit.v
 Analysis/Testsearch.v
 
 Analysis/Rounding.v
-#Analysis/magnitude.v
-#Analysis/sqrt.v
+Analysis/Magnitude.v
+Analysis/Sqrt.v
 
 Relator/Relator.v
 Relator/RealCoqReal.v
-#Relator/RealHelpers.v
+Relator/RealHelpers.v
 # RealEquivalent.v
 
 
