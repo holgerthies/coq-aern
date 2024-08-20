@@ -31,7 +31,7 @@ Definition intersection (A B : euclidean_subset) : euclidean_subset:= fun x => A
 
 Definition translation (A : euclidean_subset) (a : euclidean d ): euclidean_subset := fun x => A (euclidean_minus x a).
 
-Definition scaling (l : Real )(A : euclidean_subset) : euclidean_subset := fun x => exists y, x = (euclidean_scalar_mult l y) /\ A y.
+Definition scaling (l : ^Real)(A : euclidean_subset) : euclidean_subset := fun x => exists y, x = (euclidean_scalar_mult l y) /\ A y.
 
 
 (** Basic subsets are the empty set and balls in max norm **)
