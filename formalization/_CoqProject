@@ -39,7 +39,8 @@ Relator/RealHelpers.v
 Hyperspace/Dyadic.v
 Hyperspace/Sierpinski.v
 Hyperspace/Subsets.v
-# Hyperspace/EuclideanSubsets.v
+Hyperspace/EuclideanSubsets.v
+Hyperspace/Simpletriangle.v
 
 # classical analysis
 # Classical/Partiality.v
@@ -49,7 +50,7 @@ Hyperspace/Subsets.v
 # Classical/Topology.v
 # Classical/Analysis.v
 # Classical/Differentiability.v
-# Classical/Subsets.v
+Classical/Subsets.v
 
 # Analytic/Poly.v
 # Analytic/Taylormodel.v

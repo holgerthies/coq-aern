@@ -1,14 +1,10 @@
-Require Import Real Subsets Euclidean List Lia Minmax ClassicalSubsets EuclideanSubsets.
+Require Import Real Hyperspace.Subsets Euclidean List Lia Minmax Classical.Subsets EuclideanSubsets.
+Require Import RealAssumption.
 Section SimpleTriangle.
 
-Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
-
-#[local] Notation "^K" := (@K types) (at level 0).
-#[local] Notation "^M" := (@M types) (at level 0).
-#[local] Notation "^Real" := (@Real types) (at level 0).
-#[local] Definition sofReal := @sofReal types casofReal.
-#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
-#[local] Notation "^euclidean" := (@euclidean types) (at level 0).
+#[local] Definition sofReal := @sofReal RealAssumption.types RealAssumption.casofReal.
+#[local] Notation "^IZreal" := (@IZreal RealAssumption.types sofReal) (at level 0).
+#[local] Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
   (* ring structure on Real *)
 
   Ltac IZReal_tac t :=
@@ -25,7 +21,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
-  Definition T : (@euclidean_subset 2 types).
+  Definition T : (@euclidean_subset 2).
   unfold euclidean_subset.
   intro P.
   destruct (split_euclidean2 P) as [x [y P']].
@@ -281,7 +277,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     intros H1 H2.
     induction n as [| n' IH].
     - 
-      exists 0.
+      exists 0%nat.
       split.
       unfold Nreal.
       unfold prec.
@@ -321,14 +317,14 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
         rewrite <-E2. auto.
   Qed.
 
-  Lemma real_coordinate x n : (real_0 <= x) -> (x <= real_1) -> exists k, x = real_0 /\ k = 0 \/ x > (Nreal k * prec n) /\ x <= Nreal (S k) * prec n.
+  Lemma real_coordinate x n : (real_0 <= x) -> (x <= real_1) -> exists k, x = real_0 /\ k = 0%nat \/ x > (Nreal k * prec n) /\ x <= Nreal (S k) * prec n.
   Proof.
     intros H1 H2.
     destruct H1.
     - destruct (real_coordinate' x n H H2) as [k'].
      exists k'.
      right. auto.
-    - exists 0.
+    - exists 0%nat.
     left. auto.
   Qed.
     
@@ -557,7 +553,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    apply (prec_pos (S (pred n))).
  Qed.
 
-  Definition multi_triangles (n : nat) : (@euclidean_subset 2 types).
+  Definition multi_triangles (n : nat) : (@euclidean_subset 2).
   Proof.
     induction n.
     apply empty_set.
@@ -568,7 +564,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     apply (make_euclidean2 (- /real_2_neq_0) (- /real_2_neq_0)).
  Defined.
 
- Lemma empty_set_is_located : located (@empty_set 2 types).
+ Lemma empty_set_is_located : located (@empty_set 2).
  Proof.
     intro n.
     exists nil.

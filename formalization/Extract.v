@@ -348,7 +348,7 @@ Extraction Implicit csqrt [ types casofReal ].
 Extraction Implicit csqrt_neq0 [ types casofReal ].
 Extraction Implicit complex_nonzero_cases [ types casofReal ].
 
-Extraction "CSqrt" csqrt.
+(* Extraction "CSqrt" csqrt. *)
 
 Require Import Hyperspace.Subsets.
 
@@ -356,20 +356,8 @@ Require Import EuclideanSubsets.
 
 Extraction Implicit split_euclidean2 [ types ].
 Extraction Implicit make_euclidean2 [ types ].
-Extraction Implicit make_ball2 [ types ].
-Extraction Implicit located_translation [ types casofReal ].
-Extraction Implicit located_union [ types casofReal ].
-Extraction Implicit located_lim [ types casofReal ].
-Extraction Implicit scale_list [ types casofReal ].
-Extraction Implicit change_rad [ types casofReal ].
-Extraction Implicit located_scale_down [ types casofReal ].
 
-Require Import simpletriangle.
-Extraction Implicit Tn_ball [ types casofReal ].
-Extraction Implicit Tn_col [ types casofReal ].
-Extraction Implicit Tn_row [ types casofReal ].
-Extraction Implicit Tn [ types casofReal ].
-Extraction Implicit T_located [ types casofReal ].
+Require Import Simpletriangle.
 (* Extraction "Tn" T_located. *)
 
 Require Import SierpinskiTriangle.
