@@ -1,10 +1,7 @@
 Require Import Real Hyperspace.Subsets Euclidean List Lia Minmax Classical.Subsets EuclideanSubsets.
-Require Import RealAssumption.
+
 Section SimpleTriangle.
 
-#[local] Definition sofReal := @sofReal RealAssumption.types RealAssumption.casofReal.
-#[local] Notation "^IZreal" := (@IZreal RealAssumption.types sofReal) (at level 0).
-#[local] Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
   (* ring structure on Real *)
 
   Ltac IZReal_tac t :=

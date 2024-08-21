@@ -2,11 +2,12 @@
 Require Import Lia.
 Require Import Real Euclidean List Minmax Classical.Subsets Sierpinski Testsearch Dyadic Hyperspace.Subsets.
 Require Import RealAssumption.
+
+Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
+
 Section EuclideanBalls.
 
 Context {d : nat}.
-#[local] Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
-
 
   Ltac IZReal_tac t :=
     match t with

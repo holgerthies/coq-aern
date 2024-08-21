@@ -1,19 +1,9 @@
 (* this file proves various properties of subsets of real numbers *)
 Require Import Lia.
-Require Import Real Euclidean List Vector Minmax Subsets ClassicalSubsets EuclideanSubsets.
+Require Import Real Euclidean List Vector Minmax Hyperspace.Subsets Classical.Subsets EuclideanSubsets.
+Require Import RealAssumption.
 
 Section SierpinskiTriangle.
-
-Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
-
-#[local] Notation "^K" := (@K types) (at level 0).
-#[local] Notation "^M" := (@M types) (at level 0).
-#[local] Notation "^Real" := (@Real types) (at level 0).
-#[local] Definition sofReal := @sofReal types casofReal.
-#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
-#[local] Notation "^euclidean" := (@euclidean types) (at level 0).
-
-#[local] Notation "^ball" := (@ball 2 types) (at level 0).
 
 (* ring structure on Real *)
 Ltac IZReal_tac t :=
@@ -87,7 +77,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply In_cons_hd.
   Qed.
 
-  Variable ST_initial_ball : ^ball.
+  Variable ST_initial_ball : @ball 2.
   Variable ST_initial_ball_radius_bound : snd ST_initial_ball <= real_1.
   Variable ST_initial_ball_contains_vs : 
     Forall (closed_ball_to_subset ST_initial_ball) ST_vs.
@@ -281,7 +271,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     ring.
   Qed.
 
-  Definition point_ball_mid (p : ^euclidean 2) (b : ^ball) : ^ball.
+  Definition point_ball_mid (p : ^euclidean 2) (b : @ball 2) : @ball 2.
     destruct b as [bc br].
     apply (pair (point_point_mid p bc) (br * one_half)).
   Defined.
@@ -411,10 +401,10 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* Constructive definition of the Sierpinski triangle using covers *)
 
-  Definition ST_split_ball (b : ^ball)
+  Definition ST_split_ball b
    := to_list (map (fun v => (point_ball_mid v b)) ST_vs).
 
-  Fixpoint STn n : list (ball) := 
+  Fixpoint STn n : list ball := 
     match n with
     | 0 => ST_initial_ball :: List.nil 
     | (S n') => List.concat (List.map ST_split_ball (STn n'))
@@ -483,7 +473,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
   (* Intersection of cover and ST *)
 
-  Lemma STn_intersects n A: (ST A) -> List.Forall (fun b : ^ball => intersects (closed_ball_to_subset b) A) (STn n).
+  Lemma STn_intersects n A: (ST A) -> List.Forall (fun b => intersects (closed_ball_to_subset b) A) (STn n).
   Proof.
     intro STs.
     destruct STs as [hasVs [insideHull equalsUnion]].
@@ -652,15 +642,6 @@ End Known_Sized_Vectors.
 
 Section ST_RightAngled.
 
-Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
-
-#[local] Notation "^K" := (@K types) (at level 0).
-#[local] Notation "^M" := (@M types) (at level 0).
-#[local] Notation "^Real" := (@Real types) (at level 0).
-#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
-#[local] Notation "^euclidean" := (@euclidean types) (at level 0).
-#[local] Notation "^ball" := (@ball types) (at level 0).
-
 (* ring structure on Real *)
 Ltac IZReal_tac t :=
   match t with
@@ -791,18 +772,9 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
 
 End ST_RightAngled.
 
-Require Import sqrt.
+Require Import Sqrt.
 
 Section ST_Equilateral.
-
-Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
-
-#[local] Notation "^K" := (@K types) (at level 0).
-#[local] Notation "^M" := (@M types) (at level 0).
-#[local] Notation "^Real" := (@Real types) (at level 0).
-#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
-#[local] Notation "^euclidean" := (@euclidean types) (at level 0).
-#[local] Notation "^ball" := (@ball types) (at level 0).
 
 (* ring structure on Real *)
 Ltac IZReal_tac t :=

@@ -1,16 +1,9 @@
-Require Import Real Subsets Euclidean List Lia Minmax simpletriangle SierpinskiTriangle.
+Require Import Real Hyperspace.Subsets Euclidean List Lia Minmax Simpletriangle SierpinskiTriangle.
 Require Import Vector.
+Require Import EuclideanSubsets RealAssumption.
 
 Section SierpinskiLimit.
 
-Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
-
-#[local] Notation "^K" := (@K types) (at level 0).
-#[local] Notation "^M" := (@M types) (at level 0).
-#[local] Notation "^Real" := (@Real types) (at level 0).
-#[local] Definition sofReal := @sofReal types casofReal.
-#[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
-#[local] Notation "^euclidean" := (@euclidean types) (at level 0).
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
     match t with
@@ -26,24 +19,24 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
   Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
  (* Check ST. *)
- Definition sierpinski_approx (n : nat) : (@euclidean_subset types n2).
+ Definition sierpinski_approx (n : nat) : (@euclidean_subset n2).
  Proof.
    induction n.
    apply T.
-   pose proof (scaling n2 (prec n1) IHn) as T.
+   pose proof (scaling (prec n1) IHn) as T.
    apply union.
    apply union.
    apply T.
-   apply (translation n2 T (make_euclidean2 ((prec n1)) real_0)).
-   apply (translation n2 T (make_euclidean2 real_0 (prec n1))).
+   apply (translation T (make_euclidean2 ((prec n1)) real_0)).
+   apply (translation T (make_euclidean2 real_0 (prec n1))).
  Defined.
 
- Lemma sierpinski_approx_is_covert n : is_covert n2 (sierpinski_approx n).
+ Lemma sierpinski_approx_located n : located (sierpinski_approx n).
  Proof.
    induction n.
-   apply T_is_covert.
+   apply T_located.
 
-   apply is_covert_union;[apply is_covert_union |];(try apply is_covert_translation;apply is_covert_scale_down;apply IHn).
+   apply located_union;[apply located_union |];(try apply located_translation;apply located_scale_down;apply IHn).
  Defined.
 
  Lemma sierpinski_approx_contains_origin : forall n, (sierpinski_approx n (euclidean_zero 2)).
@@ -291,7 +284,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      rewrite !euclidean_max_dist_cons.
      f_equal; [f_equal;unfold real_2;ring | ].
      f_equal.
-     unfold dist.
+     unfold RealMetric.dist.
      f_equal.
      unfold real_2; ring.
      apply real_lt_le;apply real_lt_0_2.
@@ -301,7 +294,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      rewrite !euclidean_max_dist_cons.
      f_equal; [f_equal;unfold real_2;ring | ].
      f_equal.
-     unfold dist.
+     unfold RealMetric.dist.
      f_equal.
      unfold real_2; ring.
      apply real_lt_le;apply real_lt_0_2.
@@ -310,7 +303,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
      simpl.
      rewrite !euclidean_max_dist_cons.
      f_equal.
-     unfold dist.
+     unfold RealMetric.dist.
      f_equal.
      unfold real_2; ring.
      f_equal; f_equal; unfold real_2; ring.
@@ -383,7 +376,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    unfold STR_v1, make_euclidean2;simpl.
    rewrite euclidean_max_dist_cons.
    apply real_max_le_le_le.
-   unfold dist.
+   unfold RealMetric.dist.
    replace (x0 - real_0) with x0 by ring.
    rewrite abs_pos_id;auto.
    apply (real_le_add_r y0).
@@ -394,7 +387,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    unfold euclidean_max_dist; simpl.
    apply real_max_le_le_le.
    rewrite dist_symm.
-   unfold dist.
+   unfold RealMetric.dist.
    rewrite abs_pos_id.
    apply (real_le_add_r y0).
    apply (real_le_add_r (- real_1)).
@@ -448,7 +441,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
    - left.  
      apply real_max_le_le_le; simpl.
-     unfold dist.
+     unfold RealMetric.dist.
      replace (x0 - real_0) with x0 by ring.
      rewrite abs_pos_id;auto.
      destruct H; [right| left]; auto.
@@ -493,7 +486,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
    rewrite <-point_point_mid_away_id;auto.
  Defined.
 
- Lemma sierpinski_approx_dist n : forall X, (STR X) -> (Hausdorff_dist_bound 2 (sierpinski_approx (pred n)) X (prec n)).
+ Lemma sierpinski_approx_dist n : forall X, (STR X) -> (Hausdorff_dist_bound (sierpinski_approx (pred n)) X (prec n)).
  Proof.
    intros X S.
    destruct S as [H1 [H2 H3]].
@@ -553,7 +546,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
       unfold real_div.
       rewrite real_mult_unit.
       left;apply one_half_pos.
-   - split; intros.
+   - split; unfold n2; intros.
      + pose proof (sierpinski_approx_next n x ) as [S _].
        destruct (S H) as [x' [P1 P2]].
        destruct IHn as [IH1 IH2].
@@ -606,14 +599,14 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Defined.
 
 
- Lemma is_covert_sierpinski : forall X, (STR X) -> is_covert n2 X.
+ Lemma is_covert_sierpinski : forall X, (STR X) -> located X.
  Proof.
    intros.
-   apply is_covert_lim.
+   apply located_lim.
    intros.
    exists (sierpinski_approx (pred n)).
    split.
-   apply sierpinski_approx_is_covert.
+   apply sierpinski_approx_located.
    apply sierpinski_approx_dist.
    exact H.
  Defined.

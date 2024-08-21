@@ -361,44 +361,12 @@ Require Import Simpletriangle.
 (* Extraction "Tn" T_located. *)
 
 Require Import SierpinskiTriangle.
-Extraction Implicit one_half [ types casofReal ].
-Extraction Implicit point_point_mid [ types casofReal ].
-Extraction Implicit point_ball_mid [ types casofReal ].
-Extraction Implicit ST_split_ball [ types casofReal ].
-Extraction Implicit STn [ types casofReal ].
-Extraction Implicit ST_located [ types casofReal ].
-
-Extraction Implicit STR_initial_ball [ types casofReal ].
-Extraction Implicit STR_v1 [ types casofReal ].
-Extraction Implicit STR_v2 [ types casofReal ].
-Extraction Implicit STR_v3 [ types casofReal ].
-Extraction Implicit STR_vs [ types casofReal ].
-Extraction Implicit STRn [ types casofReal ].
-Extraction Implicit STR_located [ types casofReal ].
 (* Extraction "STRn" STR_located. *)
-
-Extraction Implicit sqrt_3 [ types casofReal ].
-Extraction Implicit sqrt_3_exists [ types casofReal ].
-Extraction Implicit STE_initial_ball [ types casofReal ].
-Extraction Implicit STE_v1 [ types casofReal ].
-Extraction Implicit STE_v2 [ types casofReal ].
-Extraction Implicit STE_v3 [ types casofReal ].
-Extraction Implicit STE_vs [ types casofReal ].
-Extraction Implicit STEn [ types casofReal ].
-Extraction Implicit STE_located [ types casofReal ].
 (* Extraction "STEn" STE_located. *)
-
-Extraction Implicit STE_v4 [ types casofReal ].
-Extraction Implicit STE4_vs [ types casofReal ].
-Extraction Implicit STE4n [ types casofReal ].
-Extraction Implicit STE4_located [ types casofReal ].
 (* Extraction "STE4n" STE4_located. *)
 
 Require Import SierpinskiTriangleLimit.
-Extraction Implicit sierpinski_approx_is_covert [ types casofReal ].
 (* Extraction "STARn" sierpinski_approx_is_covert. *)
-Extraction Implicit sierpinski_approx_is_covert [ types casofReal ].
-Extraction Implicit is_covert_sierpinski [ types casofReal ].
 (* Extraction "STRLim" is_covert_sierpinski. *)
 
 (* Require Import Nabla. *)

@@ -41,6 +41,8 @@ Hyperspace/Sierpinski.v
 Hyperspace/Subsets.v
 Hyperspace/EuclideanSubsets.v
 Hyperspace/Simpletriangle.v
+Hyperspace/SierpinskiTriangle.v
+Hyperspace/SierpinskiTriangleLimit.v
 
 # classical analysis
 # Classical/Partiality.v

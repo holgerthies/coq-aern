@@ -4,6 +4,8 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 Notation "^K" := (@K types) (at level 0).
 Notation "^M" := (@M types) (at level 0).
 Notation "^Real" := (@Real types) (at level 0).
+Definition sofReal := @sofReal types casofReal.
+Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
 
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
