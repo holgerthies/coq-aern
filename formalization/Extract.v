@@ -361,13 +361,14 @@ Require Import Simpletriangle.
 (* Extraction "Tn" T_located. *)
 
 Require Import SierpinskiTriangle.
+(* Extraction Implicit ST_located [ types ]. *)
 (* Extraction "STRn" STR_located. *)
 (* Extraction "STEn" STE_located. *)
 (* Extraction "STE4n" STE4_located. *)
 
 Require Import SierpinskiTriangleLimit.
-(* Extraction "STARn" sierpinski_approx_is_covert. *)
-(* Extraction "STRLim" is_covert_sierpinski. *)
+(* Extraction "STARn" sierpinski_approx_located. *)
+(* Extraction "STRLim" located_sierpinski. *)
 
 (* Require Import Nabla. *)
 

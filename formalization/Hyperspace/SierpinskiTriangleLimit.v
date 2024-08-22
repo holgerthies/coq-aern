@@ -599,7 +599,7 @@ Section SierpinskiLimit.
   Defined.
 
 
- Lemma is_covert_sierpinski : forall X, (STR X) -> located X.
+ Lemma located_sierpinski : forall X, (STR X) -> located X.
  Proof.
    intros.
    apply located_lim.
