@@ -141,8 +141,8 @@ Extraction Implicit semidec_and [ types mvmM ].
 Extraction Implicit select  [ types mvmM ].
 Extract Constant select => "(unCNfn2 AERN2.select)".
 
-Extraction Implicit multivalued_countable_choice  [ types MultivalueMonad_M ].
-Extract Constant multivalued_countable_choice => "AERN2.selectCountable".
+Extraction Implicit M_countable_selection  [ types MultivalueMonad_M ].
+Extract Constant M_countable_selection => "AERN2.selectCountable".
 
 (* Some shortcuts for efficiency. *)
 Extraction Implicit M_countable_lift [ types mvmM ].

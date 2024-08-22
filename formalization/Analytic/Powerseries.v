@@ -608,7 +608,7 @@ Section Derivative.
       destruct (real_lt_semidec (prec n) x).
       apply i.
       apply H0.
-    - apply multivalued_countable_choice.
+    - apply M_countable_selection.
       destruct (real_Archimedean x) as [n N];auto.
       exists n.
       destruct (real_lt_semidec (prec n) x).

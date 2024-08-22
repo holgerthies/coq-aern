@@ -97,7 +97,7 @@ Class MultivalueMonad_M (types : RealTypes) :=
 
     M_destruct : forall A (X : @M types A), @M types {x : A | projP1 _ _ (Monoid_hom_nat_trans _ _ A X) x};
 
-     multivalued_countable_choice :
+     M_countable_selection :
       forall x : nat -> K,
         (exists n, x n = lazy_bool_true ) ->
         @M types {n | x n = lazy_bool_true };

@@ -486,7 +486,7 @@ Section Metric.
       simpl.
       rewrite i;auto.
     }
-    pose proof (multivalued_countable_choice f H1).
+    pose proof (M_countable_selection f H1).
     revert X1.
     apply M_lift.
     intros [n P].
@@ -2517,10 +2517,10 @@ Axiom baire_choice :
     apply compact_empty_semidec;auto.
   Qed.
 
-  Lemma multivalued_countable_choice_sequence (f : nat -> ^K) : (exists n, (f n) = lazy_bool_true) -> ^M {g : nat -> nat | (forall n, (f (g n)) = lazy_bool_true) /\ (forall n, (f n) = lazy_bool_true -> exists m, g m = n)}.
+  Lemma M_countable_selection_sequence (f : nat -> ^K) : (exists n, (f n) = lazy_bool_true) -> ^M {g : nat -> nat | (forall n, (f (g n)) = lazy_bool_true) /\ (forall n, (f n) = lazy_bool_true -> exists m, g m = n)}.
   Proof.
     intros.
-    specialize (multivalued_countable_choice f H).
+    specialize (M_countable_selection f H).
     apply M_lift_dom.
     intros [d D].
     assert (^M (forall n, {f' : nat -> nat | f n = lazy_bool_true <-> exists m, f' m = 1%nat  })).
@@ -2580,7 +2580,7 @@ Axiom baire_choice :
           split;auto.
           unfold ball; rewrite d_sym;auto.
         }
-        specialize (multivalued_countable_choice_sequence g H0).
+        specialize (M_countable_selection_sequence g H0).
         apply M_lift.
         intros [f [F1 F2]].
         exists (fun n => D s (f n)).

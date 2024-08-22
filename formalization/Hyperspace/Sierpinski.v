@@ -37,7 +37,7 @@ Section S_Defs.
 
   Axiom eventually_true :forall (c : forall (n :nat), sierp), {k | sierp_up k <-> exists n, sierp_up(c n)}.
 
-  Lemma semidec_multivalued_countable_choice (P : nat -> Prop) : (forall n, semidec (P n)) -> (exists n, P n) -> ^M {n | (P n)}.
+  Lemma semidec_M_countable_selection (P : nat -> Prop) : (forall n, semidec (P n)) -> (exists n, P n) -> ^M {n | (P n)}.
   Proof.
     intros.
     apply (M_lift {n | projP1 _ _ (X n) = lazy_bool_true}).
@@ -47,7 +47,7 @@ Section S_Defs.
       exists n.
       apply i.
       apply H0.
-    - apply multivalued_countable_choice.
+    - apply M_countable_selection.
       destruct H.
       exists x.
       destruct (X x).
@@ -232,7 +232,7 @@ Section Continuity.
   Lemma real_archimedean_constructive : forall x, x > real_0 -> ^M {n | prec n < x}.
   Proof.
     intros.
-    apply semidec_multivalued_countable_choice.
+    apply semidec_M_countable_selection.
     intros.
     apply real_lt_semidec.
     apply real_Archimedean.
@@ -269,7 +269,7 @@ Section Continuity.
       exists (snd (e n)); exists (fst (e n)).
       exact H0.
 
-      apply semidec_multivalued_countable_choice.
+      apply semidec_M_countable_selection.
       + intros.
         apply semidec_and.
         apply real_lt_semidec.
