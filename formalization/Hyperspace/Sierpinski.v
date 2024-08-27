@@ -18,6 +18,12 @@ Section S_Defs.
   apply H.
   Defined.
 
+  Lemma kleenean_from_sierp (s: sierp): ^K.
+  Proof.
+    destruct s.
+    auto.
+  Defined.
+
   Lemma sierp_and s1 s2 : {s | sierp_up s <-> sierp_up s1 /\ sierp_up s2}. 
   Proof.
     destruct s1 as [k1 K1].
@@ -35,7 +41,23 @@ Section S_Defs.
   Proof.
   Admitted.
 
-  Axiom eventually_true :forall (c : forall (n :nat), sierp), {k | sierp_up k <-> exists n, sierp_up(c n)}.
+  Definition fn_to_sierpinki_to_kleene (c: nat -> sierp): (nat -> ^K).
+  Proof.
+    intro n.
+    apply (c n).
+  Defined.
+
+  Lemma eventually_true :forall (c : forall (n :nat), sierp), {k | sierp_up k <-> exists n, sierp_up(c n)}.
+  Proof.
+    intros.
+    pose (s:= lazy_bool_countable_or (fn_to_sierpinki_to_kleene c)).
+    (* TODO: try to simplify, get rid of fn_to_sierpinki_to_kleene *)
+    destruct s as [k [nf co]].
+    exists (sierp_from_kleenean nf).
+    unfold sierp_from_kleenean, sierp_up;simpl.
+    unfold fn_to_sierpinki_to_kleene in co.
+    auto.
+  Defined.
 
   Lemma semidec_M_countable_selection (P : nat -> Prop) : (forall n, semidec (P n)) -> (exists n, P n) -> ^M {n | (P n)}.
   Proof.
