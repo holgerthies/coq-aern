@@ -31,6 +31,8 @@ system-ghc: true
 #   - wai
 packages:
 - .
+# - ../../aern2/aern2-real
+
 # The following packages have been ignored due to incompatibility with the
 # resolver compiler, dependency conflicts with other packages
 # or unsatisfied dependencies.

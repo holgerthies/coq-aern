@@ -107,6 +107,10 @@ Class MultivalueMonad_M (types : RealTypes) :=
         (f x) = lazy_bool_true -> 
         @M types {m | forall y, (forall n, (n < m)%nat -> x n = y n) -> (f y )= lazy_bool_true};
     
+    kleenean_to_nat_sequence : 
+      forall (k : K), 
+        @M types {f : nat -> nat | k = lazy_bool_true <-> exists n, (f n) = 1};
+
     M_baire_choice :
       let Mor := fun X : @M types Prop => X <> Monad_unit Prop False in
       let M_some := fun {A} (P : A -> Prop) X => (Mor (Monad_fun_map _ _ P X)) in

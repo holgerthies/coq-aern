@@ -78,8 +78,6 @@ Section S_Defs.
   Defined.
   (* Axiom kleenean_from_nat_sequence : forall (f : nat -> nat), {k : ^K | k = lazy_bool_true <-> exists n, (f n) = 1}.  *)
 
-  Axiom kleenean_to_nat_sequence : forall (k : ^K), ^M {f : nat -> nat | k = lazy_bool_true <-> exists n, (f n) = 1}.
-
   (* Lemma sierp_from_nat_sequence : forall (f : nat -> nat), {s : sierp | sierp_up s <-> exists n, (f n) = 1}.  *)
   (* Proof. *)
   (*   intros. *)
