@@ -62,6 +62,7 @@ Extract Constant lazy_bool_or => "(OGB.||)".
 
 Extraction Implicit lazy_bool_countable_or [ types LazyBool_K ].
 (* Extract Constant lazy_bool_countable_or => "(\c -> foldl (OGB.||) (P.map c [0..]))". TODO: test it *)
+(* Extraction "lazy_bool_countable_or" lazy_bool_countable_or. *)
 
 Extraction Implicit lazy_bool_and [ types LazyBool_K ].
 Extract Constant lazy_bool_and => "(OGB.&&)".
@@ -125,6 +126,11 @@ Extract Constant multivalued_choice => "(unCNfn2 AERN2.select)".
 
 Extraction Implicit seq_to_K_continuity [ types MultivalueMonad_M ].
 (* Extract Constant seq_to_K_continuity => "AERN2.maxSeqIndexUsed". TODO: test this *)
+(* Extraction "seq_to_K_continuity" seq_to_K_continuity. *)
+
+Extraction Implicit M_baire_choice [ types MultivalueMonad_M ].
+(* Extract Constant M_baire_choice => "P.id". TODO: test this *)
+(* Extraction "M_baire_choice" M_baire_choice. *)
 
 Extraction Implicit M_hprop_elim_f [ types mvmM ].
 Extract Constant M_hprop_elim_f => "P.id".
