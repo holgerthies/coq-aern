@@ -90,7 +90,7 @@ Class MultivalueMonad_M (types : RealTypes) :=
     M_description_hom :> Monoid_hom M_Monad NPset_Monad;
     M_base_monad_hprop_elim : forall A, is_hprop A -> is_equiv (Monad_unit A);
     M_base_monad_traces_lift : lifts_lifted_trace;
-    multivalued_choice : forall x y : @K types, x = lazy_bool_true \/ y = lazy_bool_true -> @M types ({ x = lazy_bool_true } + { (y = lazy_bool_true) });
+    multivalued_choice : forall x y : K, x = lazy_bool_true \/ y = lazy_bool_true -> @M types ({ x = lazy_bool_true } + { (y = lazy_bool_true) });
 
     M_description_is_mono : Monoid_hom_is_mono _ _ M_description_hom;
     M_description_is_equiv : forall A, is_equiv (Monad_fun_map _ _ (Monoid_hom_nat_trans _ _ A));
@@ -101,6 +101,11 @@ Class MultivalueMonad_M (types : RealTypes) :=
       forall x : nat -> K,
         (exists n, x n = lazy_bool_true ) ->
         @M types {n | x n = lazy_bool_true };
+
+    seq_to_K_continuity :
+      forall {X} (f : (nat -> X) -> K) (x : (nat -> X)), 
+        (f x) = lazy_bool_true -> 
+        @M types {m | forall y, (forall n, (n < m)%nat -> x n = y n) -> (f y )= lazy_bool_true}
   }.
 
 Context {types : RealTypes} {mvmM : @MultivalueMonad_M types}.
