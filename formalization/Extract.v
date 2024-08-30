@@ -125,8 +125,8 @@ Extraction Implicit multivalued_choice [ types MultivalueMonad_M ].
 Extract Constant multivalued_choice => "(unCNfn2 AERN2.select)".
 
 Extraction Implicit seq_to_K_continuity [ types MultivalueMonad_M ].
-(* Extract Constant seq_to_K_continuity => "AERN2.maxSeqIndexUsed". TODO: test this *)
-(* Extraction "seq_to_K_continuity" seq_to_K_continuity. *)
+Extract Constant seq_to_K_continuity => "AERN2Principles.maxIntParamUsed".
+Extraction "seq_to_K_continuity" seq_to_K_continuity.
 
 Extraction Implicit M_baire_choice [ types MultivalueMonad_M ].
 (* Extract Constant M_baire_choice => "P.id". TODO: test this *)
@@ -402,5 +402,6 @@ import qualified Data.Functor
 import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
+import qualified AERN2.Continuity.Principles as AERN2Principles
 
 *)
