@@ -61,7 +61,7 @@ Extraction Implicit lazy_bool_or [ types LazyBool_K ].
 Extract Constant lazy_bool_or => "(OGB.||)".
 
 Extraction Implicit lazy_bool_countable_or [ types LazyBool_K ].
-(* Extract Constant lazy_bool_countable_or => "(\c -> foldl (OGB.||) (P.map c [0..]))". TODO: test it *)
+Extract Constant lazy_bool_countable_or => "(\c -> P.foldl1 (OGB.||) (P.map c [0..]))".
 (* Extraction "lazy_bool_countable_or" lazy_bool_countable_or. *)
 
 Extraction Implicit lazy_bool_and [ types LazyBool_K ].
