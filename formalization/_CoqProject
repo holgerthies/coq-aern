@@ -38,7 +38,9 @@ Relator/RealHelpers.v
 
 Hyperspace/Dyadic.v
 Hyperspace/Sierpinski.v
+Hyperspace/Continuity.v
 Hyperspace/Subsets.v
+Hyperspace/MetricSubsets.v
 Hyperspace/EuclideanSubsets.v
 Hyperspace/Simpletriangle.v
 Hyperspace/SierpinskiTriangle.v
