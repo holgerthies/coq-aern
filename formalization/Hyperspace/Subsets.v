@@ -927,10 +927,6 @@ Section Metric.
     rewrite lazy_bool_or_up;split;auto.
   Qed.
 
-Axiom baire_choice :
-  forall (P : (nat -> nat) -> Type) (f : forall ϕ, ^M (P ϕ)),
-    ^M {s : forall ϕ, P ϕ | forall ϕ, M_in (s ϕ) (f ϕ)}.
-
 (*   Definition base H s n m:= ball H (D s n) m. *)
 
 (*   Lemma x_to_name (H : metric) (s : separable) (l : has_limit H) x : ^M {y : nat -> nat | metric_is_fast_limit H (fun m => (D s (y m))) x /\ (forall n, d_X H (D s (y n)) (D s (S (y n))) <= prec (S n))}.   *)

@@ -105,7 +105,14 @@ Class MultivalueMonad_M (types : RealTypes) :=
     seq_to_K_continuity :
       forall {X} (f : (nat -> X) -> K) (x : (nat -> X)), 
         (f x) = lazy_bool_true -> 
-        @M types {m | forall y, (forall n, (n < m)%nat -> x n = y n) -> (f y )= lazy_bool_true}
+        @M types {m | forall y, (forall n, (n < m)%nat -> x n = y n) -> (f y )= lazy_bool_true};
+    
+    M_baire_choice :
+      let Mor := fun X : @M types Prop => X <> Monad_unit Prop False in
+      let M_some := fun {A} (P : A -> Prop) X => (Mor (Monad_fun_map _ _ P X)) in
+      let M_in := fun {A} (a : A) (X : M A) => M_some (fun b => a = b) X in
+      forall (P : (nat -> nat) -> Type) (f : forall ϕ, @M types (P ϕ)),
+        @M types {s : forall ϕ, P ϕ | forall ϕ, M_in (s ϕ) (f ϕ)}
   }.
 
 Context {types : RealTypes} {mvmM : @MultivalueMonad_M types}.
@@ -619,6 +626,13 @@ Defined.
 Definition M_all {A} (P : A -> Prop) : M A -> Prop := fun X => Mand (Monad_fun_map _ _ P X).
 Definition M_some {A} (P : A -> Prop) : M A -> Prop := fun X => Mor (Monad_fun_map _ _ P X).
 Definition M_in {A} (a : A) (X : M A) : Prop := M_some (fun b => a = b) X. 
+
+Lemma baire_choice :
+  forall (P : (nat -> nat) -> Type) (f : forall ϕ, ^M (P ϕ)),
+    ^M {s : forall ϕ, P ϕ | forall ϕ, M_in (s ϕ) (f ϕ)}.
+Proof.
+  exact M_baire_choice.
+Qed.
 
 Lemma sigma_eqP2_2 : forall (A : Type) (P : A -> Prop) (X Y : {a : A | P a}),  projP1 _ _ X = projP1 _ _  Y -> X = Y.
 Proof.
