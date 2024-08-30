@@ -129,7 +129,7 @@ Extract Constant seq_to_K_continuity => "AERN2Principles.maxIntParamUsed".
 Extraction "seq_to_K_continuity" seq_to_K_continuity.
 
 Extraction Implicit M_baire_choice [ types MultivalueMonad_M ].
-(* Extract Constant M_baire_choice => "P.id". TODO: test this *)
+Extract Constant M_baire_choice => "P.id".
 (* Extraction "M_baire_choice" M_baire_choice. *)
 
 Extraction Implicit M_hprop_elim_f [ types mvmM ].
