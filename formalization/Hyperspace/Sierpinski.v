@@ -41,7 +41,7 @@ Section S_Defs.
   Proof.
   Admitted.
 
-  Definition fn_to_sierpinki_to_kleene (c: nat -> sierp): (nat -> ^K).
+  Definition fn_to_sierpinki_to_kleene {X} (c: X -> sierp): (X -> ^K).
   Proof.
     intro n.
     apply (c n).
@@ -51,7 +51,6 @@ Section S_Defs.
   Proof.
     intros.
     pose (s:= lazy_bool_countable_or (fn_to_sierpinki_to_kleene c)).
-    (* TODO: try to simplify, get rid of fn_to_sierpinki_to_kleene *)
     destruct s as [k [nf co]].
     exists (sierp_from_kleenean nf).
     unfold sierp_from_kleenean, sierp_up;simpl.
