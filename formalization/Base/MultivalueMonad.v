@@ -102,7 +102,7 @@ Class MultivalueMonad_M (types : RealTypes) :=
         (exists n, x n = lazy_bool_true ) ->
         @M types {n | x n = lazy_bool_true };
 
-    seq_to_K_continuity :
+    seq_subset_continuity :
       forall {X} (f : (nat -> X) -> K) (x : (nat -> X)), 
         (f x) = lazy_bool_true -> 
         @M types {m | forall y, (forall n, (n < m)%nat -> x n = y n) -> (f y )= lazy_bool_true};

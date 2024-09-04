@@ -124,9 +124,9 @@ Extract Constant M_base_monad_traces_lift => "(\ x0 f -> (\n -> P.foldl (P.flip 
 Extraction Implicit multivalued_choice [ types MultivalueMonad_M ].
 Extract Constant multivalued_choice => "(unCNfn2 AERN2.select)".
 
-Extraction Implicit seq_to_K_continuity [ types MultivalueMonad_M ].
-Extract Constant seq_to_K_continuity => "AERN2Principles.maxIntParamUsed".
-(* Extraction "seq_to_K_continuity" seq_to_K_continuity. *)
+Extraction Implicit seq_subset_continuity [ types MultivalueMonad_M ].
+Extract Constant seq_subset_continuity => "AERN2Principles.maxIntParamUsed".
+(* Extraction "seq_subset_continuity" seq_subset_continuity. *)
 
 Extraction Implicit kleenean_to_nat_sequence [ types MultivalueMonad_M ].
 Extract Constant kleenean_to_nat_sequence => "(\k n -> if MNP.isCertainlyTrue (k AERN2.? (AERN2.bits n)) then 1 else 0)".
