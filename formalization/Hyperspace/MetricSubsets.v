@@ -3305,7 +3305,6 @@ Lemma bishop_compact_classically_seqcompact H (s : separable) (l : has_limit H) 
 
   Definition fattening H U eps x := exists y, U y /\ d_X H x y <= eps.
 
-  Definition Hausdorff_dist H A B x:= W_is_inf (fun eps => eps >= real_0 /\ (is_subset A (fattening H B eps) /\ (is_subset B (fattening H A eps)))) x.
 
   Lemma dist_pos H A x r : dist H A x r ->  (r >= real_0).
   Proof.
@@ -3551,6 +3550,44 @@ Lemma bishop_compact_classically_seqcompact H (s : separable) (l : has_limit H) 
       apply Hausdorff_dist_os_extend_left;[apply point_set_located | apply IHl1].
       apply fun_ext; simpl; intros;apply Prop_ext; intros;destruct H0;auto;destruct H0;auto.
   Qed.
+
+  Definition Hausdorff_dist H A B x:= W_is_inf (fun eps => eps >= real_0 /\ (is_subset A (fattening H B eps) /\ (is_subset B (fattening H A eps)))) x.
+
+  Lemma Hausdorff_dist_pts_exists H x l1 y l2 : {r | Hausdorff_dist H (fun t => In t (x :: l1)) (fun t => In t (y :: l2)) r}.
+  Proof.
+    destruct (Hausdorff_dist_one_sided_pts H x l1 y l2) as [r1 R1].
+    destruct (Hausdorff_dist_one_sided_pts H y l2 x l1) as [r2 R2].
+    exists (real_max r1 r2).
+    split.
+    - intros r [P1 [P2 P3]].
+      destruct (real_max_cand r1 r2) as [-> | ->].
+      apply R1;split;auto.
+      apply R2;split;auto.
+   - intros.
+     enough (forall n, -real_max r1 r2 - prec n <= s') by (apply lim_le_le'; intros n; add_both_side_by (-prec n);apply H1).
+     intros n.
+     apply H0.
+     replace (- (-real_max r1 r2 - prec n)) with (real_max r1 r2 + prec n) by ring.
+     split.
+     + replace (real_0) with (real_0 + real_0) by ring.
+       apply real_le_le_plus_le; [|apply real_lt_le;apply prec_pos].
+       destruct (real_max_cand r1 r2) as [-> | ->].
+       apply (Hausdorff_dist_os_pos _ _ _ _ R1 ).
+       apply (Hausdorff_dist_os_pos _ _ _ _ R2 ).
+    + split.
+      intros z Z.
+      apply (fattening_fatter _ _ (r1 + prec n)).
+      add_both_side_by (-prec n).
+      apply real_max_fst_ge.
+      apply (Hausdorff_dist_one_sided_contained _ _ _ _ R1);auto.
+      intros z Z.
+      apply (fattening_fatter _ _ (r2 + prec n)).
+      add_both_side_by (-prec n).
+      apply real_max_snd_ge.
+      apply (Hausdorff_dist_one_sided_contained _ _ _ _ R2);auto.
+  Qed.
+
+  
   (* Lemma Hausdorff_dist_split H A B x1 x2 : W_is_inf (fun eps => eps >= real_0 /\ (is_subset A (fattening H B eps))) x1 /\ W_is_inf (fun eps => eps >= real_0 /\ (is_subset B (fattening H A eps))) x2  -> Hausdorff_dist H A B (real_max x1 x2). *) 
 
   (* Proof. *)
