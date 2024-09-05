@@ -3587,39 +3587,230 @@ Lemma bishop_compact_classically_seqcompact H (s : separable) (l : has_limit H) 
       apply (Hausdorff_dist_one_sided_contained _ _ _ _ R2);auto.
   Qed.
 
-  
-  (* Lemma Hausdorff_dist_split H A B x1 x2 : W_is_inf (fun eps => eps >= real_0 /\ (is_subset A (fattening H B eps))) x1 /\ W_is_inf (fun eps => eps >= real_0 /\ (is_subset B (fattening H A eps))) x2  -> Hausdorff_dist H A B (real_max x1 x2). *) 
+  Definition nth_centers H A (T : totally_bounded H A) (n : nat) : list X.
+  Proof.
+    destruct (T n).
+    apply x.
+  Defined.
 
-  (* Proof. *)
-  (*   intros [[H00 H01] [H10 H11]]. *)
-  (*   split. *)
-  (*   - intros e [E1 [E2 E3]]. *)
-  (*     add_both_side_by (-e + real_max x1 x2). *)
-  (*     apply real_max_le_le_le. *)
-  (*     add_both_side_by (e - x1). *)
-  (*     apply H00. *)
-  (*     split;auto. *)
-  (*     add_both_side_by (e - x2). *)
-  (*     apply H10;split;auto. *)
-  (*  - intros. *)
-  (*    apply H0. *)
-  (*    replace (- - (real_max x1 x2)) with (real_max x1 x2) by ring. *)
-  (*    split. *)
-  (*    apply real_max_fst_ge_ge. *)
-  (*    admit. *)
-  (*    split. *)
-     
-  (*    intros x Ax.  *)
-  (*    unfold W_is_upper_bound in H01. *)
-  (*    specialize (H01 (-x1)). *)
-  (*     unfold W_is_upper_bound in H0. *)
-  (*     apply H01. *)
-  (*     intros y [Y1 Y2]. *)
-  (*     specialize (H0 y). *)
-  (*     apply H0;split;auto. *)
-  (*     unfold W_is_upper_bound in H11. *)
-  
-  (* Lemma Hausdorff_dist_fin_exists H x l1 y l2  : {r | Hausdorff_dist H (fun t => In t (x :: l1)) (fun t => In t (y :: l2)) r}. *)
-  (* Proof. *)
+  Lemma nth_centers_Hausdorff_dist H A (T : totally_bounded H A) :  forall n r, Hausdorff_dist H A (fun t => In t (nth_centers H A T n)) r -> r  <= prec n.  
+  Proof.
+    intros.
+    destruct H0.
+    add_both_side_by (-r - prec n).
+    apply H0.
+    replace (- - prec n) with (prec n) by ring.
+    split;[apply real_lt_le; apply prec_pos |].
+    split.
+    - intros x Ax.
+      unfold nth_centers.
+      destruct (T n).
+      destruct a.
+      specialize (H3 _ Ax).
+      apply Exists_exists in H3.
+      destruct H3;destruct H3.
+      exists x1.
+      split;auto.
+      apply real_lt_le;auto.
+    - unfold nth_centers.
+      destruct (T n) as [l L].
+      intros x Px.
+      destruct L.
+      destruct (H2 _ Px).
+      exists x0.
+      destruct H4.
+      split;auto.
+      apply real_lt_le;auto.
+  Qed.
 
+  Lemma inf_to_sup : (forall P, ((exists r, W_is_sup P r) -> exists r, W_is_sup P (- r))).
+  Proof.
+      intros P H1.
+      destruct H1.
+      exists (-x).
+      assert ((- - x) = x) as -> by ring.
+      exact H.
+  Qed.
+
+  Lemma nth_centers_Hausdorff_dist_exists H A (T : totally_bounded H A) :  forall n, exists r, Hausdorff_dist H A (fun t => In t (nth_centers H A T n)) r.
+  Proof.
+    intros.
+    unfold Hausdorff_dist.
+    unfold W_is_inf.
+    apply inf_to_sup.
+    apply W_complete.
+    - 
+      exists (-prec n).
+      replace (- - prec n) with (prec n) by ring.
+      split; [apply real_lt_le;apply prec_pos |].
+      split.
+      + intros x Ax.
+        unfold nth_centers.
+        destruct (T n).
+        destruct a.
+        specialize (H1 _ Ax).
+        apply Exists_exists in H1.
+        destruct H1;destruct H1.
+        exists x1.
+        split;auto.
+        apply real_lt_le;auto.
+      + unfold nth_centers.
+        destruct (T n) as [l L].
+        intros x Px.
+        destruct L.
+        destruct (H0 _ Px).
+        exists x0.
+        destruct H2.
+        split;auto.
+        apply real_lt_le;auto.
+   - exists real_0.
+     intros a.
+    intros.
+    destruct H0.
+    add_both_side_by (-a).
+    apply H0.
+  Qed.
+
+  Lemma nth_centers_Hausdorff_bound_exists H A (T : totally_bounded H A) :   forall n, exists r, Hausdorff_dist H A (fun t => In t (nth_centers H A T n)) r /\ r <= prec n.
+  Proof.
+    intros.
+    destruct (nth_centers_Hausdorff_dist_exists _ _ T n).
+    exists x.
+    split;auto.
+    apply (nth_centers_Hausdorff_dist _ _ T);auto.
+  Qed.
+
+  Lemma Hausdorff_dist_contained H A B x : Hausdorff_dist H A B x -> forall n, (is_subset A (fattening H B (x+prec n)) /\ is_subset B (fattening H A (x + prec n))).
+  Proof.
+    intros.
+    pose proof (inf_defined_exists _ _ H0 n).
+    destruct H1 as [r [[R1 R2] R3]].
+    destruct R2.
+    split;intros y Ay.
+    destruct (H1 _ Ay) as [x0 [P1 P2]];exists x0;split;auto;apply (real_le_le_le _ _ _ P2);auto.
+    destruct (H2 _ Ay) as [x0 [P1 P2]];exists x0;split;auto; apply (real_le_le_le _ _ _ P2);auto.
+  Qed.
+
+  Lemma Hausdorff_dist_nonneg H A B r : Hausdorff_dist H A B r -> r >= real_0.
+  Proof.
+    intros.
+    destruct H0.
+    enough (-r <= real_0) by (add_both_side_by (-r);auto).
+    apply H1.
+    unfold W_is_upper_bound.
+    intros.
+    add_both_side_by (-z).
+    apply H2.
+   Qed.
+
+  Lemma real_plus_plus_ge0 x y : x >= real_0 -> y >= real_0 -> x + y >= real_0.
+  Proof.
+    intros.
+    replace (real_0) with (real_0 + real_0) by ring.
+    apply real_le_le_plus_le;auto.
+  Qed.
+
+  Lemma real_plus_prec_ge0 x n : x >= real_0 ->  x + prec n >= real_0.
+  Proof.
+    intros.
+    apply real_plus_plus_ge0;auto.
+    apply real_lt_le.
+    apply prec_pos.
+  Qed.
+
+  Lemma Hausdorff_dist_tri_exists {H A A' B r1 r2}: Hausdorff_dist H A A' r1 -> Hausdorff_dist H A' B r2 -> (exists r, Hausdorff_dist H A B r).
+  Proof.
+    intros.
+    apply inf_to_sup.
+    apply W_complete.
+     - exists (-(r1 + (prec 1) + r2 + (prec 1))).
+       replace (- - (r1+ prec 1 + r2 + prec 1)) with (r1 + prec 1 + (r2 + prec 1)) by ring.
+       destruct (Hausdorff_dist_contained _ _ _ _ H0 1).
+       destruct (Hausdorff_dist_contained _ _ _ _ H1 1).
+       split.
+       apply real_plus_plus_ge0;apply real_plus_prec_ge0.
+       apply (Hausdorff_dist_nonneg _ _ _ _ H0).
+       apply (Hausdorff_dist_nonneg _ _ _ _ H1).
+       split.
+       + intros x Ax.
+         destruct (H2 _ Ax) as [y [A'y dy]].
+         destruct (H4 _ A'y) as [z [A'z dz]].
+         exists z.
+         split;auto.
+         apply (real_le_le_le _ _ _ (dx_triangle _ _ _ y)).
+         apply (real_le_le_plus_le);auto.
+       + intros x Bx.
+         destruct (H5 _ Bx) as [y [A'y dy]].
+         destruct (H3 _ A'y) as [z [A'z dz]].
+         exists z.
+         split;auto.
+         rewrite real_plus_comm.
+         apply (real_le_le_le _ _ _ (dx_triangle _ _ _ y)).
+         apply (real_le_le_plus_le);auto.
+    - exists real_0.
+      intros a.
+      intros.
+      destruct H2.
+      add_both_side_by (-a).
+      apply H2.
+  Qed.
+
+  Lemma Hausdorff_dist_tri {H A A' B r1 r2}: Hausdorff_dist H A A' r1 -> Hausdorff_dist H A' B r2 -> (exists r, Hausdorff_dist H A B r /\ r <= r1 + r2).
+  Proof.
+    intros.
+  Admitted.
+
+  Lemma Hausdorff_dist_sym {H A B r}: Hausdorff_dist H A B r -> Hausdorff_dist H B A r.
+  Proof.
+    intros.
+    destruct H0.
+    split.
+    intros r' [R1 R2].
+    apply H0;split;auto.
+    destruct R2.
+    split;auto.
+    intros.
+    apply H1.
+    intros r' [R1 R2].
+    apply H2;split;auto.
+    destruct R2;split;auto.
+  Qed.
+
+  Lemma nonempty_centers H A (T : totally_bounded H A) : (exists x, A x) -> (forall n , { a & {l | nth_centers H A T n = a :: l}}).
+  Proof.
+     intros.
+     unfold nth_centers.
+     destruct (T n).
+     destruct x.
+     - destruct a.
+       contradict H0.
+       intros H0.
+       destruct H0.
+       specialize (H2 _ H0).
+       apply Exists_exists in H2.
+       destruct H2.
+       destruct H2.
+       simpl in H2.
+       contradict H2.
+    - exists x.
+      exists x0;auto.
+  Qed.
+
+  Lemma Hausdorff_dist_approx H A B : totally_bounded H A -> totally_bounded H B -> (exists x, A x) -> (exists x, B x) -> forall n, {r | forall r', Hausdorff_dist H A B r' -> abs (r - r') <= prec n }.
+  Proof.
+    intros.
+    destruct (nonempty_centers H A X0 H0 (S n)) as [a0 [l0 L0]].
+    destruct (nonempty_centers H B X1 H1 (S n)) as [a1 [l1 L1]].
+    destruct (Hausdorff_dist_pts_exists H a0 l0 a1 l1).
+    exists x.
+    intros.
+    destruct (nth_centers_Hausdorff_bound_exists H A X0 (S n)) as [r1 [R1 R1']].
+    destruct (nth_centers_Hausdorff_bound_exists H B X1 (S n)) as [r2 [R2 R2']].
+    apply Hausdorff_dist_sym in R2.
+    rewrite <-L0, <-L1 in h.
+    destruct (Hausdorff_dist_tri R1 h) as [z [Z1 Z2]].
+    destruct (Hausdorff_dist_tri Z1 R2) as [z' [Z'1 Z'2]].
+  Abort.
+    
+    
 End Metric.
