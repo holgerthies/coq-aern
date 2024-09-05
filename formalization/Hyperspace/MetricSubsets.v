@@ -3307,4 +3307,282 @@ Lemma bishop_compact_classically_seqcompact H (s : separable) (l : has_limit H) 
 
   Definition Hausdorff_dist H A B x:= W_is_inf (fun eps => eps >= real_0 /\ (is_subset A (fattening H B eps) /\ (is_subset B (fattening H A eps)))) x.
 
+  Lemma dist_pos H A x r : dist H A x r ->  (r >= real_0).
+  Proof.
+    intros.
+    destruct H0.
+    apply H1.
+    intros.
+    apply d_nonneg.
+  Qed.
+  
+  Lemma inf_defined_exists P x : W_is_inf P x -> forall n, exists t, P t /\ t <= x + prec n.
+  Proof.
+    intros.
+    apply Classical_Pred_Type.not_all_not_ex.
+    intros H0.
+    destruct H.
+    assert ((not ( -x <= (-x - prec n)))) as Py.
+    apply real_gt_nle.
+    replace (-x) with (-x + real_0) at 1 by ring.
+    unfold real_minus.
+    apply real_lt_plus_lt.
+    add_both_side_by (prec n).
+    apply prec_pos.
+    specialize (H1 (-x - prec n)).
+    contradict Py.
+    apply H1.
+    intros p P'.
+    specialize (H0 (-p)).
+    rewrite classical_tautology_neg_and in H0.
+    destruct H0.
+    contradict H0;auto.
+    apply real_nle_ge in H0.
+    add_both_side_by (x + prec n - p).
+    apply real_lt_le;apply H0.
+  Qed.
+
+  Definition Hausdorff_dist_one_sided H A B x:= W_is_inf (fun eps => eps >= real_0 /\ (is_subset A (fattening H B eps))) x.
+  
+  Lemma fattening_fatter H A r1 r2 : (r1 <= r2 ) -> is_subset (fattening H A r1) (fattening H A r2).
+  Proof.
+    intros.
+    intros x Fx.
+    destruct Fx as [x0 [P1 P2]].
+    exists x0.
+    split; auto.
+    apply (real_le_le_le _ _ _ P2);auto.
+  Qed.
+
+  Lemma Hausdorff_dist_one_sided_contained H A B x : Hausdorff_dist_one_sided H A B x -> forall n, (is_subset A (fattening H B (x+prec n))).
+  Proof.
+    intros.
+    pose proof (inf_defined_exists _ _ H0 n).
+    destruct H1 as [r [[R1 R2] R3]].
+    intros y Ay.
+    destruct (R2 _ Ay) as [x0 [P1 P2]].
+    exists x0;split;auto.
+    apply (real_le_le_le _ _ _ P2);auto.
+  Qed.
+
+  Lemma Hausdorff_dist_os_add_pt H A B x e1 e2 : Hausdorff_dist_one_sided H A B e1 -> dist H B x e2 -> Hausdorff_dist_one_sided H (fun t => A t \/ t = x) B (real_max e1 e2). 
+  Proof.
+    intros.
+    split.
+    - intros r [P1 P2].
+      destruct H0.
+      add_both_side_by (real_max e1 e2 - r).
+      apply real_max_le_le_le.
+      + specialize (H0 r).
+        simpl in H0.
+        add_both_side_by (r - e1).
+        apply H0.
+        split;auto.
+        intros y By.
+        apply P2.
+        left;auto.
+      +  assert (fattening H B (-r) x).
+         apply P2;right;auto.
+         destruct H3 as [y [Y1 Y2]].
+         destruct H1.
+         apply (real_le_le_le _ (d_X H x y));auto.
+         apply H1;auto.
+    - intros.
+      enough (forall n, -real_max e1 e2 - prec n <= s') by (apply lim_le_le'; intros n; add_both_side_by (-prec n);apply H3).
+      intros.
+      apply H2.
+      replace (- (-real_max e1 e2 - prec n)) with (real_max e1 e2 + prec n) by ring.
+      split.
+      replace (real_0) with (real_0 + real_0) by ring.
+      apply real_le_le_plus_le; [|apply real_lt_le;apply prec_pos].
+      apply real_max_snd_le_le.
+      apply dist_pos in H1;auto.
+      intros y Py.
+      destruct Py.
+      enough (fattening H B (e1 + prec n) y).
+      apply  (fattening_fatter H B  (e1 + prec n) (real_max e1 e2 + prec n));auto;add_both_side_by (-prec n); apply real_max_fst_ge.
+      apply (Hausdorff_dist_one_sided_contained _ _ _ _ H0);auto.
+      rewrite H3.
+      unfold fattening.
+      destruct (dist_bounded_exists_lt _ _ _ _ H1 n).
+      destruct H4.
+      exists x0.
+      split;auto.
+      apply real_lt_le.
+      rewrite d_sym.
+      apply (real_lt_le_lt _ _ _ H5).
+      add_both_side_by (-prec n).
+      apply real_max_snd_ge.
+  Qed.      
+
+  Lemma Hausdorff_dist_os_extend_left H A B x : located H B -> {r | Hausdorff_dist_one_sided H A B r} -> {r | Hausdorff_dist_one_sided H (fun t => A t \/ t = x) B r}.
+  Proof.
+    intros.
+    destruct X1.
+    destruct (X0 x).
+    exists (real_max x0 x1).
+    apply Hausdorff_dist_os_add_pt;auto.
+  Qed.
+    
+  Lemma Hausdorff_dist_os_pt H x y: Hausdorff_dist_one_sided H (fun t => t = x) (fun t => t = y) (d_X H x y).
+  Proof.
+    split.
+    -  intros r [Hr1 Hr2].
+       destruct (Hr2 x) as [_ [->  H0]];auto.
+       add_both_side_by (d_X H x y - r);auto.
+    - intros s Hs.
+      apply Hs.
+      replace (- - d_X H x y) with (d_X H x y) by ring.
+      split; try apply d_nonneg.
+      exists y;split;auto.
+      rewrite H0;apply real_le_triv.
+  Qed.
+
+  Lemma Hausdorff_dist_os_pos H A B r : Hausdorff_dist_one_sided H A B r -> r >= real_0.
+  Proof.
+    intros.
+    destruct H0.
+    enough (-r <= real_0) by (add_both_side_by (-r);auto).
+    apply H1.
+    unfold W_is_upper_bound.
+    intros.
+    add_both_side_by (-z).
+    apply H2.
+  Qed.
+
+  Lemma Hausdorff_dist_os_pt_extend H A x y r1: Hausdorff_dist_one_sided H (fun t => t = x) A r1 ->  Hausdorff_dist_one_sided H (fun t => t = x) (fun t => A t \/ t = y) (real_min r1 (d_X H x y)).
+  Proof.
+    intros.
+    split.
+    - intros r [R1 R2].
+      add_both_side_by (real_min r1 (d_X H x y) - r).
+      destruct H0.
+      destruct (R2 x);auto.
+      destruct H2.
+      destruct H2.
+      + apply (real_le_le_le _ _ _ (real_min_fst_le _ _)).
+        add_both_side_by (r - r1).
+        apply H0;split;auto.
+        exists x0.
+        rewrite H4;split;auto.
+      + apply (real_le_le_le _ _ _ (real_min_snd_le _ _)).
+        rewrite <-H2;auto.
+   - intros.
+     enough (forall n, -real_min r1 (d_X H x y) - prec n <= s') by (apply lim_le_le'; intros n; add_both_side_by (-prec n);apply H2).
+     intros n.
+     apply H1.
+     replace (-  (- real_min r1 (d_X H x y) - prec n)) with (real_min r1 (d_X H x y)+prec n) by ring.
+     split.
+     replace (real_0) with (real_0 + real_0) by ring.
+     apply real_le_le_plus_le; [|apply real_lt_le;apply prec_pos].
+     destruct (real_min_cand r1 (d_X H x y)) as [-> | ->]; try apply d_nonneg.
+     apply (Hausdorff_dist_os_pos _ _ _ _ H0).
+     intros _ ->.
+     destruct (real_min_cand r1 (d_X H x y)) as [-> | ->].
+     destruct (Hausdorff_dist_one_sided_contained _ _ _ _ H0 n x);auto.
+     exists x0.
+     split;[left|]; try apply H2.
+     exists y.
+     split;[right|];auto.
+     add_both_side_by (-d_X H x y); apply real_lt_le;apply prec_pos.
+   Qed.
+
+
+  Lemma Hausdorff_dist_os_pt_extend_right H B x y:  {r | Hausdorff_dist_one_sided H (fun t => t = x) B r} -> {r | Hausdorff_dist_one_sided H (fun t => t = x) (fun t => B t \/ t = y) r}.
+  Proof.
+    intros [r R].
+    exists (real_min r (d_X H x y)).
+    apply Hausdorff_dist_os_pt_extend;auto.
+  Qed.
+
+  Lemma Hausdorff_dist_os_pt_pts_exists H x l y: {r | Hausdorff_dist_one_sided H (fun t => t = x) (fun t => In t (y :: l)) r}.
+  Proof.
+    induction l.
+    - simpl.
+      exists (d_X H x y).
+      replace (fun t => y = t \/ False) with (fun t => t = y).
+      apply Hausdorff_dist_os_pt.
+      apply fun_ext;intros;apply Prop_ext;intros;destruct H0;auto;contradict H0.
+   - replace (fun t => In t (y :: a :: l )) with (fun t => In t (y :: l) \/ t = a).
+     apply Hausdorff_dist_os_pt_extend_right.
+     apply IHl.
+     apply fun_ext.
+     intros.
+     simpl.
+     apply Prop_ext;intros;destruct H0;auto;destruct H0;auto.
+  Qed.
+  Lemma point_set_located H x l : located H  (fun t => In t (x :: l)).
+  Proof.
+    induction l.
+    - intros y.
+      exists (d_X H x y).
+      simpl.
+      split.
+      intros.
+      destruct H0; [|contradict H0].
+      rewrite H0, d_sym;apply real_le_triv.
+      intros.
+      specialize (H0 x).
+      rewrite d_sym;apply H0.
+      left;auto.
+   - replace (fun t => In t (x :: a :: l)) with (union (fun t => In t (x :: l)) (fun t => t = a)).
+     intro y.
+     destruct (IHl y).
+     exists (real_min x0 (d_X H y a)).
+     apply dist_union;auto.
+     split;intros.
+     rewrite H0;apply real_le_triv.
+     apply H0;auto.
+     apply fun_ext; intros;simpl;apply Prop_ext; intros.
+     destruct H0;simpl;auto.
+     destruct H0;simpl;auto.
+     unfold union.
+     destruct H0;simpl;auto.
+     destruct H0;simpl;auto.
+  Qed.
+
+  Lemma Hausdorff_dist_one_sided_pts H x l1 y l2: {r | Hausdorff_dist_one_sided H (fun t => In t (x :: l1)) (fun t => In t (y :: l2)) r}.
+  Proof.
+    induction l1.
+    - replace (fun t => In t [x]) with (fun t => t = x).
+      apply Hausdorff_dist_os_pt_pts_exists.
+      apply fun_ext;intros;apply Prop_ext;simpl;intros;destruct H0;auto;contradict H0.
+    - replace (fun t => In t (x :: a :: l1)) with (fun t => In t (x :: l1) \/ t = a).
+      apply Hausdorff_dist_os_extend_left;[apply point_set_located | apply IHl1].
+      apply fun_ext; simpl; intros;apply Prop_ext; intros;destruct H0;auto;destruct H0;auto.
+  Qed.
+  (* Lemma Hausdorff_dist_split H A B x1 x2 : W_is_inf (fun eps => eps >= real_0 /\ (is_subset A (fattening H B eps))) x1 /\ W_is_inf (fun eps => eps >= real_0 /\ (is_subset B (fattening H A eps))) x2  -> Hausdorff_dist H A B (real_max x1 x2). *) 
+
+  (* Proof. *)
+  (*   intros [[H00 H01] [H10 H11]]. *)
+  (*   split. *)
+  (*   - intros e [E1 [E2 E3]]. *)
+  (*     add_both_side_by (-e + real_max x1 x2). *)
+  (*     apply real_max_le_le_le. *)
+  (*     add_both_side_by (e - x1). *)
+  (*     apply H00. *)
+  (*     split;auto. *)
+  (*     add_both_side_by (e - x2). *)
+  (*     apply H10;split;auto. *)
+  (*  - intros. *)
+  (*    apply H0. *)
+  (*    replace (- - (real_max x1 x2)) with (real_max x1 x2) by ring. *)
+  (*    split. *)
+  (*    apply real_max_fst_ge_ge. *)
+  (*    admit. *)
+  (*    split. *)
+     
+  (*    intros x Ax.  *)
+  (*    unfold W_is_upper_bound in H01. *)
+  (*    specialize (H01 (-x1)). *)
+  (*     unfold W_is_upper_bound in H0. *)
+  (*     apply H01. *)
+  (*     intros y [Y1 Y2]. *)
+  (*     specialize (H0 y). *)
+  (*     apply H0;split;auto. *)
+  (*     unfold W_is_upper_bound in H11. *)
+  
+  (* Lemma Hausdorff_dist_fin_exists H x l1 y l2  : {r | Hausdorff_dist H (fun t => In t (x :: l1)) (fun t => In t (y :: l2)) r}. *)
+  (* Proof. *)
+
 End Metric.
