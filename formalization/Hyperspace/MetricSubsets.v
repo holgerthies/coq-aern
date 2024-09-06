@@ -3795,14 +3795,127 @@ Lemma bishop_compact_classically_seqcompact H (s : separable) (l : has_limit H) 
     - exists x.
       exists x0;auto.
   Qed.
-
-  Lemma Hausdorff_dist_approx H A B : totally_bounded H A -> totally_bounded H B -> (exists x, A x) -> (exists x, B x) -> forall n, {r | forall r', Hausdorff_dist H A B r' -> abs (r - r') <= prec n }.
+  Lemma nth_centers_fattening H A (T : totally_bounded H A) : forall n, is_subset A (fattening H (fun t => In t (nth_centers H A T n)) (prec n)).
   Proof.
     intros.
-    destruct (nonempty_centers H A X0 H0 (S n)) as [a0 [l0 L0]].
-    destruct (nonempty_centers H B X1 H1 (S n)) as [a1 [l1 L1]].
-    destruct (Hausdorff_dist_pts_exists H a0 l0 a1 l1).
-    exists x.
+    unfold nth_centers.
+    destruct (T n) as [l [L1 L2]].
+    intros x Ax.
+    specialize (L2 _ Ax).
+    apply Exists_exists in L2.
+    destruct L2 as [y [Y1 Y2]].
+    exists y.
+    split;auto.
+    apply real_lt_le;auto.
+  Qed.
+
+  Lemma is_subset_transitive (A B C : (@csubset X)) : is_subset A B -> is_subset B C -> is_subset A C.
+  Proof.
+    intros.
+    intros y Ay.
+    apply H0.
+    apply H;auto.
+  Qed.
+
+
+  Lemma nth_centers_intersects H A (T : totally_bounded H A) : forall n z , In z (nth_centers H A T n) -> exists x, A x /\ (d_X H z x) <= prec n .
+  Proof.
+    unfold nth_centers.
+    intros.
+    destruct (T n).
+    destruct a.
+    destruct (H1 _ H0).
+    exists x0.
+    split;try apply H3.
+    apply real_lt_le;apply H3.
+  Qed.
+
+  Lemma Hausdorff_dist_classical_exists H A B : totally_bounded H A -> totally_bounded H B -> (exists x, A x) -> (exists x, B x) -> exists r, Hausdorff_dist H A B r.
+  Proof.
+    intros.
+    apply inf_to_sup.
+    apply W_complete.
+    - destruct (nonempty_centers H A X0 H0 0) as [a0 [l0 L0]].
+      destruct (nonempty_centers H B X1 H1 0) as [a1 [l1 L1]].
+      destruct (Hausdorff_dist_pts_exists H a0 l0 a1 l1).
+      rewrite <-L0, <-L1 in h.
+      exists (-x - prec 0 - prec 0 - prec 0).
+      replace (- (-x - prec 0 - prec 0 - prec 0)) with (x+ prec 0 + prec 0 + prec 0) by ring.
+      split.
+      apply real_plus_prec_ge0.
+      apply real_plus_prec_ge0.
+      apply real_plus_prec_ge0.
+      apply (Hausdorff_dist_nonneg _ _ _ _ h).
+      destruct (Hausdorff_dist_contained _ _ _ _ h 0).
+      split.
+      + apply (is_subset_transitive _ _ _ (nth_centers_fattening H A X0 0)).
+        apply (is_subset_transitive _ (fattening H (fun t => In t (nth_centers H B X1 0)) (x+prec 0+prec 0))).
+        intros y Y.
+        destruct Y.
+        destruct H4.
+        destruct (H2 _ H4) as [z [Z1 Z2]].
+        exists z;split;auto.
+        apply (real_le_le_le _ _ _ (dx_triangle H _ _ x0)).
+        replace (x + prec 0 + prec 0) with (prec 0 + (x + prec 0)) by ring.
+        apply real_le_le_plus_le;auto.
+        intros y Y.
+        destruct Y as [z [Z1 Z2]].
+        destruct (nth_centers_intersects H B X1 _ _ Z1) as [b [Bb1 Bb2]].
+        exists b;split;auto.
+        apply (real_le_le_le _ _ _ (dx_triangle H _ _ z)).
+        apply real_le_le_plus_le;auto.
+      + apply (is_subset_transitive _ _ _ (nth_centers_fattening H B X1 0)).
+        apply (is_subset_transitive _ (fattening H (fun t => In t (nth_centers H A X0 0)) (x+prec 0+prec 0))).
+        intros y Y.
+        destruct Y.
+        destruct H4.
+        destruct (H3 _ H4) as [z [Z1 Z2]].
+        exists z;split;auto.
+        apply (real_le_le_le _ _ _ (dx_triangle H _ _ x0)).
+        replace (x + prec 0 + prec 0) with (prec 0 + (x + prec 0)) by ring.
+        apply real_le_le_plus_le;auto.
+        intros y Y.
+        destruct Y as [z [Z1 Z2]].
+        destruct (nth_centers_intersects H A X0 _ _ Z1) as [b [Bb1 Bb2]].
+        exists b;split;auto.
+        apply (real_le_le_le _ _ _ (dx_triangle H _ _ z)).
+        apply real_le_le_plus_le;auto.
+    - exists real_0.
+      intros a.
+      intros.
+      destruct H2.
+      add_both_side_by (-a).
+      apply H2.
+  Qed.
+
+  Lemma Hausdorff_dist_unique H A B r1 r2 : Hausdorff_dist H A B r1 -> Hausdorff_dist H A B r2 -> r1 = r2.
+  Proof.
+    intros [H1 H2] [H1' H2'].
+    apply real_le_le_eq;add_both_side_by (-r1 - r2).
+    apply H2'.
+    apply H1.
+    apply H2.
+    apply H1'.
+  Qed.
+  
+  Lemma Hausdorff_dist_exists H A B : totally_bounded H A -> totally_bounded H B -> (exists x, A x) -> (exists x, B x) -> {r | Hausdorff_dist H A B r}.
+  Proof.
+    intros.
+    apply real_limit_P.
+    - destruct (Hausdorff_dist_classical_exists _ _ _ X0 X1 H0 H1).
+      exists x.
+      split;auto.
+      intros.
+      apply (Hausdorff_dist_unique _ _ _ _ _ H2 H3).
+    - intros.
+      destruct (nonempty_centers H A X0 H0 (S n)) as [a0 [l0 L0]].
+      destruct (nonempty_centers H B X1 H1 (S n)) as [a1 [l1 L1]].
+      destruct (Hausdorff_dist_pts_exists H a0 l0 a1 l1).
+      exists x.
+     destruct (Hausdorff_dist_classical_exists _ _ _ X0 X1 H0 H1).
+     exists x0.
+     split;auto.
+     
     intros.
     destruct (nth_centers_Hausdorff_bound_exists H A X0 (S n)) as [r1 [R1 R1']].
     destruct (nth_centers_Hausdorff_bound_exists H B X1 (S n)) as [r2 [R2 R2']].
@@ -3810,7 +3923,30 @@ Lemma bishop_compact_classically_seqcompact H (s : separable) (l : has_limit H) 
     rewrite <-L0, <-L1 in h.
     destruct (Hausdorff_dist_tri R1 h) as [z [Z1 Z2]].
     destruct (Hausdorff_dist_tri Z1 R2) as [z' [Z'1 Z'2]].
-  Abort.
-    
-    
+  Admitted.
+
 End Metric.
+
+(* Section KV. *)
+(*   Definition non_empty_subset X := {K : (@csubset X) | exists x, K x}. *)
+(*   Definition KV {X} (m : (@metric X)):=   {K : (non_empty_subset X) & totally_bounded m (pr1 _ _ K) & complete m (pr1 _ _ K) }. *)
+(*   Lemma KV_hausdorff {X} (m : (@metric X)) (K1 K2: (KV m)): ^Real. *)
+(*   Proof. *)
+(*     destruct K1, K2. *)
+(*     destruct x, x0. *)
+(*     simpl in *. *)
+(*     destruct (Hausdorff_dist_exists m _ _ t t0 e e0). *)
+(*     apply x1. *)
+(*   Defined. *)
+
+(*   Lemma KV_metric X (m : (@metric X)): (@metric (KV m)). *)
+(*   Proof. *)
+(*     exists (KV_hausdorff m). *)
+(*     split; [|split]; intros [[K1 H1] T] [[K2 H2] T2];simpl in *;destruct (Hausdorff_dist_exists m K1 K2 T T2 H1 H2); simpl in *. *)
+(*     Check existT2. *)
+(*     Search (existT2 _ _ _ _ _  = existT2 _ _ _ _ _). *)
+(*     split. *)
+(*     intros. *)
+(*     apply eq_existT2_curried. *)
+(*     intros. *)
+(* End KV. *)
