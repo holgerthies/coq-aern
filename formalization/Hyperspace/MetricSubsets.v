@@ -3897,7 +3897,65 @@ Lemma bishop_compact_classically_seqcompact H (s : separable) (l : has_limit H) 
     apply H2.
     apply H1'.
   Qed.
-  
+
+  Lemma Hausdorff_dist_fattening H A B r r' eps : (eps >= 0) -> Hausdorff_dist H A B r -> Hausdorff_dist H (fattening H A eps) (fattening H B eps) r' -> abs (r-r') <= eps.
+  Proof.
+    intros.
+    apply real_abs_le_le_le.
+    - add_both_side_by (-r).
+      apply H2.
+      intros t [T1 [T2 T3]].
+      add_both_side_by (-eps).
+      apply H1.
+      split.
+      replace (- (t- eps)) with (-t + eps) by ring;apply real_plus_plus_ge0;auto.
+      split.
+      + intros x Ax.
+        destruct (T2 x); [exists x;split;auto;rewrite dist_zero;auto|].
+        destruct H3.
+        destruct H3.
+        destruct H3.
+        exists x1;split;auto.
+        apply (real_le_le_le _ _ _ (dx_triangle H _ _ x0)).
+        replace (- (t - eps)) with (-t + eps) by ring.
+        apply (real_le_le_plus_le);auto.
+      + intros x Bx.
+        destruct (T3 x); [exists x;split;auto;rewrite dist_zero;auto|].
+        destruct H3.
+        destruct H3.
+        destruct H3.
+        exists x1;split;auto.
+        apply (real_le_le_le _ _ _ (dx_triangle H _ _ x0)).
+        replace (- (t - eps)) with (-t + eps) by ring.
+        apply (real_le_le_plus_le);auto.
+  - add_both_side_by (-r').
+    apply H1.
+    intros t [T1 [T2 T3]].
+    add_both_side_by (-eps).
+    apply H2.
+    split.
+    replace (- (t- eps)) with (-t + eps) by ring;apply real_plus_plus_ge0;auto.
+    split.
+    + intros x Fx.
+      destruct Fx as [y [Y1 Y2]].
+      destruct (T2 _ Y1) as [z [Z1 Z2]].
+      exists z.
+      split.
+      exists z;split;auto; rewrite dist_zero;auto.
+      apply (real_le_le_le _ _ _ (dx_triangle H _ _ y)).
+      replace (- (t - eps)) with (eps - t) by ring.
+      apply (real_le_le_plus_le);auto.
+    + intros x Fx.
+      destruct Fx as [y [Y1 Y2]].
+      destruct (T3 _ Y1) as [z [Z1 Z2]].
+      exists z.
+      split.
+      exists z;split;auto; rewrite dist_zero;auto.
+      apply (real_le_le_le _ _ _ (dx_triangle H _ _ y)).
+      replace (- (t - eps)) with (eps - t) by ring.
+      apply (real_le_le_plus_le);auto.
+  Qed.
+
   Lemma Hausdorff_dist_exists H A B : totally_bounded H A -> totally_bounded H B -> (exists x, A x) -> (exists x, B x) -> {r | Hausdorff_dist H A B r}.
   Proof.
     intros.
@@ -3912,18 +3970,74 @@ Lemma bishop_compact_classically_seqcompact H (s : separable) (l : has_limit H) 
       destruct (nonempty_centers H B X1 H1 (S n)) as [a1 [l1 L1]].
       destruct (Hausdorff_dist_pts_exists H a0 l0 a1 l1).
       exists x.
-     destruct (Hausdorff_dist_classical_exists _ _ _ X0 X1 H0 H1).
-     exists x0.
-     split;auto.
-     
-    intros.
-    destruct (nth_centers_Hausdorff_bound_exists H A X0 (S n)) as [r1 [R1 R1']].
-    destruct (nth_centers_Hausdorff_bound_exists H B X1 (S n)) as [r2 [R2 R2']].
-    apply Hausdorff_dist_sym in R2.
-    rewrite <-L0, <-L1 in h.
-    destruct (Hausdorff_dist_tri R1 h) as [z [Z1 Z2]].
-    destruct (Hausdorff_dist_tri Z1 R2) as [z' [Z'1 Z'2]].
-  Admitted.
+      destruct (Hausdorff_dist_classical_exists _ _ _ X0 X1 H0 H1).
+      exists x0.
+      rewrite <-L0,<-L1 in *.
+      split;auto.
+      apply real_abs_le_le_le.
+      + add_both_side_by (-x).
+        apply H2.
+        intros t [T1 [T2 T3]].
+        add_both_side_by (-prec n).
+        apply h.
+        split.
+        replace (-(t- prec n)) with (-t + prec n) by ring; apply real_plus_prec_ge0;auto.
+        split.
+        * intros y Y.
+          destruct (nth_centers_intersects _ _ _ _ _ Y ) as [z [Z1 Z2]].
+          destruct (T2 _ Z1) as [z' [Z1' Z2']].
+          destruct (nth_centers_fattening  H B X1 (S n) _ Z1' ) as [z'' [Z1'' Z2'']].
+          exists z'';split;auto.
+          apply (real_le_le_le _ _ _ (dx_triangle H _ _ z)).
+          rewrite <-prec_twice.
+          replace (- (t - (prec (n+1) + prec (n+1)))) with (prec (S n) + (-t + prec (S n))) by (rewrite Nat.add_1_r;ring).
+          apply real_le_le_plus_le;auto.
+          apply (real_le_le_le _ _ _ (dx_triangle H _ _ z')).
+          apply real_le_le_plus_le;auto.
+        * intros y Y.
+          destruct (nth_centers_intersects _ _ _ _ _ Y ) as [z [Z1 Z2]].
+          destruct (T3 _ Z1) as [z' [Z1' Z2']].
+          destruct (nth_centers_fattening  H A X0 (S n) _ Z1' ) as [z'' [Z1'' Z2'']].
+          exists z'';split;auto.
+          apply (real_le_le_le _ _ _ (dx_triangle H _ _ z)).
+          rewrite <-prec_twice.
+          replace (- (t - (prec (n+1) + prec (n+1)))) with (prec (S n) + (-t + prec (S n))) by (rewrite Nat.add_1_r;ring).
+          apply real_le_le_plus_le;auto.
+          apply (real_le_le_le _ _ _ (dx_triangle H _ _ z')).
+          apply real_le_le_plus_le;auto.
+    + add_both_side_by (-x0).
+      apply h.
+      intros t [T1 [T2 T3]].
+      add_both_side_by (-prec n).
+      apply H2.
+      split.
+      replace (-(t- prec n)) with (-t + prec n) by ring; apply real_plus_prec_ge0;auto.
+      split.
+      * intros y Y.
+          destruct (nth_centers_fattening  H A X0 (S n) _ Y) as [z [Z1 Z2]].
+          destruct (T2 z Z1) as [z' [Z1' Z2']].
+          destruct (nth_centers_intersects _ _ _ _ _ Z1' ) as [z'' [Z1'' Z2'']].
+          exists z''.
+          split;auto.
+          apply (real_le_le_le _ _ _ (dx_triangle H _ _ z)).
+          rewrite <-prec_twice.
+          replace (- (t - (prec (n+1) + prec (n+1)))) with (prec (S n) + (-t + prec (S n))) by (rewrite Nat.add_1_r;ring).
+          apply real_le_le_plus_le;auto.
+          apply (real_le_le_le _ _ _ (dx_triangle H _ _ z')).
+          apply real_le_le_plus_le;auto.
+      * intros y Y.
+          destruct (nth_centers_fattening  H B X1 (S n) _ Y) as [z [Z1 Z2]].
+          destruct (T3 z Z1) as [z' [Z1' Z2']].
+          destruct (nth_centers_intersects _ _ _ _ _ Z1' ) as [z'' [Z1'' Z2'']].
+          exists z''.
+          split;auto.
+          apply (real_le_le_le _ _ _ (dx_triangle H _ _ z)).
+          rewrite <-prec_twice.
+          replace (- (t - (prec (n+1) + prec (n+1)))) with (prec (S n) + (-t + prec (S n))) by (rewrite Nat.add_1_r;ring).
+          apply real_le_le_plus_le;auto.
+          apply (real_le_le_le _ _ _ (dx_triangle H _ _ z')).
+          apply real_le_le_plus_le;auto.
+  Qed.
 
 End Metric.
 
