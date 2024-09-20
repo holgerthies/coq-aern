@@ -1,0 +1,41 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.36.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           coq-aern-extracted-bench
+version:        0.1.0.0
+synopsis:       Simple benchmark executable for exact real programs extracted from coq-aern
+description:    Please see the README on GitHub at <https://github.com/holgerthies/coq-aern>
+category:       Math
+homepage:       https://github.com/holgerthies/coq-aern#readme
+bug-reports:    https://github.com/holgerthies/coq-aern/issues
+author:         Michal Konečný, Holger Thies, Sewon Park
+maintainer:     mikkonecny@gmail.com
+copyright:      2022, 2024 Michal Konečný, Holger Thies, Sewon Park
+license:        MIT
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/holgerthies/coq-aern
+
+executable coq-aern-extracted-bench
+  main-is: bench.hs
+  other-modules:
+      Paths_coq_aern_extracted_bench
+  hs-source-dirs:
+      ./
+  ghc-options: -rtsopts -threaded -with-rtsopts=-N -Wall -O2
+  build-depends:
+      aern2-mp >=0.2.15.1
+    , aern2-real >=0.2.15.1
+    , base ==4.*
+    , collect-errors >=0.1.6
+    , coq-aern-extracted
+    , criterion
+    , deepseq
+    , integer-logarithms
+    , mixed-types-num >=0.5.3
+  default-language: Haskell2010

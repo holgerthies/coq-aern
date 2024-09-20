@@ -1,4 +1,4 @@
-name:                coq-aern-extracted
+name:                coq-aern-extracted-bench
 version:             0.1.0.0
 github:              "holgerthies/coq-aern"
 license:             MIT
@@ -10,7 +10,7 @@ copyright:           "2022, 2024 Michal Konečný, Holger Thies, Sewon Park"
 # - README.md
 
 # Metadata used when publishing your package
-synopsis:            Exact real programs extracted from coq-aern
+synopsis:            Simple benchmark executable for exact real programs extracted from coq-aern
 category:            Math
 
 # To avoid duplicated efforts in documentation and dealing with the
@@ -25,11 +25,20 @@ dependencies:
 - mixed-types-num >= 0.5.3
 - aern2-mp >= 0.2.15.1
 - aern2-real >= 0.2.15.1
+- coq-aern-extracted
+- criterion
+- deepseq
 
-library:
-  source-dirs: src
-  ghc-options:
-  - -O2 -Wall -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-unused-imports -fno-warn-name-shadowing
+executables:
+  coq-aern-extracted-bench:
+    main:                bench.hs
+    source-dirs:         .
+    ghc-options:
+    - -rtsopts
+    - -threaded
+    - -with-rtsopts=-N
+    - -Wall
+    - -O2
 
 # benchmarks:
 #   coq-aern-extracted-bench:

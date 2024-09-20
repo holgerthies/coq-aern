@@ -10,7 +10,7 @@ module Main where
   
 import Prelude hiding (pred, succ, (==),(/=),(<),(<=),(>),(>=),abs,max,min,not,(&&),(||))
 import Numeric.OrdGenericBool
-import MixedTypesNumPrelude (ifThenElse, CN, integer)
+import MixedTypesNumPrelude (ifThenElse, CN, integer, CanTestCertainly (isCertainlyTrue))
 import qualified Data.List as List
 import Data.Maybe (fromJust)
 
@@ -63,7 +63,7 @@ sqrt_approx x n =
 
 magnitude1 :: _ => t -> Integer
 magnitude1 x = 
-  integer $ fromJust $ List.findIndex id $ map test [0..]
+  integer $ fromJust $ List.findIndex isCertainlyTrue $ map test [0..]
   where
   test n = select (0.5^^(n+2) < x) (x < 0.5^^(n+1::Int))
 
@@ -72,7 +72,7 @@ magnitude2 x = 2 - (magnitude1 (x/4))
 
 magnitude :: _ => t -> Integer
 magnitude x =
-  if select (x < 2) (x > 0.25)
+  if isCertainlyTrue (select (x < 2) (x > 0.25))
     then magnitude2 x
     else 2 - (magnitude2 (1/x))
 
@@ -89,7 +89,7 @@ sqrt_pos x = (restr_sqrt y) * 2^^z
 
 split :: _ => t -> t -> t -> Bool
 split x y eps = 
-  select (y-eps < x) (x - eps < y)
+  isCertainlyTrue $ select (y-eps < x) (x - eps < y)
 
 sqrt2 :: _ => t -> t
 sqrt2 (x :: t) = limit $ \n ->
@@ -195,7 +195,7 @@ sqrt_bench2 sqrtfn = sqrtfn $ sqrtfn 2
 -- csqrt_bench5r csqrtfn = 
 --    complex_r $ csqrt_bench5 csqrtfn
 
-magnitude_bench1 :: (Fractional t) => (t -> Integer) -> Integer
+magnitude_bench1 :: (CReal -> Integer) -> Integer
 magnitude_bench1 magFn = magFn (0.5^(10000 :: Int))
 
 main :: IO ()
@@ -210,12 +210,6 @@ main =
     showR $ (realmax_bench real_max :: CReal) ? (prec p)
   bench "realmaxN" p =
     showR $ (realmax_bench max :: CReal) ? (prec p)
-  -- bench "realmaxMBE" p =
-  --   showR $ (runWithPrec (prec p) $ realmax_bench MaxMB.realmax)
-  -- bench "realmaxMBH" p =
-  --   showR $ (runWithPrec (prec p) $ realmax_bench realmax)
-  -- bench "realmaxMBN" p =
-  --   showR $ ((runWithPrec (prec p) $ realmax_bench max) :: CN MPBall)
 
   bench "magnitude1E" _p =
     show $ (magnitude_bench1 (Magnitude.magnitude :: CReal -> Integer))
@@ -230,12 +224,6 @@ main =
     showR $ (sqrt_bench1 sqrt2 :: CReal) ? (prec p)
   bench "sqrt1N" p =
     showR $ (sqrt_bench1 sqrt :: CReal) ? (prec p)
-  -- bench "sqrt1MBE" p =
-  --   showR $ (runWithPrec (prec p) $ sqrt_bench1 SqrtMB.restr_sqrt)
-  -- bench "sqrt1MBH" p =
-  --   showR $ (runWithPrec (prec p) $ sqrt_bench1 restr_sqrt)
-  -- bench "sqrt1MBN" p =
-  --   showR $ ((runWithPrec (prec p) $ sqrt_bench1 sqrt) :: CN MPBall)
 
   bench "sqrt2E" p =
     showR $ (sqrt_bench2 Sqrt.sqrt :: CReal) ? (prec p)
@@ -243,12 +231,6 @@ main =
     showR $ (sqrt_bench2 sqrt2 :: CReal) ? (prec p)
   bench "sqrt2N" p =
     showR $ (sqrt_bench2 sqrt :: CReal) ? (prec p)
-  -- bench "sqrt2MBE" p =
-  --   showR $ (runWithPrec (prec p) $ sqrt_bench2 SqrtMB.restr_sqrt)
-  -- bench "sqrt2MBH" p =
-  --   showR $ (runWithPrec (prec p) $ sqrt_bench2 restr_sqrt)
-  -- bench "sqrt2MBN" p =
-  --   showR $ ((runWithPrec (prec p) $ sqrt_bench2 sqrt) :: CN MPBall)
 
   -- bench "csqrt0rE" p =
   --   showR $ (csqrt_bench0r CSqrt.csqrt :: CReal) ? (prec p)
@@ -287,18 +269,6 @@ main =
     showR $ (civt_bench2 cIVT :: CReal) ? (prec p)
   bench "civt3H" p =
     showR $ (civt_bench3 cIVT sqrt2 :: CReal) ? (prec p)
-  -- bench "civt1MBE" p =
-  --   showR $ (runWithPrec (prec p) $ civt_bench1 IVTMB.cIVT)
-  -- bench "civt2MBE" p =
-  --   showR $ (runWithPrec (prec p) $ civt_bench2 IVTMB.cIVT)
-  -- bench "civt3MBE" p =
-  --   showR $ (runWithPrec (prec p) $ civt_bench3 IVTMB.cIVT SqrtMB.restr_sqrt)
-  -- bench "civt1MBH" p =
-  --   showR $ (runWithPrec (prec p) $ civt_bench1 cIVT)
-  -- bench "civt2MBH" p =
-  --   showR $ (runWithPrec (prec p) $ civt_bench2 cIVT)
-  -- bench "civt3MBH" p =
-  --   showR $ (runWithPrec (prec p) $ civt_bench3 cIVT res_sqrt)
 
   bench name _p = 
     error $ "unrecognised benchmark name: " <> name
