@@ -55,6 +55,7 @@ Hyperspace/SierpinskiTriangleLimit.v
 # Classical/Analysis.v
 # Classical/Differentiability.v
 Classical/Subsets.v
+Extract.v
 
 # Analytic/Poly.v
 # Analytic/Taylormodel.v

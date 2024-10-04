@@ -406,6 +406,21 @@ Section Overt.
     unfold intersects, intersection;split; intros [];exists x0;auto;apply H.
   Defined.
 
+  Lemma overt_countable_union {V} : (forall n, overt (V n)) -> overt (countable_union V).
+  Proof.
+    intros.
+    intros U H.
+    enough ((intersects (countable_union V) U ) <-> exists n, (intersects (V n) U)).
+    - 
+      destruct  (eventually_true (fun n => (pr1 _ _ (X0 n _ H)))) as [s S].
+      exists s.
+      rewrite S, H0.
+      split; intros [n N]; exists n;destruct (X0 n U H);simpl in *;apply i;auto.
+   - unfold intersects, countable_union, intersection.
+     split.
+     intros [x [[n N] Hu]]; exists n; exists x;auto.
+     intros [n [x [H1 H2]]]; exists x;split;[exists n|]; auto.
+  Qed.
   Lemma overt_open_intersection : (forall A B, overt A -> open B -> overt (intersection A B)).
   Proof.
     intros.

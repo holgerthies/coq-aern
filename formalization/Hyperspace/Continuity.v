@@ -6,7 +6,12 @@ Require Import List.
 
 
 Import ListNotations.
-Axiom continuity : forall {X} (f : (nat -> X) -> sierp) (x : (nat -> X)), sierp_up (f x) -> ^M {m | forall y, (forall n, (n < m)%nat -> x n = y n) -> sierp_up (f y)}.
+Lemma continuity : forall {X} (f : (nat -> X) -> sierp) (x : (nat -> X)), sierp_up (f x) -> ^M {m | forall y, (forall n, (n < m)%nat -> x n = y n) -> sierp_up (f y)}.
+Proof.
+  intros.
+  apply (seq_subset_continuity (fn_to_sierpinki_to_kleene f) x H).
+Qed.
+
   Lemma baire_continuity (f : (nat->nat) -> nat -> nat) : ^M ( forall x n,  {m |forall y, (forall i, (i < m)%nat -> x i = y i) -> (forall i, (i < n)%nat -> f x i = f y i)}).
    Proof.
      assert (forall n m, {fn : (nat -> nat) -> sierp | forall x, sierp_up (fn x) <-> f x n = m}).
