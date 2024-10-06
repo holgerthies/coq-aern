@@ -3360,7 +3360,61 @@ Lemma bishop_compact_subsequence_refinement H (s : separable) (l : has_limit H) 
   Lemma bishop_compact_classical_fincover_compact H (s : separable) (l : has_limit H) K : totally_bounded H K -> complete H K -> (forall b, is_subset K (countable_union_base H s b) -> (exists N, (is_subset K (finite_union_base H s b N)))).
   Proof.
     intros.
-  Admitted.
+    pose proof (bishop_compact_classically_seqcompact H s l K X0 X1).
+    clear X0 X1.
+    apply Classical_Pred_Type.not_all_not_ex.
+    intros H2.
+    assert (forall n, exists x, K x /\ not (finite_union_base H s b n x)).
+    {
+      intros.
+      specialize (H2 n).
+      apply Classical_Pred_Type.not_all_not_ex.
+      intros H3.
+      contradict H2.
+      intros x Kx.
+      specialize (H3 x).
+      rewrite classical_tautology_neg_and in H3.
+      destruct H3;[contradict H2 |];auto.
+      rewrite classical_tautology_dneg in H2;auto.
+    }
+    clear H2.
+    apply countable_choice in H3.
+    destruct H3 as [f F].
+    destruct (H1 f) as [g [G1 [x [Kx Lx]]]]; [apply F|].
+    destruct (H0 _ Kx) as [n Hn].
+    destruct (b n) as [[c r] | ] eqn:E;auto.
+    simpl in Hn.
+    enough (forall n, exists k, (k > n)%nat /\ ball H (D s c) r (f (g k))).
+    {
+      destruct (H2 n) as [k [Hk1 Hk2]].
+      destruct (F (g k)).
+      contradict H4.
+      exists n.
+      split.
+      destruct (G1 k).
+      lia.
+      exists (c,r).
+      split;auto.
+    }
+    intros.
+    assert (exists m, d_X H (D s c) x < prec r - prec m).
+    {
+      destruct (real_Archimedean (prec r - d_X H (D s c) x)). 
+      apply real_gt_minus_gt_zero;auto.
+      exists x0.
+      add_both_side_by (prec x0 - d_X H (D s c) x).
+      rewrite real_plus_comm;auto.
+    }
+    destruct H2 as [m Hm].
+    exists (n0 + m + 1)%nat.
+    split;try lia.
+    apply (real_le_lt_lt  _ _ _ (dx_triangle _ _ _ x)).
+    replace (prec r) with ((prec r - prec m) + prec m) by ring.
+    apply real_lt_lt_plus_lt;auto.
+    rewrite d_sym.
+    apply (real_le_lt_lt _ _ _ (Lx _)).
+    apply prec_monotone;lia.
+  Qed.
 
   Lemma bishop_compact_compact H (s : separable) (l : has_limit H) K : totally_bounded H K -> complete H K -> compact K.
   Proof.
@@ -3482,7 +3536,7 @@ Lemma bishop_compact_subsequence_refinement H (s : separable) (l : has_limit H) 
          assert (prec n1 <= d_X H (D s n0) x) by (apply lim_le_le';intros n;add_both_side_by (-prec n);apply H0).
          contradict H4.
          apply real_gt_nle;auto.
-   Admitted.       
+   Qed.       
   Lemma bishop_compact_overt H (s : separable) (l : has_limit H) A : totally_bounded H A -> complete H A -> overt A.
   Proof.
     intros.
