@@ -4648,17 +4648,11 @@ Lemma bishop_compact_subsequence_refinement H (s : separable) (l : has_limit H) 
     apply (Hausdorff_dist_unique _ _ _ _ _ H3 H2).
   Qed.
 
-  (* Lemma complete_hausdorff_dist_zero_eq  H A B: complete H A -> complete H B -> Hausdorff_dist H A B real_0 -> A = B. *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   apply fun_ext. *)
-  (*   intros. *)
-  (*   pose proof (Hausdorff_dist_contained _ _ _ _ H0). *)
-  (*     assert (forall n, exists xn, A xn /\ ) *)
-  (*   apply Prop_ext. *)
-  (*   - intros. *)
+  End Metric.
+
   Definition image {X Y} (f : X -> Y) (A : (@csubset X)) := fun x => (exists y, A y /\ f y = x).
-   Definition uniformly_continuous_function {X Y} H1 H2 (U : (@csubset X)) (f : X -> Y) := forall n,  {m | forall x y, U x -> U y -> d_X H1 x y < prec m ->  d_X H2 (f x) (f y) < prec n}.
+
+   Definition uniformly_continuous_function {X Y} H1 H2 (U : (@csubset X)) (f : X -> Y) := forall n,  {m | forall (x y : X), U x -> U y -> d_X H1 x y < prec m ->  d_X H2 (f x) (f y) < prec n}.
 
    Lemma list_image {X Y} l (f : X -> Y) : {l' | forall x,  In x l' <-> exists y, In y l /\ x = f y}.
    Proof.
