@@ -31,12 +31,12 @@ Section SierpinskiLimit.
    apply (translation T (make_euclidean2 real_0 (prec n1))).
  Defined.
 
- Lemma sierpinski_approx_located n : located (sierpinski_approx n).
+ Lemma sierpinski_approx_tbounded n : totally_bounded (sierpinski_approx n).
  Proof.
    induction n.
-   apply T_located.
+   apply T_tbounded.
 
-   apply located_union;[apply located_union |];(try apply located_translation;apply located_scale_down;apply IHn).
+   apply tbounded_union;[apply tbounded_union |];(try apply tbounded_translation;apply tbounded_scale_down;apply IHn).
  Defined.
 
  Lemma sierpinski_approx_contains_origin : forall n, (sierpinski_approx n (euclidean_zero 2)).
@@ -599,14 +599,14 @@ Section SierpinskiLimit.
   Defined.
 
 
- Lemma located_sierpinski : forall X, (STR X) -> located X.
+ Lemma tbounded_sierpinski : forall X, (STR X) -> totally_bounded X.
  Proof.
    intros.
    apply located_lim.
    intros.
    exists (sierpinski_approx (pred n)).
    split.
-   apply sierpinski_approx_located.
+   apply sierpinski_approx_tbounded.
    apply sierpinski_approx_dist.
    exact H.
  Defined.

@@ -410,7 +410,7 @@ Section SimpleTriangle.
   Qed.
 
 
-  Lemma T_located : located T.
+  Lemma T_tbounded : totally_bounded T.
   Proof.
    intro n.
    exists (Tn (pred n)).
@@ -561,7 +561,7 @@ Section SimpleTriangle.
     apply (make_euclidean2 (- /real_2_neq_0) (- /real_2_neq_0)).
  Defined.
 
- Lemma empty_set_is_located : located (@empty_set 2).
+ Lemma empty_set_is_tbounded : totally_bounded (@empty_set 2).
  Proof.
     intro n.
     exists nil.
@@ -576,13 +576,13 @@ Section SimpleTriangle.
     apply Exists_exists.
     contradict H.
  Qed.
- Lemma multi_triangles_located (n : nat) : located (multi_triangles n).
+ Lemma multi_triangles_tbounded (n : nat) : totally_bounded (multi_triangles n).
  Proof.
    induction n.
-   apply empty_set_is_located.
-   apply located_union.
-   apply T_located.
-   apply located_translation.
+   apply empty_set_is_tbounded.
+   apply tbounded_union.
+   apply T_tbounded.
+   apply tbounded_translation.
    apply IHn.
  Defined.
 

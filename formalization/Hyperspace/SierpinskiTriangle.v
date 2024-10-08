@@ -545,7 +545,7 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     auto.
   Qed.
 
-  Lemma ST_located : forall A, (ST A) -> located A.
+  Lemma ST_tbounded : forall A, (ST A) -> totally_bounded A.
   Proof.
     intros A STs n.
     exists (STn n).
@@ -763,8 +763,8 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
   Qed.
 
 
-  Definition STR_located := 
-    ST_located n2
+  Definition STR_tbounded := 
+    ST_tbounded n2
       STR_vs STR_initial_ball
       STR_initial_ball_radius_bound
       STR_initial_ball_contains_vs
@@ -1036,8 +1036,8 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply STE_initial_ball_contains_v3.
   Qed.
 
-  Definition STE_located := 
-    ST_located _
+  Definition STE_tbounded := 
+    ST_tbounded _
       STE_vs STE_initial_ball
       STE_initial_ball_radius_bound
       STE_initial_ball_contains_vs
@@ -1098,8 +1098,8 @@ Add Ring realRing : (realTheory ) (constants [IZReal_tac]).
     apply STE_initial_ball_contains_v4.
   Qed.
 
-  Definition STE4_located := 
-    ST_located _
+  Definition STE4_tbounded := 
+    ST_tbounded _
       STE4_vs STE_initial_ball
       STE_initial_ball_radius_bound
       STE4_initial_ball_contains_vs.

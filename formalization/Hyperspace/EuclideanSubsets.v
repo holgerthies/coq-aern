@@ -361,215 +361,215 @@ Section BallOperations.
   Defined.
 End BallOperations.
 
-Section EuclideanOpen.
-(** This section defines an alternative encoding for open sets of euclidean space and shows the equivalence to the more general definition **)
-Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
- Context {d : nat}.
+(* Section EuclideanOpen. *)
+(* (** This section defines an alternative encoding for open sets of euclidean space and shows the equivalence to the more general definition **) *)
+(* Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }. *)
+(*  Context {d : nat}. *)
 
 
 
-  Add Ring realRing : (realTheory ).
+(*   Add Ring realRing : (realTheory ). *)
   
 
-  Definition euclidean_open (M : euclidean_subset) := {c : nat -> (ball (d := d)) | (forall n, is_subset (ball_to_subset (c n)) M) /\ forall x, M x -> exists n, (ball_to_subset (c n)) x}.
+(*   Definition euclidean_open (M : euclidean_subset) := {c : nat -> (ball (d := d)) | (forall n, is_subset (ball_to_subset (c n)) M) /\ forall x, M x -> exists n, (ball_to_subset (c n)) x}. *)
 
 
-  Lemma euclidean_open_is_open M : euclidean_open M -> open M.
-  Proof.
-    unfold open.
-    intros OM x.
-    destruct OM as [c P].
-    pose ((fun n=> projP1 _ _ (contained_in_ball_semidec (c n) x)) : nat -> sierp).
-    assert (forall n, sierp_up (s n) <-> (ball_to_subset (c n)) x).
-    {
-      intros.
-      unfold s.
-      destruct (contained_in_ball_semidec  (c n)).
-      auto.
-    }
-    assert (M x <-> exists n, ball_to_subset (c n) x).
-    {
-      split.
-      apply P.
-      intros.
-      destruct H0.
-      destruct P.
-      apply (H1 x0);auto.
-    }
-    destruct (eventually_true s) as [k' [H1 H2]].
-    exists k'.
-    rewrite H0.
-    split; intros.
-    destruct (H1 H3) as [n nprp].
-    exists n.
-    apply H;auto.
-    destruct H3 as [n nprp].
-    apply H2.
-    exists n.
-    apply H.
-    exact nprp.
-  Defined.
+(*   Lemma euclidean_open_is_open M : euclidean_open M -> open M. *)
+(*   Proof. *)
+(*     unfold open. *)
+(*     intros OM x. *)
+(*     destruct OM as [c P]. *)
+(*     pose ((fun n=> projP1 _ _ (contained_in_ball_semidec (c n) x)) : nat -> sierp). *)
+(*     assert (forall n, sierp_up (s n) <-> (ball_to_subset (c n)) x). *)
+(*     { *)
+(*       intros. *)
+(*       unfold s. *)
+(*       destruct (contained_in_ball_semidec  (c n)). *)
+(*       auto. *)
+(*     } *)
+(*     assert (M x <-> exists n, ball_to_subset (c n) x). *)
+(*     { *)
+(*       split. *)
+(*       apply P. *)
+(*       intros. *)
+(*       destruct H0. *)
+(*       destruct P. *)
+(*       apply (H1 x0);auto. *)
+(*     } *)
+(*     destruct (eventually_true s) as [k' [H1 H2]]. *)
+(*     exists k'. *)
+(*     rewrite H0. *)
+(*     split; intros. *)
+(*     destruct (H1 H3) as [n nprp]. *)
+(*     exists n. *)
+(*     apply H;auto. *)
+(*     destruct H3 as [n nprp]. *)
+(*     apply H2. *)
+(*     exists n. *)
+(*     apply H. *)
+(*     exact nprp. *)
+(*   Defined. *)
 
-  (* Lemma enumerate_dyadic_elements A : open A -> ^M {f : nat -> option (@DyadicVector d) | forall v, A (to_euclidean v) <-> exists n, (f n) = Some v}. *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   destruct (open_cf_exists X) as [f P]. *)
-  (*   destruct (enumerable_dyadic_vector d) as [e E]. *)
-  (*   pose proof (multivalued_choice_sequence_sierp (fun n => (f (to_euclidean (e n))))). *)
-  (*   revert X0. *)
-  (*   apply M_lift. *)
-  (*   intros [c [cprp1 cprp2]]. *)
-  (*   exists (fun n => if (c n) =? 0 then None else Some (e (pred (c n)))). *)
-  (*   intros. *)
-  (*   rewrite <-P. *)
-  (*   destruct (E v) as [m <-]. *)
-  (*   split. *)
-  (*   - intros. *)
-  (*     destruct (cprp2 _ H) as [n [H' <-]]. *)
-  (*     exists n. *)
-  (*     rewrite <-Nat.eqb_neq in H'. *)
-  (*     rewrite H';reflexivity. *)
-  (*  - intros H. *)
-  (*    destruct H as [n N]. *)
-  (*    specialize (cprp1 n). *)
-  (*    destruct (c n);simpl in N. *)
-  (*    contradict N; discriminate. *)
-  (*    rewrite Nat.pred_succ in cprp1. *)
-  (*    injection N; intros <-. *)
-  (*    destruct cprp1;[contradict H |];auto. *)
-  (* Defined. *)
+(*   (* Lemma enumerate_dyadic_elements A : open A -> ^M {f : nat -> option (@DyadicVector d) | forall v, A (to_euclidean v) <-> exists n, (f n) = Some v}. *) *)
+(*   (* Proof. *) *)
+(*   (*   intros. *) *)
+(*   (*   destruct (open_cf_exists X) as [f P]. *) *)
+(*   (*   destruct (enumerable_dyadic_vector d) as [e E]. *) *)
+(*   (*   pose proof (multivalued_choice_sequence_sierp (fun n => (f (to_euclidean (e n))))). *) *)
+(*   (*   revert X0. *) *)
+(*   (*   apply M_lift. *) *)
+(*   (*   intros [c [cprp1 cprp2]]. *) *)
+(*   (*   exists (fun n => if (c n) =? 0 then None else Some (e (pred (c n)))). *) *)
+(*   (*   intros. *) *)
+(*   (*   rewrite <-P. *) *)
+(*   (*   destruct (E v) as [m <-]. *) *)
+(*   (*   split. *) *)
+(*   (*   - intros. *) *)
+(*   (*     destruct (cprp2 _ H) as [n [H' <-]]. *) *)
+(*   (*     exists n. *) *)
+(*   (*     rewrite <-Nat.eqb_neq in H'. *) *)
+(*   (*     rewrite H';reflexivity. *) *)
+(*   (*  - intros H. *) *)
+(*   (*    destruct H as [n N]. *) *)
+(*   (*    specialize (cprp1 n). *) *)
+(*   (*    destruct (c n);simpl in N. *) *)
+(*   (*    contradict N; discriminate. *) *)
+(*   (*    rewrite Nat.pred_succ in cprp1. *) *)
+(*   (*    injection N; intros <-. *) *)
+(*   (*    destruct cprp1;[contradict H |];auto. *) *)
+(*   (* Defined. *) *)
 
 
-  Lemma open_is_euclidean_open A : open A -> ^M (euclidean_open A).
-  Proof.
-    intros.
-    destruct (open_cf_exists X) as [f P].
-    pose proof (interval_extension_sierp f) as I.
-    revert I.
-    apply M_lift.
-    intros [F [I1 I2]].
-    destruct (enumerable_pair _ _ (enumerable_dyadic_vector d) enumerable_nat) as [e E].
-    exists (fun n => if (F (fst (e n)) (snd (e n))) then (to_euclidean (fst (e n)), prec (snd (e n))) else ((euclidean_zero d), real_0)).
-    split.
-    - unfold is_subset;simpl.
-      intros.
-      rewrite <-P.
-      destruct (F (fst (e n)) (snd (e n))) eqn : B.
+(*   Lemma open_is_euclidean_open A : open A -> ^M (euclidean_open A). *)
+(*   Proof. *)
+(*     intros. *)
+(*     destruct (open_cf_exists X) as [f P]. *)
+(*     pose proof (interval_extension_sierp f) as I. *)
+(*     revert I. *)
+(*     apply M_lift. *)
+(*     intros [F [I1 I2]]. *)
+(*     destruct (enumerable_pair _ _ (enumerable_dyadic_vector d) enumerable_nat) as [e E]. *)
+(*     exists (fun n => if (F (fst (e n)) (snd (e n))) then (to_euclidean (fst (e n)), prec (snd (e n))) else ((euclidean_zero d), real_0)). *)
+(*     split. *)
+(*     - unfold is_subset;simpl. *)
+(*       intros. *)
+(*       rewrite <-P. *)
+(*       destruct (F (fst (e n)) (snd (e n))) eqn : B. *)
 
-      apply (I1 _ _ B).
-      exact H.
+(*       apply (I1 _ _ B). *)
+(*       exact H. *)
 
-      pose proof (euclidean_max_dist_pos x (euclidean_zero d)).
-      contradict H0.
-      apply real_gt_nge.
-      exact H.
-   - intros.
-     destruct (I2 x ((proj2 (P x)) H)) as [v [n [N1 N2]]].
-     destruct (E (v,n)) as [m M].
-     exists m.
-     rewrite M;simpl; rewrite N2.
-     exact N1.
-   Defined.
+(*       pose proof (euclidean_max_dist_pos x (euclidean_zero d)). *)
+(*       contradict H0. *)
+(*       apply real_gt_nge. *)
+(*       exact H. *)
+(*    - intros. *)
+(*      destruct (I2 x ((proj2 (P x)) H)) as [v [n [N1 N2]]]. *)
+(*      destruct (E (v,n)) as [m M]. *)
+(*      exists m. *)
+(*      rewrite M;simpl; rewrite N2. *)
+(*      exact N1. *)
+(*    Defined. *)
 
-  (** Operations on Euclidean open sets **)
+(*   (** Operations on Euclidean open sets **) *)
 
-  Lemma euclidean_open_union (M1 M2 : euclidean_subset) : euclidean_open M1 -> euclidean_open M2 -> euclidean_open (union M1 M2).
-  Proof.
-    intros H1 H2.
-    destruct H1 as [c1 [P1 P2]].
-    destruct H2 as [c2 [Q1 Q2]].
-    exists (fun n => if Nat.even n then (c1 (n/2)%nat) else (c2 ((n-1)/2)%nat)). 
-    split; intros.
-    - intros x.
-      destruct (Nat.even n); [left;apply (P1 (n /2) %nat x) | right; apply (Q1 ((n-1) /2)%nat x)];auto.
-    - destruct H.
+(*   Lemma euclidean_open_union (M1 M2 : euclidean_subset) : euclidean_open M1 -> euclidean_open M2 -> euclidean_open (union M1 M2). *)
+(*   Proof. *)
+(*     intros H1 H2. *)
+(*     destruct H1 as [c1 [P1 P2]]. *)
+(*     destruct H2 as [c2 [Q1 Q2]]. *)
+(*     exists (fun n => if Nat.even n then (c1 (n/2)%nat) else (c2 ((n-1)/2)%nat)).  *)
+(*     split; intros. *)
+(*     - intros x. *)
+(*       destruct (Nat.even n); [left;apply (P1 (n /2) %nat x) | right; apply (Q1 ((n-1) /2)%nat x)];auto. *)
+(*     - destruct H. *)
 
-      destruct (P2 x H) as [n P2'].
-      exists (2*n)%nat.
-      rewrite Nat.even_mul.
-      replace ((2*n) /2)%nat with n by (rewrite Nat.mul_comm, Nat.div_mul;auto).
-      apply P2'.
+(*       destruct (P2 x H) as [n P2']. *)
+(*       exists (2*n)%nat. *)
+(*       rewrite Nat.even_mul. *)
+(*       replace ((2*n) /2)%nat with n by (rewrite Nat.mul_comm, Nat.div_mul;auto). *)
+(*       apply P2'. *)
 
-      destruct (Q2 x H) as [n Q2'].
-      exists (2*n+1)%nat.
-      rewrite Nat.add_comm, Nat.even_add_mul_2.
-      replace ((1 + 2*n - 1) /2)%nat with n by (rewrite Nat.add_comm, Nat.add_sub, Nat.mul_comm, Nat.div_mul;auto).
-      apply Q2'.
-  Defined.
+(*       destruct (Q2 x H) as [n Q2']. *)
+(*       exists (2*n+1)%nat. *)
+(*       rewrite Nat.add_comm, Nat.even_add_mul_2. *)
+(*       replace ((1 + 2*n - 1) /2)%nat with n by (rewrite Nat.add_comm, Nat.add_sub, Nat.mul_comm, Nat.div_mul;auto). *)
+(*       apply Q2'. *)
+(*   Defined. *)
 
-End EuclideanOpen.
+(* End EuclideanOpen. *)
 
-Section EuclideanCompact.
+(* Section EuclideanCompact. *)
+
+(*   #[local] Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0). *)
+
+(*   Add Ring realRing : (realTheory ). *)
+(*   Context {d : nat}. *)
+(*   Lemma euclidean_cons_eq {d' types'} hx tx hy ty : (@Euclidean.cons types' d' hx tx) = Euclidean.cons hy ty <-> hx = hy /\ tx = ty. *)
+(*   Proof. *)
+(*    split; [|intros [-> ->]];auto. *)
+(*    intros. *)
+(*   Admitted.   *)
+
+(*   Lemma euclidean_neq_semidec (x y : (@euclidean RealAssumption.types d)) : semidec (x <> y). *)
+(*   Proof. *)
+(*     induction d. *)
+(*     - rewrite (dim_zero_destruct x), (dim_zero_destruct y). *)
+(*       exists lazy_bool_false. *)
+(*       unfold lazy_bool_up. *)
+(*       split;intros;contradict H; [apply lazy_bool_distinct |];auto. *)
+(*    - destruct (dim_succ_destruct x) as [hx [tx ->]]; destruct (dim_succ_destruct y) as [hy [ty ->]]. *)
+(*      assert (semidec (hx <> hy)). *)
+(*      { *)
+(*        destruct (semidec_or _ _ (real_lt_semidec hx hy) (real_lt_semidec hy hx)). *)
+(*        exists x. *)
+(*        rewrite i. *)
+(*        split;intros. *)
+(*        destruct H. *)
+(*        apply real_lt_neq;auto. *)
+(*        apply neq_sym. *)
+(*        apply real_lt_neq;auto. *)
+(*        destruct (real_total_order hx hy) as [t | [t | t]];auto. *)
+(*        contradict t;auto. *)
+(*      } *)
+(*      destruct (semidec_or _ _ X (IHn tx ty)). *)
+(*      exists x. *)
+(*      rewrite (euclidean_cons_eq hx tx hy ty). *)
+(*      rewrite i. *)
+(*      rewrite classical_tautology_neg_and;split;auto. *)
+(*   Qed. *)
+
+(*   Lemma compact_closed (A : (@euclidean_subset d )) : compact A -> closed A. *)
+(*   Proof. *)
+(*     intros H x. *)
+(*     assert (open (fun y => x <> y)). *)
+(*     { *)
+(*       apply semidec_open. *)
+(*       intros. *)
+(*       apply euclidean_neq_semidec. *)
+(*     } *)
+(*     destruct (H _ X). *)
+(*     exists x0. *)
+(*     rewrite i. *)
+(*     unfold complement. *)
+(*     split. *)
+(*     intros H2 Ax. *)
+(*     specialize (H2 _ Ax). *)
+(*     contradict H2;auto. *)
+(*     intros. *)
+(*     intros y Ay eqxy. *)
+(*     contradict Ay;rewrite <-eqxy;auto. *)
+(*  Defined. *)
+(* End EuclideanCompact. *)
+
+Section EuclideanTotallyBounded.
 
   #[local] Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
 
   Add Ring realRing : (realTheory ).
   Context {d : nat}.
-  Lemma euclidean_cons_eq {d' types'} hx tx hy ty : (@Euclidean.cons types' d' hx tx) = Euclidean.cons hy ty <-> hx = hy /\ tx = ty.
-  Proof.
-   split; [|intros [-> ->]];auto.
-   intros.
-  Admitted.  
 
-  Lemma euclidean_neq_semidec (x y : (@euclidean RealAssumption.types d)) : semidec (x <> y).
-  Proof.
-    induction d.
-    - rewrite (dim_zero_destruct x), (dim_zero_destruct y).
-      exists lazy_bool_false.
-      unfold lazy_bool_up.
-      split;intros;contradict H; [apply lazy_bool_distinct |];auto.
-   - destruct (dim_succ_destruct x) as [hx [tx ->]]; destruct (dim_succ_destruct y) as [hy [ty ->]].
-     assert (semidec (hx <> hy)).
-     {
-       destruct (semidec_or _ _ (real_lt_semidec hx hy) (real_lt_semidec hy hx)).
-       exists x.
-       rewrite i.
-       split;intros.
-       destruct H.
-       apply real_lt_neq;auto.
-       apply neq_sym.
-       apply real_lt_neq;auto.
-       destruct (real_total_order hx hy) as [t | [t | t]];auto.
-       contradict t;auto.
-     }
-     destruct (semidec_or _ _ X (IHn tx ty)).
-     exists x.
-     rewrite (euclidean_cons_eq hx tx hy ty).
-     rewrite i.
-     rewrite classical_tautology_neg_and;split;auto.
-  Qed.
-
-  Lemma compact_closed (A : (@euclidean_subset d )) : compact A -> closed A.
-  Proof.
-    intros H x.
-    assert (open (fun y => x <> y)).
-    {
-      apply semidec_open.
-      intros.
-      apply euclidean_neq_semidec.
-    }
-    destruct (H _ X).
-    exists x0.
-    rewrite i.
-    unfold complement.
-    split.
-    intros H2 Ax.
-    specialize (H2 _ Ax).
-    contradict H2;auto.
-    intros.
-    intros y Ay eqxy.
-    contradict Ay;rewrite <-eqxy;auto.
- Defined.
-End EuclideanCompact.
-
-Section EuclideanLocated.
-
-  #[local] Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
-
-  Add Ring realRing : (realTheory ).
-  Context {d : nat}.
-
-  Definition located (M : euclidean_subset) := 
+  Definition totally_bounded (M : euclidean_subset) := 
     forall n, {Ln : list (ball (d := d)) |
                 rad Ln <= prec n /\
                 Forall (fun b => intersects (closed_ball_to_subset b) M) Ln /\
@@ -937,7 +937,7 @@ Section EuclideanLocated.
      apply in_nil.
   Defined.
 
-  Lemma located_approx_dist M x n : (exists y, M y) -> (located M) -> {r | forall r', (dist M x r') -> RealMetric.dist r r' <= prec n}.
+  Lemma tbounded_approx_dist M x n : (exists y, M y) -> (totally_bounded M) -> {r | forall r', (dist M x r') -> RealMetric.dist r r' <= prec n}.
   Proof.
     intros.
     destruct (X (S n)) as [l P].
@@ -984,7 +984,7 @@ Section EuclideanLocated.
     apply euclidean_max_dist_pos.
   Defined.
 
-  Lemma located_dist_exists M x : (exists y, M y) -> (located M) -> {r | dist M x r}.
+  Lemma tbounded_dist_exists M x : (exists y, M y) -> (totally_bounded M) -> {r | dist M x r}.
   Proof.
     intros nonempty H.
     apply real_limit_P.
@@ -994,14 +994,14 @@ Section EuclideanLocated.
       intros.
       apply (dist_unique _ _ _ _ R H0).
     - intros.
-      destruct (located_approx_dist _ x n nonempty H) as [d0 D0].
+      destruct (tbounded_approx_dist _ x n nonempty H) as [d0 D0].
       exists d0.
       destruct (classical_dist_exists _ x nonempty) as [r R].
       exists r.
       split;auto.
   Defined.
 
-  Lemma located_union K1 K2 : located K1 -> located K2 -> located (union K1 K2).
+  Lemma tbounded_union K1 K2 : totally_bounded K1 -> totally_bounded K2 -> totally_bounded (union K1 K2).
   Proof.
     intros H1 H2 n.
     destruct (H1 n) as [L1 [D1 [int1 cov1]]].
@@ -1022,7 +1022,7 @@ Section EuclideanLocated.
    destruct cx; [left;apply cov1 | right;apply cov2];auto.
   Defined.
 
-  Lemma located_translation K a : located K -> located (translation K a).
+  Lemma tbounded_translation K a : totally_bounded K -> totally_bounded (translation K a).
   Proof.
     intros H n.
     destruct (H n) as [L [D [int cov]]].
@@ -1078,7 +1078,7 @@ Section EuclideanLocated.
    apply P.
   Defined.
 
-  Lemma located_scale_down M k : located M -> located (scaling (prec k) M).
+  Lemma tbounded_scale_down M k : totally_bounded M -> totally_bounded (scaling (prec k) M).
   Proof.
     intros Mc n.
     destruct (Mc (n-k)%nat) as [L [Lp1 [Lp2 Lp3]]].
@@ -1126,7 +1126,7 @@ Section EuclideanLocated.
  Defined.
 
 
-  Lemma located_scale_up M k : located M -> located (scaling (Nreal (Npow2 k)) M).
+  Lemma tbounded_scale_up M k : totally_bounded M -> totally_bounded (scaling (Nreal (Npow2 k)) M).
   Proof.
     intros Mc n.
     destruct (Mc (n+k)%nat) as [L [Lp1 [Lp2 Lp3]]].
@@ -1173,8 +1173,8 @@ Section EuclideanLocated.
 
   Lemma located_lim :
     forall K : euclidean_subset,
-      (forall n : nat, {X :  euclidean_subset & prod (located X) (Hausdorff_dist_bound X K (prec n))})
-      -> located K.
+      (forall n : nat, {X :  euclidean_subset & prod (totally_bounded X) (Hausdorff_dist_bound X K (prec n))})
+      -> totally_bounded K.
   Proof.
     intros.
     intro p.
@@ -1256,98 +1256,83 @@ Section EuclideanLocated.
   Defined.
 
 
-  Lemma located_uniformly_continuous A (f : euclidean d -> euclidean d): located A -> forall m, ^M {n | forall x, (A x -> forall y, euclidean_max_dist x y <= prec n -> euclidean_max_dist (f x) (f y) <= prec m)}.
-  Proof.
-  Admitted.
 
-  Definition image (f : (@euclidean RealAssumption.types d) -> (@euclidean RealAssumption.types d)) (A : csubset) x := exists y, A y /\ (f y) = x.
+  (* Definition image (f : (@euclidean RealAssumption.types d) -> (@euclidean RealAssumption.types d)) (A : csubset) x := exists y, A y /\ (f y) = x. *)
 
-  Lemma image_list (f: (@euclidean RealAssumption.types d) -> (@euclidean RealAssumption.types  d)) (L : list ball) m : {L' | forall b', In b' L' <-> exists b, In b L /\ (fst b') = f (fst b) /\ snd b' = prec m}.
-  Proof.
-    induction L.
-    exists Datatypes.nil.
-    intros;simpl;split;intros;[contradict H| destruct H as [H1 [H _]] ];auto.
-    destruct IHL as [L' H].
-    exists ((f (fst a), prec m) :: L').
-    simpl.
-    intros.
-    split.
-    - intros [].
-      exists a;rewrite <-H0;simpl;split;auto.
-      destruct (proj1 (H b') H0) as [b [H1 H2]].
-      exists b.
-      split;auto.
-    - destruct b';simpl.
-      intros [b [H1 [-> ->]]];simpl.
-     destruct H1;[rewrite H0 |];auto.
-     right.
-     apply H.
-     exists b.
-     split;auto.
-   Defined.
+  (* Lemma image_list (f: (@euclidean RealAssumption.types d) -> (@euclidean RealAssumption.types  d)) (L : list ball) m : {L' | forall b', In b' L' <-> exists b, In b L /\ (fst b') = f (fst b) /\ snd b' = prec m}. *)
+  (* Proof. *)
+  (*   induction L. *)
+  (*   exists Datatypes.nil. *)
+  (*   intros;simpl;split;intros;[contradict H| destruct H as [H1 [H _]] ];auto. *)
+  (*   destruct IHL as [L' H]. *)
+  (*   exists ((f (fst a), prec m) :: L'). *)
+  (*   simpl. *)
+  (*   intros. *)
+  (*   split. *)
+  (*   - intros []. *)
+  (*     exists a;rewrite <-H0;simpl;split;auto. *)
+  (*     destruct (proj1 (H b') H0) as [b [H1 H2]]. *)
+  (*     exists b. *)
+  (*     split;auto. *)
+  (*   - destruct b';simpl. *)
+  (*     intros [b [H1 [-> ->]]];simpl. *)
+  (*    destruct H1;[rewrite H0 |];auto. *)
+  (*    right. *)
+  (*    apply H. *)
+  (*    exists b. *)
+  (*    split;auto. *)
+  (*  Defined. *)
 
-   Lemma image_located A (f : euclidean d -> euclidean d) : located A -> ^M (located (image f A)).
-  Proof.
-    intros.
-    unfold located.
-    apply M_countable_lift.
-    intros.
-    pose proof (located_uniformly_continuous A f X n).
-    revert X0.
-    apply M_lift.
-    intros [m H].
-    destruct (X m) as [L [H1 [H2 H3]]].
-    destruct (image_list f L n) as [L' P].
-    exists L'.
-    split; [|split].
-    - apply rad_prec_spec.
-      intros.
-      destruct (proj1 (P b) H0) as [_ [_ [_ ->]]].
-      apply real_le_triv.
-   - apply Forall_forall.
-     intros b' I.
-     destruct (proj1 (P b') I) as [b [B1 [B2 B3]]].
-     rewrite Forall_forall in H2.
-     destruct (H2 _ B1) as [y [Y1 Y2]].
-     exists (f y).
-     unfold intersection, closed_ball_to_subset, image.
-     split.
-     rewrite B2,B3.
-     apply  H;auto.
-     apply (real_le_le_le _ (rad L) );auto.
-     apply (real_le_le_le _ (snd b));auto.
-     apply rad_forall;auto.
-     exists y;auto.
-   - intros y [x [X1 X2] ].
-     apply Exists_exists.
-     specialize (H3 _ X1).
-     rewrite Exists_exists in H3.
-     destruct H3 as [b [B1 B2]].
-     exists (f (fst b), (prec n)).
-     split.
-     apply P.
-     exists b;split;auto.
-     rewrite <- X2.
-     apply H;auto.
-     apply (real_le_le_le _ (rad L));auto.
-     apply (real_le_le_le _ (snd b));auto.
-     apply rad_forall;auto.
-  Defined.
-End EuclideanLocated.
+  (*  Lemma image_located A (f : euclidean d -> euclidean d) : located A -> ^M (located (image f A)). *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   unfold located. *)
+  (*   apply M_countable_lift. *)
+  (*   intros. *)
+  (*   pose proof (located_uniformly_continuous A f X n). *)
+  (*   revert X0. *)
+  (*   apply M_lift. *)
+  (*   intros [m H]. *)
+  (*   destruct (X m) as [L [H1 [H2 H3]]]. *)
+  (*   destruct (image_list f L n) as [L' P]. *)
+  (*   exists L'. *)
+  (*   split; [|split]. *)
+  (*   - apply rad_prec_spec. *)
+  (*     intros. *)
+  (*     destruct (proj1 (P b) H0) as [_ [_ [_ ->]]]. *)
+  (*     apply real_le_triv. *)
+  (*  - apply Forall_forall. *)
+  (*    intros b' I. *)
+  (*    destruct (proj1 (P b') I) as [b [B1 [B2 B3]]]. *)
+  (*    rewrite Forall_forall in H2. *)
+  (*    destruct (H2 _ B1) as [y [Y1 Y2]]. *)
+  (*    exists (f y). *)
+  (*    unfold intersection, closed_ball_to_subset, image. *)
+  (*    split. *)
+  (*    rewrite B2,B3. *)
+  (*    apply  H;auto. *)
+  (*    apply (real_le_le_le _ (rad L) );auto. *)
+  (*    apply (real_le_le_le _ (snd b));auto. *)
+  (*    apply rad_forall;auto. *)
+  (*    exists y;auto. *)
+  (*  - intros y [x [X1 X2] ]. *)
+  (*    apply Exists_exists. *)
+  (*    specialize (H3 _ X1). *)
+  (*    rewrite Exists_exists in H3. *)
+  (*    destruct H3 as [b [B1 B2]]. *)
+  (*    exists (f (fst b), (prec n)). *)
+  (*    split. *)
+  (*    apply P. *)
+  (*    exists b;split;auto. *)
+  (*    rewrite <- X2. *)
+  (*    apply H;auto. *)
+  (*    apply (real_le_le_le _ (rad L));auto. *)
+  (*    apply (real_le_le_le _ (snd b));auto. *)
+  (*    apply rad_forall;auto. *)
+  (* Defined. *)
+End EuclideanTotallyBounded.
 
 
-Section ZoomRepresentation.
-
-  #[local] Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
-
-  Add Ring realRing : (realTheory ).
-  Context {d : nat}.
-  
-  Definition drawing (A : (@euclidean_subset d )) (x : (^euclidean d)) (n: nat) := ^M {b : bool | A x -> b = true /\ (forall y, A y -> euclidean_max_dist x y > prec n) -> b = false}. 
-
-  
-  
-End ZoomRepresentation.
 Section SubsetsR2.
 
 
