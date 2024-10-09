@@ -4,16 +4,6 @@
 module Tn where
 
 import qualified Prelude
-import Prelude ((+),(-),(/))
-import qualified Prelude as P
-import MixedTypesNumPrelude (ifThenElse)
-import qualified Numeric.OrdGenericBool as OGB
-import qualified Unsafe.Coerce as UC
-import qualified Control.Monad
-import qualified Data.Functor
-import qualified MixedTypesNumPrelude as MNP
-import qualified Math.NumberTheory.Logarithms as Logs
-import qualified AERN2.Real as AERN2
 
 #ifdef __GLASGOW_HASKELL__
 import qualified GHC.Base
@@ -24,6 +14,19 @@ import qualified GHC.Exts
 -- HUGS
 import qualified IOExts
 #endif
+
+import Prelude ((+),(-),(/))
+import qualified Prelude as P
+import MixedTypesNumPrelude (ifThenElse)
+import Numeric.CollectErrors (unCNfn2)
+import qualified Numeric.OrdGenericBool as OGB
+import qualified Unsafe.Coerce as UC
+import qualified Control.Monad
+import qualified Data.Functor
+import qualified MixedTypesNumPrelude as MNP
+import qualified Math.NumberTheory.Logarithms as Logs
+import qualified AERN2.Real as AERN2
+import qualified AERN2.Continuity.Principles as AERN2Principles
 
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any
@@ -73,7 +76,7 @@ make_euclidean2 x y =
 
 type Ball = (,) Euclidean AERN2.CReal
 
-type Located = Prelude.Integer -> (([]) Ball)
+type Totally_bounded = Prelude.Integer -> (([]) Ball)
 
 make_ball2 :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> Ball
 make_ball2 x y r =
@@ -106,7 +109,7 @@ tn :: Prelude.Integer -> ([]) Ball
 tn n =
   tn_row n (sub (npow2 n) n1) ([])
 
-t_located :: Located
-t_located n =
+t_tbounded :: Totally_bounded
+t_tbounded n =
   tn (pred n)
 

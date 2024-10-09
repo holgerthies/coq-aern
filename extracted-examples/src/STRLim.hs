@@ -4,16 +4,6 @@
 module STRLim where
 
 import qualified Prelude
-import Prelude ((+),(-),(/))
-import qualified Prelude as P
-import MixedTypesNumPrelude (ifThenElse)
-import qualified Numeric.OrdGenericBool as OGB
-import qualified Unsafe.Coerce as UC
-import qualified Control.Monad
-import qualified Data.Functor
-import qualified MixedTypesNumPrelude as MNP
-import qualified Math.NumberTheory.Logarithms as Logs
-import qualified AERN2.Real as AERN2
 
 #ifdef __GLASGOW_HASKELL__
 import qualified GHC.Base
@@ -24,6 +14,19 @@ import qualified GHC.Exts
 -- HUGS
 import qualified IOExts
 #endif
+
+import Prelude ((+),(-),(/))
+import qualified Prelude as P
+import MixedTypesNumPrelude (ifThenElse)
+import Numeric.CollectErrors (unCNfn2)
+import qualified Numeric.OrdGenericBool as OGB
+import qualified Unsafe.Coerce as UC
+import qualified Control.Monad
+import qualified Data.Functor
+import qualified MixedTypesNumPrelude as MNP
+import qualified Math.NumberTheory.Logarithms as Logs
+import qualified AERN2.Real as AERN2
+import qualified AERN2.Continuity.Principles as AERN2Principles
 
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any
@@ -163,29 +166,31 @@ scale_list d l l0 =
    (:) b l' -> (:) ((,) (euclidean_scalar_mult d l0 (fst b))
     ((P.*) l0 (snd b))) (scale_list d l' l0)}
 
-type Located = Prelude.Integer -> (([]) Ball)
+type Totally_bounded = Prelude.Integer -> (([]) Ball)
 
-located_union :: Prelude.Integer -> Located -> Located -> Located
-located_union _ h1 h2 n =
+tbounded_union :: Prelude.Integer -> Totally_bounded -> Totally_bounded ->
+                  Totally_bounded
+tbounded_union _ h1 h2 n =
   let {s = h1 n} in let {s0 = h2 n} in app s s0
 
-located_translation :: Prelude.Integer -> Euclidean -> Located -> Located
-located_translation d a h n =
+tbounded_translation :: Prelude.Integer -> Euclidean -> Totally_bounded ->
+                        Totally_bounded
+tbounded_translation d a h n =
   let {s = h n} in map (\b -> (,) (euclidean_plus d (fst b) a) (snd b)) s
 
-located_scale_down :: Prelude.Integer -> Prelude.Integer -> Located ->
-                      Located
-located_scale_down d k mc n =
+tbounded_scale_down :: Prelude.Integer -> Prelude.Integer -> Totally_bounded
+                       -> Totally_bounded
+tbounded_scale_down d k mc n =
   let {s = mc (sub n k)} in scale_list d s (prec k)
 
 located_lim :: Prelude.Integer -> (Prelude.Integer -> (,) Euclidean_subset
-               ((,) Located ())) -> Located
+               ((,) Totally_bounded ())) -> Totally_bounded
 located_lim d x p =
   let {s = x (Prelude.succ p)} in
   case s of {
    (,) _ p0 ->
     case p0 of {
-     (,) l _ -> let {s0 = l (Prelude.succ p)} in change_rad d s0 p}}
+     (,) t _ -> let {s0 = t (Prelude.succ p)} in change_rad d s0 p}}
 
 make_ball2 :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> Ball
 make_ball2 x y r =
@@ -218,22 +223,22 @@ tn :: Prelude.Integer -> ([]) Ball
 tn n =
   tn_row n (sub (npow2 n) n1) ([])
 
-t_located :: Located
-t_located n =
+t_tbounded :: Totally_bounded
+t_tbounded n =
   tn (pred n)
 
-sierpinski_approx_located :: Prelude.Integer -> Located
-sierpinski_approx_located n =
-  nat_rect t_located (\_ iHn ->
-    located_union n2
-      (located_union n2 (located_scale_down n2 n1 iHn)
-        (located_translation n2 (make_euclidean2 (prec n1) real_0)
-          (located_scale_down n2 n1 iHn)))
-      (located_translation n2 (make_euclidean2 real_0 (prec n1))
-        (located_scale_down n2 n1 iHn))) n
+sierpinski_approx_tbounded :: Prelude.Integer -> Totally_bounded
+sierpinski_approx_tbounded n =
+  nat_rect t_tbounded (\_ iHn ->
+    tbounded_union n2
+      (tbounded_union n2 (tbounded_scale_down n2 n1 iHn)
+        (tbounded_translation n2 (make_euclidean2 (prec n1) real_0)
+          (tbounded_scale_down n2 n1 iHn)))
+      (tbounded_translation n2 (make_euclidean2 real_0 (prec n1))
+        (tbounded_scale_down n2 n1 iHn))) n
 
-located_sierpinski :: Located
-located_sierpinski =
+tbounded_sierpinski :: Totally_bounded
+tbounded_sierpinski =
   located_lim (Prelude.succ (Prelude.succ 0)) (\n -> (,) __ ((,)
-    (sierpinski_approx_located (pred n)) __))
+    (sierpinski_approx_tbounded (pred n)) __))
 

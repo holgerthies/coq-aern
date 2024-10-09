@@ -26,13 +26,7 @@ import qualified Data.Functor
 import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
-
-__uc :: a -> b
-__uc = UC.unsafeCoerce
-__K :: a -> AERN2.CKleenean
-__K = UC.unsafeCoerce
-__R :: a -> AERN2.CReal
-__R = UC.unsafeCoerce
+import qualified AERN2.Continuity.Principles as AERN2Principles
 
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any

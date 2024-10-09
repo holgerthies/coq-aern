@@ -4,6 +4,17 @@
 module STE4n where
 
 import qualified Prelude
+
+#ifdef __GLASGOW_HASKELL__
+import qualified GHC.Base
+#if __GLASGOW_HASKELL__ >= 900
+import qualified GHC.Exts
+#endif
+#else
+-- HUGS
+import qualified IOExts
+#endif
+
 import Prelude ((+),(-),(/))
 import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
@@ -15,16 +26,7 @@ import qualified Data.Functor
 import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
-
-#ifdef __GLASGOW_HASKELL__
-import qualified GHC.Base
-#if __GLASGOW_HASKELL__ >= 900
-import qualified GHC.Exts
-#endif
-#else
--- HUGS
-import qualified IOExts
-#endif
+import qualified AERN2.Continuity.Principles as AERN2Principles
 
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any
@@ -724,7 +726,7 @@ sqrt x =
 
 type Ball = (,) Euclidean AERN2.CReal
 
-type Located = Prelude.Integer -> (([]) Ball)
+type Totally_bounded = Prelude.Integer -> (([]) Ball)
 
 make_ball2 :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> Ball
 make_ball2 x y r =
@@ -766,8 +768,8 @@ sTn sT_vs_size_pred sT_vs sT_initial_ball n =
         (sTn sT_vs_size_pred sT_vs sT_initial_ball n')))
     n
 
-sT_located :: Prelude.Integer -> (T Euclidean) -> Ball -> Located
-sT_located =
+sT_tbounded :: Prelude.Integer -> (T Euclidean) -> Ball -> Totally_bounded
+sT_tbounded =
   sTn
 
 t4_new :: a1 -> a1 -> a1 -> a1 -> T a1
@@ -807,8 +809,8 @@ sTE4_vs :: T Euclidean
 sTE4_vs =
   t4_new sTE_v1 sTE_v2 sTE_v3 sTE_v4
 
-sTE4_located :: Located
-sTE4_located n =
-  sT_located (Prelude.succ (Prelude.succ (Prelude.succ 0))) sTE4_vs
+sTE4_tbounded :: Totally_bounded
+sTE4_tbounded n =
+  sT_tbounded (Prelude.succ (Prelude.succ (Prelude.succ 0))) sTE4_vs
     sTE_initial_ball n
 

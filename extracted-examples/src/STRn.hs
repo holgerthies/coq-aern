@@ -4,16 +4,6 @@
 module STRn where
 
 import qualified Prelude
-import Prelude ((+),(-),(/))
-import qualified Prelude as P
-import MixedTypesNumPrelude (ifThenElse)
-import qualified Numeric.OrdGenericBool as OGB
-import qualified Unsafe.Coerce as UC
-import qualified Control.Monad
-import qualified Data.Functor
-import qualified MixedTypesNumPrelude as MNP
-import qualified Math.NumberTheory.Logarithms as Logs
-import qualified AERN2.Real as AERN2
 
 #ifdef __GLASGOW_HASKELL__
 import qualified GHC.Base
@@ -24,6 +14,19 @@ import qualified GHC.Exts
 -- HUGS
 import qualified IOExts
 #endif
+
+import Prelude ((+),(-),(/))
+import qualified Prelude as P
+import MixedTypesNumPrelude (ifThenElse)
+import Numeric.CollectErrors (unCNfn2)
+import qualified Numeric.OrdGenericBool as OGB
+import qualified Unsafe.Coerce as UC
+import qualified Control.Monad
+import qualified Data.Functor
+import qualified MixedTypesNumPrelude as MNP
+import qualified Math.NumberTheory.Logarithms as Logs
+import qualified AERN2.Real as AERN2
+import qualified AERN2.Continuity.Principles as AERN2Principles
 
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any
@@ -117,7 +120,7 @@ make_euclidean2 x y =
 
 type Ball = (,) Euclidean AERN2.CReal
 
-type Located = Prelude.Integer -> (([]) Ball)
+type Totally_bounded = Prelude.Integer -> (([]) Ball)
 
 make_ball2 :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal -> Ball
 make_ball2 x y r =
@@ -159,8 +162,8 @@ sTn sT_vs_size_pred sT_vs sT_initial_ball n =
         (sTn sT_vs_size_pred sT_vs sT_initial_ball n')))
     n
 
-sT_located :: Prelude.Integer -> (T Euclidean) -> Ball -> Located
-sT_located =
+sT_tbounded :: Prelude.Integer -> (T Euclidean) -> Ball -> Totally_bounded
+sT_tbounded =
   sTn
 
 t3_new :: a1 -> a1 -> a1 -> T a1
@@ -188,7 +191,7 @@ sTR_vs :: T Euclidean
 sTR_vs =
   t3_new sTR_v1 sTR_v2 sTR_v3
 
-sTR_located :: Located
-sTR_located n =
-  sT_located n2 sTR_vs sTR_initial_ball n
+sTR_tbounded :: Totally_bounded
+sTR_tbounded n =
+  sT_tbounded n2 sTR_vs sTR_initial_ball n
 
