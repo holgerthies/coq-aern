@@ -389,22 +389,3 @@ Extraction "STRLim" tbounded_sierpinski.
 (* Require Import Coq.Reals.Abstract.ConstructiveMinMax. *)
 
 (* Recursive Extraction CRmin. *)
-(*
-
-The Haskell module will require the packages specified in stack.yaml in folder extracted-examples.
- 
-In the generated Haskell files, add the following imports:
-
-import Prelude ((+),(-),(/))
-import qualified Prelude as P
-import MixedTypesNumPrelude (ifThenElse)
-import qualified Numeric.OrdGenericBool as OGB
-import qualified Unsafe.Coerce as UC
-import qualified Control.Monad
-import qualified Data.Functor
-import qualified MixedTypesNumPrelude as MNP
-import qualified Math.NumberTheory.Logarithms as Logs
-import qualified AERN2.Real as AERN2
-import qualified AERN2.Continuity.Principles as AERN2Principles
-
-*)
