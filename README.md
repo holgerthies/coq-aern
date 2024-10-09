@@ -16,19 +16,19 @@ Coq formalization of constructive reals for exact real computation and code extr
 ## 1. Installation instructions
 
 Our formalization is implemented in the [Coq proof assistant](https://coq.inria.fr/).
-You should have Coq installed and running.
-We tested our code with Coq version 8.17.1.
+You should have Coq installed and running, with the option to install further packages via `opam`.
+We tested our code with Coq version 8.18.0 [installed via opam](https://coq.inria.fr/opam-using.html).
 
-To built the code you can just clone this repository and run `make` in the `formalization` subfolder.
+To build the code you can just clone this repository and run `make` in the `formalization` subfolder.
 
 Most of the implementation does not have any additional dependencies.
 The only exception is the file `sqrt.v` which uses some libraries for classical analysis.
 
 To execute `sqrt.v` you additionally need to install the following Coq packages:
 
-- [Coquelicot 3.2](http://coquelicot.saclay.inria.fr/)
-- [mathcomp-ssreflect 1.12.0](https://math-comp.github.io/)
-- [interval 4.2.0](http://coq-interval.gforge.inria.fr/)
+- [Coquelicot 3.4.2](http://coquelicot.saclay.inria.fr/)
+- [mathcomp-ssreflect 1.19.0](https://math-comp.github.io/)
+- [interval 4.11.0](http://coq-interval.gforge.inria.fr/)
 
 These libraries can be installed e.g. using `opam install`.
 
@@ -36,7 +36,7 @@ These libraries can be installed e.g. using `opam install`.
 
 Code extraction is defined in the following file:
 
-- `extract.v`
+- `Extract.v`
 
 After processing this file, Coq produces Haskell files, one for each example.  The files need minor mechanical post-processing described below.  The extracted post-processed compilable code is also readily available in folder [extracted-examples/src](extracted-examples/src).
 For example, the extracted version of `real_max` is in file `Max.hs`.
@@ -46,10 +46,9 @@ For example, the extracted version of `real_max` is in file `Max.hs`.
 1. Add the following statements after the last import statement in the generated file:
 
     ```Haskell
-	import Prelude ((+),(-),(/))
-	import qualified Prelude as P
+    import Prelude ((+),(-),(/))
+    import qualified Prelude as P
     import MixedTypesNumPrelude (ifThenElse)
-    import Numeric.CollectErrors (unCNfn2)
     import qualified Numeric.OrdGenericBool as OGB
     import qualified Unsafe.Coerce as UC
     import qualified Control.Monad
@@ -57,13 +56,8 @@ For example, the extracted version of `real_max` is in file `Max.hs`.
     import qualified MixedTypesNumPrelude as MNP
     import qualified Math.NumberTheory.Logarithms as Logs
     import qualified AERN2.Real as AERN2
+    import qualified AERN2.Continuity.Principles as AERN2Principles
 
-    __uc :: a -> b
-    __uc = UC.unsafeCoerce
-    __K :: a -> AERN2.CKleenean
-    __K = UC.unsafeCoerce
-    __R :: a -> AERN2.CReal
-    __R = UC.unsafeCoerce
     ```
 
 ## 3. Executing extracted code
