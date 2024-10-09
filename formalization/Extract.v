@@ -286,7 +286,7 @@ Extraction Implicit halving [ types casofReal ].
 Extraction Implicit trisect [ types casofReal ].
 Extraction Implicit M_uniq_pick [ types casofReal ].
 
-(* Extraction "IVT" CIVT. *)
+Extraction "IVT" CIVT.
 
 (* maximum *)
 Require Import Minmax.
@@ -294,7 +294,7 @@ Require Import Minmax.
 Extraction Implicit real_max_prop [ types casofReal ].
 Extraction Implicit real_max [ types casofReal ].
 
-(* Extraction "Max" real_max. *)
+Extraction "Max" real_max.
 
 (* magnitude *)
 Require Import Testsearch.
@@ -314,7 +314,7 @@ Extraction Implicit dec_x_lt_2 [ types casofReal ].
 
 Extraction Implicit Zpow [ types casofReal ].
 
-(* Extraction "Magnitude" Magnitude.magnitude. *)
+Extraction "Magnitude" Magnitude.magnitude.
 
 Require Import RealRing.
 
@@ -355,7 +355,7 @@ Extraction Implicit restr_sqrt [ types casofReal ].
 Extraction Implicit sqrt_approx_fast [ types casofReal ].
 Extraction Implicit sqrt_approx [ types casofReal ].
 
-(* Extraction "Sqrt" Sqrt.sqrt. *)
+Extraction "Sqrt" Sqrt.sqrt.
 
 Extraction Implicit complex_destruct [ types ].
 Extraction Implicit Complex [ types ].
@@ -363,7 +363,7 @@ Extraction Implicit csqrt [ types casofReal ].
 Extraction Implicit csqrt_neq0 [ types casofReal ].
 Extraction Implicit complex_nonzero_cases [ types casofReal ].
 
-(* Extraction "CSqrt" csqrt. *)
+Extraction "CSqrt" csqrt.
 
 Require Import Hyperspace.Subsets.
 
@@ -373,17 +373,16 @@ Extraction Implicit split_euclidean2 [ types ].
 Extraction Implicit make_euclidean2 [ types ].
 
 Require Import Simpletriangle.
-(* Extraction "Tn" T_located. *)
+Extraction "Tn" T_tbounded.
 
 Require Import SierpinskiTriangle.
-(* Extraction Implicit ST_tbounded [ types ]. *)
-(* Extraction "STRn" STR_tbounded. *)
-(* Extraction "STEn" STE_tbounded. *)
-(* Extraction "STE4n" STE4_tbounded. *)
+Extraction "STRn" STR_tbounded.
+Extraction "STEn" STE_tbounded.
+Extraction "STE4n" STE4_tbounded.
 
 Require Import SierpinskiTriangleLimit.
-(* Extraction "STARn" sierpinski_approx_tbounded. *)
-(* Extraction "STRLim" tbounded_sierpinski. *)
+Extraction "STARn" sierpinski_approx_tbounded.
+Extraction "STRLim" tbounded_sierpinski.
 
 (* Require Import Nabla. *)
 
