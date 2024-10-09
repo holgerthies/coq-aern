@@ -49,6 +49,7 @@ For example, the extracted version of `real_max` is in file `Max.hs`.
     import Prelude ((+),(-),(/))
     import qualified Prelude as P
     import MixedTypesNumPrelude (ifThenElse)
+    import Numeric.CollectErrors (unCNfn2)
     import qualified Numeric.OrdGenericBool as OGB
     import qualified Unsafe.Coerce as UC
     import qualified Control.Monad
