@@ -19,7 +19,7 @@ Our formalization is implemented in the [Coq proof assistant](https://coq.inria.
 You should have Coq installed and running, with the option to install further packages via `opam`.
 We tested our code with Coq version 8.18.0 [installed via opam](https://coq.inria.fr/opam-using.html).
 
-To build the code you can just clone this repository and run `make` in the `formalization` subfolder.
+To build the code you can just clone this repository, install the below packages, and run `make` in the `formalization` subfolder.
 
 Most of the implementation does not have any additional dependencies.
 The only exception is the file `sqrt.v` which uses some libraries for classical analysis.
