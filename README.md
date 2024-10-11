@@ -75,12 +75,13 @@ For example, the extracted version of `real_max` is in file `Max.hs`.
   ```Text
   $ stack repl src/Max.hs --ghci-options "-Wno-unused-matches -Wno-unused-imports -Wno-type-defaults"
 
-  *Max> import Prelude
-  *Max Prelude> import AERN2.Real hiding (pi)
-  *Max Prelude AERN2.Real> real_max ((sqrt 2)/2) (1/(sqrt 2)) ? (bits 1000)
-  [0.707106781186547524400844362104849039284835937688474036588339868995366239231053519425193767163820... ± ~0.0000 ~2^(-1229)]
-
-  *Max Prelude AERN2.Real> (real_max (pi-pi) 0) ? (bits 1000)
+  ghci> import Prelude
+  ghci> import AERN2.Real hiding (pi)
+  ghci>
+  ghci> real_max ((sqrt 2)/2) (1/(sqrt 2)) ? (bits 1000)
+  [0.70710678118654752440084436... ± ~0.0000 ~2^(-1229)]
+  ghci>
+  ghci> (real_max (pi-pi) 0) ? (bits 1000)
   [0 ± ~0.0000 ~2^(-1228)]
   ```
 
