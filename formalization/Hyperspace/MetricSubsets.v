@@ -1,4 +1,4 @@
-(* this file proves various prperties of subsets of real numbers *)
+(* this file proves various properties of subsets of  metric spaces *)
 Require Import Lia.
 Require Import Real Euclidean List Minmax Classical.Subsets Sierpinski Testsearch Dyadic.
 Require Import RealAssumption.

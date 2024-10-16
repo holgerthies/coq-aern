@@ -1,3 +1,4 @@
+(* This file defines classical subsets on some operations on them *)
 Section ClassicalSubsets.
   Context {X : Type}.
   Definition csubset := X -> Prop.

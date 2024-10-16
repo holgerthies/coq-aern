@@ -1,4 +1,4 @@
-(* this file proves various prperties of subsets of real numbers *)
+(* this file proves various results related to continuity of Baire space and generalizations to other types *)
 Require Import Lia.
 Require Import Real Euclidean List Minmax Classical.Subsets Sierpinski Testsearch Dyadic.
 Require Import RealAssumption.

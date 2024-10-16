@@ -1,4 +1,5 @@
-(** Sierpinski space and continuity **)
+(** This file contains the definition and proofs of various properties of Sierpinski space **)
+(** It also contains some results on continuity for Euclidean space which are now mostly deprecated and superseded by the file continuity.v **)
 Require Import Kleene.
 Require Import Real Euclidean.
 Require Import Lia.
@@ -37,10 +38,19 @@ Section S_Defs.
     unfold sierp_from_kleenean, sierp_up;simpl.
     rewrite lazy_bool_and_up;split;auto.
   Defined.
+
   Lemma sierp_from_semidec {P} : {k | (lazy_bool_up klb k <-> P)}  -> {s | sierp_up s <-> P}.
   Proof.
-  Admitted.
-
+    intros.
+    destruct X.
+    destruct (lazy_bool_countable_or (fun n => x)) as [k [K1 K2]].
+    exists (sierp_from_kleenean K1).
+    rewrite <-i.
+    unfold sierp_up, sierp_from_kleenean;simpl.
+    rewrite K2.
+    split;[|exists 0%nat];auto.
+    intros [n H];auto.
+  Qed.
   Definition fn_to_sierpinki_to_kleene {X} (c: X -> sierp): (X -> ^K).
   Proof.
     intro n.
@@ -96,6 +106,7 @@ Section S_Defs.
     exact P.
   Defined.
 
+  Axiom sierp_id : forall s1 s2, (sierp_up s1 <-> sierp_up s2) -> s1 = s2.
   (* Lemma multivalued_choice_sequence_sierp (f : forall n, sierp) : ^M {c : nat -> nat | (forall n, (c n) = 0 \/  sierp_up (f (pred (c n)))) /\ forall m, sierp_up (f m) -> exists n, (c n) <> 0 /\ pred (c n) = m}. *)
   (* Proof. *)
   (* assert (forall n, ^M {g : nat -> nat | sierp_up (f n) <-> exists m, (g m) = 1}). *)
@@ -224,6 +235,7 @@ Section S_Defs.
 
   
 End S_Defs.
+(* continuity only for Euclidean space *)
 Section Continuity.
   Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
   #[local] Notation "^K" := (@K types) (at level 0).
