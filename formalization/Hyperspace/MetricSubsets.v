@@ -7,7 +7,6 @@ Require Import Hyperspace.Continuity.
 Require Import Hyperspace.Subsets.
 Import ListNotations.
 
-  Axiom sierp_id : forall s1 s2, (sierp_up s1 <-> sierp_up s2) -> s1 = s2.
 Section Metric.
   Context {X : Type}.
   
