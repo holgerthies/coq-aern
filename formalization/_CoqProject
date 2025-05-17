@@ -13,6 +13,7 @@ Real/RealOrder.v
 Real/RealOrderTactic.v
 Real/RealLimit0.v
 Real/RealLimit1.v
+Real/RealAbs.v
 Real/RealMetric.v
 Real/RealLimit2.v
 Real/Real.v
