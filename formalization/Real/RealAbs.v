@@ -210,20 +210,22 @@ Section RealAbs.
     intro order.
 
     destruct order as [xApprPos|xApprNeg].
-
-    (* when x is determined to be approximately positive, return x *)
-    - exists x.
-      (* the result x is close enough to the exact (abs x) *)
-      apply (approx_abs_positive x n). auto.
-
-    (* when x is determined to be approximately negative, return -x *)
-    - exists (-x).
+    2: { 
       (* simplify hypothesis xApprNeg *)
       apply (real_lt_plus_lt (prec (n + 2))) in xApprNeg.
       replace (prec (n + 2) + (x - prec (n + 2))) with x in xApprNeg by ring.
       replace (prec (n + 2) + real_0) with (prec (n+2)) in xApprNeg by ring.
+
+      (* when x is determined to be approximately negative, return -x *)
+      exists (-x).
       (* the result -x is close enough to the exact (abs x) *)
       apply (approx_abs_negative x n). auto.
+    }
+
+    (* when x is determined to be approximately positive, return x *)
+    exists x.
+    (* the result x is close enough to the exact (abs x) *)
+    apply (approx_abs_positive x n). auto.
   Defined.
 
   
