@@ -20,7 +20,10 @@ Require Import RealAssumption.
 
 Section RealAbs.
 
-  Definition is_abs x y := (x > real_0 -> y = x) /\ (x = real_0 -> y = real_0) /\ (x < real_0 -> y = - x).
+  Definition is_abs x y := 
+    (x > real_0 -> y = x) /\ 
+    (x = real_0 -> y = real_0) /\ 
+    (x < real_0 -> y = - x).
 
   Lemma abs_unique : forall x : Real, exists ! z : ^Real, is_abs x z.
   Proof.
@@ -189,10 +192,8 @@ Section RealAbs.
   Qed.
 
 
-  Definition abs_prop : forall x : Real, {y : Real | is_abs x y}.
+  Definition abs_prop x : {y : Real | is_abs x y}.
   Proof.
-    intros x.
-
     (* the result is an M limit *)
     apply real_mslimit_P_lt_p.
     (* the limit converges *)
@@ -201,12 +202,11 @@ Section RealAbs.
     (* n-th term of the limit is computed via a soft comparison of x and 0 *)
     intro n.
     pose proof (prec_pos (n + 2)) as posN2.
-    pose proof ((M_split x real_0 (prec (n + 2))) posN2) as M_order.
+    pose proof ((M_split x real_0 (prec (n + 2))) posN2) as m_order.
 
     (* eliminate M *)
-    revert M_order.
+    revert m_order.
     apply M_lift.
-    replace (real_0 - prec (n + 2)) with (- prec (n + 2)) by ring.
     intro order.
 
     destruct order as [xApprPos|xApprNeg].
@@ -222,20 +222,17 @@ Section RealAbs.
       apply (approx_abs_negative x n). auto.
     }
 
+    replace (real_0 - prec (n + 2)) with (- prec (n + 2)) in xApprPos by ring.
+
     (* when x is determined to be approximately positive, return x *)
     exists x.
+
     (* the result x is close enough to the exact (abs x) *)
     apply (approx_abs_positive x n). auto.
   Defined.
 
   
-  Definition abs : ^Real -> ^Real.
-  Proof.
-    intros x.
-    destruct (abs_prop x).
-    exact x0.
-  Defined.
-
+  Definition abs x := projP1 _ _ (abs_prop x).
 
   Lemma abs_pos : forall x, real_0 <= abs x.
   Proof.
