@@ -271,6 +271,10 @@ Extract Constant Nat.log2 => "(MNP.integer P.. Logs.integerLog2)".
 Extraction "ode_exp" exp_example.
 Extraction "ode_tan" tan_example. *)
 
+(* Michal's MFPS 2025 talk example *)
+Require Import RealAbs.
+Extraction "Abs" abs.
+
 (* Sewon's lab seminar talk material*)
 (* Maximum *)
 
