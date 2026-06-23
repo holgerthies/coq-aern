@@ -5,16 +5,6 @@ module Tn where
 
 import qualified Prelude
 
-#ifdef __GLASGOW_HASKELL__
-import qualified GHC.Base
-#if __GLASGOW_HASKELL__ >= 900
-import qualified GHC.Exts
-#endif
-#else
--- HUGS
-import qualified IOExts
-#endif
-
 import Prelude ((+),(-),(/))
 import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
@@ -27,6 +17,16 @@ import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
 import qualified AERN2.Continuity.Principles as AERN2Principles
+
+#ifdef __GLASGOW_HASKELL__
+import qualified GHC.Base
+#if __GLASGOW_HASKELL__ >= 900
+import qualified GHC.Exts
+#endif
+#else
+-- HUGS
+import qualified IOExts
+#endif
 
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any
@@ -88,7 +88,8 @@ tn_ball n k j =
     ((P.*) (nreal ((Prelude.+) ((Prelude.*) n2 k) n1))
       (prec (Prelude.succ n)))
     ((P.*) (nreal ((Prelude.+) ((Prelude.*) n2 j) n1))
-      (prec (Prelude.succ n))) (prec (Prelude.succ n))
+      (prec (Prelude.succ n)))
+    (prec (Prelude.succ n))
 
 tn_col :: Prelude.Integer -> Prelude.Integer -> Prelude.Integer -> (([])
           Ball) -> ([]) Ball

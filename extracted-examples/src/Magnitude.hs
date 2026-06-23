@@ -5,16 +5,6 @@ module Magnitude where
 
 import qualified Prelude
 
-#ifdef __GLASGOW_HASKELL__
-import qualified GHC.Base
-#if __GLASGOW_HASKELL__ >= 900
-import qualified GHC.Exts
-#endif
-#else
--- HUGS
-import qualified IOExts
-#endif
-
 import Prelude ((+),(-),(/))
 import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
@@ -27,6 +17,16 @@ import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
 import qualified AERN2.Continuity.Principles as AERN2Principles
+
+#ifdef __GLASGOW_HASKELL__
+import qualified GHC.Base
+#if __GLASGOW_HASKELL__ >= 900
+import qualified GHC.Exts
+#endif
+#else
+-- HUGS
+import qualified IOExts
+#endif
 
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any
@@ -205,7 +205,12 @@ pos_sub x y =
       y)
     x
 
+data RealTypes =
+   MkRealTypes
+
 type M a = a
+
+type Is_equiv a b = (b -> a)
 
 z2 :: Prelude.Integer
 z2 = 2
@@ -215,6 +220,57 @@ z3 = 3
 
 z4 :: Prelude.Integer
 z4 = 4
+
+data LazyBool_K =
+   Build_LazyBool_K AERN2.CKleenean AERN2.CKleenean (AERN2.CKleenean ->
+                                                    AERN2.CKleenean) 
+ (AERN2.CKleenean -> AERN2.CKleenean -> AERN2.CKleenean) (AERN2.CKleenean ->
+                                                         AERN2.CKleenean ->
+                                                         AERN2.CKleenean) 
+ (AERN2.CKleenean -> () -> P.Bool) ((Prelude.Integer -> AERN2.CKleenean) ->
+                                   AERN2.CKleenean)
+
+data Monad m =
+   Build_Monad (() -> () -> (Any -> Any) -> m -> m) (() -> Any -> m) 
+ (() -> m -> m)
+
+type Monoid_hom f g =
+  () -> f -> g
+  -- singleton inductive, whose constructor was Build_Monoid_hom
+  
+type NPset x = ()
+
+type Lifts_lifted_trace =
+  () -> () -> (M Any) -> (Prelude.Integer -> Any -> M Any) ->
+  (M (Prelude.Integer -> Any))
+
+data MultivalueMonad_M =
+   Build_MultivalueMonad_M LazyBool_K (Monad (M Any)) (Monoid_hom (M Any)
+                                                      (NPset Any)) (() -> ()
+                                                                   ->
+                                                                   Is_equiv
+                                                                   Any
+                                                                   (M Any)) 
+ Lifts_lifted_trace (AERN2.CKleenean -> AERN2.CKleenean -> () -> M P.Bool) 
+ (() -> Is_equiv (M (M Any)) (M (NPset Any))) (() -> (M Any) -> M Any) 
+ ((Prelude.Integer -> AERN2.CKleenean) -> () -> M Prelude.Integer) (() ->
+                                                                   ((Prelude.Integer
+                                                                   -> Any) ->
+                                                                   AERN2.CKleenean)
+                                                                   ->
+                                                                   (Prelude.Integer
+                                                                   -> Any) ->
+                                                                   () -> M
+                                                                   Prelude.Integer) 
+ (AERN2.CKleenean -> M (Prelude.Integer -> Prelude.Integer)) (() ->
+                                                             ((Prelude.Integer
+                                                             ->
+                                                             Prelude.Integer)
+                                                             -> M Any) -> M
+                                                             ((Prelude.Integer
+                                                             ->
+                                                             Prelude.Integer)
+                                                             -> Any))
 
 m_lift :: (a1 -> a2) -> (M a1) -> M a2
 m_lift = P.id
@@ -233,6 +289,13 @@ type Semidec = AERN2.CKleenean
 choose :: Semidec -> Semidec -> M P.Bool
 choose = (unCNfn2 AERN2.select)
 
+data SemiDecOrderedField_Real =
+   Build_SemiDecOrderedField_Real MultivalueMonad_M AERN2.CReal AERN2.CReal 
+ (AERN2.CReal -> AERN2.CReal -> AERN2.CReal) (AERN2.CReal -> AERN2.CReal ->
+                                             AERN2.CReal) (AERN2.CReal ->
+                                                          AERN2.CReal) 
+ (AERN2.CReal -> () -> AERN2.CReal) (AERN2.CReal -> AERN2.CReal -> Semidec)
+
 iZreal :: Prelude.Integer -> AERN2.CReal
 iZreal = AERN2.creal
 
@@ -241,6 +304,10 @@ real_2 = 2
 
 prec :: Prelude.Integer -> AERN2.CReal
 prec = ((0.5 :: AERN2.CReal) P.^)
+
+data ComplArchiSemiDecOrderedField_Real =
+   Build_ComplArchiSemiDecOrderedField_Real SemiDecOrderedField_Real 
+ ((Prelude.Integer -> AERN2.CReal) -> () -> AERN2.CReal)
 
 linear_search_conform :: (Prelude.Integer -> P.Bool) -> Prelude.Integer ->
                          Prelude.Integer
@@ -279,15 +346,25 @@ weaken_orM_r :: (M P.Bool) -> M P.Bool
 weaken_orM_r =
   m_lift (\h -> h)
 
+magnitude1_search :: RealTypes -> ComplArchiSemiDecOrderedField_Real ->
+                     AERN2.CReal -> M Prelude.Integer
+magnitude1_search _ _ x =
+  epsilon_smallest_choose_M (\n ->
+    weaken_orM_r
+      (choose ((OGB.<) (prec (Prelude.succ (Prelude.succ n))) x)
+        ((OGB.<) x (prec (Prelude.succ n)))))
+
+magnitude1_pack :: RealTypes -> ComplArchiSemiDecOrderedField_Real ->
+                   AERN2.CReal -> (M Prelude.Integer) -> M Prelude.Integer
+magnitude1_pack _ _ _ src =
+  m_lift (\g1 -> g1) src
+
 magnitude1 :: AERN2.CReal -> M Prelude.Integer
 magnitude1 x =
-  let {
-   g1M = epsilon_smallest_choose_M (\n ->
-           weaken_orM_r
-             (choose ((OGB.<) (prec (Prelude.succ (Prelude.succ n))) x)
-               ((OGB.<) x (prec (Prelude.succ n)))))}
-  in
-  m_lift (\g1 -> g1) g1M
+  magnitude1_pack __ {- 1st argument (types) of magnitude1 -} __
+    {- 2nd argument (casofReal) of magnitude1 -} x
+    (magnitude1_search __ {- 1st argument (types) of magnitude1 -} __
+      {- 2nd argument (casofReal) of magnitude1 -} x)
 
 dec_x_lt_2 :: AERN2.CReal -> M P.Bool
 dec_x_lt_2 x =
@@ -296,23 +373,40 @@ dec_x_lt_2 x =
                  P.True -> P.False;
                  P.False -> P.True}) h
 
+magnitude2_inner :: RealTypes -> ComplArchiSemiDecOrderedField_Real ->
+                    AERN2.CReal -> (M Prelude.Integer) -> M Prelude.Integer
+magnitude2_inner _ _ _ src =
+  m_lift (\w -> P.negate (P.id w)) src
+
+magnitude2_outer :: RealTypes -> ComplArchiSemiDecOrderedField_Real ->
+                    AERN2.CReal -> (M Prelude.Integer) -> M Prelude.Integer
+magnitude2_outer _ _ _ src =
+  m_lift (\w -> (P.+) w z2) src
+
 magnitude2 :: AERN2.CReal -> M Prelude.Integer
 magnitude2 x =
-  let {y = (/) x (iZreal z4)} in
-  m_lift (\_top_assumption_ -> (P.+) _top_assumption_ z2)
-    (m_lift (\_top_assumption_ -> P.negate (P.id _top_assumption_))
-      (magnitude1 y))
+  magnitude2_outer __ {- 1st argument (types) of magnitude2 -} __
+    {- 2nd argument (casofReal) of magnitude2 -} x
+    (magnitude2_inner __ {- 1st argument (types) of magnitude2 -} __
+      {- 2nd argument (casofReal) of magnitude2 -} ((/) x (iZreal z4))
+      (magnitude1 ((/) x (iZreal z4))))
+
+magnitude_invpack :: RealTypes -> ComplArchiSemiDecOrderedField_Real ->
+                     AERN2.CReal -> (M Prelude.Integer) -> M Prelude.Integer
+magnitude_invpack _ _ _ src =
+  m_lift (\w -> (P.+) (P.negate w) z2) src
+
+magnitude_dec :: RealTypes -> ComplArchiSemiDecOrderedField_Real ->
+                 AERN2.CReal -> P.Bool -> M Prelude.Integer
+magnitude_dec types casofReal x decision =
+  case decision of {
+   P.True -> magnitude2 x;
+   P.False -> magnitude_invpack types casofReal x (magnitude2 (P.recip x))}
 
 magnitude :: AERN2.CReal -> M Prelude.Integer
 magnitude x =
-  m_lift_dom (\_top_assumption_ ->
-    let {_evar_0_ = \_ -> magnitude2 x} in
-    let {
-     _evar_0_0 = \_ ->
-      m_lift (\_top_assumption_0 -> (P.+) (P.negate _top_assumption_0) z2)
-        (magnitude2 (P.recip x))}
-    in
-    case _top_assumption_ of {
-     P.True -> _evar_0_ __;
-     P.False -> _evar_0_0 __}) (dec_x_lt_2 x)
+  m_lift_dom
+    (magnitude_dec __ {- 1st argument (types) of magnitude -} __
+      {- 2nd argument (casofReal) of magnitude -} x)
+    (dec_x_lt_2 x)
 

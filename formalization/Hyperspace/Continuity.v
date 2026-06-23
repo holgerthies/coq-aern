@@ -197,7 +197,7 @@ Qed.
           clear H6.
           destruct K.
           destruct H6.
-          destruct (Lt.nat_total_order_stt _ _ H3).
+          destruct (proj1 (Nat.lt_gt_cases _ _) H3).
           contradict H6.
           apply H5;auto.
           assert (m x k' <> 0%nat) by lia.
@@ -226,7 +226,7 @@ Qed.
         rewrite Nat.lt_succ_r in H0.
         destruct H.
         apply Nat.eqb_eq in H1.
-        destruct (Lt.le_lt_or_eq_stt _ _ H0).
+        destruct (proj1 (Nat.le_lteq _ _) H0).
         apply i;auto.
         rewrite H2;auto.
         apply Bool.andb_true_iff.
@@ -402,7 +402,7 @@ Qed.
     split;auto.
     intros.
     rewrite Nat.lt_succ_r in H0.
-    apply Lt.le_lt_or_eq_stt in H0.
+    apply Nat.le_lteq in H0.
     destruct H0;unfold baire_base.
     rewrite app_nth1;try lia.
     rewrite (nth_indep _ _ (last l 0%nat));try lia.

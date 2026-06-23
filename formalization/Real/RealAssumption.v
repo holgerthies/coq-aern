@@ -1,4 +1,5 @@
 Require Import Real.
+#[local] Set Warnings "-context-outside-section".
 Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real types }.
 
 Notation "^K" := (@K types) (at level 0).

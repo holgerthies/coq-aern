@@ -5,16 +5,6 @@ module STRn where
 
 import qualified Prelude
 
-#ifdef __GLASGOW_HASKELL__
-import qualified GHC.Base
-#if __GLASGOW_HASKELL__ >= 900
-import qualified GHC.Exts
-#endif
-#else
--- HUGS
-import qualified IOExts
-#endif
-
 import Prelude ((+),(-),(/))
 import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
@@ -27,6 +17,16 @@ import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
 import qualified AERN2.Continuity.Principles as AERN2Principles
+
+#ifdef __GLASGOW_HASKELL__
+import qualified GHC.Base
+#if __GLASGOW_HASKELL__ >= 900
+import qualified GHC.Exts
+#endif
+#else
+-- HUGS
+import qualified IOExts
+#endif
 
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any
@@ -50,36 +50,17 @@ type Sig a = a
 n2 :: Prelude.Integer
 n2 = 2
 
+map :: (a1 -> a2) -> (([]) a1) -> ([]) a2
+map f l =
+  case l of {
+   ([]) -> ([]);
+   (:) a l0 -> (:) (f a) (map f l0)}
+
 concat :: (([]) (([]) a1)) -> ([]) a1
 concat l =
   case l of {
    ([]) -> ([]);
    (:) x l0 -> app x (concat l0)}
-
-map :: (a1 -> a2) -> (([]) a1) -> ([]) a2
-map f l =
-  case l of {
-   ([]) -> ([]);
-   (:) a t -> (:) (f a) (map f t)}
-
-data T a =
-   Nil
- | Cons a Prelude.Integer (T a)
-
-map0 :: (a1 -> a2) -> Prelude.Integer -> (T a1) -> T a2
-map0 f _ v =
-  case v of {
-   Nil -> Nil;
-   Cons a n0 v' -> Cons (f a) n0 (map0 f n0 v')}
-
-to_list :: Prelude.Integer -> (T a1) -> ([]) a1
-to_list n v =
-  let {
-   fold_right_fix _ v0 b =
-     case v0 of {
-      Nil -> b;
-      Cons a n0 w -> (:) a (fold_right_fix n0 w b)}}
-  in fold_right_fix n v ([])
 
 real_0 :: AERN2.CReal
 real_0 = 0
@@ -91,15 +72,15 @@ real_2 :: AERN2.CReal
 real_2 = 2
 
 data Euclidean =
-   Nil0
- | Cons0 Prelude.Integer AERN2.CReal Euclidean
+   Nil
+ | Cons Prelude.Integer AERN2.CReal Euclidean
 
 caseS' :: Prelude.Integer -> Euclidean -> (AERN2.CReal -> Euclidean -> a1) ->
           a1
 caseS' _ v h =
   case v of {
-   Nil0 -> __;
-   Cons0 _ h0 t -> h h0 t}
+   Nil -> __;
+   Cons _ h0 t -> h h0 t}
 
 dim_succ_destruct :: Prelude.Integer -> Euclidean -> (,) AERN2.CReal
                      Euclidean
@@ -116,7 +97,26 @@ split_euclidean2 p =
 
 make_euclidean2 :: AERN2.CReal -> AERN2.CReal -> Euclidean
 make_euclidean2 x y =
-  Cons0 (Prelude.succ 0) x (Cons0 0 y Nil0)
+  Cons (Prelude.succ 0) x (Cons 0 y Nil)
+
+data T a =
+   Nil0
+ | Cons0 a Prelude.Integer (T a)
+
+map0 :: (a1 -> a2) -> Prelude.Integer -> (T a1) -> T a2
+map0 f _ v =
+  case v of {
+   Nil0 -> Nil0;
+   Cons0 a n0 v' -> Cons0 (f a) n0 (map0 f n0 v')}
+
+to_list :: Prelude.Integer -> (T a1) -> ([]) a1
+to_list n v =
+  let {
+   fold_right_fix _ v0 b =
+     case v0 of {
+      Nil0 -> b;
+      Cons0 a n0 w -> (:) a (fold_right_fix n0 w b)}}
+  in fold_right_fix n v ([])
 
 type Ball = (,) Euclidean AERN2.CReal
 
@@ -168,8 +168,8 @@ sT_tbounded =
 
 t3_new :: a1 -> a1 -> a1 -> T a1
 t3_new a b c =
-  Cons a (Prelude.succ (Prelude.succ 0)) (Cons b (Prelude.succ 0) (Cons c 0
-    Nil))
+  Cons0 a (Prelude.succ (Prelude.succ 0)) (Cons0 b (Prelude.succ 0) (Cons0 c
+    0 Nil0))
 
 sTR_initial_ball :: Ball
 sTR_initial_ball =

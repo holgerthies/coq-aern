@@ -736,7 +736,7 @@ Section IVP.
     intros.
     rewrite to_poly_S.
     rewrite <-(length_to_poly a) in *.
-    apply Lt.le_lt_or_eq_stt in H.
+    apply Nat.le_lteq in H.
     destruct H.
     rewrite app_nth1;auto.
     apply IHn.
@@ -764,7 +764,7 @@ Section IVP.
       intros m M.
       rewrite length_to_poly in M.
       rewrite Nat.lt_succ_r in M.
-      destruct (Lt.le_lt_or_eq_stt _ _ M).
+      destruct (proj1 (Nat.le_lteq _ _) M).
       destruct (IHn m).
       rewrite length_to_poly;auto.
       exists x.
@@ -1022,7 +1022,7 @@ Section IVP.
       split; [apply zero_derivative|ring].
       rewrite length_to_poly in *.
       rewrite Nat.lt_succ_r in N'.
-      destruct (Lt.le_lt_or_eq_stt _ _ N').
+      destruct (proj1 (Nat.le_lteq _ _) N').
       destruct (IHn H0) as [g [G1 G2]].
       exists g; split;auto.
       rewrite <-G2.
@@ -1259,7 +1259,7 @@ Section IVP.
      split; [|split].
      +  intros.
         destruct (Nat.lt_ge_cases m (S (length l))).
-        destruct (Lt.le_lt_or_eq_stt _ _ H).
+        destruct (proj1 (Nat.le_lteq _ _) H).
         rewrite app_nth1;try lia.
         apply L2.
         apply Nat.succ_inj in H0.
@@ -1273,7 +1273,7 @@ Section IVP.
         rewrite nth_overflow;simpl;[apply real_le_triv|rewrite app_length;simpl;lia].
      +  intros.
         rewrite Nat.lt_succ_r in H.
-        apply Lt.le_lt_or_eq_stt in H.
+        apply Nat.le_lteq in H.
         destruct H.
         rewrite !app_nth1; try lia.
         apply L3;auto.

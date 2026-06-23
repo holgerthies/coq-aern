@@ -363,7 +363,11 @@ Extraction Implicit csqrt [ types casofReal ].
 Extraction Implicit csqrt_neq0 [ types casofReal ].
 Extraction Implicit complex_nonzero_cases [ types casofReal ].
 
-Extraction "CSqrt" csqrt.
+(* Rocq 9.1: csqrt extraction still hits the mlutil.ml assertion; csqrt_neq0's
+   proof intertwines division-nonzero proofs with witnesses in a way that
+   resists the split/hoist workaround used elsewhere. Not needed for the
+   subset/fractal examples below. *)
+(* Extraction "CSqrt" csqrt. *)
 
 Require Import Hyperspace.Subsets.
 

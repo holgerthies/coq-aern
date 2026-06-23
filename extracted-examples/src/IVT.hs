@@ -5,16 +5,6 @@ module IVT where
 
 import qualified Prelude
 
-#ifdef __GLASGOW_HASKELL__
-import qualified GHC.Base
-#if __GLASGOW_HASKELL__ >= 900
-import qualified GHC.Exts
-#endif
-#else
--- HUGS
-import qualified IOExts
-#endif
-
 import Prelude ((+),(-),(/))
 import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
@@ -27,6 +17,16 @@ import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
 import qualified AERN2.Continuity.Principles as AERN2Principles
+
+#ifdef __GLASGOW_HASKELL__
+import qualified GHC.Base
+#if __GLASGOW_HASKELL__ >= 900
+import qualified GHC.Exts
+#endif
+#else
+-- HUGS
+import qualified IOExts
+#endif
 
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any
@@ -103,7 +103,8 @@ halving f a b =
      (,) x s ->
       let {x0 = trisect f x s} in
       m_lift (\x1 -> case x1 of {
-                      (,) x2 s0 -> (,) x2 s0}) x0}) one
+                      (,) x2 s0 -> (,) x2 s0}) x0})
+    one
 
 root_approx :: (AERN2.CReal -> AERN2.CReal) -> Prelude.Integer -> M
                ((,) AERN2.CReal AERN2.CReal)
@@ -114,7 +115,9 @@ root_approx f n =
        (,) x0 s ->
         let {x1 = halving f x0 s} in
         m_lift (\x2 -> case x2 of {
-                        (,) x3 s0 -> (,) x3 s0}) x1}) iHn) n
+                        (,) x3 s0 -> (,) x3 s0}) x1})
+      iHn)
+    n
 
 cIVT :: (AERN2.CReal -> AERN2.CReal) -> AERN2.CReal
 cIVT f =

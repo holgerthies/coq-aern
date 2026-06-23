@@ -3,6 +3,10 @@ Require Import Lia.
 Require Import Real Euclidean List Minmax Classical.Subsets Sierpinski Testsearch Dyadic Hyperspace.Subsets.
 Require Import RealAssumption.
 
+(* compatibility: [le_plus_minus_r] was removed from the stdlib *)
+Lemma le_plus_minus_r : forall n m, (n <= m)%nat -> (n + (m - n))%nat = m.
+Proof. intros; lia. Qed.
+
 Notation "^euclidean" := (@euclidean RealAssumption.types) (at level 0).
 
 Section EuclideanBalls.

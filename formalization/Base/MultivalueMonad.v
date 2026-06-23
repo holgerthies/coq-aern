@@ -85,9 +85,9 @@ Section M_Defs.
 
 Class MultivalueMonad_M (types : RealTypes) :=
   {
-    klb :> LazyBool_K types;
-    M_Monad :> Monad (@M types);
-    M_description_hom :> Monoid_hom M_Monad NPset_Monad;
+    klb :: LazyBool_K types;
+    M_Monad :: Monad (@M types);
+    M_description_hom :: Monoid_hom M_Monad NPset_Monad;
     M_base_monad_hprop_elim : forall A, is_hprop A -> is_equiv (Monad_unit A);
     M_base_monad_traces_lift : lifts_lifted_trace;
     multivalued_choice : forall x y : K, x = lazy_bool_true \/ y = lazy_bool_true -> @M types ({ x = lazy_bool_true } + { (y = lazy_bool_true) });

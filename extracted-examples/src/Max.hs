@@ -5,16 +5,6 @@ module Max where
 
 import qualified Prelude
 
-#ifdef __GLASGOW_HASKELL__
-import qualified GHC.Base
-#if __GLASGOW_HASKELL__ >= 900
-import qualified GHC.Exts
-#endif
-#else
--- HUGS
-import qualified IOExts
-#endif
-
 import Prelude ((+),(-),(/))
 import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
@@ -27,6 +17,16 @@ import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
 import qualified AERN2.Continuity.Principles as AERN2Principles
+
+#ifdef __GLASGOW_HASKELL__
+import qualified GHC.Base
+#if __GLASGOW_HASKELL__ >= 900
+import qualified GHC.Exts
+#endif
+#else
+-- HUGS
+import qualified IOExts
+#endif
 
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any
@@ -63,7 +63,8 @@ real_max_prop x y =
   AERN2.limit (\n ->
     mjoin (\h -> case h of {
                   P.True -> x;
-                  P.False -> y}) (m_split x y (prec n)))
+                  P.False -> y})
+      (m_split x y (prec n)))
 
 real_max :: AERN2.CReal -> AERN2.CReal -> AERN2.CReal
 real_max x y =

@@ -14,7 +14,7 @@ Section Real_Defs1.
 
   Class SemiDecOrderedField_Real (types : RealTypes) :=
     {
-      mvmM :> MultivalueMonad_M types;
+      mvmM :: MultivalueMonad_M types;
       real_0 : @Real types;
       real_1 : @Real types;      
       real_plus : @Real types -> @Real types -> @Real types;
@@ -225,7 +225,7 @@ End Real_Defs3.
 Class ComplArchiSemiDecOrderedField_Real (types : RealTypes) :=
 {
   (* W_complete : forall c : Real CarrierField -> Prop, W_nemp c ->  W_upbd c -> exists z, W_sup c z; *)
-  sofReal :> SemiDecOrderedField_Real types;
+  sofReal :: SemiDecOrderedField_Real types;
   real_Archimedean : forall r : @Real types, r > real_0 -> exists n, prec n < r;
   real_limit_p : forall f : nat -> @Real types, is_fast_cauchy_p f -> {x | is_fast_limit_p x f};
 }.

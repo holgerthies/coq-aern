@@ -19,6 +19,19 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 #[local] Definition sofReal := @sofReal types casofReal.
 #[local] Notation "^IZreal" := (@IZreal types sofReal) (at level 0).
 
+(* Rocq 9.1 extraction helper: re-tagging a sigma-type witness with a new
+   (logical) property. Kept as a separate, non-inlined constant so the
+   extraction plugin does not fuse a sig-destructuring repackage with the term
+   that produces the witness (which triggers an assertion failure in mlutil.ml,
+   see Magnitude.v). *)
+Definition sig_repack {A} {P Q : A -> Prop}
+  (f : forall a, P a -> Q a) (s : {a | P a}) : {a | Q a} :=
+  exist Q (proj1_sig s) (f (proj1_sig s) (proj2_sig s)).
+
+Definition Msig_repack {A} {P Q : A -> Prop}
+  (f : forall a, P a -> Q a) (m : ^M {a | P a}) : ^M {a | Q a} :=
+  M_lift _ _ (sig_repack f) m.
+
   (* ring structure on Real *)
   Ltac IZReal_tac t :=
     match t with
@@ -66,26 +79,35 @@ Proof.
   by apply sqrt_lt_R0.
 Qed.
 
-Definition sqrt_approx x n : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | forall rx ry, relate x rx -> @relate types y ry -> (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R}.
+(* Rocq 9.1 note: split the recursion (search) from the final repackage, as for
+   Magnitude.v, so the extraction plugin does not fuse them. *)
+Definition sqrt_approx_base x : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | (real_0 < y) /\ forall rx ry, relate x rx -> @relate types y ry -> (ry = 1 \/ sqrt rx <= ry)%R /\ (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ 0)))%R}.
 Proof.
   move => B1 B2.
-  assert (yP : {y | (real_0 < y) /\ forall rx ry, relate x rx -> relate y ry -> (ry = 1 \/ sqrt rx <= ry)%R /\ (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R}).
-  elim n =>[| n' [y [ygt0 IH]]].
-  - exists real_1; split => [| rx ry RX RY]; first by apply real_1_gt_0.
-    split; first by relate; auto.
-    have [B1' B2'] := (sqrt_bound_helper _ B1 B2 _ RX).
-    relate.
-    apply Rcomplements.Rabs_le_between' => /=.
-    split;ring_simplify; first by interval.
-    suff : ((/ 2) <= sqrt rx)%R by lra.
-    suff -> : (/ 2)%R = (sqrt (/ 4)) by apply sqrt_le_1;lra.
-    rewrite <-inv_sqrt; last by lra.
-    have -> : (4 = 2 * 2)%R by lra.
-    by rewrite sqrt_square; lra.
-  have yneq0 : y <> real_0 by apply real_gt_neq.
-  exists (/ RealOrder.d2 * (y + x / yneq0)).
+  exists real_1; split => [| rx ry RX RY]; first by apply real_1_gt_0.
+  split; first by relate; auto.
+  have [B1' B2'] := (sqrt_bound_helper _ B1 B2 _ RX).
+  relate.
+  apply Rcomplements.Rabs_le_between' => /=.
+  split;ring_simplify; first by interval.
+  suff : ((/ 2) <= sqrt rx)%R by lra.
+  suff -> : (/ 2)%R = (sqrt (/ 4)) by apply sqrt_le_1;lra.
+  rewrite <-inv_sqrt; last by lra.
+  have -> : (4 = 2 * 2)%R by lra.
+  by rewrite sqrt_square; lra.
+Defined.
+
+Lemma gt0_neq0 (y : ^Real) : real_0 < y -> y <> real_0.
+Proof. by apply real_gt_neq. Qed.
+
+Definition sqrt_approx_step x (B1 : (/ IZreal4neq0) <= x) (B2 : x <= real_2) n'
+  (prev : {y | (real_0 < y) /\ forall rx ry, relate x rx -> @relate types y ry -> (ry = 1 \/ sqrt rx <= ry)%R /\ (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n')))%R}) :
+  {y | (real_0 < y) /\ forall rx ry, relate x rx -> @relate types y ry -> (ry = 1 \/ sqrt rx <= ry)%R /\ (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ (S n'))))%R}.
+Proof.
+  destruct prev as [y [ygt0 IH]].
+  exists (/ RealOrder.d2 * (y + x / (gt0_neq0 y ygt0))).
   split.
-  - classical. 
+  - classical.
     relate.
     have [B1' B2'] := (sqrt_bound_helper _ B1 B2 _ Ha1).
     have ygt0' : (0 < x1)%R by apply /transport_lt_inv/ygt0/Hb/relate_constant0.
@@ -96,7 +118,7 @@ Proof.
   move => rx ry RX RY.
   relate.
   rewrite (relate_IZreal _ _ Ha2).
-  have [ygt IH'] := IH _ _ Ha1 Hb. 
+  have [ygt IH'] := IH _ _ Ha1 Hb.
   have [B1' B2'] := (sqrt_bound_helper _ B1 B2 _ Ha1).
   have ygt0' : (0 < x1)%R by apply /transport_lt_inv/ygt0/Hb/relate_constant0.
   have p : (0 < rx / x1)%R by apply Rdiv_lt_0_compat; lra.
@@ -142,22 +164,38 @@ Proof.
   suff -> : ((/ 2) = (sqrt (/ 4)))%R by apply sqrt_le_1;lra.
   have -> : ((/ 4) = (/ 2) ^ 2)%R by lra.
   rewrite sqrt_pow2;lra.
-  destruct yP as [y P].
-  exists y; apply P.
+Defined.
+
+Definition sqrt_approx_full x n : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | (real_0 < y) /\ forall rx ry, relate x rx -> @relate types y ry -> (ry = 1 \/ sqrt rx <= ry)%R /\ (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R}.
+Proof.
+  move => B1 B2.
+  elim n => [| n' IH].
+  - exact (sqrt_approx_base x B1 B2).
+  - exact (sqrt_approx_step x B1 B2 n' IH).
+Defined.
+
+Definition sqrt_approx x n : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | forall rx ry, relate x rx -> @relate types y ry -> (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R}.
+Proof.
+  move => B1 B2.
+  apply (sig_repack (P := fun y => (real_0 < y) /\ forall rx ry, relate x rx -> @relate types y ry -> (ry = 1 \/ sqrt rx <= ry)%R /\ (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ n)))%R)).
+  2: exact (sqrt_approx_full x n B1 B2).
+  intros y H rx ry RX RY.
+  exact (proj2 (proj2 H rx ry RX RY)).
 Defined.
 
 Definition sqrt_approx_fast x n : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | forall rx ry, relate x rx -> @relate types y ry -> (Rabs (ry - sqrt rx) < (/ 2 ^ n))%R}.
 Proof.
   move => B1 B2.
-  have [y P] := sqrt_approx x (Nat.log2 n.+1).+1 B1 B2.
-  exists y => rx ry RX RY.
-  have P' := (P _ _ RX RY).
+  apply (sig_repack (P := fun y => forall rx ry, relate x rx -> @relate types y ry -> (Rabs (ry - sqrt rx) <= (/ 2 ^ (2 ^ (Nat.log2 n.+1).+1)))%R)).
+  2: exact (sqrt_approx x (Nat.log2 n.+1).+1 B1 B2).
+  intros y HP rx ry RX RY.
+  have P' := (HP _ _ RX RY).
   suff : ((/ 2 ^ (2 ^ (Nat.log2 n.+1).+1)) < (/ 2 ^ n))%R by lra.
   apply Rinv_lt_contravar; first by apply Rmult_lt_0_compat; apply pow_lt;lra.
   apply Rlt_pow; first by lra.
   suff : (n.+1 < (2 ^ (Nat.log2 n.+1).+1))%coq_nat by lia.
   by apply Nat.log2_spec;lia.
-Defined. 
+Defined.
 
 Lemma sqrt_approx_coq_real x : is_total x -> (/ 4 <= x <= 2)%R ->  forall n, exists y, is_total y /\ (Rabs (y - sqrt x) < (/ 2 ^ n))%R.
 Proof.
@@ -188,20 +226,23 @@ Proof.
   by rewrite <-(sqrt_lem_1 y0 y1), <- (sqrt_lem_1 y0 y) => //.
 Qed.  
 
+Lemma restr_sqrt_TT xr : is_total xr -> (/ 4 <= xr <= 2)%R -> is_total (sqrt xr).
+Proof.
+  move => H1 H2.
+  apply is_total_limit.
+  by apply sqrt_approx_coq_real.
+Qed.
+
 Definition restr_sqrt x : (/ IZreal4neq0) <= x -> (x <= real_2) -> {y | real_0 <= y /\ y * y = x}.
 Proof.
   move => B1 B2.
-  have TT xr : is_total xr ->  (/ 4 <= xr <= 2)%R -> is_total (sqrt xr).
-  - move => H1 H2.
-    apply is_total_limit.
-    by apply sqrt_approx_coq_real.
   apply real_limit_P_lt_p.
   - case (ana1 x) => xr [R1 R2].
     Holger B1.
     Holger B2.
     relate.
     have L : (/ 4 <= xr <= 2)%R by rewrite <- (relate_IZreal _ _ Ha), <- (relate_IZreal _ _ Hy0); lra.
-    have [y [S1 S2]] := (@ana2 types _ (TT _ (relate_total _ _ Hx0) L)).
+    have [y [S1 S2]] := (@ana2 types _ (restr_sqrt_TT _ (relate_total _ _ Hx0) L)).
     exists y.
     split => [ | x' [P1 P2]].
     split.
@@ -225,7 +266,7 @@ Proof.
   Holger B2.
   relate.
   have L : (/ 4 <= y0 <= 2)%R by rewrite <- (relate_IZreal _ _ Ha), <- (relate_IZreal _ _ Hy0); lra.
-  have [sx [S1 S2]] := (@ana2 types _ (TT _ (relate_total _ _ Hx0) L)).
+  have [sx [S1 S2]] := (@ana2 types _ (restr_sqrt_TT _ (relate_total _ _ Hx0) L)).
   pose proof(relate_prec n) as Rp.
   exists sx.
   split.
@@ -378,28 +419,58 @@ Proof.
     by rewrite -prec_twice.
 Defined. 
 
-Lemma complex_nonzero_cases  a b : Complex a b <> complex0 -> ^M ({real_0 < a} + {a < real_0} + {real_0 < b} + {b < real_0}).
+Lemma complex_neq0_nand a b : Complex a b <> complex0 -> ~(a = real_0 /\ b = real_0).
+Proof. move => H [C1 C2]; by rewrite C1 C2 in H. Qed.
+
+Lemma complex_neq0_disj a b : Complex a b <> complex0 ->
+  (real_0 < a \/ a < real_0 \/ real_0 < b \/ b < real_0).
 Proof.
   move => H.
-  have neq0_cases : ~(a = real_0 /\ b  = real_0) by move => [C1 C2];rewrite C1 C2 in H.
-  have neq0_cases' : (real_0 < a \/ a < real_0 \/  real_0 < b \/ b < real_0).
-  - case (real_total_order real_0 a) => [p | [p | p]]; try by auto.
-    case (real_total_order real_0 b) => [p' | [p' | p']]; try by auto.
-    move : neq0_cases.
-    rewrite -p -p'.
-    by case.
-  apply (M_lift_dom ({real_0 < a} + {a < real_0 \/ real_0 < b \/ b < real_0})).
-  - case => P; first by apply M_unit; auto.
-    apply (M_lift_dom ({a < real_0} + {real_0 < b \/ b < real_0})).
-    case => P'; first by apply M_unit; auto.
-    apply (M_lift_dom ({real_0 < b} + {b < real_0})).
-    case => P'';  by apply M_unit; auto.
-  - apply choose => //; try by apply real_lt_semidec.
-  - apply choose => //; try by apply real_lt_semidec.
-    by apply semidec_or; try apply real_lt_semidec.
-  apply choose => //; try by apply real_lt_semidec.
-  apply semidec_or; try apply semidec_or; try by apply real_lt_semidec.
+  have neq0_cases := complex_neq0_nand a b H.
+  case (real_total_order real_0 a) => [p | [p | p]]; try by auto.
+  case (real_total_order real_0 b) => [p' | [p' | p']]; try by auto.
+  move : neq0_cases.
+  rewrite -p -p'.
+  by case.
 Qed.
+
+(* Rocq 9.1: the nested M_lift_dom decision tree is split into separate
+   constants so the extraction plugin does not fuse them (cf. Magnitude.v). *)
+Definition cnz3 (a b : ^Real) (d : {real_0 < b} + {b < real_0}) :
+  ^M ({real_0 < a} + {a < real_0} + {real_0 < b} + {b < real_0}).
+Proof. case d => P; by apply M_unit; auto. Defined.
+
+Definition cnz2 (a b : ^Real) (d : {a < real_0} + {real_0 < b \/ b < real_0}) :
+  ^M ({real_0 < a} + {a < real_0} + {real_0 < b} + {b < real_0}).
+Proof.
+  case d => P.
+  - by apply M_unit; auto.
+  - apply (M_lift_dom ({real_0 < b} + {b < real_0})).
+    + exact (cnz3 a b).
+    + apply choose => //; try by apply real_lt_semidec.
+Defined.
+
+Definition cnz1 (a b : ^Real) (d : {real_0 < a} + {a < real_0 \/ real_0 < b \/ b < real_0}) :
+  ^M ({real_0 < a} + {a < real_0} + {real_0 < b} + {b < real_0}).
+Proof.
+  case d => P.
+  - by apply M_unit; auto.
+  - apply (M_lift_dom ({a < real_0} + {real_0 < b \/ b < real_0})).
+    + exact (cnz2 a b).
+    + apply choose => //; try by apply real_lt_semidec.
+      by apply semidec_or; try apply real_lt_semidec.
+Defined.
+
+Definition complex_nonzero_cases  a b : Complex a b <> complex0 -> ^M ({real_0 < a} + {a < real_0} + {real_0 < b} + {b < real_0}).
+Proof.
+  move => H.
+  apply (M_lift_dom ({real_0 < a} + {a < real_0 \/ real_0 < b \/ b < real_0})).
+  - exact (cnz1 a b).
+  - apply choose => //.
+    + by apply real_lt_semidec.
+    + by apply semidec_or; try apply semidec_or; try apply real_lt_semidec.
+    + exact (complex_neq0_disj a b H).
+Defined.
 
 Lemma square_nonneg : forall z, real_0 <= (z * z)%Real.
 Proof.

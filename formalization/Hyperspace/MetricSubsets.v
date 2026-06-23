@@ -720,7 +720,7 @@ Section Metric.
           clear H6.
           destruct K.
           destruct H6.
-          destruct (Lt.nat_total_order_stt _ _ H3).
+          destruct (proj1 (Nat.lt_gt_cases _ _) H3).
           contradict H6.
           apply H5;auto.
           assert (m x k' <> 0%nat) by lia.
@@ -749,7 +749,7 @@ Section Metric.
         rewrite Nat.lt_succ_r in H0.
         destruct H.
         apply Nat.eqb_eq in H1.
-        destruct (Lt.le_lt_or_eq_stt _ _ H0).
+        destruct (proj1 (Nat.le_lteq _ _) H0).
         apply i;auto.
         rewrite H2;auto.
         apply Bool.andb_true_iff.
@@ -1604,7 +1604,7 @@ Section Metric.
     intros [m [H1 H2]].
     apply in_or_app.
     rewrite Nat.lt_succ_r in H1.
-    apply Lt.le_lt_or_eq_stt in H1.
+    apply Nat.le_lteq in H1.
     destruct H1.
     left.
     rewrite H2.
@@ -2155,7 +2155,7 @@ Section Metric.
       intros.
       induction j;try lia.
       rewrite Nat.lt_succ_r in H1.
-      apply Lt.le_lt_or_eq_stt in H1.
+      apply Nat.le_lteq in H1.
       destruct H1.
       specialize (IHj H1).
       intros x Dx.
@@ -2583,7 +2583,7 @@ Section Metric.
   Lemma prec_monotone_eq n m : (m <= n)%nat -> prec n <= prec m.
   Proof.
     intros.
-    apply Lt.le_lt_or_eq_stt in H.
+    apply Nat.le_lteq in H.
     destruct H.
     apply real_lt_le.
     apply prec_monotone;auto.

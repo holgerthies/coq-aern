@@ -51,79 +51,86 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Definition is_magnitude1 x n := 
     lt_prec x n.+2 /\ not (lt_prec x n)
   .
-  (* prec n.+2 < x < prec n. *)
-  Definition magnitude1 x : (real_0 < x < real_1 / real_2_neq_0) 
-                            -> ^M { n | is_magnitude1 x n }.
+  Definition P x n := lt_prec x (n.+1).
+
+  (* Rocq 9.1 note: [magnitude1] is split into a search step and a repackaging
+     step, composed by reference below. Each piece extracts cleanly, but the
+     fused term triggers an assertion failure in the extraction plugin
+     (mlutil.ml). Keeping them as separate constants avoids that. *)
+  Definition magnitude1_search (x : ^Real) (pos : real_0 < x) (lt1 : x < real_1) :
+    ^M {n | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)}.
   Proof.
-    move => [pos lt2].
-
-    (* x < real_1_ *)
-    have lt1 : x < real_1.
-    have h := half_lt_one.
-    apply (real_lt_lt_lt _  (real_1 / real_2_neq_0) _); auto.
-
-    unfold is_magnitude1.
-    Definition P x n := lt_prec x (n.+1).
-    suff g1M : ^M { n : nat | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)}.
-    apply (M_lift ({n : nat | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)})).
-    2: { exact g1M. }
-    clear g1M. intro g1.
-    destruct g1 as [n H].
-    exists n.
-    unfold P in H.
-    split.
-    destruct H. auto.
-    destruct H.
-
-    destruct n.
-    (* ~ lt_prec x 0 *)
-    unfold lt_prec. apply real_gt_ngt. unfold prec. unfold gt. auto. 
-
-    (* ~ lt_prec x n.+1 *)
-    have H0n := H0 n.
-    suff lt_S : (n < n.+1)%coq_nat by auto.
-      by lia.
-      
-      apply (epsilon_smallest_choose_M).
-      unfold P. unfold lt_prec.
-      intros.
-      apply (weaken_orM_r _ (x < prec n.+1) _).
-      intros.
-      apply real_lt_nlt. auto.
-      
-      apply MultivalueMonad.choose.
-      auto with real.
-      auto with real.
-
-      (* prec n.+2 < x \/ x < prec n.+1 *)
-      destruct (real_total_order x (prec n.+1)) as [H|[H|H]].
-      right. exact H.
-      left. rewrite H. apply prec_S.
-      left. unfold gt in H. apply (real_lt_lt_lt _ (prec n.+1) _).
-      apply prec_S. exact H.
-
-      unfold P. unfold lt_prec.
-      case (ana1 x) => xr [R1 R2].
-      suff : exists n,  (/ 2 ^ n.+1 < xr)%R.
+    apply (epsilon_smallest_choose_M).
+    unfold P. unfold lt_prec.
+    intros.
+    apply (weaken_orM_r _ (x < prec n.+1) _).
+    intros.
+    apply real_lt_nlt. auto.
+    apply MultivalueMonad.choose.
+    auto with real.
+    auto with real.
+    (* prec n.+2 < x \/ x < prec n.+1 *)
+    destruct (real_total_order x (prec n.+1)) as [H|[H|H]].
+    right. exact H.
+    left. rewrite H. apply prec_S.
+    left. unfold gt in H. apply (real_lt_lt_lt _ (prec n.+1) _).
+    apply prec_S. exact H.
+    unfold P. unfold lt_prec.
+    case (ana1 x) => xr [R1 R2].
+    suff : exists n,  (/ 2 ^ n.+1 < xr)%R.
     - case => n nprp.
       exists n.
-      have P := (@relate_prec _ casofReal n.+1).
+      have Pp := (@relate_prec _ casofReal n.+1).
       classical.
       relate.
       trivial.
-      have xrpos : (0 < xr)%R.
+    - have xrpos : (0 < xr)%R.
       apply /transport_lt_inv/pos/R1/relate_constant0.
       have xrlt1 : (xr < 1)%R.
-      apply /transport_lt_inv/lt1. auto. 
+      apply /transport_lt_inv/lt1. auto.
       apply relate_constant1.
-
-      have H := dns0_tpmn xr xrpos.
-      destruct H as [n H].
+      have Hd := dns0_tpmn xr xrpos.
+      destruct Hd as [n Hd].
       destruct n.
-      have xrgt1 : (1 < xr)%R. lra. 
+      have xrgt1 : (1 < xr)%R. lra.
       lra. (* contradiction between xrlt1 xrgt1 *)
-
       exists n. auto.
+  Defined.
+
+  Definition magnitude1_pack (x : ^Real) (lt1 : x < real_1)
+    (src : ^M {n | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)}) :
+    ^M {n | is_magnitude1 x n}.
+  Proof.
+    apply (M_lift ({n : nat | P x n.+1 /\ (forall k : nat, (k < n)%coq_nat -> ~ P x k)})).
+    2: { exact src. }
+    intro g1.
+    destruct g1 as [n H].
+    exists n.
+    unfold P in H. unfold is_magnitude1.
+    split.
+    destruct H. auto.
+    destruct H.
+    destruct n as [|n].
+    (* ~ lt_prec x 0 *)
+    unfold lt_prec. apply real_gt_ngt. unfold prec. unfold gt. auto.
+    (* ~ lt_prec x n.+1 *)
+    apply (H0 n).
+      by lia.
+  Defined.
+
+  Lemma magnitude1_lt1 x : (real_0 < x < real_1 / real_2_neq_0) -> x < real_1.
+  Proof.
+    intro H.
+    apply (real_lt_lt_lt _  (real_1 / real_2_neq_0) _); [apply (proj2 H) | apply half_lt_one].
+  Qed.
+
+  (* prec n.+2 < x < prec n. *)
+  Definition magnitude1 x : (real_0 < x < real_1 / real_2_neq_0)
+                            -> ^M { n | is_magnitude1 x n }.
+  Proof.
+    intro H.
+    exact (magnitude1_pack x (magnitude1_lt1 x H)
+             (magnitude1_search x (proj1 H) (magnitude1_lt1 x H))).
   Defined.
 
   Definition Zpow (x : Real) (xne0 : x <> real_0) z := match z with
@@ -315,33 +322,55 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
 
 
   (* first extend magnitude to numbers <= 2 *)
-  Definition magnitude2 x : (real_0 < x < real_2) -> ^M { z | is_magnitude x z }.
+  (* Rocq 9.1 note: same split-into-constants treatment as [magnitude1] to keep
+     the extraction plugin from fusing the [M_lift] composition (see above). *)
+  Lemma magnitude2_yB x : (real_0 < x < real_2) ->
+    (real_0 < x / IZreal4neq0 < real_1 / real_2_neq_0).
   Proof.
     move => [xgt0 xle1].
-    pose (y := (x / IZreal4neq0)).
-    have yB : (real_0 < y < real_1 / real_2_neq_0).
-    - unfold real_div; rewrite real_mult_unit/y.
-      split;classical;relate;rewrite (relate_IZreal _ _ Hb).
-      suff : (0 < x0)%R by lra.
-      apply /transport_lt_inv/xgt0/Ha/relate_constant0.
-      rewrite (relate_IZreal _ _ Ha0).
-      suff : (x1 < 2)%R by lra.
-        by apply /transport_lt_inv/xle1/IZreal_relator/Ha.
-        have magy n : is_magnitude y n -> is_magnitude x (n+z2)%Z by apply magnitude_fourth.
-        suff : ^M { z | is_magnitude y z}.
-    - apply M_lift.
-      case => z zprp.
-      exists (z+z2)%Z.
-      exact (magy _ zprp).
-      (* y is less than 1/2 => magnitude1 can be used *)
-      have := magnitude1 _ yB.
-      apply M_lift.
-      case => n nprp.
-      exists (- Z.of_nat n)%Z.
-      split; last by rewrite Zpow_prec; apply real_ge_le; apply real_nge_le; apply nprp.
-      have -> : ((- Z.of_nat n - 2) = (- Z.of_nat (n.+2)%coq_nat))%Z by lia.
-        by rewrite Zpow_prec; apply real_lt_le;apply nprp.
+    pose (y := (x / IZreal4neq0)). fold y.
+    unfold real_div; rewrite real_mult_unit/y.
+    split;classical;relate;rewrite (relate_IZreal _ _ Hb).
+    suff : (0 < x0)%R by lra.
+    apply /transport_lt_inv/xgt0/Ha/relate_constant0.
+    rewrite (relate_IZreal _ _ Ha0).
+    suff : (x1 < 2)%R by lra.
+      by apply /transport_lt_inv/xle1/IZreal_relator/Ha.
   Qed.
+
+  Lemma magnitude2_inner_pf y n : is_magnitude1 y n -> is_magnitude y (- Z.of_nat n)%Z.
+  Proof.
+    intro nprp.
+    split; last by rewrite Zpow_prec; apply real_ge_le; apply real_nge_le; apply nprp.
+    have -> : ((- Z.of_nat n - 2) = (- Z.of_nat (n.+2)%coq_nat))%Z by lia.
+      by rewrite Zpow_prec; apply real_lt_le;apply nprp.
+  Qed.
+
+  Definition magnitude2_inner (y : ^Real) (src : ^M {n | is_magnitude1 y n}) :
+    ^M { z | is_magnitude y z }.
+  Proof.
+    apply (M_lift {n | is_magnitude1 y n}).
+    2: { exact src. }
+    intro w. destruct w as [n nprp]. exists (- Z.of_nat n)%Z.
+    exact (magnitude2_inner_pf y n nprp).
+  Defined.
+
+  Definition magnitude2_outer (x : ^Real) (src : ^M {z | is_magnitude (x / IZreal4neq0) z}) :
+    ^M { z | is_magnitude x z }.
+  Proof.
+    apply (M_lift {z | is_magnitude (x / IZreal4neq0) z}).
+    2: { exact src. }
+    intro w. destruct w as [z zprp]. exists (z + z2)%Z.
+    exact (magnitude_fourth _ _ zprp).
+  Defined.
+
+  Definition magnitude2 x : (real_0 < x < real_2) -> ^M { z | is_magnitude x z }.
+  Proof.
+    intro H.
+    exact (magnitude2_outer x
+             (magnitude2_inner (x / IZreal4neq0)
+                (magnitude1 (x / IZreal4neq0) (magnitude2_yB x H)))).
+  Defined.
 
 
   Lemma Zpow_relate x xneq0 z xr: relate x xr -> relate (Zpow x xneq0 z) (powerRZ xr z). 
@@ -387,30 +416,45 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Qed.
 
 
+  Lemma magnitude_I x (xgt0 : real_0 < x) (xneg0 : x <> real_0) :
+    real_1 < x -> real_0 < / xneg0 < real_2.
+  Proof.
+    intro H.
+    split; classical; relate.
+    apply Rinv_0_lt_compat.
+      by apply /transport_lt_inv/xgt0/Ha/relate_constant0.
+      rewrite (relate_IZreal _ _ H1).
+      have -> : (2 = / / 2)%R by lra.
+      apply Rinv_lt_contravar.
+      suff : (0 < x1)%R by lra.
+      apply /transport_lt_inv/xgt0/Ha/relate_constant0.
+      suff : (1 < x1)%R by lra.
+      apply /transport_lt_inv/H/Ha/relate_constant1.
+  Qed.
+
+  (* Rocq 9.1 note: split as for [magnitude1]/[magnitude2]. *)
+  Definition magnitude_invpack (x : ^Real) (xneg0 : x <> real_0)
+    (src : ^M {z | is_magnitude (/ xneg0) z}) : ^M {z | is_magnitude x z}.
+  Proof.
+    apply (M_lift {z | is_magnitude (/ xneg0) z}).
+    2: { exact src. }
+    intro w. destruct w as [z zprp]. exists (- z + z2)%Z.
+    exact (magnitude_inv x xneg0 z zprp).
+  Defined.
+
+  Definition magnitude_dec (x : ^Real) (xgt0 : real_0 < x)
+    (decision : ({x < real_2} + {real_1 < x})) : ^M {z | is_magnitude x z} :=
+    match decision with
+    | left H => magnitude2 x (conj xgt0 H)
+    | right H => magnitude_invpack x (real_gt_neq _ _ xgt0)
+                   (magnitude2 (/ (real_gt_neq _ _ xgt0))
+                      (magnitude_I x xgt0 (real_gt_neq _ _ xgt0) H))
+    end.
+
   Definition magnitude x : real_0 < x -> ^M {z | is_magnitude x z}.
   Proof.
-    move => xgt0.
-    have := dec_x_lt_2 x. 
-    apply M_lift_dom.
-    case => H; first by apply magnitude2.
-    have xneg0 : (x <> real_0) by apply (real_gt_neq _ _ xgt0).
-    assert (I : (real_0 < / xneg0 < real_2)).
-    -
-      split; classical; relate.
-      apply Rinv_0_lt_compat.
-        by apply /transport_lt_inv/xgt0/Ha/relate_constant0.
-        rewrite (relate_IZreal _ _ H1).
-        have -> : (2 = / / 2)%R by lra.
-        apply Rinv_lt_contravar.
-        suff : (0 < x1)%R by lra.
-        apply /transport_lt_inv/xgt0/Ha/relate_constant0.
-        suff : (1 < x1)%R by lra.
-        apply /transport_lt_inv/H/Ha/relate_constant1.    
-    - have := magnitude2 _ I.
-      apply M_lift.
-      case => z zprp.
-      exists (-z+z2)%Z.
-        by apply (magnitude_inv x xneg0).
-      Defined.
+    intro xgt0.
+    exact (M_lift_dom _ _ (magnitude_dec x xgt0) (dec_x_lt_2 x)).
+  Defined.
 
 End magnitude.

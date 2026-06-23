@@ -5,16 +5,6 @@ module STRLim where
 
 import qualified Prelude
 
-#ifdef __GLASGOW_HASKELL__
-import qualified GHC.Base
-#if __GLASGOW_HASKELL__ >= 900
-import qualified GHC.Exts
-#endif
-#else
--- HUGS
-import qualified IOExts
-#endif
-
 import Prelude ((+),(-),(/))
 import qualified Prelude as P
 import MixedTypesNumPrelude (ifThenElse)
@@ -27,6 +17,16 @@ import qualified MixedTypesNumPrelude as MNP
 import qualified Math.NumberTheory.Logarithms as Logs
 import qualified AERN2.Real as AERN2
 import qualified AERN2.Continuity.Principles as AERN2Principles
+
+#ifdef __GLASGOW_HASKELL__
+import qualified GHC.Base
+#if __GLASGOW_HASKELL__ >= 900
+import qualified GHC.Exts
+#endif
+#else
+-- HUGS
+import qualified IOExts
+#endif
 
 #ifdef __GLASGOW_HASKELL__
 type Any = GHC.Base.Any
@@ -80,7 +80,7 @@ map :: (a1 -> a2) -> (([]) a1) -> ([]) a2
 map f l =
   case l of {
    ([]) -> ([]);
-   (:) a t -> (:) (f a) (map f t)}
+   (:) a l0 -> (:) (f a) (map f l0)}
 
 real_0 :: AERN2.CReal
 real_0 = 0
@@ -202,7 +202,8 @@ tn_ball n k j =
     ((P.*) (nreal ((Prelude.+) ((Prelude.*) n2 k) n1))
       (prec (Prelude.succ n)))
     ((P.*) (nreal ((Prelude.+) ((Prelude.*) n2 j) n1))
-      (prec (Prelude.succ n))) (prec (Prelude.succ n))
+      (prec (Prelude.succ n)))
+    (prec (Prelude.succ n))
 
 tn_col :: Prelude.Integer -> Prelude.Integer -> Prelude.Integer -> (([])
           Ball) -> ([]) Ball
@@ -235,7 +236,8 @@ sierpinski_approx_tbounded n =
         (tbounded_translation n2 (make_euclidean2 (prec n1) real_0)
           (tbounded_scale_down n2 n1 iHn)))
       (tbounded_translation n2 (make_euclidean2 real_0 (prec n1))
-        (tbounded_scale_down n2 n1 iHn))) n
+        (tbounded_scale_down n2 n1 iHn)))
+    n
 
 tbounded_sierpinski :: Totally_bounded
 tbounded_sierpinski =

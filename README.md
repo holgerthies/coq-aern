@@ -15,20 +15,22 @@ Coq formalization of constructive reals for exact real computation and code extr
 
 ## 1. Installation instructions
 
-Our formalization is implemented in the [Coq proof assistant](https://coq.inria.fr/).
-You should have Coq installed and running, with the option to install further packages via `opam`.
-We tested our code with Coq version 8.18.0 [installed via opam](https://coq.inria.fr/opam-using.html).
+Our formalization is implemented in the [Rocq prover](https://rocq-prover.org/) (formerly Coq).
+You should have Rocq installed and running, with the option to install further packages via `opam`.
+We tested our code with Rocq version 9.1.1 [installed via opam](https://rocq-prover.org/docs/using-opam).
 
 To build the code you can just clone this repository, install the below packages, and run `make` in the `formalization` subfolder.
 
 Most of the implementation does not have any additional dependencies.
 The only exception is the file `sqrt.v` which uses some libraries for classical analysis.
 
-To execute `sqrt.v` you additionally need to install the following Coq packages:
+To execute `sqrt.v` you additionally need to install the following packages.
+They are distributed through the released Rocq package repository, which you can add with
+`opam repo add rocq-released https://rocq-prover.org/opam/released`:
 
-- [Coquelicot 3.4.2](http://coquelicot.saclay.inria.fr/)
-- [mathcomp-ssreflect 1.19.0](https://math-comp.github.io/)
-- [interval 4.11.0](http://coq-interval.gforge.inria.fr/)
+- [Coquelicot 3.4.4](http://coquelicot.saclay.inria.fr/) (`coq-coquelicot`)
+- [mathcomp-ssreflect 2.5.0](https://math-comp.github.io/) (`coq-mathcomp-ssreflect`)
+- [interval 4.11.4](http://coq-interval.gforge.inria.fr/) (`coq-interval`)
 
 These libraries can be installed e.g. using `opam install`.
 
@@ -38,7 +40,7 @@ Code extraction is defined in the following file:
 
 - `Extract.v`
 
-After processing this file, Coq produces Haskell files, one for each example.  The files need minor mechanical post-processing described below.  The extracted post-processed compilable code is also readily available in folder [extracted-examples/src](extracted-examples/src).
+After processing this file, Rocq produces Haskell files, one for each example.  The files need minor mechanical post-processing described below.  The extracted post-processed compilable code is also readily available in folder [extracted-examples/src](extracted-examples/src).
 For example, the extracted version of `real_max` is in file `Max.hs`.
 
 ### 2.1. Post-processing

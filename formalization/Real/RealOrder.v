@@ -766,7 +766,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
   Proof.
     intros n p.
     induction n.
-    contradict p; exact (gt_irrefl 0).
+    contradict p; exact (Nat.lt_irrefl 0).
     assert (S n = 1+n)%nat as q; intuition.
     rewrite q.
     rewrite (Nreal_hom 1%nat n).
@@ -776,7 +776,7 @@ Context {types : RealTypes} { casofReal : ComplArchiSemiDecOrderedField_Real typ
     rewrite real_plus_comm, real_plus_unit, real_plus_comm,  real_plus_unit.
     auto with real.
 
-    pose proof (IHn (gt_Sn_O n)).
+    pose proof (IHn (Nat.lt_0_succ n)).
     pose proof (real_lt_lt_plus_lt real_0 real_1 real_0 (Nreal (S n)) gtg H) as H1.
     rewrite real_plus_unit in H1.
     

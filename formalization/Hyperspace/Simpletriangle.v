@@ -211,7 +211,7 @@ Section SimpleTriangle.
       left.
       reflexivity.
    - intros l j' P.
-     destruct (le_lt_or_eq _ _ P).
+     destruct (proj1 (Nat.le_lteq _ _) P).
      apply IH.
      lia.
      rewrite H.
@@ -234,7 +234,7 @@ Section SimpleTriangle.
        unfold n1,n2.
        lia.
      - intros.
-       destruct (le_lt_or_eq _ _ H).
+       destruct (proj1 (Nat.le_lteq _ _) H).
        apply IH; try lia.
        rewrite H1.
        simpl.
@@ -339,7 +339,7 @@ Section SimpleTriangle.
       apply H0.
       lia.
    - destruct n; [lia |].
-     apply lt_n_S.
+     apply (proj1 (Nat.succ_lt_mono _ _)).
      simpl in H.
      rewrite !(real_plus_comm real_1) in H.
      apply real_lt_add_r in H.    
@@ -451,7 +451,7 @@ Section SimpleTriangle.
    destruct n. simpl. lia. simpl in IHn.
    replace (Npow2 (S n)) with (2 * (Npow2 n))%nat. lia.
    simpl. lia.
-   apply lt_n_Sm_le.
+   apply (proj1 (Nat.lt_succ_r _ _)).
    apply Nreal_nat_lt.
    rewrite !Nreal_hom.
    simpl;ring_simplify.
@@ -463,7 +463,7 @@ Section SimpleTriangle.
    apply real_le_mult_pos_le.
    left; apply Nreal_Npow2_pos.
    exact B2.
-   apply lt_n_Sm_le.
+   apply (proj1 (Nat.lt_succ_r _ _)).
    apply Nreal_nat_lt.
    rewrite !Nreal_hom.
    simpl;ring_simplify.
@@ -474,7 +474,7 @@ Section SimpleTriangle.
    apply real_le_mult_pos_le.
    left; apply Nreal_Npow2_pos.
    exact B1.
-   apply lt_n_Sm_le.
+   apply (proj1 (Nat.lt_succ_r _ _)).
    apply Nreal_nat_lt.
    rewrite !Nreal_hom.
    simpl;ring_simplify.
