@@ -12,6 +12,7 @@ Coq formalization of constructive reals for exact real computation and code extr
   - [3.2. ODE solver example](#32-ode-solver-example)
   - [3.3. Compiling benchmark executable](#33-compiling-benchmark-executable)
 - [4. Benchmark measurements](#4-benchmark-measurements)
+- [5. Fractal examples: measuring and drawing](#5-fractal-examples-measuring-and-drawing)
 
 ## 1. Installation instructions
 
@@ -125,3 +126,25 @@ $ bash bench/runBench.sh my_all.csv
 /usr/bin/time -v coq-aern-extracted-bench realmaxE 1000000 (running and logging in logs/realmax/run-realmax-1000000-E.log)
 ...
 ```
+
+## 5. Fractal examples: measuring and drawing
+
+Two Python scripts in [extracted-examples](extracted-examples) drive the extracted Sierpinski-triangle covers (`STRn`, `STEn`, `STE4n`, `STRLim`, and the triangle `Tn`). They build the `eval-fractals` executable via the same Haskell setup as Section 3; drawing additionally needs Python's [Pillow](https://python-pillow.github.io/).
+
+- **Measure** runtime vs. accuracy `n` (cover within Hausdorff distance `2^-n`):
+
+  ```Text
+  python3 evaluate_fractals.py
+  ```
+
+  For each example and each precision it increases `n` until a single run exceeds `--timeout`, then moves on. Results (number of balls, wall-clock time) are written to `fractal_eval.csv`, one row per `(example, coord_bits, n)`. Options: `--prec 53 106` (center precision in bits, one/two doubles), `--timeout 300`, `--max-n`.
+
+- **Draw** the covers to image files:
+
+  ```Text
+  python3 draw_fractals.py            # batch: STRn STEn STE4n at n = 0,2,5,10
+  python3 draw_fractals.py STRn 5     # a single figure
+  ```
+
+  Each cover is rendered as gray squares (true ball size) and saved as PNG and PDF under [extracted-examples/gallery/img](extracted-examples/gallery/img). Options: `--size`, `--gray`, `--margin`, `--show` (open the result).
+

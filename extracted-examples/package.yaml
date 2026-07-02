@@ -31,6 +31,17 @@ library:
   ghc-options:
   - -O2 -Wall -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-unused-imports -fno-warn-name-shadowing
 
+executables:
+  eval-fractals:
+    main:        EvalFractals.hs
+    source-dirs: eval
+    ghc-options:
+    - -O2
+    dependencies:
+    - coq-aern-extracted
+    - deepseq
+    - time
+
 # benchmarks:
 #   coq-aern-extracted-bench:
 #     main:                bench.hs
