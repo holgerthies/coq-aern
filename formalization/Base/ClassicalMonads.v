@@ -45,7 +45,7 @@ Section NonemptyPowersetMonad.
     rewrite H0.
     rewrite H1.
     auto.
-  Defined.
+  Qed.
 
   
 
@@ -67,7 +67,7 @@ Section NonemptyPowersetMonad.
     destruct H.
     destruct H.
     rewrite H0; auto.
-  Defined.
+  Qed.
   
   
 
@@ -115,7 +115,7 @@ Section NonemptyPowersetMonad.
     intro.
     rewrite H.
     exists x; auto.
-  Defined.
+  Qed.
   
   Definition NPset_mult_ntrans : forall A B (f : A -> B) x, NPset_mult B ((NPset_fun_map (NPset A) (NPset B) (NPset_fun_map A B f)) x) = (NPset_fun_map A B f) (NPset_mult A x).
   Proof.
@@ -162,7 +162,7 @@ Section NonemptyPowersetMonad.
     destruct x2.
     simpl.
     exists x1; auto.
-  Defined.
+  Qed.
   
   (* coherence conditions *)
   Definition NPset_coh1 : forall A x, NPset_mult A (NPset_unit (NPset A) x) = x.
@@ -187,7 +187,7 @@ Section NonemptyPowersetMonad.
     split.
     apply sigma_eqP2; auto.
     auto.
-  Defined.
+  Qed.
   
   Definition NPset_coh2 : forall A x, NPset_mult A (NPset_fun_map A (NPset A) (NPset_unit A)  x) = x.
   Proof.
@@ -215,7 +215,7 @@ Section NonemptyPowersetMonad.
     split; auto.
     simpl.
     auto.
-  Defined.
+  Qed.
   
   Definition NPset_coh3 : forall A x, NPset_mult A (NPset_mult (NPset A) x) = NPset_mult A (NPset_fun_map (NPset (NPset A)) (NPset A) (NPset_mult A) x).
   Proof.
@@ -274,7 +274,7 @@ Section NonemptyPowersetMonad.
     split; auto.
     destruct H0; auto.
     destruct H0; auto.
-  Defined.
+  Qed.
 
   (* classical nonempty powerest monad *)
 
@@ -539,7 +539,7 @@ Section NablaMonad.
     apply (lp _ _ (fun g => g x3)) in H5.
     assert (x3 = x4) by (rewrite <- H5; auto).
     rewrite H6; auto.
-  Defined.
+  Qed.
   
 
   (* coherence conditions *)
@@ -567,7 +567,7 @@ Section NablaMonad.
     rewrite <- (H2 _ H).
     rewrite <- (H2 _ H0).
     auto.
-  Defined.
+  Qed.
 
 
   
@@ -589,7 +589,7 @@ Section NablaMonad.
     intro.
     exists x0.
     split; auto.
-  Defined.
+  Qed.
 
   Lemma nabla_eq_at : forall A (a b : Nabla A), projP1 _  _ a = projP1 _ _ b -> a = b.
   Proof.
@@ -776,7 +776,7 @@ Section NablaMonad.
     apply (lp _ _ (fun l => l x1)) in H5.
     rewrite <- H5.
     auto.
-  Defined.
+  Qed.
 
   Definition Nabla_coh3 : forall A x, Nabla_mult A (Nabla_mult (Nabla A) x) = Nabla_mult A (Nabla_fun_map (Nabla (Nabla A)) (Nabla A) (Nabla_mult A) x).
   Proof.
@@ -806,7 +806,7 @@ Section NablaMonad.
     assert ((Nabla_unit (Nabla A) (Nabla_mult A x1)) = x1).
     apply (proj2   (Nabla_unit_mult_inverse A)).
     rewrite H1; auto.
-  Defined.
+  Qed.
   
 
   Lemma test : forall P : Prop, Nabla P -> P.
@@ -838,7 +838,7 @@ Section NablaMonad.
     destruct u; auto.
     destruct u.
     induction (H1 _ H); auto.
-  Defined.
+  Qed.
 
   #[global] Instance Nabla_Monad : Monad Nabla := {
       Monad_fun_map := Nabla_fun_map;
@@ -982,7 +982,7 @@ Section SomeMoreNabla.
     rewrite H; auto.
     apply (sigma_eqP (X -> Prop)  (fun P : X -> Prop => exists ! a : X, P a) _ _  (ex_intro (unique (fun a : X => x a)) x0 u) (ex_intro (unique (fun a : X => a = x0)) x0 (conj eq_refl (fun (x' : X) (H0 : x' = x0) => eq_ind x' (fun X0 : X => X0 = x') eq_refl x0 H0))) H).
     apply irrl.
-  Defined.
+  Qed.
   
   
   
@@ -994,7 +994,7 @@ Section SomeMoreNabla.
     apply (lp _ _  (fun f => f x)) in H.
     induction H.
     apply eq_refl.
-  Defined.
+  Qed.
 
 
 End SomeMoreNabla.
@@ -1023,7 +1023,7 @@ Section NablaIsClassical.
     intros.
     destruct (lem P); auto.
     contradict (H H0).
-  Defined.
+  Qed.
   
   Lemma hprop_Nabla_hprop : forall P, is_hprop P -> is_hprop (Nabla P).
   Proof.
@@ -1048,13 +1048,13 @@ Section NablaIsClassical.
     apply irrl.
     destruct H0.
     auto.
-  Defined.
+  Qed.
   
   Lemma False_hprop : is_hprop False.
   Proof.
     intros x y.
     contradict x.
-  Defined.
+  Qed.
 
   Definition dn_lift {A B} (f : A -> B) : neg (neg A) -> neg (neg B).
   Proof.
@@ -1062,14 +1062,14 @@ Section NablaIsClassical.
     
     intro.
     exact (H (fun a : A => H0 (f a))).
-  Defined.
+  Qed.
 
   Definition dn_unit {A} : A -> neg (neg A).
   Proof.
     intros.
     intro.
     exact (H X).
-  Defined.
+  Qed.
 
   Definition Propize A := exists x : A, True.
 
@@ -1078,7 +1078,7 @@ Section NablaIsClassical.
   Proof.
     intro.
     exists X; auto.
-  Defined.   
+  Qed.   
   
   Definition dn A := neg (neg A).
 
@@ -1095,7 +1095,7 @@ Section NablaIsClassical.
     contradict H1.
     exists X; auto.
     contradict H2.
-  Defined.
+  Qed.
   
   Definition Propize_to_dn (P : Type) : is_hprop P -> Propize P -> dn P.
   Proof.
@@ -1103,7 +1103,7 @@ Section NablaIsClassical.
     destruct H0.
     intro.
     exact (H1 x).    
-  Defined.
+  Qed.
 
   Definition Nabla_to_Propize (P : Type) : is_hprop P -> Nabla P -> Propize P.
   Proof.
@@ -1113,7 +1113,7 @@ Section NablaIsClassical.
     intro.
     exists X0; auto.
     exact X.
-  Defined.
+  Qed.
 
   Definition Propize_to_Nabla (P : Type) : is_hprop P -> Propize P -> Nabla P .
   Proof.
@@ -1122,7 +1122,7 @@ Section NablaIsClassical.
     destruct H0.
     exists x.
     split; auto.
-  Defined. 
+  Qed. 
   
   Lemma Propize_to_dn_is_equiv P (h : is_hprop P) : is_equiv (Propize_to_dn P h).
   Proof.
@@ -1134,7 +1134,7 @@ Section NablaIsClassical.
     apply fun_ext.
     intro.
     apply irrl.
-  Defined.
+  Qed.
 
     
   Lemma Propize_to_Nabla_is_equiv P (h : is_hprop P) : is_equiv (Propize_to_Nabla P h).
@@ -1147,7 +1147,7 @@ Section NablaIsClassical.
     apply fun_ext.
     intro.
     apply (hprop_Nabla_hprop _ h). 
-  Defined.
+  Qed.
    
   Lemma dn_hprop : forall P, is_hprop (neg (neg P)).
   Proof.
@@ -1156,7 +1156,7 @@ Section NablaIsClassical.
     apply fun_ext.
     intros.
     apply False_hprop.
-  Defined.
+  Qed.
   
   
   Definition Nabla_dn_precompose : forall P A, is_hprop P -> (neg (neg P) -> Nabla A) -> P -> Nabla A
@@ -1200,7 +1200,7 @@ Section NablaIsClassical.
     rewrite Nabla_unit_ntrans.
     rewrite Nabla_coh1.
     apply eq_refl.
-  Defined.
+  Qed.
   
   Lemma Nabla_dn_sheaf_2 : forall P A h x, 
       Nabla_dn_extend P A h (Nabla_dn_precompose P A h x) = x.
@@ -1231,7 +1231,7 @@ Section NablaIsClassical.
     rewrite Nabla_unit_ntrans.
     rewrite Nabla_coh1.
     apply eq_refl.
-  Defined.
+  Qed.
   
   Lemma dn_lem : forall A, neg (neg (A + neg A)).
   Proof.
@@ -1245,7 +1245,7 @@ Section NablaIsClassical.
     assert (A + neg A).
     right; auto.
     exact (p X).
-  Defined.     
+  Qed.     
 
   Definition Nabla_hprop_lem {A} : forall P, is_hprop P -> ((P + neg P) -> Nabla A) -> Nabla A.
   Proof.
@@ -1274,7 +1274,7 @@ Section NablaIsClassical.
     unfold Nabla_dn_precompose in H.
     apply (lp _ _ (fun f => f t)) in H.  
     exact H.
-  Defined.
+  Qed.
 
   Definition Nabla_hprop_lem_reduce A P (h : is_hprop P) :
     forall (f : ((P + neg P) -> Nabla A)) t,
@@ -1304,7 +1304,7 @@ Section NablaIsClassical.
     auto.
     auto.
     auto.
-  Defined.
+  Qed.
     
   Definition Nabla_Prop_lem {A} : forall P : Prop, ((P + ~ P) -> Nabla A) -> Nabla A.
   Proof.
@@ -1314,6 +1314,6 @@ Section NablaIsClassical.
     apply irrl.
     apply Nabla_hprop_lem.
     exact H.
-  Defined.
+  Qed.
   
 End NablaIsClassical.

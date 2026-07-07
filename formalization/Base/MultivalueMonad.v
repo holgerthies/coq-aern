@@ -70,7 +70,7 @@ Proof.
   apply sigma_eqP_pr1 in H.
   apply (lp _ _ (fun g => g x)) in H.
   rewrite <- H; auto.
-Defined.
+Qed.
 
 Lemma Nabla_unit_is_mono : forall A, is_mono (Monad_unit A : A -> Nabla A).
 Proof.
@@ -79,7 +79,7 @@ Proof.
   apply sigma_eqP_pr1 in H.
   apply (lp _ _ (fun g => g x)) in H.
   rewrite <- H; auto.
-Defined.
+Qed.
 
 Section M_Defs.
 
@@ -191,14 +191,14 @@ Proof.
   rewrite H1 in H2.
   apply NPset_unit_is_mono in H2.
   exact H2.
-Defined.  
+Qed.  
 
 
 Lemma M_fun_picture : forall {A B} (f : A -> B), NPset A -> NPset B.
 Proof.
   intros A B f.
   exact (Monad_fun_map _ _ f).
-Defined.
+Qed.
 
 Lemma M_fun_cont : forall {A B} (f : A -> B) X b , M_picture_1 (M_lift _ _ f X) b = exists a, (M_picture_1 X) a /\ b = f a  .
 Proof.
@@ -226,7 +226,7 @@ Proof.
   exists x.
   simpl in H.
   auto.
-Defined.
+Qed.
 
 Lemma M_fun_cont_r : forall {A B} (f : A -> B), forall X x, M_picture_1 X x -> M_picture_1 (M_lift _ _ f X) (f x).
 Proof.
@@ -246,7 +246,7 @@ Proof.
   simpl in H.
   simpl.
   exists x; auto.
-Defined.
+Qed.
 
 Lemma M_fun_cont_r_inv : forall {A B} (f : A -> B), forall X y, M_picture_1 (Monad_fun_map _ _ f X) y -> exists x, M_picture_1 X x /\ y = f x.
 Proof.
@@ -268,7 +268,7 @@ Proof.
   destruct H.
   exists x0.
   simpl; auto.
-Defined.
+Qed.
 
 Definition M_hprop_elim_f : forall A, is_hprop A -> ^M A -> A.
 Proof.
@@ -290,13 +290,13 @@ Proof.
   apply (lp _ _ (fun k => k a)) in H1.
   rewrite (H (x a) (tt)) in H1.
   auto.
-Defined.
+Qed.
 
 (* M unit is subsingleton, of course. *)
 Lemma M_singleton_is_hprop : is_hprop (^M unit).
 Proof.
   intros x y; rewrite (M_preserves_singleton x), (M_preserves_singleton y); exact eq_refl.
-Defined.
+Qed.
 
 (* lifting of a constant function is constant. This is because unit is preserved by M. *)  
 Lemma Monad_fun_map_const_is_const : forall {A B} b, Monad_fun_map A B (fun _  => b) = fun _ => M_unit _ b.
@@ -314,7 +314,7 @@ Proof.
   fold M_lift.
   rewrite H1.
   auto.
-Defined.
+Qed.
 
 Definition M_projP1 : forall A (P : A -> Prop), ^M {x : A | P x} -> ^M A.
 Proof.
@@ -452,7 +452,7 @@ Proof.
   exact eq_refl.
   rewrite H0, Monad_coh1.
   exact eq_refl.
-Defined.
+Qed.
 
 (* when we have two kleeneans that at least one of are True classically, 
    we can nondeterministically decide which holds. *)
@@ -501,7 +501,7 @@ Proof.
   induction (n p0).
   induction (irrl _ n n0); auto.
   exact X.
-Defined.
+Qed.
 
 Definition M_extension : forall A B, ^M (A -> B) -> (^M A -> ^M B).
 Proof.
@@ -533,7 +533,7 @@ Proof.
   destruct p as [H | H].
   left; apply proj2 in e1; apply e1, H.
   right; apply proj2 in e2; apply e2, H.
-Defined.
+Qed.
 
 Lemma semidec_and P Q : semidec P -> semidec Q -> semidec (P /\ Q).
 Proof.
@@ -554,7 +554,7 @@ Proof.
   split.
   apply proj2 in e1; apply e1, H.
   apply proj2 in e2; apply e2, H1.
-Defined.
+Qed.
 
 Notation "[ x | P ]" := (M {x | P}) : type_scope.
 Notation "[ x : T | P ]" := (M {x : T | P}) : type_scope.
@@ -607,7 +607,7 @@ Proof.
   contradict H0; auto.
   intro.
   contradict (H H0).
-Defined.
+Qed.
   
 Lemma Mand_is_retract : forall P : Prop, Mand (Monad_unit _ P) = P.
 Proof.
@@ -625,7 +625,7 @@ Proof.
   assert False by (rewrite H1; auto).
   contradict H2.
   rewrite e in H0; contradict H0.
-Defined.
+Qed.
 
 Definition M_all {A} (P : A -> Prop) : M A -> Prop := fun X => Mand (Monad_fun_map _ _ P X).
 Definition M_some {A} (P : A -> Prop) : M A -> Prop := fun X => Mor (Monad_fun_map _ _ P X).
@@ -644,7 +644,7 @@ Proof.
   destruct X, Y.
   apply (sigma_eqP A P _ _ _ _  H).
   apply irrl.
-Defined.
+Qed.
 
 Definition M_ext : forall A (X Y : M A), (M_picture_1 X = M_picture_1 Y) -> X = Y.
 Proof.
@@ -691,7 +691,7 @@ Proof.
   rewrite H0 in H.
   simpl in H.
   rewrite H; auto.
-Defined.
+Qed.
 
 Lemma M_picture_1_intro : forall A a b, a = b -> M_picture_1 (Monad_unit A a) b.
 Proof.
@@ -704,7 +704,7 @@ Proof.
   rewrite H0.
   simpl.
   auto.
-Defined.
+Qed.
 
 Lemma M_in_picture_1 : forall {A} (a : A) (X : M A), M_in a X = M_picture_1 X a.
 Proof.
@@ -764,7 +764,7 @@ Proof.
   rewrite <- H1 in H2.
   apply M_picture_1_destruct in H2.
   rewrite H2; auto.
-Defined.
+Qed.
 
     
 Lemma M_all_picture_1 : forall A (P : A -> Prop) (X : M A), M_all P X = forall a, M_picture_1 X a -> P a.
@@ -808,7 +808,7 @@ Proof.
   split; auto.
   pose proof (H _ p).
   apply Prop_ext; intro; auto.
-Defined.
+Qed.
 
 Lemma classical_tautology_neg_and : forall P Q, (~(P /\ Q)) = ((~ P) \/ (~ Q)).
 Proof.
@@ -826,7 +826,7 @@ Proof.
   destruct H; auto.
   contradict H.
   destruct H; auto.
-Defined.
+Qed.
 
 Lemma classical_tautology_neg_or : forall P Q, (~(P \/ Q)) = ((~ P) /\ (~ Q)).
 Proof.
@@ -844,7 +844,7 @@ Proof.
   destruct H1.
   contradiction (H H1).
   contradiction (H0 H1).
-Defined.
+Qed.
 
 Lemma classical_tautology_dneg : forall P : Prop, (~ ~ P) = P.
 Proof.
@@ -855,7 +855,7 @@ Proof.
   contradiction (H H0).
   intro.
   auto.
-Defined.
+Qed.
 
 Lemma classical_tautology_contra : forall P Q : Prop, (P -> Q) = ((~ Q) -> (~ P)).
 Proof.
@@ -866,7 +866,7 @@ Proof.
   intros.
   destruct (lem (Q)); auto.
   contradiction (H H1 H0).
-Defined.
+Qed.
 
 
 Lemma classical_tautology_neg_all : forall A (P : A -> Prop), (~ (forall x : A, P x)) = (exists x : A, ~ P x).
@@ -883,7 +883,7 @@ Proof.
   destruct H.
   intro.
   contradiction (H (H0 x)).  
-Defined.
+Qed.
 
 Lemma classical_tautology_neg_some : forall A (P : A -> Prop), (~ (exists x : A, P x)) = (forall x : A, ~ P x).
 Proof.
@@ -899,20 +899,20 @@ Proof.
   intro.
   destruct H0.  
   contradiction ((H x) H0).  
-Defined.
+Qed.
 
 Lemma classical_tautology_False : forall P : Prop, (~ P) -> P = False.
 Proof.
   intros.
   apply Prop_ext; intro; auto.
   contradiction H0.
-Defined.
+Qed.
 
 Lemma classical_tautology_True : forall P : Prop, P -> P = True.
 Proof.
   intros.
   apply Prop_ext; intro; auto.
-Defined.  
+Qed.  
   
 Lemma M_some_picture_1 : forall A (P : A -> Prop) (X : M A), M_some P X = exists a, M_picture_1 X a /\ P a.
 Proof.
@@ -966,7 +966,7 @@ Proof.
   rewrite <- H1 in H2.
   apply M_picture_1_destruct in H2.
   rewrite H2; auto.
-Defined.
+Qed.
 
 
     
@@ -1014,7 +1014,7 @@ Proof.
   rewrite m in H.
   apply M_picture_1_destruct in H.
   rewrite <- H; auto.
-Defined.
+Qed.
 
 Definition M_all_destruct : forall {A} {P : A -> Prop} {X x}, M_all P X -> M_in x X -> P x.
 Proof.

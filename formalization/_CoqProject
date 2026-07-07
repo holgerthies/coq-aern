@@ -26,14 +26,15 @@ Analysis/RealSubsets.v
 Analysis/MultiLimit.v
 Analysis/Testsearch.v
 
+Relator/Relator.v
+Relator/RealCoqReal.v
+Relator/RealHelpers.v
+
+# RealEquivalent.v
 Analysis/Rounding.v
 Analysis/Magnitude.v
 Analysis/Sqrt.v
 
-Relator/Relator.v
-Relator/RealCoqReal.v
-Relator/RealHelpers.v
-# RealEquivalent.v
 
 
 Hyperspace/Dyadic.v
