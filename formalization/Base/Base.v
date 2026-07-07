@@ -1,13 +1,29 @@
+Require Import Classical_Prop.
+Require Import PropExtensionality.
+Require Import FunctionalExtensionality.
+Require Import Coq.Logic.ChoiceFacts.
+
 (* Extensionality Axioms for our type theory *)
-Axiom lem : forall P : Prop, P \/ ~P.
-Axiom Prop_ext : forall P Q : Prop, (P -> Q) -> (Q -> P) -> P = Q.
-Axiom dfun_ext : forall A (P : A -> Type) (f g: forall a : A, P a), (forall x, f x = g x) -> f = g.
-Axiom countable_choice : forall A (P : nat -> A -> Prop), (forall n, exists x, P n x) -> exists f : nat -> A , forall n, P n (f n).
-Axiom dependent_choice : forall A (R : A -> A -> Prop),
-    (forall x, exists y, R x y) -> forall x0,
-      (exists f : nat -> A, f 0 = x0 /\ forall n, R (f n) (f (S n))).
+Definition lem := classic.
+(* Axiom lem : forall P : Prop, P \/ ~P. *)
+Lemma Prop_ext : forall P Q : Prop, (P -> Q) -> (Q -> P) -> P = Q.
+Proof.
+  intros P Q H1 H2.
+  apply propositional_extensionality;split;auto.
+Qed.
 
-
+Definition dfun_ext := @functional_extensionality_dep.
+(* Axiom dfun_ext : forall A (P : A -> Type) (f g: forall a : A, P a), (forall x, f x = g x) -> f = g. *)
+Axiom dependent_choice : FunctionalDependentChoice.
+(* Axiom dependent_choice : forall A (R : A -> A -> Prop), *)
+(*     (forall x, exists y, R x y) -> forall x0, *)
+(*       (exists f : nat -> A, f 0 = x0 /\ forall n, R (f n) (f (S n))). *)
+Lemma countable_choice : forall A (P : nat -> A -> Prop), (forall n, exists x, P n x) -> exists f : nat -> A , forall n, P n (f n).
+Proof.
+  intros.
+  apply functional_dependent_choice_imp_functional_countable_choice;auto.
+  apply dependent_choice.
+Qed.
 
 Record RealTypes : Type := mkRealTypes
 {
@@ -24,7 +40,7 @@ Proof.
   intros.
   apply dfun_ext.
   exact H.
-Defined.
+Qed.
 
 Definition isSubsingleton := fun P : Type => forall x y : P, x = y.
 Definition is_hprop (A : Type) := forall x y : A, x = y.
@@ -37,7 +53,7 @@ Proof.
   apply fun_ext.
   intros.
   apply H.
-Defined.
+Qed.
 
   
 Definition classic : Type -> Prop := fun A => exists x : A, True.
@@ -49,7 +65,7 @@ Lemma irrl : forall P : Prop, forall x y : P, x = y.
 Proof.
   intros P x.
   assert (P = True).
-  apply Prop_ext; intro; auto.
+  apply Prop_ext;intro;  auto.
   
   induction (eq_sym H).
   destruct x.
@@ -92,7 +108,7 @@ Proof.
 
   destruct e.
   exact eq_refl.
-Defined.
+Qed.
 
 (* path of sigma types *)
 Lemma sigma_eqP : forall (A : Type) (P : A -> Prop) (x y : A) (a : P x) (b : P y), forall e : x = y,
@@ -105,7 +121,7 @@ Proof.
 
   destruct e.
   exact eq_refl.
-Defined.
+Qed.
 
 
 Definition sigma_eqT_pr1 : forall A P (a c : A) b d, existT P a b = existT P c d -> a = c.
@@ -145,7 +161,7 @@ Proof.
   intros.
   apply (sigma_eqP A P x y a b H).
   apply irrl.
-Defined.
+Qed.
 
 (* Use the following instead of direct integers to get integer literals when extracting code *)
 
