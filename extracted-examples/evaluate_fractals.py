@@ -78,10 +78,23 @@ def main():
         for ex in EXAMPLES:
             for n in range(1, args.max_n + 1):
                 try:
-                    out = subprocess.run([binpath, ex, str(n), str(prec)],
-                                         capture_output=True, text=True, timeout=args.timeout)
-                    parts = out.stdout.strip().split(",")
-                    nballs, secs = int(parts[3]), float(parts[4])
+                    times = []
+                    nballs = None
+
+                    for _ in range(3):
+                        out = subprocess.run(
+                            [binpath, ex, str(n), str(prec)],
+                            capture_output=True,
+                            text=True,
+                            timeout=args.timeout,
+                        )
+                        parts = out.stdout.strip().split(",")
+                        if nballs is None:
+                            nballs = int(parts[3])
+                        times.append(float(parts[4]))
+
+                    secs = sum(times) / len(times)
+
                     print(f"  {ex:7} n={n:<2} (err<=2^-{n})  balls={nballs:<9} time={secs:9.4f}s", flush=True)
                     rows.append((ex, prec, n, nballs, secs))
                 except subprocess.TimeoutExpired:

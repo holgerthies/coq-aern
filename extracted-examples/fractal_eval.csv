@@ -1,142 +1,91 @@
 example,description,kind,basis,coord_bits,accuracy_n,num_balls,time_seconds
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,1,1,0.000019
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,2,3,0.000060
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,3,10,0.000206
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,4,36,0.000742
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,5,136,0.006442
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,6,528,0.013090
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,7,2080,0.058232
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,8,8256,0.199874
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,9,32896,0.990691
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,10,131328,3.981298
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,11,524800,18.798284
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,12,2098176,63.151656
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,13,,
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,1,3,0.000043
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,2,9,0.000162
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,3,27,0.000422
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,4,81,0.001383
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,5,243,0.004538
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,6,729,0.011530
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,7,2187,0.031860
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,8,6561,0.095783
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,9,19683,0.297175
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,10,59049,0.925691
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,11,177147,2.709558
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,12,531441,8.326619
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,13,1594323,24.857817
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,14,4782969,77.219568
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,15,14348907,226.802791
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,16,,
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,1,3,0.000052
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,2,9,0.000181
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,3,27,0.000715
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,4,81,0.002027
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,5,243,0.006645
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,6,729,0.016024
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,7,2187,0.045755
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,8,6561,0.138548
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,9,19683,0.415655
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,10,59049,1.241192
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,11,177147,3.744845
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,12,531441,11.160194
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,13,1594323,33.858058
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,14,4782969,101.382688
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,15,,
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,1,4,0.000081
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,2,16,0.000399
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,3,64,0.001624
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,4,256,0.006490
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,5,1024,0.023493
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,6,4096,0.092314
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,7,16384,0.383494
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,8,65536,1.529135
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,9,262144,6.215677
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,10,1048576,24.898336
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,11,4194304,103.273745
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,12,,
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,1,3,0.000055
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,2,9,0.000203
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,3,27,0.000765
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,4,81,0.002572
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,5,243,0.009204
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,6,729,0.028595
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,7,2187,0.094988
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,8,6561,0.299689
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,9,19683,1.006478
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,10,59049,3.218009
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,11,177147,10.614268
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,12,531441,32.260248
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,13,1594323,107.240365
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,14,,
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,1,1,0.000018
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,2,3,0.000061
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,3,10,0.000228
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,4,36,0.000813
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,5,136,0.004064
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,6,528,0.014859
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,7,2080,0.068065
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,8,8256,0.231253
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,9,32896,1.153985
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,10,131328,4.722386
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,11,524800,21.876806
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,12,2098176,77.223445
-Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,13,,
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,1,3,0.000050
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,2,9,0.000154
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,3,27,0.000483
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,4,81,0.001519
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,5,243,0.004744
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,6,729,0.013045
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,7,2187,0.038448
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,8,6561,0.118343
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,9,19683,0.354566
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,10,59049,1.120985
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,11,177147,3.221264
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,12,531441,10.026116
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,13,1594323,29.769324
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,14,4782969,83.066640
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,15,14348907,220.386239
-STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,16,,
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,1,3,0.000052
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,2,9,0.000183
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,3,27,0.000625
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,4,81,0.001915
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,5,243,0.006314
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,6,729,0.016493
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,7,2187,0.045219
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,8,6561,0.134090
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,9,19683,0.409879
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,10,59049,1.229997
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,11,177147,3.771813
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,12,531441,11.139049
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,13,1594323,34.453901
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,14,4782969,103.200757
-STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,15,,
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,1,4,0.000070
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,2,16,0.000333
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,3,64,0.001546
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,4,256,0.007003
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,5,1024,0.020372
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,6,4096,0.082460
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,7,16384,0.344332
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,8,65536,1.378223
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,9,262144,5.566519
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,10,1048576,22.419569
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,11,4194304,90.944703
-STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,12,,
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,1,3,0.000049
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,2,9,0.000179
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,3,27,0.000661
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,4,81,0.002096
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,5,243,0.008210
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,6,729,0.024331
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,7,2187,0.077306
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,8,6561,0.242719
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,9,19683,0.812736
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,10,59049,2.636032
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,11,177147,8.645711
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,12,531441,26.738120
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,13,1594323,87.485597
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,14,4782969,277.347072
-STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,15,,
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,1,1,0.000017
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,2,3,0.000058
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,3,10,0.000191
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,4,36,0.000679
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,5,136,0.004547
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,6,528,0.012599
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,7,2080,0.057164
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,8,8256,0.197974
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",53,9,32896,0.960234
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,1,3,0.000042
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,2,9,0.000138
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,3,27,0.000443
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,4,81,0.001430
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,5,243,0.004067
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,6,729,0.011134
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,7,2187,0.032171
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,8,6561,0.097749
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",53,9,19683,0.294143
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,1,3,0.000048
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,2,9,0.000175
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,3,27,0.000544
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,4,81,0.001696
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,5,243,0.005507
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,6,729,0.014997
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,7,2187,0.044733
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,8,6561,0.133397
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",53,9,19683,0.407125
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,1,4,0.000068
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,2,16,0.000347
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,3,64,0.001508
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,4,256,0.005610
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,5,1024,0.020709
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,6,4096,0.078944
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,7,16384,0.320686
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,8,65536,1.292545
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",53,9,262144,5.335309
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,1,3,0.000046
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,2,9,0.000174
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,3,27,0.000652
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,4,81,0.002157
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,5,243,0.007541
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,6,729,0.023756
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,7,2187,0.079282
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,8,6561,0.248236
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",53,9,19683,0.835643
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,1,1,0.000014
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,2,3,0.000090
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,3,10,0.000196
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,4,36,0.000763
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,5,136,0.003615
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,6,528,0.012737
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,7,2080,0.058267
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,8,8256,0.199584
+Tn,triangle,solid,"filled right triangle T = {0<=x, 0<=y, x+y<=1} (grid cover)",106,9,32896,0.979368
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,1,3,0.000041
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,2,9,0.000148
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,3,27,0.000433
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,4,81,0.001590
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,5,243,0.004147
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,6,729,0.011371
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,7,2187,0.033181
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,8,6561,0.098620
+STRn,Sierpinski (right),limit,"vertices (0,1),(0,0),(1,0); 3 maps ratio 1/2 -- limit attractor",106,9,19683,0.298631
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,1,3,0.000055
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,2,9,0.000181
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,3,27,0.000641
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,4,81,0.001998
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,5,243,0.005945
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,6,729,0.015728
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,7,2187,0.046654
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,8,6561,0.138423
+STEn,Sierpinski (equilateral),limit,"vertices (-1,-1),(1,-1),(0,sqrt3-1); 3 maps ratio 1/2 -- limit attractor",106,9,19683,0.420818
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,1,4,0.000067
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,2,16,0.000323
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,3,64,0.001476
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,4,256,0.005962
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,5,1024,0.020951
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,6,4096,0.081845
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,7,16384,0.335325
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,8,65536,1.370166
+STE4n,"Sierpinski (equilateral, 4-map)",limit,"STE vertices + centroid (0,sqrt3/3-1); 4 maps ratio 1/2 -- limit attractor",106,9,262144,5.426482
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,1,3,0.000045
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,2,9,0.000173
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,3,27,0.000644
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,4,81,0.002144
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,5,243,0.007648
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,6,729,0.024045
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,7,2187,0.079679
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,8,6561,0.250290
+STRLim,Sierpinski (limit),limit,"vertices (0,1),(0,0),(1,0); limit of any X with STR X -- limit attractor",106,9,19683,0.837235
